@@ -1550,13 +1550,43 @@ function GenerateMasterData() {
 	for(key in types) {
 		Clear(key);
 	}
-	
+
+	// Generate master output data
+	for (key in types) {
+		process_data = document.getElementById(types[key]).getElementsByClassName("entry");
+		if (key.indexOf("cc_") < 0) {
+			for (ckey in categories) {
+				for (i = 0; i < process_data.length; i++) {
+					var uid = process_data[i].id;
+					if (process_data[i].innerHTML.indexOf(ckey) >= 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") >= 0) {
+						// Save to output
+						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
+						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
+					}
+				}
+			}
+		}
+		else {
+			for (ckey in target_team) {
+				for (i = 0; i < process_data.length; i++) {
+					var uid = process_data[i].id;
+					if (process_data[i].innerHTML.indexOf(ckey) >= 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") >= 0) {
+						// Save to output
+						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
+						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
+					}
+				}
+			}
+		}
+		document.getElementById("save_out").value += "|===|";
+	}
+	/*
 	// Templates
 	process_data = document.getElementById("templates").getElementsByClassName("entry");
 	for(i = 0; i < process_data.length; i++) {
 		var uid = process_data[i].id;
 		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if(settings[3].indexOf("master") == 0) {
+		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
 			// Save to output
 			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
 		}
@@ -1568,7 +1598,7 @@ function GenerateMasterData() {
 	for(i = 0; i < process_data.length; i++) {
 		var uid = process_data[i].id;
 		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if(settings[3].indexOf("master") == 0) {
+		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
 			// Save to output
 			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
 		}
@@ -1580,7 +1610,7 @@ function GenerateMasterData() {
 	for(i = 0; i < process_data.length; i++) {
 		var uid = process_data[i].id;
 		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if(settings[3].indexOf("master") == 0) {
+		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
 			// Save to output
 			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
 		}
@@ -1592,12 +1622,12 @@ function GenerateMasterData() {
 	for(i = 0; i < process_data.length; i++) {
 		var uid = process_data[i].id;
 		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if(settings[3].indexOf("master") == 0) {
+		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
 			// Save to output
 			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
 		}
 	}
-	document.getElementById("save_out").value += "|===|";
+	document.getElementById("save_out").value += "|===|";*/
 }
 
 /**********************************************
@@ -3659,7 +3689,7 @@ function includeHTML() {
 					//includeHTML();
 				}
 			}      
-			xhttp.open("GET", file, true);
+			xhttp.open("POST", file, true);
 			xhttp.send();
 			/*exit the function:*/
 			return;
