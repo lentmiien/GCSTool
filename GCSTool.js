@@ -2684,7 +2684,7 @@ function Calculate(uid) {
 	var answer_id = document.getElementById(uid + "_ct" + row).innerHTML.split("|");
 	
 	// Get answer data
-	var answer = "<ol style=\"color:blue;\">";
+	var answer = "<ol style=\"color:#777700;\">";
 	var i = 0;
 	while(i < answer_id.length) {
 		if(answer_id[i].length > 0) {
