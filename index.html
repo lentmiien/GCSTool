@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" href="Style.css">
+	<title>AmiAmi Template/Manual Tool</title>
+</head>
+<body onload="CheckScriptEnabled()">
+	
+	<!-- Uncomment for IE compability
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script>
+		$(document).ready(function () {
+
+			$('#online_master').load("Master.txt");
+
+		});
+	</script>
+	-->
+	<span id="online_master" w3-include-html="Master.txt" class="hidden"></span>
+	
+	<div class="contentblock">
+		
+		<div id="scriptenabled" class="error_text">
+			<b>ERROR! Could not run the necessary scripts.</b>
+			<ul>
+				<li>Please make sure that you have placed the "MainTemplates2.js" file in the same folder as the HTML file.</li>
+				<li>If the web browser is showing any warning about blocking the script, then please select to allow to run the script.</li>
+			</ul>
+			<b>エラー！　必要なスクリプトが発動できなかった。</b>
+			<ul>
+				<li>HTMLファイルが入っているフォルダーに「MainTemplates2.js」も入っていることを確認してください。</li>
+				<li>もしウェブブラウザにスクリプトの発動注意に関してのメッセージが表示された場合には、発動を承認してください。</li>
+			</ul>
+		</div>
+		
+		<div id="debug" class="debug"><div id="load_progress"></div></div>
+		
+		<!-- Initialize -->
+		<div id="initialize">
+			<h1><span class="multi_language"><span class="visible">初期設定</span><span class="data">●英語●Initialize●英語●●日本語●初期設定●日本語●</span></span></h1>
+			<h3><span class="multi_language"><span class="visible">個人データファイル</span><span class="data">●英語●Personal data file●英語●●日本語●個人データファイル●日本語●</span></span></h3>
+			<textarea name="input_personal" cols="40" rows="5" id="input_personal"></textarea>
+			<span class="tooltip">?
+				<span class="tooltiptext">
+					<b>個人データファイル</b><br>
+					Your last saved data should automatically be filled in, or you can copy-paste a backup file here.<br>
+					<i>*For new users only: Leave Empty</i><br>
+					自分の個人データファイルをこちらにコピーペーストしてください。<br>
+					<i>※新しいユーザーのみ：空にしてください。</i>
+				</span>
+			</span>
+			<h3><span class="multi_language"><span class="visible">マスターデータファイル</span><span class="data">●英語●Master data file●英語●●日本語●マスターデータファイル●日本語●</span></span></h3>
+			<textarea name="input_master" cols="40" rows="5" id="input_master" disabled></textarea>
+			<span class="tooltip">?
+				<span class="tooltiptext">
+					<b>マスターデータファイル</b><br>
+					Copy paste master data file here.<br>
+					<i>*You only need to copy paste the master data file if there has been any updates</i><br>
+					マスターデータファイルをこちらにコピーペーストしてください。<br>
+					<i>※マスターデータファイルの更新後のみコピーペーストする必要があります</i>
+				</span>
+			</span>
+			
+			<br><br>
+			
+			<h3>カラー設定</h3>
+			<select name="color_mode" id="color_mode">
+				<option value="Style_normal.css">普通</option>
+				<option value="Style_dark.css">ダーク</option>
+			</select>
+			
+			<br><br>
+			
+			<button id="load_button" class="important_button" onclick="LoadData()"><span class="multi_language"><span class="visible">カスタマーサポートツールを開始</span><span class="data">●英語●Initialize customer support tool●英語●●日本語●カスタマーサポートツールを開始●日本語●</span></span></button>
+		</div>
+		
+		<!-- Run -->
+		<div id="run" class="hidden">
+			<div id="ru_tabcnt" class="hidden">7</div>
+			
+			<!-- Input/Search layout -->
+			<div class="body_tab" id="ru_1_7">
+				<div class="layout_title"><div class="setup_interface">●英語●Search●英語●●日本語●検索●日本語●</div></div>
+				
+				<!-- Search field -->
+				<span class="frame">
+					<span class="setup_interface">●英語●Input:●英語●●日本語●入力：●日本語●</span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
+				</span>
+				<span class="frame frame_search">
+					<span class="setup_interface">●英語●Search●英語●●日本語●検索●日本語●</span>
+					<button onclick="Add('all_')"><div class="setup_interface">●英語●Add *Enter*●英語●●日本語●追加　【エンターキー】●日本語●</div></button>
+					<button onclick="Clear('all_')"><div class="setup_interface">●英語●Clear *-*●英語●●日本語●削除　【-】●日本語●</div></button>
+					<button onclick="ClearOne('all_')"><div class="setup_interface">●英語●Remove last word●英語●●日本語●1言葉を削除●日本語●</div></button>
+					<span class="tooltip">+
+						<span class="tooltiptext">
+							<b>Special search/特別検索</b><br>
+							<button onclick="ShowContent(-1, '', '_copy')">Copied master data/マスターデータのコピー</button><br>
+							<button onclick="ShowContent(-1, '', 'edit (personal)')">Personal data/個人データ</button><br>
+							<button onclick="News()">*NEW*</button>
+						</span>
+					</span>
+				</span>
+				<span class="frame frame_shipping">
+					<span class="setup_interface">●英語●Request●英語●●日本語●依頼●日本語●</span>
+					<button onclick="myGetDocument(1)"><div class="setup_interface" style="display:inline;">●英語●Shipping label●英語●●日本語●出荷ラベル●日本語●</div></button>
+					<button onclick="myGetDocument(2)"><div class="setup_interface" style="display:inline;">●英語●Invoice●英語●●日本語●インボイス●日本語●</div></button>
+					<button onclick="myGetDocument(0)"><div class="setup_interface" style="display:inline;">●英語●Shipping label/Invoice●英語●●日本語●出荷ラベル・インボイス●日本語●</div></button>
+					<button onclick="ShowDocuments()"><div class="setup_interface">●英語●Show●英語●●日本語●表示●日本語●</div></button>
+				</span>
+				<span class="frame frame_parse">
+					<span class="setup_interface">●英語●Find●英語●●日本語●見つけ●日本語●</span>
+					<button onclick="findordernumemail()"><div class="setup_interface">●英語●Find order number/email●英語●●日本語●注文番号・メール検索●日本語●</div></button>
+				</span>
+				<span class="frame">
+					<div class="setup_interface" style="display:inline;">●英語●External links●英語●●日本語●外部リンク●日本語●</div>
+					<span class="tooltip">+
+						<span class="tooltiptext">
+							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
+							<a href="https://www.amiami.com/eng/" target='_blank'>AmiAmi.com</a><br>
+							<a href="https://www.xe.com/" target='_blank'>XE Currency</a><br>
+							<a href="http://www.dhl.co.jp/ja/contact_center/contact_express/report_delivery_problem.html" target='_blank'>DHL Support</a><br>
+							<a href="http://www.dhl.co.jp/en/express/shipping/shipping_advice/express_fuel_surcharge_apem.html" target='_blank'>DHL Fuel</a><br>
+							<a href="https://mesg.ebay.com/mesgweb/ViewMessages/0/All" target='_blank'>Ebay messages</a><br>
+							<a href="https://www.paypal.com/disputes/" target='_blank'>PayPal disputes</a><br>
+							<a href="https://sellercentral.amazon.com/home" target='_blank'>Amazon messages</a><br>
+							<a href="https://www.post.japanpost.jp/int/ems/delivery/link.html" target='_blank'>EMS tracking pages</a>
+						</span>
+					</span>
+				</span>
+				<br>
+				<div id="all_keywords"></div><br>
+				<div id="all_tags"></div><br>
+				<div id="all_stext"></div><br>
+				
+				<!-- Search result area -->
+				<h2><div class="setup_interface">●英語●Search result●英語●●日本語●検索結果●日本語●</div></h2>
+				<div id="s_result"></div>
+			</div>
+			
+			<!-- Template layout -->
+			<div class="body_tab" id="ru_2_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Template●英語●●日本語●テンプレート●日本語●</div></div>
+				
+				<!-- Search field -->
+				<span class="frame frame_search">
+					<span class="setup_interface">●英語●Text search:●英語●●日本語●テキスト検索●日本語●</span> <textarea class="textarea_search" rows="1" cols="25" id="te_inputfield" onkeyup="ProcessTextInput('te_')"></textarea>
+					<button onclick="Add('te_')"><div class="setup_interface">●英語●Add *Enter*●英語●●日本語●追加　【エンターキー】●日本語●</div></button>
+					<button onclick="Clear('te_')"><div class="setup_interface">●英語●Clear *-*●英語●●日本語●削除　【-】●日本語●</div></button>
+					<button onclick="ClearOne('te_')"><div class="setup_interface">●英語●Remove last word●英語●●日本語●1言葉を削除●日本語●</div></button>
+				</span>
+				<br>
+				<div id="te_keywords"></div><br>
+				<div id="te_tags"></div><br>
+				<div id="te_stext"></div><br>			
+				<table>
+					<tr>
+						<td><div id="te_categories_check"></div></td>
+					</tr>
+				</table>
+				
+				<!-- Template select area -->
+				<h2><div class="setup_interface">●英語●Templates●英語●●日本語●テンプレート●日本語●</div></h2>
+				<div id="templates"></div>
+			</div>
+			
+			<!-- Manual layout -->
+			<div class="body_tab" id="ru_3_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Manual●英語●●日本語●マニュアル●日本語●</div></div>
+				
+				<!-- Search field -->
+				<span class="frame frame_search">
+					<span class="setup_interface">●英語●Text search:●英語●●日本語●テキスト検索●日本語●</span> <textarea class="textarea_search" rows="1" cols="25" id="ma_inputfield" onkeyup="ProcessTextInput('ma_')"></textarea>
+					<button onclick="Add('ma_')"><div class="setup_interface">●英語●Add *Enter*●英語●●日本語●追加　【エンターキー】●日本語●</div></button>
+					<button onclick="Clear('ma_')"><div class="setup_interface">●英語●Clear *-*●英語●●日本語●削除　【-】●日本語●</div></button>
+					<button onclick="ClearOne('ma_')"><div class="setup_interface">●英語●Remove last word●英語●●日本語●1言葉を削除●日本語●</div></button>
+				</span>
+				<br>
+				<div id="ma_keywords"></div><br>
+				<div id="ma_tags"></div><br>
+				<div id="ma_stext"></div><br>			
+				<table>
+					<tr>
+						<td><div id="ma_categories_check"></div></td>
+					</tr>
+				</table>
+				
+				<!-- Template select area -->
+				<h2><div class="setup_interface">●英語●Manuals●英語●●日本語●マニュアル●日本語●</div></h2>
+				<div id="manual"></div>
+			</div>
+			
+			<!-- Company contact layout -->
+			<div class="body_tab" id="ru_4_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Company Contact●英語●●日本語●会社連絡●日本語●</div></div>
+				
+				<!-- Search field -->
+				<span class="frame frame_search">
+					<span class="setup_interface">●英語●Text search:●英語●●日本語●テキスト検索●日本語●</span> <textarea class="textarea_search" rows="1" cols="25" id="cc_inputfield" onkeyup="ProcessTextInput('cc_')"></textarea>
+					<button onclick="Add('cc_')"><div class="setup_interface">●英語●Add *Enter*●英語●●日本語●追加　【エンターキー】●日本語●</div></button>
+					<button onclick="Clear('cc_')"><div class="setup_interface">●英語●Clear *-*●英語●●日本語●削除　【-】●日本語●</div></button>
+					<button onclick="ClearOne('cc_')"><div class="setup_interface">●英語●Remove last word●英語●●日本語●1言葉を削除●日本語●</div></button>
+				</span>
+				<br>
+				<div id="cc_keywords"></div><br>
+				<div id="cc_tags"></div><br>
+				<div id="cc_stext"></div><br>			
+				<table>
+					<tr>
+						<td><div id="cc_categories_check"></div></td>
+					</tr>
+				</table>
+				
+				<!-- Template select area -->
+				<h2><div class="setup_interface">●英語●Company Contact●英語●●日本語●会社連絡●日本語●</div></h2>
+				<div id="ccontact"></div>
+			</div>
+			
+			<!-- Assist layout -->
+			<div class="body_tab" id="ru_5_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Assistant●英語●●日本語●サポート●日本語●</div></div>
+				
+				<!-- Search field -->
+				<span class="frame frame_search">
+					<span class="setup_interface">●英語●Text search:●英語●●日本語●テキスト検索●日本語●</span> <textarea class="textarea_search" rows="1" cols="25" id="as_inputfield" onkeyup="ProcessTextInput('as_')"></textarea>
+					<button onclick="Add('as_')"><div class="setup_interface">●英語●Add *Enter*●英語●●日本語●追加　【エンターキー】●日本語●</div></button>
+					<button onclick="Clear('as_')"><div class="setup_interface">●英語●Clear *-*●英語●●日本語●削除　【-】●日本語●</div></button>
+					<button onclick="ClearOne('as_')"><div class="setup_interface">●英語●Remove last word●英語●●日本語●1言葉を削除●日本語●</div></button>
+				</span>
+				<br>
+				<div id="as_keywords"></div><br>
+				<div id="as_tags"></div><br>
+				<div id="as_stext"></div><br>			
+				<table>
+					<tr>
+						<td><div id="as_categories_check"></div></td>
+					</tr>
+				</table>
+				
+				<h2><div class="setup_interface">●英語●Assistant●英語●●日本語●サポート●日本語●</div></h2>
+				<div id="assistant"></div>
+			</div>
+			
+			<!-- Edit layout (Master edit require Password) -->
+			<div class="body_tab" id="ru_6_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Edit●英語●●日本語●編集●日本語●</div></div>
+				
+				<!-- Edit menu -->
+				<table>
+					<tr>
+						<td class="half">
+							<input type="radio" name="edit_user" onclick="SetEditStatus(0)" checked><div class="setup_interface" style="display:inline;">●英語● Personal, ●英語●●日本語●　個人、　●日本語●</div><input type="radio" name="edit_user" onclick="SetEditStatus(1)"><div class="setup_interface"  style="display:inline;">●英語● Master ●英語●●日本語●　マスター　●日本語●</div><span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><div class="setup_interface">●英語●Login●英語●●日本語●ログイン●日本語●</div></button></span>
+						</td>
+						<td class="half">
+							<div id="current_mode"><div class="setup_interface">●英語●Personal●英語●●日本語●個人●日本語●</div></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button onclick="UpdateSettings()"><div class="setup_interface">●英語●Change Settings●英語●●日本語●設定変更●日本語●</div></button>
+							<button onclick="CreateNew('template')"><div class="setup_interface">●英語●New Template●英語●●日本語●新規テンプレート●日本語●</div></button>
+							<button onclick="CreateNew('manual')"><div class="setup_interface">●英語●New Manual●英語●●日本語●新規マニュアル●日本語●</div></button>
+							<button onclick="CreateNew('ccontact')"><div class="setup_interface">●英語●New Company Contact●英語●●日本語●新規会社連絡●日本語●</div></button>
+							<button onclick="CreateNew('assistant')"><div class="setup_interface">●英語●New Assistant●英語●●日本語●新規サポートツール●日本語●</div></button>
+						</td>
+					</tr>
+				</table>
+				
+				<!-- Edit settings -->
+				<div id="edit_settings" class="hidden">
+					<b><div class="setup_interface">●英語●User ID●英語●●日本語●ユーザーID●日本語●</div></b><input id="s_user_id" type="text" onchange="SetID()"><br><br>
+					<b><div class="setup_interface">●英語●Team●英語●●日本語●チーム●日本語●</div></b><div id="s_user_team"></div><br>
+					<b><div class="setup_interface">●英語●Interface●英語●●日本語●インターフェイス●日本語●</div></b><input id="s_i_language_eng" name="lang_select" type="radio" onclick="SetILanguage()"> English, <input id="s_i_language_jap" name="lang_select" type="radio" onclick="SetILanguage()"> 日本語<br><br>
+					<b><div class="setup_interface">●英語●Language priority●英語●●日本語●言語優先順位●日本語●</div></b>
+					<table>
+						<tr>
+							<th class="forth"><div class="setup_interface">●英語●Language●英語●●日本語●言語●日本語●</div></th>
+							<th class="forth"><div class="setup_interface">●英語●Priority 1●英語●●日本語●優先①●日本語●</div></th>
+							<th class="forth"><div class="setup_interface">●英語●Priority 2●英語●●日本語●優先②●日本語●</div></th>
+							<th class="forth"><div class="setup_interface">●英語●Priority 3●英語●●日本語●優先③●日本語●</div></th>
+						</tr>
+						<tr>
+							<td>English</td>
+							<td><input type="radio" id="eng_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="eng_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="eng_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
+						</tr>
+						<tr>
+							<td>日本語</td>
+							<td><input type="radio" id="jap_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="jap_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="jap_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
+						</tr>
+						<tr>
+							<td>Other / その他</td>
+							<td><input type="radio" id="oth_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="oth_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="oth_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
+						</tr><tr>
+							<td>None / 無し</td>
+							<td></td>
+							<td><input type="radio" id="no_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
+							<td><input type="radio" id="no_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
+						</tr>
+					</table><br>
+					<b><div class="setup_interface">●英語●Reminders●英語●●日本語●リマインダー●日本語●</div></b>
+					<div id="show_reminders"></div>
+				</div>
+				
+				<!-- Edit content -->
+				<div id="edit_body" class="hidden">
+					<table>
+						<tr>
+							<td class="fifth"><div class="setup_interface">●英語●Unique ID●英語●●日本語●ユニックID●日本語●</div></td>
+							<td class="fifth"><div class="setup_interface">●英語●Type●英語●●日本語●種類●日本語●</div></td>
+							<td class="fifth">
+								<div class="setup_interface" style="display:inline;">●英語●Category●英語●●日本語●カテゴリー●日本語●</div>
+								<span class="tooltip">?
+									<span class="tooltiptext">
+										<b>Order/Item Statuses/注文・商品の状況</b><br>
+										Item questions, Order status/confirmation, Release dates<br>
+										商品質問、注文状況・確認、発売日<br>
+										<b>Order Modifying/注文編集</b><br>
+										Cancellations, Splitting/Moving items, Changing address/payment/shipping, Combining orders<br>
+										キャンセル、分割・移動、住所・決済・発送変更、同梱<br>
+										<b>Account Related/アカウント関連</b><br>
+										Updating password/email, Status of account<br>
+										パスワード・メール変更、アカウント状況<br>
+										<b>Payment/Shipping/決済・発送</b><br>
+										Payments, Shipping methods, Shipping estimates<br>
+										入金、発送方法、送料見積もり<br>
+										<b>After Service Shipping/配達サポート</b><br>
+										Shipping problems, Wrongly delivered items, Missing items<br>
+										発送中のトラブル、テレコ、不足<br>
+										<b>After Service Defect/不良サポート</b><br>
+										Defects, Missing parts<br>
+										不良、欠品<br>
+										<b>After Service Pre-owned/中古サポート</b><br>
+										About pre-owned items<br>
+										中古関連<br>
+										<b>Returns/Refunds/返品・返金</b><br>
+										Returns, Refunds<br>
+										返品、返金<br>
+										<b>Claims/Cases/クレーム・ケース</b><br>
+										PP Disputes/Claims, Ebay cases/claims, Amazon claims<br>
+										PP異議・クレーム、ebayケース・クレーム、Amazonクレーム<br>
+										<b>Other/その他</b><br>
+										Other, Things we do not assist with<br>
+										その他、対応しないもの<br>
+										<b>Work Related/仕事関連</b><br>
+										About working at AmiAmi<br>
+										あみあみで働くに関した
+									</span>
+								</span>
+							</td>
+							<td class="fifth"><div class="setup_interface">●英語●Team●英語●●日本語●チーム●日本語●</div></td>
+							<td class="fifth"><div class="setup_interface">●英語●Last Updated●英語●●日本語●更新日●日本語●</div></td>
+						</tr>
+						<tr>
+							<td><b id="unique_id"></b></td>
+							<td><b id="type"></b></td>
+							<td><b id="category"></b></td>
+							<td><b id="team"></b></td>
+							<td><b id="last_updated"></b></td>
+						</tr>
+					</table>
+					<table>
+						<tr>
+							<td colspan="3"><div class="setup_interface" style="display:inline;">●英語●Title:●英語●●日本語●タイトル：●日本語●</div><input id="title" type="text"><button onclick="AddTitle('eng')">Add English</button><button onclick="AddTitle('jap')">日本語追加</button><button onclick="AddTitle('other')">Add Other その他追加</button></td>
+						</tr>
+						<tr>
+							<td class="third"><h1 id="title_show_eng">Not set...</h1></td>
+							<td class="third"><h1 id="title_show_jap">Not set...</h1></td>
+							<td class="third"><h1 id="title_show_other">Not set...</h1></td>
+						</tr>
+					</table>
+					
+					<!-- Content input areas -->
+					<div id="selected_input_box" class="hidden"></div>
+					<div id="input_boxes"></div>
+					<div id="temp_save" class="hidden"></div>
+					
+					<table>
+						<tr>
+							<td class="third"><button onclick="SetLanguageTag('英語')">English</button></td>
+							<td class="third"><button onclick="SetLanguageTag('日本語')">日本語</button></td>
+							<td class="third"><button onclick="SetLanguageTag('その他')">Other / その他</button></td>
+						</tr>
+					</table>
+					<button onclick="Delete()" style="background-color:red;"><div class="setup_interface">●英語●Delete●英語●●日本語●削除●日本語●</div></button>
+				</div>
+			</div>
+			
+			<!-- Save -->
+			<div class="body_tab" id="ru_7_7" style="display:none">
+				<div class="layout_title"><div class="setup_interface">●英語●Save/Load●英語●●日本語●保存・ロード●日本語●</div></div>
+				
+				<table>
+					<tr>
+						<td class="third">
+							<input id="personal" type="radio" name="save_tab" onclick="SaveTab(0)" checked> <div class="setup_interface">●英語●Personal●英語●●日本語●個人●日本語●</div>
+							<span class="tooltip">?
+								<span class="tooltiptext">
+									<b>Personal data file/個人データファイル</b><br>
+									Whenever you add any content or change any settings you will need to re-save your own personal data file. This is the file that you load everytime you start the template/manual tool.<br>
+									データ内容を追加したり、設定を変更したりするときに再度個人データファイルを保存する必要があります。毎回テンプレート・マニュアルツールを立ち上がる時に使うファイルです。<br>
+									<b>Process/処理方法</b>
+									<ol>
+										<li>Press the "Personal data" button</li>
+										<li>Copy paste all the text in the text box to a textfile on your computer</li>
+										<li>Save the file</li>
+									</ol>
+									<ol>
+										<li>「個人データ」ボタンを押す</li>
+										<li>テキストボクスの内容を自分のコンピューターのテキストファイルにコピーペーストする</li>
+										<li>ファイルを保存する</li>
+									</ol>
+								</span>
+							</span>
+						</td>
+						<td class="third">
+							<input id="share" type="radio" name="save_tab" onclick="SaveTab(1)"> <div class="setup_interface">●英語●Share●英語●●日本語●共有●日本語●</div>
+							<span class="tooltip">?
+								<span class="tooltiptext">
+									<b>Share data file/共有データファイル</b><br>
+									Share data is used for sharing templates and manuals that you have created.<br>
+									共有のデータは自分が作成したテンプレート・マニュアルを共有するときに使う。<br>
+									<b>Process　Share/共有処理方法</b>
+									<ol>
+										<li>Share the template/manual with your team for confirming that it is acceptable and that no one opose to add it to the master data</li>
+										<li>If there are any issues, review the template/manual and start over at step 1, otherwise proceed with step 3</li>
+										<li>Press the "Share data" button</li>
+										<li>Select the templates/manuals that you want to share and press "Generate data"</li>
+										<li>Copy paste all the text in the text box to a textfile on your computer</li>
+										<li>Share the file with the person responsible to update the master data</li>
+									</ol>
+									<ol>
+										<li>チーム内でテンプレート・マニュアルを共有して、問題が無いか・マスターデータに追加する反対が無いかを確認する</li>
+										<li>もし問題があったら、問題点を修正してステップ１に戻る、他の場合にはステップ３で続く</li>
+										<li>「共有データ」ボタンを押す</li>
+										<li>共有したテンプレート・マニュアルを選択し、「データ作成」を押す</li>
+										<li>テキストボクスの内容を自分のコンピューターのテキストファイルにコピーペーストする</li>
+										<li>作成したファイルをマスターデータを更新するスタッフに渡す</li>
+									</ol>
+									<b>Process Load/ロード処理方法</b>
+									<ol>
+										<li>Copy paste the shared data in the text box below</li>
+										<li>Press "Load data"</li>
+									</ol>
+									<ol>
+										<li>共有されたデータを下記のテキストボクスにコピーペーストする</li>
+										<li>「データロード」を押す</li>
+									</ol>
+								</span>
+							</span>
+						</td>
+						<td class="third">
+							<input id="master" type="radio" name="save_tab" onclick="SaveTab(2)"> <div class="setup_interface">●英語●Master●英語●●日本語●マスター●日本語●</div>
+							<span class="tooltip">?
+								<span class="tooltiptext">
+									<b>Master data file/マスターデータファイル</b><br>
+									Master data is used for sharing data that all users should use (official approved data)<br>
+									マスターのデータはみんなが使うものになります（正式的に認められているデータ）<br>
+									<b>Process/処理方法</b>
+									<ol>
+										<li>Press the "Master data" button</li>
+										<li>Copy paste all the text in the text box to a textfile on your computer</li>
+										<li>Share the file with your team</li>
+									</ol>
+									<ol>
+										<li>「マスタデータ」ボタンを押す</li>
+										<li>テキストボクスの内容を自分のコンピューターのテキストファイルにコピーペーストする</li>
+										<li>作成したファイルをチーム内で共有する</li>
+									</ol>
+								</span>
+							</span>
+						</td>
+					</tr>
+				</table>
+				
+				<h3><div class="setup_interface">●英語●Save content●英語●●日本語●保存内容●日本語●</div></h3>
+				
+				<div id="private_tab">
+					<span class="frame frame_search">
+						<button onclick="GeneratePersonalData()"><div class="setup_interface">●英語●Personal data●英語●●日本語●個人データ●日本語●</div></button>
+					</span>
+				</div>
+				
+				<div id="share_tab" class="hidden">
+					<span class="frame frame_search">
+						<button onclick="GenerateShareData()"><div class="setup_interface">●英語●Share data●英語●●日本語●共有データ●日本語●</div></button>
+						<button onclick="LoadShareData()"><div class="setup_interface">●英語●Load data●英語●●日本語●データロード●日本語●</div></button>
+					</span>
+					<div id="share_output"></div>
+				</div>
+				
+				<div id="master_tab" class="hidden">
+					<span class="frame frame_shipping">
+						<button onclick="GenerateMasterData()"><div class="setup_interface">●英語●Master data●英語●●日本語●マスターデータ●日本語●</div></button>
+					</span>
+				</div>
+				
+				
+				
+				<h3><div class="setup_interface">●英語●Data●英語●●日本語●データ●日本語●</div></h3>
+				<textarea id="save_out" style="width:100%;height:500px;" onclick="Selector(this)"></textarea><br>
+				<span style="color:red;"><b><div class="setup_interface">●英語●*Copy paste to data file and save the file!●英語●●日本語●※データファイルにコピーペーストしてください。●日本語●</div></b></span>
+			</div>
+		</div>
+		
+		<!-- Approve share data (share private -> master) -->
+		<div id="approve" class="hidden">
+			<div id="top_status_bar">
+				<table>
+					<tr>
+						<td class="third"></td>
+						<td class="third"><h3><div class="setup_interface">●英語●Approve as master data●英語●●日本語●マスターデータとして承認●日本語●</div></h3></td>
+						<td class="third"><b id="left_to_check">1/1</b></td>
+					</tr>
+				</table>
+				
+				<div id="counter" class="hidden">0</div>
+			</div>
+			
+			<!-- Used when approving "_COPY" entries -->
+			<div id="current_master"></div>
+			
+			<!-- Suggested entries -->
+			<div id="suggested_entry"></div>
+			
+			<!-- Buttons -->
+			<div id="approve_buttons">
+				<button onclick="Approve(1)"><div class="setup_interface">●英語●Approve●英語●●日本語●承認●日本語●</div></button>
+				<button onclick="Approve(0)"><div class="setup_interface">●英語●Approve (Private)●英語●●日本語●承認（個人）●日本語●</div></button>
+				<button onclick="Reject()"><div class="setup_interface">●英語●Reject●英語●●日本語●拒否●日本語●</div></button>
+				
+				<span class="tooltip">?
+					<span class="tooltiptext">
+						<b>Approval process/承認処理方法</b><br>
+						<ol>
+							<li>Press the "Approve" button to approve the data as master data (Should only be used if the data follows our current rules, in all other cases it is nessesary to get approval for the process beforehand)</li>
+							<li>Press the "Approve (Private)" button to add the data as private data (Use this if further confirmation is needed)</li>
+							<li>Press the "Reject" button to avoid any changes (Should be used if there is any problems with the suggested data that needs to be fixed)</li>
+						</ol>
+						<ol>
+							<li>「承認」ボタンを押すと、データがマスターデータとして追加されます（今のルールに従っているものにしか使えない、その他の場合には、先ず処理方法の承認が必要）</li>
+							<li>「承認（個人）」ボタンを押すと、個人データとして追加されます（もしまだ承認・確認が必要な場合には、こちらを使ってください）</li>
+							<li>「拒否」ボタンを押すと、何も変わらない（もし修正が必要な問題があったら、こちらを使ってください）</li>
+						</ol>
+					</span>
+				</span>
+				
+				<br><br>
+				
+				<button onclick="Back()"><div class="setup_interface">●英語●Back●英語●●日本語●戻る●日本語●</div></button>
+			</div>
+		</div>
+		
+		<!-- Data -->
+		<div class="hidden" style="color:#CCCCCC;">
+			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">●日本語●</div><div id="content_language">●日本語●|●英語●|●その他●</div><div id="my_reminders"></div></div>
+			<div id="meeting"><h3>Meeting</h3></div>
+			<div id="own_comments"><h3>Own Comments</h3></div>
+			<div id="var_labinv"></div>
+			<div id="var_label"></div>
+			<div id="var_invoice"></div>
+		</div>
+		
+	</div> <!-- class="contentblock" -->
+	
+	<!-- New menu bar -->
+	<ul id="menubar" class="menubar hidden">
+		<li><a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)"><div class="setup_interface">●英語●Search●英語●●日本語●検索●日本語●</div></a></li>
+		<li><a id="ru_2_btn" href="#Templates" onclick="TabHandler('ru_', 2)"><div class="setup_interface">●英語●Templates●英語●●日本語●テンプレート●日本語●</div></a></li>
+		<li><a id="ru_3_btn" href="#Manual" onclick="TabHandler('ru_', 3)"><div class="setup_interface">●英語●Manual●英語●●日本語●マニュアル●日本語●</div></a></li>
+		<li><a id="ru_4_btn" href="#CompanyContact" onclick="TabHandler('ru_', 4)"><div class="setup_interface">●英語●Company Contact●英語●●日本語●会社連絡●日本語●</div></a></li>
+		<li><a id="ru_5_btn" href="#Assistant" onclick="TabHandler('ru_', 5)"><div class="setup_interface">●英語●Assistant●英語●●日本語●サポートツール●日本語●</div></a></li>
+		<li><a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)"><div class="setup_interface">●英語●Edit●英語●●日本語●編集●日本語●</div></a></li>
+		<li>
+			<a id="ru_7_btn" href="#Save" onclick="TabHandler('ru_', 7)">
+				<div class="setup_interface" style="display:inline;">●英語●Save/Load●英語●●日本語●保存・ロード●日本語●</div>
+				<span id="need_save" class="hidden">
+					<span class="tooltip"><b style="color:red;">★</b>
+						<span class="tooltiptext">
+							<b>★ = Need to save personal data/個人データをセーブする必要有り</b>
+						</span>
+					</span>
+				</span>
+			</a>
+		</li>
+		
+		<li style="float:right"><a href="#Other" onclick="ChangeLanguage('●その他●')">Other / その他</a></li>
+		<li style="float:right"><a href="#Japanese" onclick="ChangeLanguage('●日本語●')">日本語</a></li>
+		<li style="float:right"><a href="#English" onclick="ChangeLanguage('●英語●')">English</a></li>
+	</ul>
+	
+	<!-- Edit menu bar -->
+	<ul id="editbar_text" class="editbar hidden">
+		<li><button class="important_button" onclick="EditSave()"><div class="setup_interface">●英語●SAVE●英語●●日本語●保存●日本語●</div></button></li>
+	</ul>
+	<ul id="editbar_html" class="editbar hidden">
+		<li><a onclick="TagText('selected_input_box', 'b')"><b>B</b></a></li>
+		<li><a onclick="TagText('selected_input_box', 'i')"><i>I</i></a></li>
+		<li><a onclick="TagText('selected_input_box', 'u')"><u>U</u></a></li>
+		<li><a onclick="TagText('selected_input_box', 'h2')"><div class="setup_interface">●英語●Title●英語●●日本語●タイトル●日本語●</div></a></li>
+		<li><a onclick="TagText('selected_input_box', 'h3')"><div class="setup_interface">●英語●Subtitle●英語●●日本語●サブタイトル●日本語●</div></a></li>
+		<li><a onclick="SingelTagText('selected_input_box', '<br>')"><div class="setup_interface">●英語●New line●英語●●日本語●新しい行●日本語●</div></a></li>
+		<li><a onclick="SingelTagText('selected_input_box', '<hr>')"><div class="setup_interface">●英語●Divider line●英語●●日本語●区切り線●日本語●</div></a></li>
+		
+		<li><input id="color" type="color" name="favcolor" value="#000000" style="height:30px;width:40px;"></li>
+		<li><a onclick="SetBackground('selected_input_box', 'color')"><div class="setup_interface">●英語●Background●英語●●日本語●背景●日本語●</div></a></li>
+		<li><a onclick="SetTextcolor('selected_input_box', 'color')"><div class="setup_interface">●英語●Textcolor●英語●●日本語●テクスト●日本語●</div></a></li>
+		
+		<li><input id="rows" type="number" style="height:30px;width:40px;"> X <input id="cols" type="number" style="height:30px;width:40px;"></li>
+		<li><a onclick="CreateTable('selected_input_box')"><div class="setup_interface">●英語●Table●英語●●日本語●テーブル●日本語●</div></a></li>
+		
+		<li><a onclick="TagText('selected_input_box', 'ul')"><div class="setup_interface">●英語●Dot list●英語●●日本語●ドットリスト●日本語●</div></a></li>
+		<li><a onclick="TagText('selected_input_box', 'ol')"><div class="setup_interface">●英語●Number list●英語●●日本語●順番リスト●日本語●</div></a></li>
+		<li><a onclick="TagText('selected_input_box', 'li')"><div class="setup_interface">●英語●List element●英語●●日本語●リスト項目●日本語●</div></a></li>
+		
+		<li><input id="image_link" type="text" style="height:30px;"></li>
+		<li><a onclick="AddImage('selected_input_box')"><div class="setup_interface">●英語●Image●英語●●日本語●画像●日本語●</div></a></li>
+		
+		<li><input id="search_word" type="text" style="height:30px;"><select id="search_type"><option value="all">Search</option><option value="template">Template</option><option value="manual">Manual</option><option value="ccontact">Contact</option><option value="assist">Assist</option></select></li>
+		<li><a onclick="AddSearchButton('selected_input_box')"><div class="setup_interface">●英語●Search button●英語●●日本語●検索ボタン●日本語●</div></a></li>
+		
+		<li><button class="important_button" onclick="EditSave()"><div class="setup_interface">●英語●SAVE●英語●●日本語●保存●日本語●</div></button></li>
+	</ul>
+	<ul id="editbar_assist" class="editbar hidden">
+		<li><a onclick="AddQuestion()"><div class="setup_interface">●英語●Add question●英語●●日本語●質問追加●日本語●</div></a></li>
+		<li><a onclick="AddAnswer()"><div class="setup_interface">●英語●Add answer●英語●●日本語●答え追加●日本語●</div></a></li>
+		
+		<li><button class="important_button" onclick="EditSave()"><div class="setup_interface">●英語●SAVE●英語●●日本語●保存●日本語●</div></button></li>
+	</ul>
+	
+	<script src="GCSTool.js"></script>
+</body>
+</html>

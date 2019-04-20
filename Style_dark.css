@@ -1,0 +1,110 @@
+/* Global settings */
+body {
+	background-color: rgb(30, 30, 34);
+	color: rgb(252, 255, 214);
+	margin: 0;
+}
+
+/* Dictionary settings */
+div.entry {
+	border-style: solid;
+	border-color: rgb(87, 87, 87);
+}
+
+table, th, td {
+	font-size: 20px;
+	border: 1px solid rgb(160, 160, 160);
+	border-collapse: collapse;
+}
+
+.frame {
+	border: 1px solid rgb(255, 255, 255);
+	padding: 5px;
+	border-radius: 15px;
+}
+.frame_search {
+	background-color: rgb(36, 36, 63);
+}
+.frame_shipping {
+	background-color: rgb(88, 41, 41);
+}
+.frame_parse {
+	background-color: rgb(82, 82, 42);
+}
+
+.label {
+	border: 2px dotted rgb(128, 128, 128);
+	border-radius: 5px;
+	margin-left: 5px;
+}
+
+.template {
+	background-color: #222266;
+}
+.manual {
+	background-color: #662222;
+}
+.ccontact {
+	background-color: #333311;
+}
+.assist {
+	background-color: #226666;
+}
+.master {
+	background-color: #116611;
+}
+.private {
+	background-color: #661111;
+}
+
+.title_button {
+	font-size: 20px;
+	padding: 1px 15px;
+	cursor: pointer;
+	border: 2px solid;
+	border-radius: 3px;
+	color: black;
+}
+
+button {
+	background-color: #000000;
+	color: #FFFFFF;
+	cursor: pointer;
+}
+
+/* Default settings for input areas */
+textarea {
+	resize: none;
+	overflow: hidden;
+	background-color: rgb(39, 39, 0);
+	color: rgb(230, 227, 255);
+}
+input {
+	background-color: rgb(39, 39, 0);
+	color: rgb(230, 227, 255);
+}
+select {
+	background-color: rgb(39, 39, 0);
+	color: rgb(230, 227, 255);
+}
+
+.textarea_comment {
+	width: 100%;
+	resize: none;
+	overflow: hidden;
+	background-color: rgb(48, 38, 56);
+}
+
+/* Debug */
+.debug {
+	background-color: rgb(148, 78, 21);
+	text-align: center;
+	width: 100%;
+	font-size: 20px;
+	border: 2px solid rgb(255, 83, 83);
+}
+
+.todo_to_be_hidden {
+	background-color: rgb(255, 255, 255);
+	margin-top: 50px;
+}

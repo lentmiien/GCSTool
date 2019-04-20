@@ -1,0 +1,98 @@
+/* Global settings */
+body {
+	background-color: #FAFAFF;
+	margin: 0;
+}
+
+/* Dictionary settings */
+div.entry {
+	border-style: solid;
+	border-color: #F0F0F0;
+}
+
+table, th, td {
+	font-size: 20px;
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+.frame {
+	border: 1px solid black;
+	padding: 5px;
+	border-radius: 15px;
+}
+.frame_search {
+	background-color: #DDDDFF;
+}
+.frame_shipping {
+	background-color: #FFDDDD;
+}
+.frame_parse {
+	background-color: #FFFFDD;
+}
+
+.label {
+	border: 2px dotted black;
+	border-radius: 5px;
+	margin-left: 5px;
+}
+.template {
+	background-color: #CCCCFF;
+}
+.manual {
+	background-color: #FFCCCC;
+}
+.ccontact {
+	background-color: #DDDD88;
+}
+.assist {
+	background-color: #CCFFFF;
+}
+.master {
+	background-color: #AAFFAA;
+}
+.private {
+	background-color: #FFFFCC;
+}
+
+.title_button {
+	font-size: 20px;
+	padding: 1px 15px;
+	cursor: pointer;
+	border: 2px solid;
+	border-radius: 3px;
+}
+
+/* Default settings for input areas */
+textarea {
+	resize: none;
+	overflow: hidden;
+	background-color: #FFFFDD;
+}
+input {
+	background-color: #FFFFDD;
+}
+select {
+	background-color: #FFFFDD;
+}
+
+.textarea_comment {
+	width: 100%;
+	resize: none;
+	overflow: hidden;
+	background-color: #DDB2FF;
+}
+
+/* Debug */
+.debug {
+	background-color: yellow;
+	text-align: center;
+	width: 100%;
+	font-size: 20px;
+	border: 2px solid red;
+}
+
+.todo_to_be_hidden {
+	background-color: black;
+	margin-top: 50px;
+}
