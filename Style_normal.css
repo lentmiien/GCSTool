@@ -9,6 +9,11 @@ div.entry {
 	border-style: solid;
 	border-color: #F0F0F0;
 }
+/* entry_c needed for News() function to work properly */
+div.entry_c {
+	border-style: solid;
+	border-color: #F0F0F0;
+}
 
 table, th, td {
 	font-size: 20px;

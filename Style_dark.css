@@ -10,6 +10,11 @@ div.entry {
 	border-style: solid;
 	border-color: rgb(87, 87, 87);
 }
+/* entry_c needed for News() function to work properly */
+div.entry_c {
+	border-style: solid;
+	border-color: rgb(87, 87, 87);
+}
 
 table, th, td {
 	font-size: 20px;

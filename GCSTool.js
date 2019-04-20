@@ -901,7 +901,8 @@ function News() {
 			var tdat = document.getElementById(tid).innerHTML.split("|")[2];
 			if(CDate(newest, tdat) == 0) {
 				if(first == true) {
-					document.getElementById("s_result").innerHTML += "<h2>" + newest + "</h2>";
+					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
+					document.getElementById("s_result").innerHTML += "<h2>" + d_string + "<span style=\"color:Red;\">★NEW★</span></h2>";
 					first = false;
 				}
 				var class_name;
@@ -928,7 +929,7 @@ function News() {
 					u = 3;
 				}
 
-				var output = "<div class=\"" + class_name + "\"><button onclick=\"ShowContent(" + u + ",'" + myID + "','')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
+				var output = "<div class=\"entry_c " + class_name + "\"><button onclick=\"ShowContent(" + u + ",'" + myID + "','')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
 
 				// Type of entry
 				output += "<i class=\"label\">" + text_input + "</i>";
@@ -947,7 +948,7 @@ function News() {
 
 				max_results -= 1;
 				if (max_results <= 0) {
-					document.getElementById("s_result").innerHTML += "<div class=\"entry\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
+					document.getElementById("s_result").innerHTML += "<div class=\"entry_c\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
 					return;
 				}
 			}
@@ -1497,6 +1498,7 @@ function ShowDocuments() {
 	}
 }
 
+// Change(new data save): Only save personal data (as master data is loaded automatically at every start up)
 function GeneratePersonalData() {
 	// Settings
 	document.getElementById("save_out").value  = document.getElementById("settings").innerHTML + "||||";
@@ -1507,7 +1509,7 @@ function GeneratePersonalData() {
 			for(ckey in categories) {
 				var i;
 				for(i = 0; i < entries.length; i++) {
-					if(entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0) {
+					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(entries[i].id + "_settings").innerHTML.indexOf("master") < 0) {
 						document.getElementById("save_out").value += entries[i].outerHTML;
 					}
 				}
@@ -1517,7 +1519,7 @@ function GeneratePersonalData() {
 			for(ckey in target_team) {
 				var i;
 				for(i = 0; i < entries.length; i++) {
-					if(entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0) {
+					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(entries[i].id + "_settings").innerHTML.indexOf("master") < 0) {
 						document.getElementById("save_out").value += entries[i].outerHTML;
 					}
 				}
