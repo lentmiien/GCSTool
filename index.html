@@ -24,15 +24,7 @@
 		
 		<div id="scriptenabled" class="error_text">
 			<b>ERROR! Could not run the necessary scripts.</b>
-			<ul>
-				<li>Please make sure that you have placed the "MainTemplates2.js" file in the same folder as the HTML file.</li>
-				<li>If the web browser is showing any warning about blocking the script, then please select to allow to run the script.</li>
-			</ul>
 			<b>エラー！　必要なスクリプトが発動できなかった。</b>
-			<ul>
-				<li>HTMLファイルが入っているフォルダーに「MainTemplates2.js」も入っていることを確認してください。</li>
-				<li>もしウェブブラウザにスクリプトの発動注意に関してのメッセージが表示された場合には、発動を承認してください。</li>
-			</ul>
 		</div>
 		
 		<div id="debug" class="debug"><div id="load_progress"></div></div>
@@ -47,7 +39,7 @@
 					<b>個人データファイル</b><br>
 					Your last saved data should automatically be filled in, or you can copy-paste a backup file here.<br>
 					<i>*For new users only: Leave Empty</i><br>
-					自分の個人データファイルをこちらにコピーペーストしてください。<br>
+					一番最近セーブしたデータは自動的に記入される、そしてバックアップデータのコピーペーストも可能です。<br>
 					<i>※新しいユーザーのみ：空にしてください。</i>
 				</span>
 			</span>
@@ -56,10 +48,8 @@
 			<span class="tooltip">?
 				<span class="tooltiptext">
 					<b>マスターデータファイル</b><br>
-					Copy paste master data file here.<br>
-					<i>*You only need to copy paste the master data file if there has been any updates</i><br>
-					マスターデータファイルをこちらにコピーペーストしてください。<br>
-					<i>※マスターデータファイルの更新後のみコピーペーストする必要があります</i>
+					Master data is loaded from the server, if the loading is slow, then please wait for "Loaded!" to appear in the text box.<br>
+					マスターデータファイルはサーバから取得する、もし遅かったら、テクストボックスに「ロード済み！」が表示されるまでお待ちください。<br>
 				</span>
 			</span>
 			
@@ -403,19 +393,15 @@
 							<span class="tooltip">?
 								<span class="tooltiptext">
 									<b>Personal data file/個人データファイル</b><br>
-									Whenever you add any content or change any settings you will need to re-save your own personal data file. This is the file that you load everytime you start the template/manual tool.<br>
-									データ内容を追加したり、設定を変更したりするときに再度個人データファイルを保存する必要があります。毎回テンプレート・マニュアルツールを立ち上がる時に使うファイルです。<br>
-									<b>Process/処理方法</b>
-									<ol>
-										<li>Press the "Personal data" button</li>
-										<li>Copy paste all the text in the text box to a textfile on your computer</li>
-										<li>Save the file</li>
-									</ol>
-									<ol>
-										<li>「個人データ」ボタンを押す</li>
-										<li>テキストボクスの内容を自分のコンピューターのテキストファイルにコピーペーストする</li>
-										<li>ファイルを保存する</li>
-									</ol>
+									Whenever you add any content or change any settings you will need to re-save your own personal data.<br>
+									データ内容を追加したり、設定を変更したりするときに再度個人データを保存する必要があります。<br>
+									<b>Process/処理方法</b><br>
+									<b>1.</b>Press the "Personal data" button<br>
+									<b>2.</b>The data will automatically be saved to your browser<br>
+									<b>3.</b>(Optional) Copy-Paste the data below to a backup file on your computer<br>
+									<b>1.</b>「個人データ」ボタンを押す<br>
+									<b>2.</b>データが自動的にブラウザに保存される<br>
+									<b>3.</b>（任意）テキストボクスの内容を自分のコンピューターのバックアップファイルにコピーペーストする<br>
 								</span>
 							</span>
 						</td>
@@ -460,18 +446,16 @@
 							<span class="tooltip">?
 								<span class="tooltiptext">
 									<b>Master data file/マスターデータファイル</b><br>
-									Master data is used for sharing data that all users should use (official approved data)<br>
+									Master data is used for shared data that all users should use (official approved data)<br>
 									マスターのデータはみんなが使うものになります（正式的に認められているデータ）<br>
 									<b>Process/処理方法</b>
 									<ol>
 										<li>Press the "Master data" button</li>
-										<li>Copy paste all the text in the text box to a textfile on your computer</li>
-										<li>Share the file with your team</li>
+										<li>Copy-Paste all the text in the text box to the "Master.txt" textfile on the server</li>
 									</ol>
 									<ol>
 										<li>「マスタデータ」ボタンを押す</li>
-										<li>テキストボクスの内容を自分のコンピューターのテキストファイルにコピーペーストする</li>
-										<li>作成したファイルをチーム内で共有する</li>
+										<li>テキストボクスの内容をサーバーの「Master.txt」のテキストファイルにコピーペーストする</li>
 									</ol>
 								</span>
 							</span>
