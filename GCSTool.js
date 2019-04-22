@@ -888,7 +888,9 @@ function News() {
 	document.getElementById("s_result").innerHTML = "";
 	var entries = document.getElementsByClassName("entry");
 	var d = new Date();
+	var d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
 	var d_str = ((((d.getFullYear() * 100) + (d.getMonth()+1)) * 100) + d.getDate()).toString();
+	var d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
 	var newest = d_str;
 	var next_newest = "99999999";
 	var max_results = 50;
@@ -902,7 +904,14 @@ function News() {
 			if(CDate(newest, tdat) == 0) {
 				if(first == true) {
 					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
-					document.getElementById("s_result").innerHTML += "<h2>" + d_string + "<span style=\"color:Red;\">★NEW★</span></h2>";
+					var new_label;
+					if(CDate(d2_str, newest) < 0) {
+						new_label = "<span style=\"color:Red;\">★NEW★</span>";
+					}
+					else {
+						new_label = "<span style=\"color:Blue;\">(NEW)</span>";
+					}
+					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
 					first = false;
 				}
 				var class_name;
