@@ -3688,8 +3688,9 @@ function includeHTML() {
 					elmnt.removeAttribute("w3-include-html");
 					//includeHTML();
 				}
-			}      
-			xhttp.open("POST", file, true);
+			}
+			d = new Date();
+			xhttp.open("GET", file + "?t=" + d.getTime(), true);
 			xhttp.send();
 			/*exit the function:*/
 			return;
