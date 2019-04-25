@@ -909,7 +909,7 @@ function News() {
 						new_label = "<span style=\"color:Red;\">★NEW★</span>";
 					}
 					else {
-						new_label = "<span style=\"color:Blue;\">(NEW)</span>";
+						new_label = "<span style=\"color:Blue;\">(new)</span>";
 					}
 					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
 					first = false;
@@ -2045,6 +2045,7 @@ function Delete() {
 	}
 	
 	document.getElementById("need_save").style.display = "inline";
+	GeneratePersonalData();
 }
 
 function EditSave() {
@@ -2670,6 +2671,7 @@ function EditSave() {
 	}
 	
 	document.getElementById("need_save").style.display = "inline";
+	GeneratePersonalData();
 }
 
 function Calculate(uid) {
