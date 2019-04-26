@@ -1197,7 +1197,7 @@ function MidLoad() {
 		if (g_ci == 0) {
 			if (g_i < (g_process_data.length-1)) {
 				var cdata = g_process_data[g_i].split("|=|");
-				if(document.getElementById("templates").innerHTML.indexOf(cdata[0]) >= 0) {
+				if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
 					// Compare latest updated date and only update if newer
 					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 					if(CDate(cdata[1], entry_date) >= 0) {
@@ -1222,7 +1222,7 @@ function MidLoad() {
 		if (g_ci == 1) {
 			if (g_i < (g_process_data.length - 1)) {
 				var cdata = g_process_data[g_i].split("|=|");
-				if(document.getElementById("manual").innerHTML.indexOf(cdata[0]) >= 0) {
+				if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
 					// Compare latest updated date and only update if newer
 					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 					if(CDate(cdata[1], entry_date) > 0) {
@@ -1247,7 +1247,7 @@ function MidLoad() {
 		if (g_ci == 2) {
 			if (g_i < (g_process_data.length - 1)) {
 				var cdata = g_process_data[g_i].split("|=|");
-				if(document.getElementById("ccontact").innerHTML.indexOf(cdata[0]) >= 0) {
+				if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
 					// Compare latest updated date and only update if newer
 					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 					if(CDate(cdata[1], entry_date) > 0) {
@@ -1272,7 +1272,7 @@ function MidLoad() {
 		if (g_ci == 3) {
 			if (g_i < (g_process_data.length - 1)) {
 				var cdata = g_process_data[g_i].split("|=|");
-				if(document.getElementById("assistant").innerHTML.indexOf(cdata[0]) >= 0) {
+				if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
 					// Compare latest updated date and only update if newer
 					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 					if(CDate(cdata[1], entry_date) > 0) {
