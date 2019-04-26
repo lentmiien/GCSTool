@@ -102,6 +102,11 @@ function CheckScriptEnabled() {
 
 	// Personal data
 	document.getElementById("input_personal").value = localStorage.getItem("input_personal");
+
+	// Set style
+	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
+		document.getElementById("color_mode").value = "Style_dark.css";
+	}
 }
 
 // Do some initial setup
@@ -460,40 +465,6 @@ function Next() {
 		Back();
 	}
 }
-
-/*function NightMode() {
-	var i;
-	var elems;
-	
-	document.getElementById("night_mode").innerHTML = "_b";
-	
-	document.body.style.color = "#FFFFFF";
-	document.body.style.backgroundColor = "#131314";
-	
-	elems = document.getElementsByClassName("layout_title");
-	for(i = 0; i < elems.length; i++) {
-		elems[i].style.color = "#000000";
-		elems[i].style.borderColor = "#FFFFFF";
-		elems[i].style.backgroundColor = "#A8A8A8";
-	}
-	
-	elems = document.getElementsByClassName("frame_search");
-	for(i = 0; i < elems.length; i++) {
-		elems[i].style.backgroundColor = "#111166";
-	}
-	elems = document.getElementsByClassName("frame_shipping");
-	for(i = 0; i < elems.length; i++) {
-		elems[i].style.backgroundColor = "#661111";
-	}
-	elems = document.getElementsByClassName("frame_parse");
-	for(i = 0; i < elems.length; i++) {
-		elems[i].style.backgroundColor = "#444411";
-	}
-	
-	document.getElementById("debug").style.backgroundColor = "#444400";
-	
-	document.getElementById("nm_button").style.display = "none";
-}*/
 
 function Back() {
 	document.getElementById("run").style.display = "block";
@@ -889,8 +860,10 @@ function News() {
 	var entries = document.getElementsByClassName("entry");
 	var d = new Date();
 	var d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
+	var d3 = new Date(d.getFullYear(), d.getMonth(), d.getDate()-3);
 	var d_str = ((((d.getFullYear() * 100) + (d.getMonth()+1)) * 100) + d.getDate()).toString();
 	var d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
+	var d3_str = ((((d3.getFullYear() * 100) + (d3.getMonth() + 1)) * 100) + d3.getDate()).toString();
 	var newest = d_str;
 	var next_newest = "99999999";
 	var max_results = 50;
@@ -905,11 +878,14 @@ function News() {
 				if(first == true) {
 					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
 					var new_label;
-					if(CDate(d2_str, newest) < 0) {
+					if (CDate(d3_str, newest) < 0) {
+						new_label = "<span style=\"color:#777733;\">★</span><span style=\"color:#FFFF88;\">★</span><span style=\"color:#FF8888;\">N</span><span style=\"color:#88FF88;\">E</span><span style=\"color:#8888FF;\">W</span><span style=\"color:#FFFF88;\">★</span><span style=\"color:#777733;\">★</span>";
+					}
+					else if(CDate(d2_str, newest) < 0) {
 						new_label = "<span style=\"color:Red;\">★NEW★</span>";
 					}
 					else {
-						new_label = "<span style=\"color:Blue;\">(new)</span>";
+						new_label = "<span style=\"color:#4444AA;\">(new)</span>";
 					}
 					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
 					first = false;
@@ -1866,6 +1842,19 @@ function SetILanguage() {
 	
 	document.getElementById("need_save").style.display = "inline";
 }
+function SetStyle() {
+	if (document.getElementById("settings").innerHTML.indexOf("my_style") == -1) {
+		document.getElementById("settings").innerHTML += '<div id="my_style"></div>';
+	}
+	if (document.getElementById("s_normal").checked == true) {
+		document.getElementById("my_style").innerHTML = "Style_normal.css";
+	}
+	else {
+		document.getElementById("my_style").innerHTML = "Style_dark.css";
+	}
+
+	document.getElementById("need_save").style.display = "inline";
+}
 function UpdateLanguagePrio() {
 	var first = document.getElementsByName("prio_first");
 	var second = document.getElementsByName("prio_second");
@@ -1969,6 +1958,18 @@ function UpdateSettings() {
 	else {
 		document.getElementById("s_i_language_jap").checked = false;
 		document.getElementById("s_i_language_eng").checked = true;
+	}
+
+	// Style
+	if (document.getElementById("settings").innerHTML.indexOf("my_style") >= 0) {
+		if (document.getElementById("my_style").innerHTML.indexOf("Style_normal.css") == 0) {
+			document.getElementById("s_normal").checked = true;
+			document.getElementById("s_dark").checked = false;
+		}
+		else {
+			document.getElementById("s_normal").checked = false;
+			document.getElementById("s_dark").checked = true;
+		}
 	}
 	
 	// Priority languages
