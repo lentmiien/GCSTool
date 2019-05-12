@@ -27,9 +27,9 @@ var categories = {
 	"_work_related_":"仕事関連"
 };
 var categories_eng = {
+	"_account_related_":"Account Related",
 	"_order_item_statuses_":"Order/Item Statuses",
 	"_order_modifying_":"Order Modifying",
-	"_account_related_":"Account Related",
 	"_payment_shipping_":"Payment/Shipping",
 	"_after_service_shipping_":"After Service Shipping",
 	"_after_service_defect_":"After Service Defect",
@@ -39,21 +39,6 @@ var categories_eng = {
 	"_other_":"Other",
 	"_work_related_":"Work Related"
 };
-/*
-var category_color = {
-	"_order_item_statuses_":"#E0E034",
-	"_order_modifying_":"#FF70D8",
-	"_account_related_":"#80FF80",
-	"_payment_shipping_":"#8888FF",
-	"_after_service_shipping_":"#AA8888",
-	"_after_service_defect_":"#AA8888",
-	"_after_service_preowned_":"#AA8888",
-	"_returns_refunds_":"#FFCC88",
-	"_claims_cases_":"#FF8888",
-	"_other_":"#FF6699",
-	"_work_related_":"#9090E0"
-};
-*/
 
 var target_team = {
 	"_case_assist_":"ケース対応",
@@ -69,15 +54,6 @@ var target_team_eng = {
 	"_feedback_":"Feedback",
 	"_other_":"Other"
 };
-/*
-var target_team_color = {
-	"_case_assist_":"#66FFFF",
-	"_customer_dep_":"#00FF99",
-	"_logistics_dep_":"#33CC33",
-	"_feedback_":"#FFCC66",
-	"_other_":"#FF6699"
-};
-*/
 
 var teams = {
 	"ohami":"大網",
@@ -877,15 +853,12 @@ function News() {
 			if(CDate(newest, tdat) == 0) {
 				if(first == true) {
 					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
-					var new_label;
+					var new_label = "";
 					if (CDate(d3_str, newest) < 0) {
-						new_label = "<span style=\"color:#777733;\">★</span><span style=\"color:#FFFF88;\">★</span><span style=\"color:#FF8888;\">N</span><span style=\"color:#88FF88;\">E</span><span style=\"color:#8888FF;\">W</span><span style=\"color:#FFFF88;\">★</span><span style=\"color:#777733;\">★</span>";
+						new_label = "<span style=\"color:#FFD700;\"><big>★★NEW★★</big></span>";
 					}
 					else if(CDate(d2_str, newest) < 0) {
 						new_label = "<span style=\"color:Red;\">★NEW★</span>";
-					}
-					else {
-						new_label = "<span style=\"color:#4444AA;\">(new)</span>";
 					}
 					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
 					first = false;
@@ -1108,13 +1081,12 @@ function CDate(date1, date2) {
 
 //javascript:{var temp = document.getElementById("__layout").innerHTML;var s_index = temp.indexOf("scode=") + 6;temp = temp.slice(s_index);s_index = temp.indexOf("&");temp = temp.slice(0, s_index);open("https://www.amiami.jp/top/detail/detail?gcode=" + temp).focus();};void(0);
 
-function LoadData() {
-	PreLoad();
-}
-
+var g_personal_data;
 var g_master_data;
 
-function PreLoad() {
+var g_v_offset = 0; // Used in MasterOldLoad()
+
+function LoadData() {
 	// Set style file
 	var file_name = document.getElementById('color_mode').value;
 	var head = document.getElementsByTagName('head')[0];
@@ -1125,48 +1097,309 @@ function PreLoad() {
 	link.href = file_name;
 	link.media = 'all';
 	head.appendChild(link);
-	
-	// Load data in personal file
-	// If settings has been specified, overwrite settings in personal data
-	var personal_data = document.getElementById("input_personal").value.split("||||");
-	if(personal_data.length > 1) {
-		document.getElementById("settings").innerHTML = personal_data[0];
-		document.getElementById("templates").innerHTML = personal_data[1];
-		document.getElementById("manual").innerHTML = personal_data[2];
-		document.getElementById("ccontact").innerHTML = personal_data[3];
-		document.getElementById("assistant").innerHTML = personal_data[4];
-		document.getElementById("own_comments").innerHTML = personal_data[5];
+
+	// Load data
+	if (document.getElementById("input_personal").value.indexOf("||||") > 0) {
+		g_personal_data = document.getElementById("input_personal").value.split("||||");
 	}
-	
-	if(document.getElementById("online_master").innerHTML.length > 0) {
-		document.getElementById("input_master").value = document.getElementById("online_master").innerHTML.split("!!!!!")[0];
+	else {
+		g_personal_data = document.getElementById("input_personal").value.split("|===|");
+	}
+	// if (document.getElementById("online_master").innerHTML.length > 0) {
+	// 	document.getElementById("input_master").value = document.getElementById("online_master").innerHTML.split("!!!!!")[0];
+	// 	document.getElementById("online_master").innerHTML = "";
+	// }
+	if (document.getElementById("online_master").innerHTML.length > 0) {
+		g_master_data = document.getElementById("online_master").innerHTML.split("|===|");
 		document.getElementById("online_master").innerHTML = "";
+	}
+	else {
+		g_master_data = document.getElementById("input_master").value.split("|===|");
 	}
 
 	// Hide "initialize"
 	document.getElementById("initialize").style.display = "none";
 
-	if (document.getElementById("online_master").innerHTML.length > 0) {
-		g_master_data = document.getElementById("online_master").innerHTML.split("|===|");
+	// Load data based on version of input data
+	var p_version = 0;
+	var m_version = 0;
+	if (g_personal_data[0].indexOf("__VERSION__") == 0) {
+		p_version = parseInt(g_personal_data[0].split("__")[2]);
+	}
+	if (g_master_data[0].indexOf("__VERSION__") == 0) {
+		m_version = parseInt(g_master_data[0].split("__")[2]);
+		g_v_offset = 1;
+	}
+	VersionLoad(p_version, m_version);
+}
+
+var categories_keys;
+var target_team_keys;
+function VersionLoad(p_version, m_version) {
+	// For backward compability
+	if(p_version == 0) {
+		PersonalOldLoad();
+		if (m_version == 0 || m_version == 1) {
+			MasterOldLoad();
+		}
+		else {
+			// Version 2+ is not yet available
+		}
 	}
 	else {
-		g_master_data = document.getElementById("input_master").value.split("|===|");
+		// Load Master and Personal at the same time, with Master prioritized
+		ParseData(p_version, m_version);
 	}
-	MidLoad();
+}
+
+var g_mi = 0;
+var g_pi = 0;
+var g_type_cnt = 0;
+var g_m_process_data;
+var g_p_process_data;
+function ParseData(p_version, m_version) {
+	// Load Personal and Master data, with Master data being prioritizes
+
+	// Startup
+	if (g_type_cnt == 0) {
+		g_type_cnt = 1;
+		if(g_master_data.length > 0) {
+			g_m_process_data = g_master_data[g_type_cnt].split("|==|");
+		}
+		else {
+			g_m_process_data = [];
+		}
+		if(g_personal_data.length > 0) {
+			g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
+			document.getElementById("settings").innerHTML = g_personal_data[1];
+			document.getElementById("own_comments").innerHTML = g_personal_data[6];
+		}
+		else {
+			g_p_process_data = [];
+		}
+	}
+
+	// Templates
+	if (g_type_cnt == 1) {
+		if(g_mi < (g_m_process_data.length-1)) {
+			var cdata = g_m_process_data[g_mi].split("|=|");
+			if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
+				// Compare latest updated date and only update if newer
+				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
+				if (CDate(cdata[1], entry_date) >= 0) {
+					document.getElementById(cdata[0]).innerHTML = cdata[2];
+				}
+			}
+			else {
+				// Add new entry to data
+				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_mi += 1;
+		}
+		else if (g_pi < (g_p_process_data.length - 1)) {
+			var cdata = g_p_process_data[g_pi].split("|=|");
+			if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
+				// Add new entry to data
+				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_pi += 1;
+		}
+		else {
+			g_mi = 0;
+			g_pi = 0;
+			g_type_cnt = 2;
+			if (g_master_data.length > 0) {
+				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
+			}
+			else {
+				g_m_process_data = [];
+			}
+			if (g_personal_data.length > 0) {
+				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
+			}
+			else {
+				g_p_process_data = [];
+			}
+		}
+	}
+
+	// Manual
+	if (g_type_cnt == 2) {
+		if (g_mi < (g_m_process_data.length - 1)) {
+			var cdata = g_m_process_data[g_mi].split("|=|");
+			if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
+				// Compare latest updated date and only update if newer
+				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
+				if (CDate(cdata[1], entry_date) >= 0) {
+					document.getElementById(cdata[0]).innerHTML = cdata[2];
+				}
+			}
+			else {
+				// Add new entry to data
+				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_mi += 1;
+		}
+		else if (g_pi < (g_p_process_data.length - 1)) {
+			var cdata = g_p_process_data[g_pi].split("|=|");
+			if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
+				// Add new entry to data
+				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_pi += 1;
+		}
+		else {
+			g_mi = 0;
+			g_pi = 0;
+			g_type_cnt = 3;
+			if (g_master_data.length > 0) {
+				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
+			}
+			else {
+				g_m_process_data = [];
+			}
+			if (g_personal_data.length > 0) {
+				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
+			}
+			else {
+				g_p_process_data = [];
+			}
+		}
+	}
+
+	// Company contact
+	if (g_type_cnt == 3) {
+		if (g_mi < (g_m_process_data.length - 1)) {
+			var cdata = g_m_process_data[g_mi].split("|=|");
+			if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
+				// Compare latest updated date and only update if newer
+				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
+				if (CDate(cdata[1], entry_date) >= 0) {
+					document.getElementById(cdata[0]).innerHTML = cdata[2];
+				}
+			}
+			else {
+				// Add new entry to data
+				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_mi += 1;
+		}
+		else if (g_pi < (g_p_process_data.length - 1)) {
+			var cdata = g_p_process_data[g_pi].split("|=|");
+			if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
+				// Add new entry to data
+				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_pi += 1;
+		}
+		else {
+			g_mi = 0;
+			g_pi = 0;
+			g_type_cnt = 4;
+			if (g_master_data.length > 0) {
+				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
+			}
+			else {
+				g_m_process_data = [];
+			}
+			if (g_personal_data.length > 0) {
+				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
+			}
+			else {
+				g_p_process_data = [];
+			}
+		}
+	}
+
+	// Assist tool
+	if (g_type_cnt == 4) {
+		if (g_mi < (g_m_process_data.length - 1)) {
+			var cdata = g_m_process_data[g_mi].split("|=|");
+			if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
+				// Compare latest updated date and only update if newer
+				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
+				if (CDate(cdata[1], entry_date) >= 0) {
+					document.getElementById(cdata[0]).innerHTML = cdata[2];
+				}
+			}
+			else {
+				// Add new entry to data
+				document.getElementById("assistant").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_mi += 1;
+		}
+		else if (g_pi < (g_p_process_data.length - 1)) {
+			var cdata = g_p_process_data[g_pi].split("|=|");
+			if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
+				// Add new entry to data
+				document.getElementById("assistant").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+			}
+
+			g_pi += 1;
+		}
+		else {
+			g_mi = 0;
+			g_pi = 0;
+			g_type_cnt = 5;
+			// if (g_master_data.length > 0) {
+			// 	g_m_process_data = g_master_data[g_type_cnt].split("|==|");
+			// }
+			// else {
+			// 	g_m_process_data = [];
+			// }
+			// if (g_personal_data.length > 0) {
+			// 	g_p_process_data = g_personal_data[g_type_cnt+1].split("|==|");
+			// }
+			// else {
+			// 	g_p_process_data = [];
+			// }
+		}
+	}
+
+	// End
+	if (g_type_cnt == 5) {
+		FinalizeLoadData();
+	}
+	else {
+		var p_done = Math.round(((g_type_cnt - 1 + ((g_mi+g_pi) / (g_m_process_data.length + g_p_process_data.length))) / 4) * 100);
+		document.getElementById("load_progress").innerHTML = "マスターデータ処理：" + p_done + "%";
+		document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
+		setTimeout("ParseData(" + p_version + ", " + m_version + ")", 1);
+	}
+}
+
+function PersonalOldLoad() {
+	// Load data in personal file
+	// If settings has been specified, overwrite settings in personal data
+	if (g_personal_data.length > 1) {
+		document.getElementById("settings").innerHTML = g_personal_data[0];
+		document.getElementById("templates").innerHTML = g_personal_data[1];
+		document.getElementById("manual").innerHTML = g_personal_data[2];
+		document.getElementById("ccontact").innerHTML = g_personal_data[3];
+		document.getElementById("assistant").innerHTML = g_personal_data[4];
+		document.getElementById("own_comments").innerHTML = g_personal_data[5];
+	}
 }
 
 
 var g_i = 0;
 var g_ci = -1;
 var g_process_data;
-function MidLoad() {
+function MasterOldLoad() {
 	// Load data in master file *If available
 	// Replace data in personal data if newer data is available in master data
 	if(g_master_data.length > 1) {
 		// Startup
 		if(g_ci == -1) {
 			g_ci = 0;
-			g_process_data = g_master_data[g_ci].split("|==|");
+			g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
 		}
 
 		// Templates
@@ -1190,7 +1423,7 @@ function MidLoad() {
 			else {
 				g_i = 0;
 				g_ci = 1;
-				g_process_data = g_master_data[g_ci].split("|==|");
+				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
 			}
 		}
 		
@@ -1215,7 +1448,7 @@ function MidLoad() {
 			else {
 				g_i = 0;
 				g_ci = 2;
-				g_process_data = g_master_data[g_ci].split("|==|");
+				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
 			}
 		}
 		
@@ -1240,7 +1473,7 @@ function MidLoad() {
 			else {
 				g_i = 0;
 				g_ci = 3;
-				g_process_data = g_master_data[g_ci].split("|==|");
+				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
 			}
 		}
 		
@@ -1265,28 +1498,28 @@ function MidLoad() {
 			else {
 				g_i = 0;
 				g_ci = 4;
-				//g_process_data = g_master_data[g_ci].split("|==|");
+				//g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
 			}
 		}
 
 		// End
 		if (g_ci == 4) {
 			//document.getElementById("need_save").style.display = "inline";
-			PostLoad();
+			FinalizeLoadData();
 		}
 		else {
 			var p_done = Math.round(((g_ci + (g_i / g_process_data.length)) / 4) * 100);
 			document.getElementById("load_progress").innerHTML = "マスターデータ処理：" + p_done + "%";
 			document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
-			setTimeout("MidLoad()", 1);
+			setTimeout("MasterOldLoad()", 1);
 		}
 	}
 	else {
-		PostLoad();
+		FinalizeLoadData();
 	}
 }
 
-function PostLoad() {
+function FinalizeLoadData() {
 	var apply_comments = document.getElementById("own_comments").getElementsByTagName("DIV");
 	var i = 0;
 	while(i < apply_comments.length) {
@@ -1485,32 +1718,37 @@ function ShowDocuments() {
 
 // Change(new data save): Only save personal data (as master data is loaded automatically at every start up)
 function GeneratePersonalData() {
+	var i;
 	// Settings
-	document.getElementById("save_out").value  = document.getElementById("settings").innerHTML + "||||";
+	document.getElementById("save_out").value = "__VERSION__1__|===|" + document.getElementById("settings").innerHTML + "|===|";
 	
 	for(key in types) {
 		var entries = document.getElementById(types[key]).getElementsByClassName("entry");
 		if(key.indexOf("cc_") < 0) {
 			for(ckey in categories) {
-				var i;
-				for(i = 0; i < entries.length; i++) {
-					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(entries[i].id + "_settings").innerHTML.indexOf("master") < 0) {
-						document.getElementById("save_out").value += entries[i].outerHTML;
+				for (i = 0; i < entries.length; i++) {
+					var uid = entries[i].id;
+					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") < 0) {
+						// Save to output
+						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
+						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + entries[i].innerHTML + "|==|";
 					}
 				}
 			}
 		}
 		else {
 			for(ckey in target_team) {
-				var i;
-				for(i = 0; i < entries.length; i++) {
-					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(entries[i].id + "_settings").innerHTML.indexOf("master") < 0) {
-						document.getElementById("save_out").value += entries[i].outerHTML;
+				for (i = 0; i < entries.length; i++) {
+					var uid = entries[i].id;
+					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") < 0) {
+						// Save to output
+						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
+						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + entries[i].innerHTML + "|==|";
 					}
 				}
 			}
 		}
-		document.getElementById("save_out").value += "||||";
+		document.getElementById("save_out").value += "|===|";
 	}
 	
 	// Own comments
@@ -1529,7 +1767,7 @@ function GenerateShareData() {
 function GenerateMasterData() {
 	var i;
 	var process_data;
-	document.getElementById("save_out").value = "";
+	document.getElementById("save_out").value = "__VERSION__1__|===|";
 	
 	// Clear all searches
 	for(key in types) {
@@ -1565,54 +1803,6 @@ function GenerateMasterData() {
 		}
 		document.getElementById("save_out").value += "|===|";
 	}
-	/*
-	// Templates
-	process_data = document.getElementById("templates").getElementsByClassName("entry");
-	for(i = 0; i < process_data.length; i++) {
-		var uid = process_data[i].id;
-		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
-			// Save to output
-			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-		}
-	}
-	document.getElementById("save_out").value += "|===|";
-	
-	// Manuals
-	process_data = document.getElementById("manual").getElementsByClassName("entry");
-	for(i = 0; i < process_data.length; i++) {
-		var uid = process_data[i].id;
-		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
-			// Save to output
-			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-		}
-	}
-	document.getElementById("save_out").value += "|===|";
-	
-	// Company Contact
-	process_data = document.getElementById("ccontact").getElementsByClassName("entry");
-	for(i = 0; i < process_data.length; i++) {
-		var uid = process_data[i].id;
-		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
-			// Save to output
-			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-		}
-	}
-	document.getElementById("save_out").value += "|===|";
-	
-	// Assistant
-	process_data = document.getElementById("assistant").getElementsByClassName("entry");
-	for(i = 0; i < process_data.length; i++) {
-		var uid = process_data[i].id;
-		var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-		if (settings[3].indexOf("master") == 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 ) {
-			// Save to output
-			document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-		}
-	}
-	document.getElementById("save_out").value += "|===|";*/
 }
 
 /**********************************************
