@@ -609,10 +609,15 @@ function HideTemplate(id) {
 }
 
 function Selector(this_element) {
-	if(this_element.value.indexOf("data_") == -1)
-	{
-		this_element.select();
-	}
+	this_element.select();
+	document.execCommand("copy");
+
+	this_element.parentElement.innerHTML += '<div id="test" class="w3-animate-opacity"><b>COPY</b></div>';
+	setTimeout(DeleteCOPY, 1000);
+}
+function DeleteCOPY() {
+	var element = document.getElementById("test");
+	element.parentElement.removeChild(element);
 }
 
 function auto_grow(element) {
