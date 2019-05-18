@@ -248,3 +248,52 @@ th, td {
 /*._other_ {
 	background-color: #FF6699;
 }*/
+
+/*
+Responsive design
+*/
+
+.resp_wide {
+	display:none;
+}
+.resp_tiny {
+	display:inline;
+}
+@media screen and (min-width: 1050px) {
+	.resp_wide {
+		display:inline;
+	}
+	.resp_tiny {
+		display:none;
+	}
+}
+
+.resp_wide2 {
+	display:none;
+}
+.resp_tiny2 {
+	display:inline;
+}
+@media screen and (min-width: 950px) {
+	.resp_wide2 {
+		display:inline;
+	}
+	.resp_tiny2 {
+		display:none;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.resp_wide {
+		display:none;
+	}
+	.resp_tiny {
+		display:none;
+	}
+	.resp_wide2 {
+		display:none;
+	}
+	.resp_tiny2 {
+		display:none;
+	}
+}

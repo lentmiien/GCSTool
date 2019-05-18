@@ -556,15 +556,34 @@
 	
 	<!-- New menu bar -->
 	<ul id="menubar" class="menubar hidden">
-		<li><a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)"><div class="setup_interface">●英語●Search●英語●●日本語●検索●日本語●</div></a></li>
-		<li><a id="ru_2_btn" href="#Templates" onclick="TabHandler('ru_', 2)"><div class="setup_interface">●英語●Templates●英語●●日本語●テンプレート●日本語●</div></a></li>
-		<li><a id="ru_3_btn" href="#Manual" onclick="TabHandler('ru_', 3)"><div class="setup_interface">●英語●Manual●英語●●日本語●マニュアル●日本語●</div></a></li>
-		<li><a id="ru_4_btn" href="#CompanyContact" onclick="TabHandler('ru_', 4)"><div class="setup_interface">●英語●Company Contact●英語●●日本語●会社連絡●日本語●</div></a></li>
-		<li><a id="ru_5_btn" href="#Assistant" onclick="TabHandler('ru_', 5)"><div class="setup_interface">●英語●Assistant●英語●●日本語●サポートツール●日本語●</div></a></li>
-		<li><a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)"><div class="setup_interface">●英語●Edit●英語●●日本語●編集●日本語●</div></a></li>
+		<li><a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Search●英語●●日本語●検索●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●S●英語●●日本語●検●日本語●</div></span>
+		</a></li>
+		<li><a id="ru_2_btn" href="#Templates" onclick="TabHandler('ru_', 2)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Templates●英語●●日本語●テンプレート●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●T●英語●●日本語●テ●日本語●</div></span>
+		</a></li>
+		<li><a id="ru_3_btn" href="#Manual" onclick="TabHandler('ru_', 3)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Manual●英語●●日本語●マニュアル●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●M●英語●●日本語●マ●日本語●</div></span>
+		</a></li>
+		<li><a id="ru_4_btn" href="#CompanyContact" onclick="TabHandler('ru_', 4)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Company Contact●英語●●日本語●会社連絡●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●C●英語●●日本語●連●日本語●</div></span>
+		</a></li>
+		<li><a id="ru_5_btn" href="#Assistant" onclick="TabHandler('ru_', 5)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Assistant●英語●●日本語●サポートツール●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●A●英語●●日本語●サ●日本語●</div></span>
+		</a></li>
+		<li><a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)">
+			<span class="resp_wide2"><div class="setup_interface">●英語●Edit●英語●●日本語●編集●日本語●</div></span>
+			<span class="resp_tiny2"><div class="setup_interface">●英語●E●英語●●日本語●編●日本語●</div></span>
+		</a></li>
 		<li>
 			<a id="ru_7_btn" href="#Save" onclick="TabHandler('ru_', 7)">
-				<div class="setup_interface" style="display:inline;">●英語●Save/Load●英語●●日本語●保存・ロード●日本語●</div>
+				<span class="resp_wide2"><div class="setup_interface" style="display:inline;">●英語●Save/Load●英語●●日本語●保存・ロード●日本語●</div></span>
+				<span class="resp_tiny2"><div class="setup_interface" style="display:inline;">●英語●S/L●英語●●日本語●保・ロ●日本語●</div></span>
 				<span id="need_save" class="hidden">
 					<span class="tooltip"><b style="color:red;">★</b>
 						<span class="tooltiptext">
@@ -575,9 +594,24 @@
 			</a>
 		</li>
 		
-		<li style="float:right"><a href="#Other" onclick="ChangeLanguage('●その他●')">Other / その他</a></li>
-		<li style="float:right"><a href="#Japanese" onclick="ChangeLanguage('●日本語●')">日本語</a></li>
-		<li style="float:right"><a href="#English" onclick="ChangeLanguage('●英語●')">English</a></li>
+		<li style="float:right">
+			<a href="#Other" onclick="ChangeLanguage('●その他●')">
+				<span class="resp_wide">Other / その他</span>
+				<span class="resp_tiny">O/他</span>
+			</a>
+		</li>
+		<li style="float:right">
+			<a href="#Japanese" onclick="ChangeLanguage('●日本語●')">
+				<span class="resp_wide">日本語</span>
+				<span class="resp_tiny">日</span>
+			</a>
+		</li>
+		<li style="float:right">
+			<a href="#English" onclick="ChangeLanguage('●英語●')">
+				<span class="resp_wide">English</span>
+				<span class="resp_tiny">E</span>
+			</a>
+		</li>
 	</ul>
 	
 	<!-- Edit menu bar -->
