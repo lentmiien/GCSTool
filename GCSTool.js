@@ -4181,3 +4181,12 @@ function getemail(inputstring, index) {
 	}
 	return retval;
 }
+
+/*********************
+ * 
+ *  JSON data
+ * 
+ *  1. Language => lg_language.js
+ *  2. Content
+ * 
+ */

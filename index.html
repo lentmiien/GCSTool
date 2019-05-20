@@ -31,39 +31,44 @@
 		
 		<!-- Initialize -->
 		<div id="initialize">
-			<h1><span class="multi_language"><span class="visible">初期設定</span><span class="data">●英語●Initialize●英語●●日本語●初期設定●日本語●</span></span></h1>
-			<h3><span class="multi_language"><span class="visible">個人データファイル</span><span class="data">●英語●Personal data file●英語●●日本語●個人データファイル●日本語●</span></span></h3>
+			<h1 lg_language="_init_settings_"></h1>
+			<h3 lg_language="_personal_data_"></h3>
 			<textarea name="input_personal" cols="40" rows="5" id="input_personal"></textarea>
 			<span class="tooltip">?
 				<span class="tooltiptext">
-					<b>個人データファイル</b><br>
-					Your last saved data should automatically be filled in, or you can copy-paste a backup file here.<br>
-					<i>*For new users only: Leave Empty</i><br>
-					一番最近セーブしたデータは自動的に記入される、そしてバックアップデータのコピーペーストも可能です。<br>
-					<i>※新しいユーザーのみ：空にしてください。</i>
+					<b lg_language="_personal_data_"></b><br>
+					<span lg_language="_personal_data_explain_"></span>
 				</span>
 			</span>
-			<h3><span class="multi_language"><span class="visible">マスターデータファイル</span><span class="data">●英語●Master data file●英語●●日本語●マスターデータファイル●日本語●</span></span></h3>
+			<h3 lg_language="_master_data_"></h3>
 			<textarea name="input_master" cols="40" rows="5" id="input_master" disabled></textarea>
 			<span class="tooltip">?
 				<span class="tooltiptext">
-					<b>マスターデータファイル</b><br>
-					Master data is loaded from the server, if the loading is slow, then please wait for "Loaded!" to appear in the text box.<br>
-					マスターデータファイルはサーバから取得する、もし遅かったら、テクストボックスに「ロード済み！」が表示されるまでお待ちください。<br>
+					<b lg_language="_master_data_"></b><br>
+					<span lg_language="_master_data_explain_"></span>
 				</span>
 			</span>
 			
 			<br><br>
 			
-			<h3>カラー設定</h3>
+			<h3 lg_language="_color_settings_"></h3>
 			<select name="color_mode" id="color_mode">
-				<option value="Style_normal.css">普通</option>
-				<option value="Style_dark.css">ダーク</option>
+				<option value="Style_normal.css" lg_language="_color_normal_"></option>
+				<option value="Style_dark.css" lg_language="_color_dark_"></option>
 			</select>
 			
 			<br><br>
 			
-			<button id="load_button" class="important_button" onclick="LoadData()"><span class="multi_language"><span class="visible">カスタマーサポートツールを開始</span><span class="data">●英語●Initialize customer support tool●英語●●日本語●カスタマーサポートツールを開始●日本語●</span></span></button>
+			<button id="load_button" class="important_button" onclick="LoadData()" lg_language="_start_tool_"></button>
+
+			<br><br>
+			<hr>
+			<h1>JSON language text *TEST*</h1>
+			<select name="lg_language" id="lg_language" onchange="UpdateLanguage('lg_language')">
+				<option value="japanese">日本語</option>
+				<option value="english">English</option>
+				<option value="swedish">Svenska</option>
+			</select>
 		</div>
 		
 		<!-- Run -->
@@ -654,5 +659,6 @@
 	</ul>
 	
 	<script src="GCSTool.js"></script>
+	<script src="lg_language.js"></script>
 </body>
 </html>
