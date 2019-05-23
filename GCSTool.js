@@ -1103,6 +1103,8 @@ function LoadData() {
 	link.media = 'all';
 	head.appendChild(link);
 
+	document.getElementById("lg_language2").value = document.getElementById("lg_language").value;
+
 	// Load data
 	if (document.getElementById("input_personal").value.indexOf("||||") > 0) {
 		g_personal_data = document.getElementById("input_personal").value.split("||||");

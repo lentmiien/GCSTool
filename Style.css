@@ -251,7 +251,7 @@ th, td {
 
 /*
 Responsive design
-*/
+*
 
 .resp_wide {
 	display:none;
@@ -297,3 +297,4 @@ Responsive design
 		display:none;
 	}
 }
+*/
