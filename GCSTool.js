@@ -110,7 +110,12 @@ function LoadDataToJSON(load_uid, this_type) {
 		s_history = s_lastUpdate + s_history;
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
-		s_e_data.Title = t_title;
+		if(typeof t_title === "undefined") {
+			s_e_data.Title = "undefined";
+		}
+		else {
+			s_e_data.Title = t_title;
+		}
 		s_e_data.Content = t_cont;
 
 		// Check if entry exists
@@ -151,7 +156,12 @@ function LoadDataToJSON(load_uid, this_type) {
 		s_history = s_lastUpdate + s_history;
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = datatostore.getElementsByClassName('data')[1].innerHTML.split('●英語●')[1];
-		s_e_data.Title = t_title;
+		if (typeof t_title === "undefined") {
+			s_e_data.Title = "undefined";
+		}
+		else {
+			s_e_data.Title = t_title;
+		}
 		s_e_data.Content = t_cont;
 
 		// Check if entry exists
@@ -192,7 +202,12 @@ function LoadDataToJSON(load_uid, this_type) {
 		s_history = s_lastUpdate + s_history;
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
-		s_e_data.Title = t_title;
+		if (typeof t_title === "undefined") {
+			s_e_data.Title = "undefined";
+		}
+		else {
+			s_e_data.Title = t_title;
+		}
 		s_e_data.Content = t_cont;
 
 		// Check if entry exists
@@ -1103,6 +1118,85 @@ function News() {
 }
 // Return: -1 (date1 is first), 0 (same date), 1 (date 2 is first)
 //CDate(d1, d2)
+
+function ExpSearch() {
+	document.getElementById("s_result").innerHTML = "";
+
+	// Get all search words
+	var words = document.getElementById("all_stext").innerHTML.split(",");
+
+	var u;
+	var v;
+	var max_results = 50;
+	for (u = 0; u < json_data.Entries.length; u++) {
+		var myID = json_data.Entries[u].uid;
+
+		// Word search
+		var k = 0;
+		var found = true;
+		while (k < words.length) {
+			if (words[k].indexOf("/") >= 0) {
+				// Multi word search ("OR search")
+				var multiwords = words[k].split("/");
+				var sub_find = false;
+				var h = 0;
+				while (h < multiwords.length) {
+					if (json_data.Entries[u].data.Title.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
+						sub_find = true;
+					}
+					if (json_data.Entries[u].data.Content.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
+						sub_find = true;
+					}
+
+					h = h + 1;
+				}
+				if (sub_find == false) {
+					found = false;
+				}
+			}
+			else {
+				// One word search
+				if (json_data.Entries[u].data.Title.toLowerCase().indexOf(words[k].toLowerCase()) == -1 &&
+					json_data.Entries[u].data.Content.toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
+					found = false;
+				}
+			}
+
+			k = k + 1;
+		}
+		if (found == true) {
+			var class_name = json_data.Entries[u].type;
+			var text_input = json_data.Entries[u].type;
+
+			if (class_name.indexOf("template") == 0) { v = 0; }
+			if (class_name.indexOf("manual") == 0) { v = 1; }
+			if (class_name.indexOf("ccontact") == 0) { v = 2; }
+
+			var output = "<div class=\"entry " + class_name + "\"><button onclick=\"ShowContent(" + v + ",'" + myID + "','" + words.join(",") + "')\">" + json_data.Entries[u].data.Title + "</button>";
+
+			// Type of entry
+			output += "<i class=\"label\">" + text_input + "</i>";
+
+			// Master / Private
+			if (json_data.Entries[u].ismaster) {
+				output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
+			}
+			else {
+				output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
+			}
+
+			output += "</div>";
+
+			document.getElementById("s_result").innerHTML += output;
+
+			max_results -= 1;
+			if (max_results <= 0) {
+				document.getElementById("s_result").innerHTML += "<div class=\"entry\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
+				return;
+			}
+		}
+	}
+}
 
 function FindLinkSearch(words, entries) {
 	// Empty previous search
