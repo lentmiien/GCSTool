@@ -63,6 +63,183 @@ var teams = {
 	"ohami_global_order":"グローバル課（注文管理）"
 };
 
+/*******
+* JSON
+*/
+
+var json_data = {
+	Settings: {
+		user_id: "New User",
+		i_language: "english",
+		team: "ohami",
+		style: "Style_dark.css",
+		reminders: ""
+	},
+	Entries: []
+};
+
+function UpdateJSONSettings() {
+	json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
+	json_data.Settings.i_language = document.getElementById('interface_language').innerHTML;
+	json_data.Settings.team = document.getElementById('user_team').innerHTML;
+	json_data.Settings.style = document.getElementById('my_style').innerHTML;
+	json_data.Settings.reminders = document.getElementById('my_reminders').innerHTML;
+}
+
+function LoadDataToJSON(load_uid, this_type) {
+	var s_uid = load_uid;
+	var s_version = 2;
+	var s_type = this_type;
+	var s_isMaster = false;
+	var s_lastUpdate;
+	var s_category;
+	var s_team;
+	var s_authority = 0;
+	var s_e_data = { Title: "", Content: "" };
+	var s_history = ": New entry";
+
+	// Template
+	if (this_type.indexOf("template") == 0 && this_type.length == "template".length) {
+		// Get necesdsary data
+		var datatostore = document.getElementById(load_uid);
+		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
+		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
+		s_category = t_set[0];
+		s_team = t_set[1];
+		s_lastUpdate = t_set[2];
+		s_history = s_lastUpdate + s_history;
+		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
+		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
+		s_e_data.Title = t_title;
+		s_e_data.Content = t_cont;
+
+		// Check if entry exists
+		var exist_id = -1;
+		for(var i = 0; i < json_data.Entries.length; i++) {
+			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
+				exist_id = i;
+			}
+		}
+
+		// Ignore existing entries
+		if(exist_id == -1) {
+			// Add new
+			json_data.Entries.push({
+				uid: s_uid,
+				version: s_version,
+				type: s_type,
+				ismaster: s_isMaster,
+				lastupdate: s_lastUpdate,
+				category: s_category,
+				team: s_team,
+				authority: s_authority,
+				data: s_e_data,
+				history: s_history
+			});
+		}
+	}
+
+	// Manual
+	if (this_type.indexOf("manual") == 0 && this_type.length == "manual".length) {
+		// Get necesdsary data
+		var datatostore = document.getElementById(load_uid);
+		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
+		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
+		s_category = t_set[0];
+		s_team = t_set[1];
+		s_lastUpdate = t_set[2];
+		s_history = s_lastUpdate + s_history;
+		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
+		var t_cont = datatostore.getElementsByClassName('data')[1].innerHTML.split('●英語●')[1];
+		s_e_data.Title = t_title;
+		s_e_data.Content = t_cont;
+
+		// Check if entry exists
+		var exist_id = -1;
+		for (var i = 0; i < json_data.Entries.length; i++) {
+			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
+				exist_id = i;
+			}
+		}
+
+		// Ignore existing entries
+		if (exist_id == -1) {
+			// Add new
+			json_data.Entries.push({
+				uid: s_uid,
+				version: s_version,
+				type: s_type,
+				ismaster: s_isMaster,
+				lastupdate: s_lastUpdate,
+				category: s_category,
+				team: s_team,
+				authority: s_authority,
+				data: s_e_data,
+				history: s_history
+			});
+		}
+	}
+
+	// Ccontact
+	if (this_type.indexOf("ccontact") == 0 && this_type.length == "ccontact".length) {
+		// Get necesdsary data
+		var datatostore = document.getElementById(load_uid);
+		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
+		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
+		s_category = t_set[0];
+		s_team = t_set[1];
+		s_lastUpdate = t_set[2];
+		s_history = s_lastUpdate + s_history;
+		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
+		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
+		s_e_data.Title = t_title;
+		s_e_data.Content = t_cont;
+
+		// Check if entry exists
+		var exist_id = -1;
+		for (var i = 0; i < json_data.Entries.length; i++) {
+			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
+				exist_id = i;
+			}
+		}
+
+		// Ignore existing entries
+		if (exist_id == -1) {
+			// Add new
+			json_data.Entries.push({
+				uid: s_uid,
+				version: s_version,
+				type: s_type,
+				ismaster: s_isMaster,
+				lastupdate: s_lastUpdate,
+				category: s_category,
+				team: s_team,
+				authority: s_authority,
+				data: s_e_data,
+				history: s_history
+			});
+		}
+	}
+}
+
+/*******
+ * Entry
+ * 
+ *  uid         (unique ID)
+ *  version     (version)
+ *  type        (template, manual...)
+ *  ismaster    (true, false)
+ *  lastupdate  (last updated)
+ *  category    ()
+ *  team        ()
+ *  authority   (- only down, 0 down and up, + only up)
+ *  data
+ *   title
+ *   content
+ *  history
+ * 
+ */
+
 /**********************************************
 *
 *                 INTERFACE
@@ -1179,10 +1356,12 @@ function ParseData(p_version, m_version) {
 		if(g_personal_data.length > 0) {
 			g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
 			document.getElementById("settings").innerHTML = g_personal_data[1];
+			UpdateJSONSettings();
 			document.getElementById("own_comments").innerHTML = g_personal_data[6];
 		}
 		else {
 			g_p_process_data = [];
+			UpdateJSONSettings();
 		}
 	}
 
@@ -1195,11 +1374,13 @@ function ParseData(p_version, m_version) {
 				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 				if (CDate(cdata[1], entry_date) >= 0) {
 					document.getElementById(cdata[0]).innerHTML = cdata[2];
+					LoadDataToJSON(cdata[0], 'template');
 				}
 			}
 			else {
 				// Add new entry to data
 				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'template');
 			}
 
 			g_mi += 1;
@@ -1209,6 +1390,7 @@ function ParseData(p_version, m_version) {
 			if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
 				// Add new entry to data
 				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'template');
 			}
 
 			g_pi += 1;
@@ -1241,11 +1423,13 @@ function ParseData(p_version, m_version) {
 				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 				if (CDate(cdata[1], entry_date) >= 0) {
 					document.getElementById(cdata[0]).innerHTML = cdata[2];
+					LoadDataToJSON(cdata[0], 'manual');
 				}
 			}
 			else {
 				// Add new entry to data
 				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'manual');
 			}
 
 			g_mi += 1;
@@ -1255,6 +1439,7 @@ function ParseData(p_version, m_version) {
 			if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
 				// Add new entry to data
 				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'manual');
 			}
 
 			g_pi += 1;
@@ -1287,11 +1472,13 @@ function ParseData(p_version, m_version) {
 				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
 				if (CDate(cdata[1], entry_date) >= 0) {
 					document.getElementById(cdata[0]).innerHTML = cdata[2];
+					LoadDataToJSON(cdata[0], 'ccontact');
 				}
 			}
 			else {
 				// Add new entry to data
 				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'ccontact');
 			}
 
 			g_mi += 1;
@@ -1301,6 +1488,7 @@ function ParseData(p_version, m_version) {
 			if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
 				// Add new entry to data
 				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
+				LoadDataToJSON(cdata[0], 'ccontact');
 			}
 
 			g_pi += 1;
@@ -1372,11 +1560,12 @@ function ParseData(p_version, m_version) {
 
 	// End
 	if (g_type_cnt == 5) {
+		document.getElementById('save_out').value = JSON.stringify(json_data);
 		FinalizeLoadData();
 	}
 	else {
 		var p_done = Math.round(((g_type_cnt - 1 + ((g_mi+g_pi) / (g_m_process_data.length + g_p_process_data.length))) / 4) * 100);
-		document.getElementById("load_progress").innerHTML = "マスターデータ処理：" + p_done + "%";
+		document.getElementById("load_progress").innerHTML = "Loading: " + p_done + "%";
 		document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
 		setTimeout("ParseData(" + p_version + ", " + m_version + ")", 1);
 	}
@@ -1516,7 +1705,7 @@ function MasterOldLoad() {
 		}
 		else {
 			var p_done = Math.round(((g_ci + (g_i / g_process_data.length)) / 4) * 100);
-			document.getElementById("load_progress").innerHTML = "マスターデータ処理：" + p_done + "%";
+			document.getElementById("load_progress").innerHTML = "Loading: " + p_done + "%";
 			document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
 			setTimeout("MasterOldLoad()", 1);
 		}
@@ -1757,13 +1946,13 @@ function GeneratePersonalData() {
 		}
 		document.getElementById("save_out").value += "|===|";
 	}
-	
+
 	// Own comments
 	document.getElementById("save_out").value += document.getElementById("own_comments").innerHTML;
 
 	// Save
 	localStorage.setItem("input_personal", document.getElementById("save_out").value);
-	
+
 	document.getElementById("need_save").style.display = "none";
 }
 function GenerateShareData() {

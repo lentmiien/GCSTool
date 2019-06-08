@@ -34,7 +34,6 @@ var json_language = {
         _find_order_mail_: "Find order number/email",
         _external_: "External links",
         _search_result_: "Search result",
-		//////////////////////////////////
 		_personal_: "Personal",
 		_share_: "Share",
 		_master_: "Master",
@@ -289,9 +288,6 @@ var json_language = {
 		_add_answer_: "Lägg till svar"
     }
 }
-
-/*
-*/
 
 function UpdateLanguage(source) {
     var language_id = document.getElementById(source).value;
