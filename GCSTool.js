@@ -1121,6 +1121,16 @@ function News() {
 
 function ExpSearch() {
 	document.getElementById("s_result").innerHTML = "";
+	var types_to_check = "";
+	if (document.getElementById('exp_template').checked == true) {
+		types_to_check += 'template';
+	}
+	if (document.getElementById('exp_manual').checked == true) {
+		types_to_check += 'manual';
+	}
+	if (document.getElementById('exp_ccontact').checked == true) {
+		types_to_check += 'ccontact';
+	}
 
 	// Get all search words
 	var words = document.getElementById("all_stext").innerHTML.split(",");
@@ -1164,7 +1174,7 @@ function ExpSearch() {
 
 			k = k + 1;
 		}
-		if (found == true) {
+		if (found == true && types_to_check.indexOf(json_data.Entries[u].type) >= 0) {
 			var class_name = json_data.Entries[u].type;
 			var text_input = json_data.Entries[u].type;
 
