@@ -981,7 +981,8 @@ function ApplySearchParameters(prefix) {
 		ShowHideSearch(words, entries);
 	}
 	else {
-		FindLinkSearch(words, entries);
+		//FindLinkSearch(words, entries);
+		ExpSearch();
 	}
 }
 
