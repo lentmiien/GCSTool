@@ -1136,7 +1136,6 @@ function ExpSearch() {
 	var words = document.getElementById("all_stext").innerHTML.split(",");
 
 	var u;
-	var v;
 	var max_results = 50;
 	for (u = 0; u < json_data.Entries.length; u++) {
 		var myID = json_data.Entries[u].uid;
@@ -1178,11 +1177,7 @@ function ExpSearch() {
 			var class_name = json_data.Entries[u].type;
 			var text_input = json_data.Entries[u].type;
 
-			if (class_name.indexOf("template") == 0) { v = 0; }
-			if (class_name.indexOf("manual") == 0) { v = 1; }
-			if (class_name.indexOf("ccontact") == 0) { v = 2; }
-
-			var output = "<div class=\"entry " + class_name + "\"><button onclick=\"ShowContent(" + v + ",'" + myID + "','" + words.join(",") + "')\">" + json_data.Entries[u].data.Title + "</button>";
+			var output = "<div class=\"entry " + class_name + "\"><button onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
 
 			// Type of entry
 			output += "<i class=\"label\">" + text_input + "</i>";
@@ -1195,6 +1190,15 @@ function ExpSearch() {
 				output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
 			}
 
+			output += '<br><div id="c_' + myID + '" style="display:none;">';
+			if (json_data.Entries[u].type.indexOf('manual') == 0) {
+				output += json_data.Entries[u].data.Content;
+			}
+			else {
+				output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[u].data.Content + '</textarea>';
+			}
+			output += '</div>';
+
 			output += "</div>";
 
 			document.getElementById("s_result").innerHTML += output;
@@ -1205,6 +1209,23 @@ function ExpSearch() {
 				return;
 			}
 		}
+	}
+}
+
+function DisplayEntry(uid) {
+	if(document.getElementById('c_' + uid).style.display.indexOf('none') == 0) {
+		document.getElementById('c_' + uid).style.display = 'block';
+
+		// Scale up size of text box to fit the text
+		var all_t_area = document.getElementById('c_' + uid).getElementsByTagName("TEXTAREA");
+		var ata = 0;
+		while (ata < all_t_area.length) {
+			auto_grow(all_t_area[ata]);
+			ata += 1;
+		}
+	}
+	else {
+		document.getElementById('c_' + uid).style.display = 'none';
 	}
 }
 
