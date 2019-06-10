@@ -81,6 +81,24 @@
 				<!-- Search field -->
 				<span class="frame">
 					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
+					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> Template, 
+					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> Manual, 
+					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> Ccontact,
+					<span class="tooltip">+
+						<span class="tooltiptext">
+							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
+							<a href="https://www.amiami.com/eng/" target='_blank'>AmiAmi.com</a><br>
+							<a href="https://www.xe.com/" target='_blank'>XE Currency</a><br>
+							<a href="http://www.dhl.co.jp/ja/contact_center/contact_express/report_delivery_problem.html"
+								target='_blank'>DHL Support</a><br>
+							<a href="http://www.dhl.co.jp/en/express/shipping/shipping_advice/express_fuel_surcharge_apem.html"
+								target='_blank'>DHL Fuel</a><br>
+							<a href="https://mesg.ebay.com/mesgweb/ViewMessages/0/All" target='_blank'>Ebay messages</a><br>
+							<a href="https://www.paypal.com/disputes/" target='_blank'>PayPal disputes</a><br>
+							<a href="https://sellercentral.amazon.com/home" target='_blank'>Amazon messages</a><br>
+							<a href="https://www.post.japanpost.jp/int/ems/delivery/link.html" target='_blank'>EMS tracking pages</a>
+						</span>
+					</span>
 				</span>
 				<span class="frame frame_search">
 					<span lg_language="_search_"></span>
@@ -93,10 +111,6 @@
 							<button onclick="ShowContent(-1, '', '_copy')"><span lg_language="_master_copy_"></span></button><br>
 							<button onclick="ShowContent(-1, '', 'edit (personal)')"><span lg_language="_personal_data_"></span></button><br>
 							<button onclick="News()"><span lg_language="_new_"></span></button><br><br>
-							<input type="checkbox" name="type_selection" id="exp_template" checked> Template<br>
-							<input type="checkbox" name="type_selection" id="exp_manual" checked> Manual<br>
-							<input type="checkbox" name="type_selection" id="exp_ccontact" checked> Ccontact<br>
-							<button onclick="ExpSearch()">Exprimental search</button>
 						</span>
 					</span>
 				</span>
@@ -110,22 +124,6 @@
 				<span class="frame frame_parse">
 					<span lg_language="_find_"></span>
 					<button onclick="findordernumemail()"><span lg_language="_find_order_mail_"></span></button>
-				</span>
-				<span class="frame">
-					<span lg_language="_external_"></span>
-					<span class="tooltip">+
-						<span class="tooltiptext">
-							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
-							<a href="https://www.amiami.com/eng/" target='_blank'>AmiAmi.com</a><br>
-							<a href="https://www.xe.com/" target='_blank'>XE Currency</a><br>
-							<a href="http://www.dhl.co.jp/ja/contact_center/contact_express/report_delivery_problem.html" target='_blank'>DHL Support</a><br>
-							<a href="http://www.dhl.co.jp/en/express/shipping/shipping_advice/express_fuel_surcharge_apem.html" target='_blank'>DHL Fuel</a><br>
-							<a href="https://mesg.ebay.com/mesgweb/ViewMessages/0/All" target='_blank'>Ebay messages</a><br>
-							<a href="https://www.paypal.com/disputes/" target='_blank'>PayPal disputes</a><br>
-							<a href="https://sellercentral.amazon.com/home" target='_blank'>Amazon messages</a><br>
-							<a href="https://www.post.japanpost.jp/int/ems/delivery/link.html" target='_blank'>EMS tracking pages</a>
-						</span>
-					</span>
 				</span>
 				<br>
 				<div id="all_keywords"></div><br>

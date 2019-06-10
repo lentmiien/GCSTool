@@ -50,6 +50,7 @@ table, th, td {
 	border: 1px solid black;
 	padding: 5px;
 	border-radius: 15px;
+	display: block;
 }
 .frame_search {
 	background-color: #DDDDFF;

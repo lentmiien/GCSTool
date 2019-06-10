@@ -1028,7 +1028,7 @@ function ShowHideSearch(words, entries) {
 		i = i + 1;
 	}
 }
-
+/*
 function News() {
 	document.getElementById("s_result").innerHTML = "";
 	var entries = document.getElementsByClassName("entry");
@@ -1085,7 +1085,7 @@ function News() {
 					u = 3;
 				}
 
-				var output = "<div class=\"entry_c " + class_name + "\"><button onclick=\"ShowContent(" + u + ",'" + myID + "','')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
+				var output = "<div class=\"entry_c " + class_name + "\"><button onclick=\"DisplayEntry(" + u + ",'" + myID + "','')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
 
 				// Type of entry
 				output += "<i class=\"label\">" + text_input + "</i>";
@@ -1110,6 +1110,88 @@ function News() {
 			}
 			else if (CDate(newest, tdat) == 1) {
 				if(CDate(tdat, next_newest) == 1) {
+					next_newest = tdat;
+				}
+			}
+		}
+		newest = next_newest;
+	}
+}*/
+function News() {// JSON version
+	document.getElementById("s_result").innerHTML = "";
+	var d = new Date();
+	var d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
+	var d3 = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 3);
+	var d_str = ((((d.getFullYear() * 100) + (d.getMonth() + 1)) * 100) + d.getDate()).toString();
+	var d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
+	var d3_str = ((((d3.getFullYear() * 100) + (d3.getMonth() + 1)) * 100) + d3.getDate()).toString();
+	var newest = d_str;
+	var next_newest = "99999999";
+	var max_results = 50;
+	while (max_results > 0 && next_newest.indexOf("00000000") == -1) {
+		next_newest = "00000000";
+		var first = true;
+		for (var i = 0; i < json_data.Entries.length && max_results > 0; i++) {
+			var myID = json_data.Entries[i].uid;
+			var tdat = json_data.Entries[i].lastupdate;
+			if (CDate(newest, tdat) == 0) {
+				if (first == true) {
+					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
+					var new_label = "";
+					if (CDate(d3_str, newest) < 0) {
+						new_label = "<span style=\"color:#FFD700;\"><big>★★NEW★★</big></span>";
+					}
+					else if (CDate(d2_str, newest) < 0) {
+						new_label = "<span style=\"color:Red;\">★NEW★</span>";
+					}
+					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
+					first = false;
+				}
+				var class_name = json_data.Entries[i].type;
+				var text_input = json_data.Entries[i].type;
+				var u = 0;
+
+				if (class_name.indexOf('manual') == 0) {
+					u = 1;
+				}
+				if (class_name.indexOf('ccontact') == 0) {
+					u = 2;
+				}
+
+				var output = "<div class=\"entry " + class_name + "\"><button onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+
+				// Type of entry
+				output += "<i class=\"label\">" + text_input + "</i>";
+
+				// Master / Private
+				if (json_data.Entries[i].ismaster == true) {
+					output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
+				}
+				else {
+					output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
+				}
+
+				output += '<br><div id="c_' + myID + '" style="display:none;">';
+				if (json_data.Entries[i].type.indexOf('manual') == 0) {
+					output += json_data.Entries[i].data.Content;
+				}
+				else {
+					output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content + '</textarea>';
+				}
+				output += '</div>';
+
+				output += "</div>";
+
+				document.getElementById("s_result").innerHTML += output;
+
+				max_results -= 1;
+				if (max_results <= 0) {
+					document.getElementById("s_result").innerHTML += "<div class=\"entry_c\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
+					return;
+				}
+			}
+			else if (CDate(newest, tdat) == 1) {
+				if (CDate(tdat, next_newest) == 1) {
 					next_newest = tdat;
 				}
 			}
