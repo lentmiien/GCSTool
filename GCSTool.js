@@ -95,7 +95,7 @@ function LoadDataToJSON(load_uid, this_type) {
 	var s_category;
 	var s_team;
 	var s_authority = 0;
-	var s_e_data = { Title: "", Content: "" };
+	var s_e_data = { Title: "", Content: [] };
 	var s_history = ": New entry";
 
 	// Template
@@ -109,14 +109,16 @@ function LoadDataToJSON(load_uid, this_type) {
 		s_lastUpdate = t_set[2];
 		s_history = s_lastUpdate + s_history;
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
-		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
+		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea');
 		if(typeof t_title === "undefined") {
 			s_e_data.Title = "undefined";
 		}
 		else {
 			s_e_data.Title = t_title;
 		}
-		s_e_data.Content = t_cont;
+		for (var ta = 0; ta < t_cont.length-1; ta++) {
+			s_e_data.Content.push(t_cont[ta].value);
+		}
 
 		// Check if entry exists
 		var exist_id = -1;
@@ -162,7 +164,7 @@ function LoadDataToJSON(load_uid, this_type) {
 		else {
 			s_e_data.Title = t_title;
 		}
-		s_e_data.Content = t_cont;
+		s_e_data.Content.push(t_cont);
 
 		// Check if entry exists
 		var exist_id = -1;
@@ -208,7 +210,7 @@ function LoadDataToJSON(load_uid, this_type) {
 		else {
 			s_e_data.Title = t_title;
 		}
-		s_e_data.Content = t_cont;
+		s_e_data.Content.push(t_cont);
 
 		// Check if entry exists
 		var exist_id = -1;
@@ -250,7 +252,7 @@ function LoadDataToJSON(load_uid, this_type) {
  *  authority   (- only down, 0 down and up, + only up)
  *  data
  *   title
- *   content
+ *   content    (list of data entries)
  *  history
  * 
  */
@@ -1172,12 +1174,15 @@ function News() {// JSON version
 				}
 
 				output += '<br><div id="c_' + myID + '" style="display:none;">';
-				if (json_data.Entries[i].type.indexOf('manual') == 0) {
-					output += json_data.Entries[i].data.Content;
+				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
+					if (json_data.Entries[i].type.indexOf('manual') == 0) {
+						output += json_data.Entries[i].data.Content[cd];
+					}
+					else {
+						output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content[cd] + '</textarea>';
+					}
 				}
-				else {
-					output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content + '</textarea>';
-				}
+				
 				output += '</div>';
 
 				output += "</div>";
@@ -1236,7 +1241,7 @@ function ExpSearch() {
 					if (json_data.Entries[u].data.Title.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
 						sub_find = true;
 					}
-					if (json_data.Entries[u].data.Content.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
+					if (json_data.Entries[u].data.Content[0].toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
 						sub_find = true;
 					}
 
@@ -1249,7 +1254,7 @@ function ExpSearch() {
 			else {
 				// One word search
 				if (json_data.Entries[u].data.Title.toLowerCase().indexOf(words[k].toLowerCase()) == -1 &&
-					json_data.Entries[u].data.Content.toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
+					json_data.Entries[u].data.Content[0].toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
 					found = false;
 				}
 			}
@@ -1274,12 +1279,15 @@ function ExpSearch() {
 			}
 
 			output += '<br><div id="c_' + myID + '" style="display:none;">';
-			if (json_data.Entries[u].type.indexOf('manual') == 0) {
-				output += json_data.Entries[u].data.Content;
+			for (var cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
+				if (json_data.Entries[u].type.indexOf('manual') == 0) {
+					output += json_data.Entries[u].data.Content[cd];
+				}
+				else {
+					output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[u].data.Content[cd] + '</textarea>';
+				}
 			}
-			else {
-				output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[u].data.Content + '</textarea>';
-			}
+			
 			output += '</div>';
 
 			output += "</div>";
