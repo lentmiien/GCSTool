@@ -159,7 +159,7 @@ function LoadDataToJSON(load_uid, this_type) {
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = datatostore.getElementsByClassName('data')[1].innerHTML.split('●英語●')[1];
 		if (typeof t_title === "undefined") {
-			s_e_data.Title = "undefined";
+			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
 		}
 		else {
 			s_e_data.Title = t_title;
@@ -277,6 +277,18 @@ function CheckScriptEnabled() {
 	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
 		document.getElementById("color_mode").value = "Style_dark.css";
 	}
+
+	// Set interface language
+	if (document.getElementById("input_personal").value.indexOf("interface_language\">●英語●") >= 0) {
+		document.getElementById("lg_language").value = "english";
+	}
+	else if (document.getElementById("input_personal").value.indexOf("interface_language\">english") >= 0) {
+		document.getElementById("lg_language").value = "english";
+	}
+	else if (document.getElementById("input_personal").value.indexOf("interface_language\">swedish") >= 0) {
+		document.getElementById("lg_language").value = "swedish";
+	}
+	UpdateLanguage('lg_language');
 }
 
 // Do some initial setup
