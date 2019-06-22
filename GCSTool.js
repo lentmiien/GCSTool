@@ -111,7 +111,7 @@ function LoadDataToJSON(load_uid, this_type) {
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea');
 		if(typeof t_title === "undefined") {
-			s_e_data.Title = "undefined";
+			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
 		}
 		else {
 			s_e_data.Title = t_title;
@@ -205,7 +205,7 @@ function LoadDataToJSON(load_uid, this_type) {
 		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
 		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
 		if (typeof t_title === "undefined") {
-			s_e_data.Title = "undefined";
+			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
 		}
 		else {
 			s_e_data.Title = t_title;
@@ -288,6 +288,9 @@ function CheckScriptEnabled() {
 	else if (document.getElementById("input_personal").value.indexOf("interface_language\">swedish") >= 0) {
 		document.getElementById("lg_language").value = "swedish";
 	}
+	else {
+		document.getElementById("lg_language").value = "japanese";
+	}
 	UpdateLanguage('lg_language');
 }
 
@@ -330,8 +333,6 @@ function Setup() {
 	// Set category
 	output = '<div id="n_cat"><select id="category_select">';
 	for(var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
-	output += '</select></div>';
-	output += '<div id="t_cat" class="hidden"><select id="target_select">';
 	for(var key in target_team) { output += '<option value="' + key + '">' + target_team_eng[key] + "/" + target_team[key] + '</option>'; }
 	output += '</select></div>';
 	document.getElementById("category").innerHTML = output;
@@ -390,7 +391,7 @@ window.onkeydown = function(e){
 		document.getElementById("all_inputfield").focus();
 		setTimeout("Empty('all_')", 100); // Clear the space that is added to the input box
 	}
-	
+	/*
 	// T counter: 3 times and go to template layout
 	if(e.keyCode == 84) {
 		t_cnt += 1;
@@ -449,7 +450,7 @@ window.onkeydown = function(e){
 	}
 	else {
 		a_cnt = 0;
-	}
+	}*/
 }
 
 function Empty(input) {
@@ -533,6 +534,7 @@ function SaveTab(tab_id) {
 	}
 }
 
+// TODO: Adjust to json
 function LoadShareData() {
 	// Setup basic variables
 	var entries = document.getElementById("save_out").value.split("|===|");
@@ -571,6 +573,7 @@ String.prototype.replaceAll = function(search, replacement) {
 };
 */
 
+// TODO: Adjust to json
 function Approve(type) {
 	// Add to current data
 	
@@ -615,6 +618,7 @@ function Reject() {
 	Next();
 }
 
+// TODO: Adjust to json
 function Next() {
 	var cnt = 1 + parseInt(document.getElementById("counter").innerHTML);
 	document.getElementById("counter").innerHTML = cnt;
@@ -1172,7 +1176,7 @@ function News() {// JSON version
 					u = 2;
 				}
 
-				var output = "<div class=\"entry " + class_name + "\"><button onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+				var output = "<div class=\"entry " + class_name + "\"><button class=\"" + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
 
 				// Type of entry
 				output += "<i class=\"label\">" + text_input + "</i>";
@@ -1277,7 +1281,7 @@ function ExpSearch() {
 			var class_name = json_data.Entries[u].type;
 			var text_input = json_data.Entries[u].type;
 
-			var output = "<div class=\"entry " + class_name + "\"><button onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
+			var output = "<div class=\"entry " + class_name + "\"><button class=\"" + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
 
 			// Type of entry
 			output += "<i class=\"label\">" + text_input + "</i>";
@@ -1433,6 +1437,8 @@ function ShowContent(type_id, entry_id, words) {
 	else if(entry_id.length > 0) {
 		search_frase = entry_id;
 	}
+
+	type_id = -1;
 	
 	// Do a search
 	if(type_id == -1) {
@@ -1456,7 +1462,7 @@ function ShowContent(type_id, entry_id, words) {
 	
 	// If an id was provided then show that entry
 	if(entry_id.length > 0) {
-		ShowTemplate(entry_id);
+		DisplayEntry(entry_id);
 	}
 }
 
@@ -1944,13 +1950,13 @@ function MasterOldLoad() {
 }
 
 function FinalizeLoadData() {
-	var apply_comments = document.getElementById("own_comments").getElementsByTagName("DIV");
+/*	var apply_comments = document.getElementById("own_comments").getElementsByTagName("DIV");
 	var i = 0;
 	while(i < apply_comments.length) {
 		document.getElementById(apply_comments[i].id + "_input").value = apply_comments[i].innerHTML;
 		
 		i += 1;
-	}
+	}*/
 	
 	// Show "run"
 	document.getElementById("run").style.display = "block";
@@ -1958,7 +1964,7 @@ function FinalizeLoadData() {
 	document.getElementById("debug").innerHTML = "";
 	
 	// Setup reminders
-	var reminders = document.getElementById("my_reminders").innerHTML.split("||");
+	var reminders = json_data.Settings.reminders.split("||");
 	var i = 0;
 	while(i < reminders.length) {
 		var this_reminder = reminders[i].split("|");
@@ -1976,6 +1982,7 @@ function FinalizeLoadData() {
 	News();
 }
 
+// TODO: Fix for json
 function ShareDataList() {
 	var output = "<br><hr>";
 	var i;
@@ -2038,6 +2045,7 @@ function ShareDataList() {
 	document.getElementById("share_output").innerHTML = output;
 }
 
+// TODO: Fix for json
 function SetShareData() {
 	// Clear output
 	document.getElementById("save_out").value = "";
@@ -2182,6 +2190,35 @@ function GeneratePersonalData() {
 	localStorage.setItem("input_personal", document.getElementById("save_out").value);
 
 	document.getElementById("need_save").style.display = "none";
+
+	// JSON save
+	var json_save = {
+		Settings: {},
+		Entries: []
+	};
+	json_save.Settings = json_data.Settings;
+	for (ckey in categories) {
+		for (i = 0; i < json_data.Entries.length; i++) {
+			// TODO: Fix ___DELETE___
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
+				// Save to output
+				json_save.Entries.push(json_data.Entries[i])
+			}
+		}
+	}
+	for (ckey in target_team) {
+		for (i = 0; i < json_data.Entries.length; i++) {
+			// TODO: Fix ___DELETE___
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
+				// Save to output
+				json_save.Entries.push(json_data.Entries[i])
+			}
+		}
+	}
+	localStorage.setItem("json_personal", JSON.stringify(json_save));
+
+	// Show the data that was saved...
+	document.getElementById("save_out").value = JSON.stringify(json_save);
 }
 function GenerateShareData() {
 	document.getElementById("save_out").value = "";
@@ -2227,6 +2264,31 @@ function GenerateMasterData() {
 		}
 		document.getElementById("save_out").value += "|===|";
 	}
+
+	// JSON save
+	var json_save = {
+		Settings: {},
+		Entries: []
+	};
+	for (ckey in categories) {
+		for (i = 0; i < json_data.Entries.length; i++) {
+			// TODO: Fix ___DELETE___
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
+				// Save to output
+				json_save.Entries.push(json_data.Entries[i])
+			}
+		}
+	}
+	for (ckey in target_team) {
+		for (i = 0; i < json_data.Entries.length; i++) {
+			// TODO: Fix ___DELETE___
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
+				// Save to output
+				json_save.Entries.push(json_data.Entries[i])
+			}
+		}
+	}
+	document.getElementById("save_out").value = JSON.stringify(json_save);
 }
 
 /**********************************************
@@ -2261,7 +2323,7 @@ function Reminder(message) {
 
 function ReminderDelete(id_num) {
 	// Update Reminders
-	var reminders = document.getElementById("my_reminders").innerHTML.split("||");
+	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	var updated_reminders = "";
 	// Header row
@@ -2303,19 +2365,19 @@ function ReminderDelete(id_num) {
 	document.getElementById("show_reminders").innerHTML = output;
 	
 	// Update saved reminders
-	document.getElementById("my_reminders").innerHTML = updated_reminders;
+	json_data.Settings.reminders = updated_reminders;
 	
 	document.getElementById("need_save").style.display = "inline";
 }
 function AddReminder() {
-	if(document.getElementById("my_reminders").innerHTML.length > 0) {
-		document.getElementById("my_reminders").innerHTML += "||";
+	if (json_data.Settings.reminders.length > 0) {
+		json_data.Settings.reminders += "||";
 	}
-	document.getElementById("my_reminders").innerHTML += document.getElementById("rem_time").value + "|" + document.getElementById("rem_text").value;
+	json_data.Settings.reminders += document.getElementById("rem_time").value + "|" + document.getElementById("rem_text").value;
 	SetReminderPopup(document.getElementById("rem_time").value, document.getElementById("rem_text").value);
 	
 	// Update Reminders
-	var reminders = document.getElementById("my_reminders").innerHTML.split("||");
+	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
 	output += "<tr><th class=\"third\">" + GenerateInterfaceText("●英語●Time●英語●●日本語●時間●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Message●英語●●日本語●メッセージ●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Edit●英語●●日本語●編集●日本語●") + "</th></tr>";
@@ -2374,7 +2436,7 @@ function CreateNew(type) {
 	var master = (document.getElementById("current_mode").innerHTML.indexOf("Master") == 0);
 	
 	// Set team
-	document.getElementById("team_select").value = document.getElementById("user_team").innerHTML;
+	document.getElementById("team_select").value = json_data.Settings.team;
 	
 	// Set last updated to "NEW"
 	document.getElementById("last_updated").innerHTML = "NEW";
@@ -2392,25 +2454,25 @@ function CreateNew(type) {
 	if(type.indexOf("template") == 0) {
 		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Template●英語●●日本語●テンプレート●日本語●");
 		document.getElementById("n_cat").style.display = "block";
-		document.getElementById("t_cat").style.display = "none";
+		//document.getElementById("t_cat").style.display = "none";
 		ShowEditBar(0);
 	}
 	else if(type.indexOf("manual") == 0) {
 		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Manual●英語●●日本語●マニュアル●日本語●");
 		document.getElementById("n_cat").style.display = "block";
-		document.getElementById("t_cat").style.display = "none";
+		//document.getElementById("t_cat").style.display = "none";
 		ShowEditBar(1);
 	}
 	else if(type.indexOf("ccontact") == 0) {
 		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Company Contact●英語●●日本語●会社連絡●日本語●");
-		document.getElementById("n_cat").style.display = "none";
-		document.getElementById("t_cat").style.display = "block";
+		document.getElementById("n_cat").style.display = "block";
+		//document.getElementById("t_cat").style.display = "block";
 		ShowEditBar(0);
 	}
 	else if(type.indexOf("assistant") == 0) {
 		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Assistant●英語●●日本語●サポート●日本語●");
 		document.getElementById("n_cat").style.display = "block";
-		document.getElementById("t_cat").style.display = "none";
+		//document.getElementById("t_cat").style.display = "none";
 		ShowEditBar(2);
 		
 		// Set default input data
@@ -2438,20 +2500,27 @@ function CreateNew(type) {
 
 function SetID() {
 	document.getElementById("user_id").innerHTML = document.getElementById("s_user_id").value;
+	json_data.Settings.user_id = document.getElementById("s_user_id").value;
 	
 	document.getElementById("need_save").style.display = "inline";
 }
 function SetTeam() {
 	document.getElementById("user_team").innerHTML = document.getElementById("s_user_team_sel").value;
+	json_data.Settings.team = document.getElementById("s_user_team_sel").value;
 	
 	document.getElementById("need_save").style.display = "inline";
 }
 function SetILanguage() {
 	if(document.getElementById("s_i_language_eng").checked == true) {
 		document.getElementById("interface_language").innerHTML = "●英語●";
+		json_data.Settings.i_language = "english";
+	}
+	else if (document.getElementById("s_i_language_jap").checked == true) {
+		document.getElementById("interface_language").innerHTML = "●日本語●";
+		json_data.Settings.i_language = "japanese";
 	}
 	else {
-		document.getElementById("interface_language").innerHTML = "●日本語●";
+		json_data.Settings.i_language = "swedish";
 	}
 	
 	document.getElementById("need_save").style.display = "inline";
@@ -2462,14 +2531,16 @@ function SetStyle() {
 	}
 	if (document.getElementById("s_normal").checked == true) {
 		document.getElementById("my_style").innerHTML = "Style_normal.css";
+		json_data.Settings.style = "Style_normal.css";
 	}
 	else {
 		document.getElementById("my_style").innerHTML = "Style_dark.css";
+		json_data.Settings.style = "Style_dark.css";
 	}
 
 	document.getElementById("need_save").style.display = "inline";
 }
-function UpdateLanguagePrio() {
+function UpdateLanguagePrio() {/*
 	var first = document.getElementsByName("prio_first");
 	var second = document.getElementsByName("prio_second");
 	var third = document.getElementsByName("prio_third");
@@ -2546,14 +2617,20 @@ function UpdateLanguagePrio() {
 	document.getElementById("content_language").innerHTML = output;
 	
 	document.getElementById("need_save").style.display = "inline";
-}
-
+*/}
+/*
+json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
+json_data.Settings.i_language = document.getElementById('interface_language').innerHTML;
+json_data.Settings.team = document.getElementById('user_team').innerHTML;
+json_data.Settings.style = document.getElementById('my_style').innerHTML;
+json_data.Settings.reminders = document.getElementById('my_reminders').innerHTML;
+*/
 function UpdateSettings() {
 	document.getElementById("edit_settings").style.display = "block";
 	document.getElementById("edit_body").style.display = "none";
 	
 	// User ID
-	document.getElementById("s_user_id").value = document.getElementById("user_id").innerHTML;
+	document.getElementById("s_user_id").value = json_data.Settings.user_id;
 	
 	// Team
 	var output = '<select id="s_user_team_sel" onclick="SetTeam()">';
@@ -2562,31 +2639,47 @@ function UpdateSettings() {
 	}
 	output += '</select>';
 	document.getElementById("s_user_team").innerHTML = output;
-	document.getElementById("s_user_team_sel").value = document.getElementById("user_team").innerHTML;
+	document.getElementById("s_user_team_sel").value = json_data.Settings.team;
 	
 	// Interface
-	if(document.getElementById("interface_language").innerHTML.indexOf("●日本語●") == 0) {
+	if (json_data.Settings.i_language.indexOf("●日本語●") == 0) {
 		document.getElementById("s_i_language_jap").checked = true;
 		document.getElementById("s_i_language_eng").checked = false;
+		document.getElementById("s_i_language_swe").checked = false;
+	}
+	else if (json_data.Settings.i_language.indexOf("●英語●") == 0) {
+		document.getElementById("s_i_language_jap").checked = false;
+		document.getElementById("s_i_language_eng").checked = true;
+		document.getElementById("s_i_language_swe").checked = false;
+	}
+	else if (json_data.Settings.i_language.indexOf("english") == 0) {
+		document.getElementById("s_i_language_jap").checked = false;
+		document.getElementById("s_i_language_eng").checked = true;
+		document.getElementById("s_i_language_swe").checked = false;
+	}
+	else if (json_data.Settings.i_language.indexOf("japanese") == 0) {
+		document.getElementById("s_i_language_jap").checked = true;
+		document.getElementById("s_i_language_eng").checked = false;
+		document.getElementById("s_i_language_swe").checked = false;
 	}
 	else {
 		document.getElementById("s_i_language_jap").checked = false;
-		document.getElementById("s_i_language_eng").checked = true;
+		document.getElementById("s_i_language_eng").checked = false;
+		document.getElementById("s_i_language_swe").checked = true;
 	}
 
 	// Style
-	if (document.getElementById("settings").innerHTML.indexOf("my_style") >= 0) {
-		if (document.getElementById("my_style").innerHTML.indexOf("Style_normal.css") == 0) {
-			document.getElementById("s_normal").checked = true;
-			document.getElementById("s_dark").checked = false;
-		}
-		else {
-			document.getElementById("s_normal").checked = false;
-			document.getElementById("s_dark").checked = true;
-		}
+	if (json_data.Settings.style.indexOf("Style_normal.css") == 0) {
+		document.getElementById("s_normal").checked = true;
+		document.getElementById("s_dark").checked = false;
+	}
+	else {
+		document.getElementById("s_normal").checked = false;
+		document.getElementById("s_dark").checked = true;
 	}
 	
 	// Priority languages
+	/*
 	var langs = document.getElementById("content_language").innerHTML.split("|");
 	if(langs.length > 0) {
 		if(langs[0].indexOf("●日本語●") == 0) {
@@ -2621,9 +2714,10 @@ function UpdateSettings() {
 			document.getElementById("oth_third").checked = true;
 		}
 	}
+	*/
 	
 	// Reminders
-	var reminders = document.getElementById("my_reminders").innerHTML.split("||");
+	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
 	output += "<tr><th class=\"third\">" + GenerateInterfaceText("●英語●Time●英語●●日本語●時間●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Message●英語●●日本語●メッセージ●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Edit●英語●●日本語●編集●日本語●") + "</th></tr>";
@@ -2652,6 +2746,7 @@ function UpdateSettings() {
 	document.getElementById("show_reminders").innerHTML = output;
 }
 
+// TODO: Fix for json
 function Delete() {
 	var uid = document.getElementById("unique_id").innerHTML;
 	var element_to_remove = document.getElementById(uid);
@@ -2663,6 +2758,7 @@ function Delete() {
 	GeneratePersonalData();
 }
 
+// TODO: Fix for json
 function EditSave() {
 	// Break if there is no content
 	if(document.getElementById("input_boxes").innerHTML.length == 0) {
@@ -2670,7 +2766,7 @@ function EditSave() {
 		return;
 	}
 	
-	// Break if there is title
+	// Break if there is no title
 	if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == 0 && document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == 0 && document.getElementById("title_show_other").innerHTML.indexOf("Not set") == 0) {
 		alert("Can not save as no title has been set.\nタイトルが設定されていない為に、保存ができない。");
 		return;
@@ -3325,6 +3421,7 @@ function Calculate(uid) {
 	document.getElementById(uid + "_out").innerHTML = answer;
 }
 
+// TODO: Fix for json
 function EditTemplate(uniqueID, e_type) {
 	// If trying to edit as master do a login check
 	if(e_type == 1) {
@@ -3408,7 +3505,7 @@ function EditTemplate(uniqueID, e_type) {
 	document.getElementById("edit_body").style.display = "block";
 	
 	document.getElementById("n_cat").style.display = "block";
-	document.getElementById("t_cat").style.display = "none";
+	//document.getElementById("t_cat").style.display = "none";
 	
 	ShowEditBar(0);
 }
@@ -3496,7 +3593,7 @@ function EditManual(uniqueID, e_type) {
 	document.getElementById("edit_body").style.display = "block";
 	
 	document.getElementById("n_cat").style.display = "block";
-	document.getElementById("t_cat").style.display = "none";
+	//document.getElementById("t_cat").style.display = "none";
 	ShowEditBar(1);
 }
 function EditCContact(uniqueID, e_type) {
@@ -3581,8 +3678,8 @@ function EditCContact(uniqueID, e_type) {
 	document.getElementById("edit_settings").style.display = "none";
 	document.getElementById("edit_body").style.display = "block";
 	
-	document.getElementById("n_cat").style.display = "none";
-	document.getElementById("t_cat").style.display = "block";
+	document.getElementById("n_cat").style.display = "block";
+	//document.getElementById("t_cat").style.display = "block";
 	
 	ShowEditBar(0);
 }
@@ -3709,7 +3806,7 @@ function EditAssist(uniqueID, e_type) {
 	document.getElementById("edit_body").style.display = "block";
 	
 	document.getElementById("n_cat").style.display = "block";
-	document.getElementById("t_cat").style.display = "none";
+	//document.getElementById("t_cat").style.display = "none";
 	
 	ShowEditBar(2);
 }
@@ -3726,7 +3823,7 @@ function SaveComment(save_id) {
 }
 
 function GenerateUID() {
-	var user_id = document.getElementById("user_id").innerHTML;
+	var user_id = json_data.Settings.user_id;
 	var datetime = GenerateDateTime("yyyymmddHHMMSS");
 	
 	return user_id + datetime;
@@ -4210,6 +4307,8 @@ function AddSearchButton(myField) {
 	if(search_option.indexOf("assist") == 0) {
 		type_id = 3;
 	}
+
+	type_id = -1;
 	
 	// Add button
 	insertAtCursor(myField, '<button onclick="ShowContent(' + type_id + ', \'\', \'' + search_frase + '\')">' + search_frase + '</button>');
