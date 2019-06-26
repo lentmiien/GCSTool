@@ -86,6 +86,40 @@ function UpdateJSONSettings() {
 	json_data.Settings.reminders = document.getElementById('my_reminders').innerHTML;
 }
 
+function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, save_category, save_team, save_authority, save_e_data, save_history) {
+	var index = ExistJSON(save_uid);
+	var s_version = 2;
+
+	if(index >= 0) {
+		// Update if existing
+		json_data.Entries[index].uid = save_uid;
+		json_data.Entries[index].version = s_version;
+		json_data.Entries[index].type = save_type;
+		json_data.Entries[index].ismaster = save_ismaster;
+		json_data.Entries[index].lastupdate = save_lastupdate;
+		json_data.Entries[index].category = save_category;
+		json_data.Entries[index].team = save_team;
+		json_data.Entries[index].authority = save_authority;
+		json_data.Entries[index].data = save_e_data;
+		json_data.Entries[index].history = save_history;
+	}
+	else {
+		// Create new if not existing
+		json_data.Entries.push({
+			uid: save_uid,
+			version: s_version,
+			type: save_type,
+			ismaster: save_ismaster,
+			lastupdate: save_lastupdate,
+			category: save_category,
+			team: save_team,
+			authority: save_authority,
+			data: save_e_data,
+			history: save_history
+		});
+	}
+}
+
 function LoadDataToJSON(load_uid, this_type) {
 	var s_uid = load_uid;
 	var s_version = 2;
@@ -272,6 +306,9 @@ function CheckScriptEnabled() {
 
 	// Personal data
 	document.getElementById("input_personal").value = localStorage.getItem("input_personal");
+//	if (localStorage.hasOwnProperty("json_personal") == true) {
+//		document.getElementById("input_personal").value = localStorage.getItem("json_personal");
+//	}
 
 	// Set style
 	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
@@ -534,11 +571,20 @@ function SaveTab(tab_id) {
 	}
 }
 
-// TODO: Adjust to json
+function ExistJSON(id) {
+	for(var i = 0; i < json_data.Entries.length; i++) {
+		if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+// Adjusted to json
 function LoadShareData() {
 	// Setup basic variables
-	var entries = document.getElementById("save_out").value.split("|===|");
-	var num_entries = entries.length;
+	var entries = JSON.parse(document.getElementById("save_out").value);
+	var num_entries = entries.Entries.length;
 	document.getElementById("counter").innerHTML = "0";
 	document.getElementById("left_to_check").innerHTML = "1/" + num_entries;
 	
@@ -549,16 +595,34 @@ function LoadShareData() {
 	
 	// Load first entry
 	document.getElementById("current_master").innerHTML = "";
-	var entry_data = entries[0].split("|==|");
-	var true_id = entry_data[0];
-	if(entry_data[0].indexOf("_COPY") >= 0) {
-		true_id = entry_data[0].slice(0, -5);
-		if(document.body.innerHTML.indexOf(true_id) >= 0) {
-			document.getElementById("current_master").innerHTML = document.getElementById(true_id + "_content").innerHTML;
+	var true_id = entries.Entries[0].uid;
+	if (true_id.indexOf("_COPY") >= 0) {
+		true_id = true_id.slice(0, -5);
+		var j_index = ExistJSON(true_id);
+		if (j_index >= 0) {
+			if(json_data.Entries[j_index].type.indexOf("manual") >= 0) {
+				for (var cnt = 0; cnt < json_data.Entries[j_index].data.Content.length; cnt++) {
+					document.getElementById("current_master").innerHTML = '<div class="entry">' + json_data.Entries[j_index].data.Content[cnt] + '</div>';
+				}				
+			}
+			else {
+				for (var cnt = 0; cnt < json_data.Entries[j_index].data.Content.length; cnt++) {
+					document.getElementById("current_master").innerHTML = '<textarea>' + json_data.Entries[j_index].data.Content[cnt] + '</textarea>';
+				}
+			}
 		}
 	}
-	var s_parms = new RegExp(entry_data[0], 'g');
-	document.getElementById("suggested_entry").innerHTML = '<div id="' + true_id + '_APPROVE" class="entry">' + entry_data[2].replace(s_parms,true_id + "_APPROVE") + "</div>";
+
+	if (entries.Entries[0].type.indexOf("manual") >= 0) {
+		for (var cnt = 0; cnt < entries.Entries[0].data.Content.length; cnt++) {
+			document.getElementById("current_master").innerHTML = '<div class="entry">' + entries.Entries[0].data.Content[cnt] + '</div>';
+		}
+	}
+	else {
+		for (var cnt = 0; cnt < entries.Entries[0].data.Content.length; cnt++) {
+			document.getElementById("current_master").innerHTML = '<textarea>' + entries.Entries[0].data.Content[cnt] + '</textarea>';
+		}
+	}
 	
 	// Show Approve layout
 	document.getElementById("run").style.display = "none";
@@ -579,8 +643,7 @@ function Approve(type) {
 	
 	// Get data
 	var cnt = parseInt(document.getElementById("counter").innerHTML);
-	var entries = document.getElementById("save_out").value.split("|===|");
-	var entry_data = entries[cnt].split("|==|");
+	var entries = JSON.parse(document.getElementById("save_out").value);
 	
 	// Do Edit...()
 	var true_id = document.getElementById("suggested_entry").getElementsByTagName("DIV")[0].id;
@@ -618,14 +681,14 @@ function Reject() {
 	Next();
 }
 
-// TODO: Adjust to json
+// Adjusted to json
 function Next() {
 	var cnt = 1 + parseInt(document.getElementById("counter").innerHTML);
 	document.getElementById("counter").innerHTML = cnt;
 	
 	// Setup basic variables
-	var entries = document.getElementById("save_out").value.split("|===|");
-	var num_entries = entries.length;
+	var entries = JSON.parse(document.getElementById("save_out").value);
+	var num_entries = entries.Entries.length;
 	document.getElementById("left_to_check").innerHTML = (1+cnt) + "/" + num_entries;
 	
 	// Stop if no data
@@ -636,16 +699,34 @@ function Next() {
 	if(cnt < num_entries) {
 		// Load *cnt* entry
 		document.getElementById("current_master").innerHTML = "";
-		var entry_data = entries[cnt].split("|==|");
-		var true_id = entry_data[0];
-		if(entry_data[0].indexOf("_COPY") >= 0) {
-			true_id = entry_data[0].slice(0, -5);
-			if(document.body.innerHTML.indexOf(true_id) >= 0) {
-				document.getElementById("current_master").innerHTML = document.getElementById(true_id + "_content").innerHTML;
+		var true_id = entries.Entries[cnt].uid;
+		if (true_id.indexOf("_COPY") >= 0) {
+			true_id = true_id.slice(0, -5);
+			var j_index = ExistJSON(true_id);
+			if (j_index >= 0) {
+				if (json_data.Entries[j_index].type.indexOf("manual") >= 0) {
+					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
+						document.getElementById("current_master").innerHTML = '<div class="entry">' + json_data.Entries[j_index].data.Content[c] + '</div>';
+					}
+				}
+				else {
+					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
+						document.getElementById("current_master").innerHTML = '<textarea>' + json_data.Entries[j_index].data.Content[c] + '</textarea>';
+					}
+				}
 			}
 		}
-		var s_parms = new RegExp(entry_data[0], 'g');
-		document.getElementById("suggested_entry").innerHTML = '<div id="' + true_id + '_APPROVE" class="entry">' + entry_data[2].replace(s_parms,true_id + "_APPROVE") + "</div>";
+
+		if (entries.Entries[0].type.indexOf("manual") >= 0) {
+			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
+				document.getElementById("current_master").innerHTML = '<div class="entry">' + entries.Entries[cnt].data.Content[c] + '</div>';
+			}
+		}
+		else {
+			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
+				document.getElementById("current_master").innerHTML = '<textarea>' + entries.Entries[cnt].data.Content[c] + '</textarea>';
+			}
+		}
 	}
 	else {
 		Back();
@@ -1046,95 +1127,7 @@ function ShowHideSearch(words, entries) {
 		i = i + 1;
 	}
 }
-/*
-function News() {
-	document.getElementById("s_result").innerHTML = "";
-	var entries = document.getElementsByClassName("entry");
-	var d = new Date();
-	var d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
-	var d3 = new Date(d.getFullYear(), d.getMonth(), d.getDate()-3);
-	var d_str = ((((d.getFullYear() * 100) + (d.getMonth()+1)) * 100) + d.getDate()).toString();
-	var d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
-	var d3_str = ((((d3.getFullYear() * 100) + (d3.getMonth() + 1)) * 100) + d3.getDate()).toString();
-	var newest = d_str;
-	var next_newest = "99999999";
-	var max_results = 50;
-	while(max_results > 0 && next_newest.indexOf("00000000") == -1) {
-		next_newest = "00000000";
-		var first = true;
-		for (var i = 0; i < entries.length && max_results > 0; i++) {
-			var myID = entries[i].id;
-			var tid = myID + "_settings";
-			var tdat = document.getElementById(tid).innerHTML.split("|")[2];
-			if(CDate(newest, tdat) == 0) {
-				if(first == true) {
-					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
-					var new_label = "";
-					if (CDate(d3_str, newest) < 0) {
-						new_label = "<span style=\"color:#FFD700;\"><big>★★NEW★★</big></span>";
-					}
-					else if(CDate(d2_str, newest) < 0) {
-						new_label = "<span style=\"color:Red;\">★NEW★</span>";
-					}
-					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
-					first = false;
-				}
-				var class_name;
-				var text_input;
-				var u = 0;
 
-				if (entries[i].innerHTML.indexOf("EditTemplate(") > 0) {
-					class_name = "template";
-					text_input = GenerateInterfaceText("●英語●Template●英語●●日本語●テンプレート●日本語●");
-				}
-				if (entries[i].innerHTML.indexOf("EditManual(") > 0) {
-					class_name = "manual";
-					text_input = GenerateInterfaceText("●英語●Manual●英語●●日本語●マニュアル●日本語●");
-					u = 1;
-				}
-				if (entries[i].innerHTML.indexOf("EditCContact(") > 0) {
-					class_name = "ccontact";
-					text_input = GenerateInterfaceText("●英語●Company Contact●英語●●日本語●会社連絡●日本語●");
-					u = 2;
-				}
-				if (entries[i].innerHTML.indexOf("EditAssist(") > 0) {
-					class_name = "assist";
-					text_input = GenerateInterfaceText("●英語●Assistant●英語●●日本語●サポート●日本語●");
-					u = 3;
-				}
-
-				var output = "<div class=\"entry_c " + class_name + "\"><button onclick=\"DisplayEntry(" + u + ",'" + myID + "','')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
-
-				// Type of entry
-				output += "<i class=\"label\">" + text_input + "</i>";
-
-				// Master / Private
-				if (document.getElementById(myID + "_settings").innerHTML.indexOf("master") >= 0) {
-					output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
-				}
-				else {
-					output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
-				}
-
-				output += "</div>";
-
-				document.getElementById("s_result").innerHTML += output;
-
-				max_results -= 1;
-				if (max_results <= 0) {
-					document.getElementById("s_result").innerHTML += "<div class=\"entry_c\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
-					return;
-				}
-			}
-			else if (CDate(newest, tdat) == 1) {
-				if(CDate(tdat, next_newest) == 1) {
-					next_newest = tdat;
-				}
-			}
-		}
-		newest = next_newest;
-	}
-}*/
 function News() {// JSON version
 	document.getElementById("s_result").innerHTML = "";
 	var d = new Date();
@@ -1190,6 +1183,7 @@ function News() {// JSON version
 				}
 
 				output += '<br><div id="c_' + myID + '" style="display:none;">';
+				output += '<button onclick="EditEntry(' + i + ')">Edit</button><br>';
 				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 					if (json_data.Entries[i].type.indexOf('manual') == 0) {
 						output += json_data.Entries[i].data.Content[cd];
@@ -1295,6 +1289,7 @@ function ExpSearch() {
 			}
 
 			output += '<br><div id="c_' + myID + '" style="display:none;">';
+			output += '<button onclick="EditEntry(' + u + ')">Edit</button><br>';
 			for (var cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
 				if (json_data.Entries[u].type.indexOf('manual') == 0) {
 					output += json_data.Entries[u].data.Content[cd];
@@ -1982,59 +1977,36 @@ function FinalizeLoadData() {
 	News();
 }
 
-// TODO: Fix for json
+// Fixed for json
 function ShareDataList() {
 	var output = "<br><hr>";
 	var i;
-	var entries;
 	
 	// Template
-	entries = document.getElementById("templates").getElementsByClassName("entry");
 	output += "<h3>" + GenerateInterfaceText("●英語●Templates●英語●●日本語●テンプレート●日本語●") + "</h3>";
-	for(i = 0; i < entries.length; i++) {
-		var tid = entries[i].id;
-		var settings = document.getElementById(tid + "_settings").innerHTML;
-		if(settings.indexOf("private") >= 0) {
-			output += '<input type="checkbox" id="check_' + tid + '" class="templates">' + entries[i].getElementsByTagName("BUTTON")[0].innerHTML + '<br>';
+	for(i = 0; i < json_data.Entries.length; i++) {
+		if (json_data.Entries[i].type.indexOf("template") == 0 && json_data.Entries[i].ismaster == false) {
+			output += '<input type="checkbox" id="check_' + i + '" class="templates">' + json_data.Entries[i].data.Title + '<br>';
 		}
 	}
 	
 	output += "<hr>";
 	
 	// Manual
-	entries = document.getElementById("manual").getElementsByClassName("entry");
 	output += "<h3>" + GenerateInterfaceText("●英語●Manuals●英語●●日本語●マニュアル●日本語●") + "</h3>";
-	for(i = 0; i < entries.length; i++) {
-		var tid = entries[i].id;
-		var settings = document.getElementById(tid + "_settings").innerHTML;
-		if(settings.indexOf("private") >= 0) {
-			output += '<input type="checkbox" id="check_' + tid + '" class="manual">' + entries[i].getElementsByTagName("BUTTON")[0].innerHTML + '<br>';
+	for (i = 0; i < json_data.Entries.length; i++) {
+		if (json_data.Entries[i].type.indexOf("manual") == 0 && json_data.Entries[i].ismaster == false) {
+			output += '<input type="checkbox" id="check_' + i + '" class="manual">' + json_data.Entries[i].data.Title + '<br>';
 		}
 	}
 	
 	output += "<hr>";
 	
 	// Ccontact
-	entries = document.getElementById("ccontact").getElementsByClassName("entry");
 	output += "<h3>" + GenerateInterfaceText("●英語●Company Contacts●英語●●日本語●会社連絡●日本語●") + "</h3>";
-	for(i = 0; i < entries.length; i++) {
-		var tid = entries[i].id;
-		var settings = document.getElementById(tid + "_settings").innerHTML;
-		if(settings.indexOf("private") >= 0) {
-			output += '<input type="checkbox" id="check_' + tid + '" class="ccontact">' + entries[i].getElementsByTagName("BUTTON")[0].innerHTML + '<br>';
-		}
-	}
-	
-	output += "<hr>";
-	
-	// Assist
-	entries = document.getElementById("assistant").getElementsByClassName("entry");
-	output += "<h3>" + GenerateInterfaceText("●英語●Assistants●英語●●日本語●サポートツール●日本語●") + "</h3>";
-	for(i = 0; i < entries.length; i++) {
-		var tid = entries[i].id;
-		var settings = document.getElementById(tid + "_settings").innerHTML;
-		if(settings.indexOf("private") >= 0) {
-			output += '<input type="checkbox" id="check_' + tid + '" class="assistant">' + entries[i].getElementsByTagName("BUTTON")[0].innerHTML + '<br>';
+	for (i = 0; i < json_data.Entries.length; i++) {
+		if (json_data.Entries[i].type.indexOf("ccontact") == 0 && json_data.Entries[i].ismaster == false) {
+			output += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + json_data.Entries[i].data.Title + '<br>';
 		}
 	}
 	
@@ -2045,7 +2017,7 @@ function ShareDataList() {
 	document.getElementById("share_output").innerHTML = output;
 }
 
-// TODO: Fix for json
+// Fixed for json
 function SetShareData() {
 	// Clear output
 	document.getElementById("save_out").value = "";
@@ -2054,18 +2026,18 @@ function SetShareData() {
 	var input_data = document.getElementById("share_output").getElementsByTagName("INPUT");
 	
 	// Save all
+	var json_data_to_share = {
+		Settings: {},
+		Entries: []
+	};
 	var i;
 	for(i = 0; i < input_data.length; i++) {
 		if(input_data[i].checked == true) {
-			if(document.getElementById("save_out").value.length > 0) {
-				document.getElementById("save_out").value += "|===|";
-			}
-			
-			var my_id = input_data[i].id.slice(6);
-			var my_class = input_data[i].className;
-			document.getElementById("save_out").value += my_id + "|==|" + my_class + "|==|" + document.getElementById(my_id).innerHTML;
+			var my_index = parseInt(input_data[i].id.slice(6));
+			json_data_to_share.Entries.push(json_data.Entries[my_index]);
 		}
 	}
+	document.getElementById("save_out").value = JSON.stringify(json_data_to_share);
 	
 	// Clear input
 	document.getElementById("share_output").innerHTML = "";
@@ -2758,7 +2730,7 @@ function Delete() {
 	GeneratePersonalData();
 }
 
-// TODO: Fix for json
+// Fixed for json
 function EditSave() {
 	// Break if there is no content
 	if(document.getElementById("input_boxes").innerHTML.length == 0) {
@@ -2767,7 +2739,7 @@ function EditSave() {
 	}
 	
 	// Break if there is no title
-	if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == 0 && document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == 0 && document.getElementById("title_show_other").innerHTML.indexOf("Not set") == 0) {
+	if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == 0) {
 		alert("Can not save as no title has been set.\nタイトルが設定されていない為に、保存ができない。");
 		return;
 	}
@@ -2778,608 +2750,48 @@ function EditSave() {
 		copy_string = " <i style=\"color:#888888\">Copy</i>"
 	}
 	var category = document.getElementById("category_select").value;
-	var target = document.getElementById("target_select").value;
+	//var target = document.getElementById("target_select").value;
 	var team = document.getElementById("team_select").value;
 	var lastupdate = GenerateDateTime("yyyymmdd");
-	var type = "private";
+	var ismaster = false;
 	if(document.getElementById("type").innerHTML.indexOf("Master") >= 0) {
-		type = "master";
+		ismaster = true;
 	}
+	var data = {
+		Title: "",
+		Content: []
+	};
+	var type = "";
 	
 	// Update last updated
 	document.getElementById("last_updated").innerHTML = lastupdate;
+
+	// Title
+	data.Title = document.getElementById("title_show_eng").innerHTML;
+
+	// Content
+	var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	for (var i = 0; i < entries.length; i++) {
+		data.Content.push(entries[i].value);
+	}
 	
-	if(document.getElementById("type").innerHTML.indexOf("Template") > 0) {
-		if(document.getElementById("templates").innerHTML.indexOf(uid) > 0) {
-			// Exist -> Update
-			// Settings
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			var updateentry = '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				updateentry += '<button onclick="EditTemplate(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				updateentry += '<button onclick="EditTemplate(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				updateentry += '<button onclick="EditTemplate(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			updateentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			updateentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			updateentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			while(i < entries.length) {
-				if(i > 0) {
-					updateentry += '<br>';
-				}
-				
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				updateentry += '<textarea class="' + l_id + '" style="width: 100%; height: 75px;" onclick="Selector(this)" readonly>';
-				updateentry += entries[i].value;
-				updateentry += '</textarea>';
-				
-				i += 1;
-			}
-			updateentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				updateentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			updateentry += '</textarea><br>';
-			updateentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			updateentry += '</div>';
-			
-			document.getElementById(uid).innerHTML = updateentry;
-		}
-		else {
-			// Not Exist -> Save New
-			var newentry = "<div id=\"" + uid + "\" class=\"entry\">";
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			newentry += '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				newentry += '<button onclick="EditTemplate(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				newentry += '<button onclick="EditTemplate(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				newentry += '<button onclick="EditTemplate(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			newentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			newentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			newentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			while(i < entries.length) {
-				if(i > 0) {
-					newentry += '<br>';
-				}
-				
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				newentry += '<textarea class="' + l_id + '" style="width: 100%; height: 75px;" onclick="Selector(this)" readonly>';
-				newentry += entries[i].value;
-				newentry += '</textarea>';
-				
-				i += 1;
-			}
-			newentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				newentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			newentry += '</textarea><br>';
-			newentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			newentry += '</div></div>';
-			
-			document.getElementById("templates").innerHTML += newentry;
-		}
+	if(document.getElementById("type").innerHTML.indexOf("Template") >= 0) {
+		// Type
+		type = "template";
 	}
-	else if(document.getElementById("type").innerHTML.indexOf("Manual") > 0) {
-		if(document.getElementById("manual").innerHTML.indexOf(uid) > 0) {
-			// Exist -> Update
-			// Settings
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			var updateentry = '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				updateentry += '<button onclick="EditManual(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				updateentry += '<button onclick="EditManual(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				updateentry += '<button onclick="EditManual(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			updateentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			updateentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			updateentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			var data = "";
-			while(i < entries.length) {
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				data += l_id + entries[i].value + l_id;
-				
-				i += 1;
-			}
-			updateentry += GenerateInterfaceText(data);
-			updateentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				updateentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			updateentry += '</textarea><br>';
-			updateentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			updateentry += '</div>';
-			
-			document.getElementById(uid).innerHTML = updateentry;
-		}
-		else {
-			// Not Exist -> Save New
-			var newentry = "<div id=\"" + uid + "\" class=\"entry\">";
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			newentry += '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				newentry += '<button onclick="EditManual(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				newentry += '<button onclick="EditManual(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				newentry += '<button onclick="EditManual(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			newentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			newentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			newentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			var data = "";
-			while(i < entries.length) {
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				data += l_id + entries[i].value + l_id;
-				
-				i += 1;
-			}
-			newentry += GenerateInterfaceText(data);
-			newentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				newentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			newentry += '</textarea><br>';
-			newentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			newentry += '</div></div>';
-			
-			document.getElementById("manual").innerHTML += newentry;
-		}
+	else if(document.getElementById("type").innerHTML.indexOf("Manual") >= 0) {
+		// Type
+		type = "manual";
 	}
-	else if(document.getElementById("type").innerHTML.indexOf("Company Contact") > 0) {
-		if(document.getElementById("ccontact").innerHTML.indexOf(uid) > 0) {
-			// Exist -> Update
-			// Settings
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			var updateentry = '<button class="title_button ' + target + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				updateentry += '<button onclick="EditCContact(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				updateentry += '<button onclick="EditCContact(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				updateentry += '<button onclick="EditCContact(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			updateentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			updateentry += '<div id="' + uid + '_settings" style="display:none">' + target + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			updateentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			while(i < entries.length) {
-				if(i > 0) {
-					updateentry += '<br>';
-				}
-				
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				updateentry += '<textarea class="' + l_id + '" style="width: 100%; height: 75px;" onclick="Selector(this)" readonly>';
-				updateentry += entries[i].value;
-				updateentry += '</textarea>';
-				
-				i += 1;
-			}
-			updateentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				updateentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			updateentry += '</textarea><br>';
-			updateentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			updateentry += '</div>';
-			
-			document.getElementById(uid).innerHTML = updateentry;
-		}
-		else {
-			// Not Exist -> Save New
-			var newentry = "<div id=\"" + uid + "\" class=\"entry\">";
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			newentry += '<button class="title_button ' + target + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit button(s)
-			if(type.indexOf("master") == 0) {
-				newentry += '<button onclick="EditCContact(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				newentry += '<button onclick="EditCContact(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				newentry += '<button onclick="EditCContact(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			newentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			newentry += '<div id="' + uid + '_settings" style="display:none">' + target + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			newentry += '<div id="' + uid + '_content" style="display:none;">';
-			// Split languages
-			var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-			var i = 0;
-			while(i < entries.length) {
-				if(i > 0) {
-					newentry += '<br>';
-				}
-				
-				var l_id = "●その他●";
-				if(entries[i].id.indexOf("english") == 0) {
-					l_id = "●英語●";
-				}
-				if(entries[i].id.indexOf("japanese") == 0) {
-					l_id = "●日本語●";
-				}
-				
-				newentry += '<textarea class="' + l_id + '" style="width: 100%; height: 75px;" onclick="Selector(this)" readonly>';
-				newentry += entries[i].value;
-				newentry += '</textarea>';
-				
-				i += 1;
-			}
-			newentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				newentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			newentry += '</textarea><br>';
-			newentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			newentry += '</div></div>';
-			
-			document.getElementById("ccontact").innerHTML += newentry;
-		}
-	}
-	else if(document.getElementById("type").innerHTML.indexOf("Assistant") > 0) {
-		if(document.getElementById("assistant").innerHTML.indexOf(uid) > 0) {
-			// Exist -> Update
-			var updateentry = "";
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			updateentry += '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit buttons
-			if(type.indexOf("master") == 0) {
-				updateentry += '<button onclick="EditAssist(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				updateentry += '<button onclick="EditAssist(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				updateentry += '<button onclick="EditAssist(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			updateentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			updateentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			updateentry += '<div id="' + uid + '_content" style="display:none;">';
-			
-			// Save content
-			var languages = document.getElementById("lang_settings").innerHTML;
-			var num_questions = document.getElementById("num_questions").innerHTML;
-			var num_answers = document.getElementById("num_answers").innerHTML;
-			updateentry += '<div id="' + uid + '_aset" style="display:none">' + languages + ',' + num_questions + ',' + num_answers + '</div><br>';
-			var entries = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-			languages = languages.split("|");
-			var i = 0;
-			var cnt = 0;
-			while(cnt < num_questions) {
-				var j = 0;
-				var data = "";
-				while(j < languages.length) {
-					if(languages[j].indexOf("english") == 0) {
-						data += "●英語●" + entries[i+j].value + "●英語●";
-					}
-					else if(languages[j].indexOf("japanese") == 0) {
-						data += "●日本語●" + entries[i+j].value + "●日本語●";
-					}
-					else {
-						data += "●その他●" + entries[i+j].value + "●その他●";
-					}
-					
-					j += 1;
-				}
-				updateentry += '<input type="checkbox" id="' + uid + '_q' + cnt + '">' + GenerateInterfaceText(data) + "<br>";
-				
-				cnt += 1;
-				i += languages.length;
-			}
-			cnt = 0;
-			while(cnt < num_answers) {
-				var j = 0;
-				var data = "";
-				while(j < languages.length) {
-					if(languages[j].indexOf("english") == 0) {
-						data += "●英語●" + entries[i+j].value + "●英語●";
-					}
-					else if(languages[j].indexOf("japanese") == 0) {
-						data += "●日本語●" + entries[i+j].value + "●日本語●";
-					}
-					else {
-						data += "●その他●" + entries[i+j].value + "●その他●";
-					}
-					
-					j += 1;
-				}
-				updateentry += '<div id="' + uid + '_a' + cnt + '" style="display:none">' + GenerateInterfaceText(data) + "</div>";
-				
-				cnt += 1;
-				i += languages.length;
-			}
-			cnt = 0;
-			while(cnt < Math.pow(2, num_questions)) {
-				var data = entries[i].value + "|" + entries[i+1].value + "|" + entries[i+2].value;
-				updateentry += '<div id="' + uid + '_ct' + cnt + '" style="display:none">' + data + "</div>";
-				
-				cnt += 1;
-				i += 3;
-			}
-			updateentry += '<br><button onclick="Calculate(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Calculate●英語●●日本語●計算●日本語●") + '</button><br><hr><div id="' + uid + '_out"></div><hr><br>';
-			
-			// Comment area
-			updateentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				updateentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			updateentry += '</textarea><br>';
-			updateentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			updateentry += '</div>';
-			
-			document.getElementById(uid).innerHTML = updateentry;
-		}
-		else {
-			// Not Exist -> Save New
-			var newentry = "<div id=\"" + uid + "\" class=\"entry\">";
-			
-			var title = "";
-			// Title
-			if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == -1) {
-				title += "●英語●" + document.getElementById("title_show_eng").innerHTML + "●英語●";
-			}
-			if(document.getElementById("title_show_jap").innerHTML.indexOf("未設定") == -1) {
-				title += "●日本語●" + document.getElementById("title_show_jap").innerHTML + "●日本語●";
-			}
-			if(document.getElementById("title_show_other").innerHTML.indexOf("Not set") == -1) {
-				title +=　"●その他●" + document.getElementById("title_show_other").innerHTML + "●その他●";
-			}
-			
-			newentry += '<button class="title_button ' + category + '" onclick="ShowTemplate(\'' + uid + '\')">' + GenerateInterfaceText(title) + copy_string + '</button>';
-			
-			// Edit buttons
-			if(type.indexOf("master") == 0) {
-				newentry += '<button onclick="EditAssist(\'' + uid + '\', 0)">Edit (Personal copy)</button>';
-				newentry += '<button onclick="EditAssist(\'' + uid + '\', 1)">Edit (Master)</button>';
-			}
-			else {
-				newentry += '<button onclick="EditAssist(\'' + uid + '\', 0)">Edit (Personal)</button>';
-			}
-			
-			newentry += '<div id="' + uid + '_var2" style="display:none">0</div>';
-			newentry += '<div id="' + uid + '_settings" style="display:none">' + category + "|" + team + "|" + lastupdate + "|" + type + '</div>';
-			newentry += '<div id="' + uid + '_content" style="display:none;">';
-			
-			// Save content
-			var languages = document.getElementById("lang_settings").innerHTML;
-			var num_questions = document.getElementById("num_questions").innerHTML;
-			var num_answers = document.getElementById("num_answers").innerHTML;
-			newentry += '<div id="' + uid + '_aset" style="display:none">' + languages + ',' + num_questions + ',' + num_answers + '</div><br>';
-			var entries = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-			languages = languages.split("|");
-			var i = 0;
-			var cnt = 0;
-			while(cnt < num_questions) {
-				var j = 0;
-				var data = "";
-				while(j < languages.length) {
-					if(languages[j].indexOf("english") == 0) {
-						data += "●英語●" + entries[i+j].value + "●英語●";
-					}
-					else if(languages[j].indexOf("japanese") == 0) {
-						data += "●日本語●" + entries[i+j].value + "●日本語●";
-					}
-					else {
-						data += "●その他●" + entries[i+j].value + "●その他●";
-					}
-					
-					j += 1;
-				}
-				newentry += '<input type="checkbox" id="' + uid + '_q' + cnt + '">' + GenerateInterfaceText(data) + "<br>";
-				
-				cnt += 1;
-				i += languages.length;
-			}
-			cnt = 0;
-			while(cnt < num_answers) {
-				var j = 0;
-				var data = "";
-				while(j < languages.length) {
-					if(languages[j].indexOf("english") == 0) {
-						data += "●英語●" + entries[i+j].value + "●英語●";
-					}
-					else if(languages[j].indexOf("japanese") == 0) {
-						data += "●日本語●" + entries[i+j].value + "●日本語●";
-					}
-					else {
-						data += "●その他●" + entries[i+j].value + "●その他●";
-					}
-					
-					j += 1;
-				}
-				newentry += '<div id="' + uid + '_a' + cnt + '" style="display:none">' + GenerateInterfaceText(data) + "</div>";
-				
-				cnt += 1;
-				i += languages.length;
-			}
-			cnt = 0;
-			while(cnt < Math.pow(2, num_questions)) {
-				var data = entries[i].value + "|" + entries[i+1].value + "|" + entries[i+2].value;
-				newentry += '<div id="' + uid + '_ct' + cnt + '" style="display:none">' + data + "</div>";
-				
-				cnt += 1;
-				i += 3;
-			}
-			newentry += '<br><button onclick="Calculate(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Calculate●英語●●日本語●計算●日本語●") + '</button><br><hr><div id="' + uid + '_out"></div><hr><br>';
-			
-			// Comment area
-			newentry += '<textarea id="' + uid + '_comment_input" class="textarea_comment" style="width: 100%; height: 75px;">';
-			if(document.getElementById("own_comments").innerHTML.indexOf(uid) > 0) {
-				newentry += document.getElementById(uid + "_comment").innerHTML;
-			}
-			newentry += '</textarea><br>';
-			newentry += '<button onclick="SaveComment(\'' + uid + '\')">' + GenerateInterfaceText("●英語●Save comment●英語●●日本語●コメント保存●日本語●") + '</button>';
-			
-			newentry += '</div></div>';
-			
-			document.getElementById("assistant").innerHTML += newentry;
-		}
+	else if(document.getElementById("type").innerHTML.indexOf("Company Contact") >= 0) {
+		// Type
+		type = "ccontact";
 	}
 	else {
 		document.getElementById("debug").innerHTML = "Unknown save type";
 	}
+
+	SaveDataToJSON(uid, type, ismaster, lastupdate, category, team, 0, data, "Updated by " + json_data.Settings.user_id + " at " + lastupdate);
 	
 	document.getElementById("need_save").style.display = "inline";
 	GeneratePersonalData();
@@ -3421,7 +2833,69 @@ function Calculate(uid) {
 	document.getElementById(uid + "_out").innerHTML = answer;
 }
 
-// TODO: Fix for json
+// Fixed for json
+function EditEntry(json_index) {
+	// If trying to edit as master do a login check
+	if(json_data.Entries[json_index].ismaster == true) {
+		if (LoginCheck() == false) {
+			return;
+		}
+		SetEditStatus(1);
+	}
+	else {
+		SetEditStatus(0);
+	}
+
+	// Setup variables
+	document.getElementById("unique_id").innerHTML = json_data.Entries[json_index].uid;
+	if (json_data.Entries[json_index].type.indexOf("template") == 0) {
+		document.getElementById("type").innerHTML = "Template";
+	}
+	else if (json_data.Entries[json_index].type.indexOf("manual") == 0) {
+		document.getElementById("type").innerHTML = "Manual";
+	}
+	else if (json_data.Entries[json_index].type.indexOf("ccontact") == 0) {
+		document.getElementById("type").innerHTML = "Company Contact";
+	}
+	document.getElementById("category_select").value = json_data.Entries[json_index].category;
+	document.getElementById("team_select").value = json_data.Entries[json_index].team;
+	document.getElementById("last_updated").innerHTML = json_data.Entries[json_index].lastupdate;
+
+	// type
+	if (json_data.Entries[json_index].ismaster == true) {
+		document.getElementById("type").innerHTML += "<i>(Master)</i>";
+	}
+
+	// Title
+	document.getElementById("title_show_eng").innerHTML = json_data.Entries[json_index].data.Title;
+
+	// Content
+	document.getElementById("input_boxes").innerHTML = "";
+	var t_area = json_data.Entries[json_index].data.Content;
+	var i = 0;
+	while (i < t_area.length) {
+		SetLanguageTag('英語');
+
+		i = i + 1;
+	}
+	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	i = 0;
+	while (i < t_area.length) {
+		i_area[i].value = t_area[i];
+
+		i = i + 1;
+	}
+
+	// Open the tab and set up for editing
+	TabHandler('ru_', 6);
+	document.getElementById("edit_settings").style.display = "none";
+	document.getElementById("edit_body").style.display = "block";
+
+	document.getElementById("n_cat").style.display = "block";
+	//document.getElementById("t_cat").style.display = "none";
+
+	ShowEditBar(0);
+}
 function EditTemplate(uniqueID, e_type) {
 	// If trying to edit as master do a login check
 	if(e_type == 1) {
@@ -4334,11 +3808,6 @@ function insertAtCursor(myField, myValue) {
 	}
 }
 
-function UpdatePreview() {
-	// TODO: change to work with multiple text areas
-	document.getElementById("preview").innerHTML = document.getElementById("edit").value;
-}
-
 function Debug(message) {
 	document.getElementById("debug").innerHTML = message;
 }
@@ -4398,12 +3867,12 @@ function includeHTML() {
 					if (this.status == 200) {
 						elmnt.innerHTML = this.responseText;
 						document.getElementById("input_master").disabled = true;
-						document.getElementById("input_master").value = "Loaded!";
+						document.getElementById("input_master").value += "Loaded!";
 					}
 					else {
 //					if (this.status == 404) {
 						document.getElementById("input_master").disabled = false;
-						document.getElementById("input_master").value = "Data not found.";
+						document.getElementById("input_master").value += "Data not found.";
 					}
 
 					// Enable load button when done
@@ -4411,7 +3880,7 @@ function includeHTML() {
 
 					/*remove the attribute, and call this function once more:*/
 					elmnt.removeAttribute("w3-include-html");
-					//includeHTML();
+					includeHTML();
 				}
 			}
 			d = new Date();
