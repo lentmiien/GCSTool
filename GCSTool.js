@@ -1176,7 +1176,7 @@ function News() {// JSON version
 					u = 2;
 				}
 
-				var output = "<div class=\"entry " + class_name + "\"><button class=\"" + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+				var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
 
 				// Type of entry
 				output += "<i class=\"label\">" + text_input + "</i>";
@@ -1282,7 +1282,7 @@ function ExpSearch() {
 			var class_name = json_data.Entries[u].type;
 			var text_input = json_data.Entries[u].type;
 
-			var output = "<div class=\"entry " + class_name + "\"><button class=\"" + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
+			var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
 
 			// Type of entry
 			output += "<i class=\"label\">" + text_input + "</i>";
