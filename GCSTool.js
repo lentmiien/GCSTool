@@ -120,6 +120,13 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 	}
 }
 
+function DeleteUidFromJSON(del_uid) {
+	var index = ExistJSON(del_uid);
+	if(index >= 0) {
+		json_data.Entries.splice(index, 1); 
+	}
+}
+
 function LoadDataToJSON(load_uid, this_type) {
 	var s_uid = load_uid;
 	var s_version = 2;
@@ -2171,7 +2178,7 @@ function GeneratePersonalData() {
 	json_save.Settings = json_data.Settings;
 	for (ckey in categories) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// TODO: Fix ___DELETE___
+			// No need to Fix ___DELETE___
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
 				// Save to output
 				json_save.Entries.push(json_data.Entries[i])
@@ -2180,7 +2187,7 @@ function GeneratePersonalData() {
 	}
 	for (ckey in target_team) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// TODO: Fix ___DELETE___
+			// No need to Fix ___DELETE___
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
 				// Save to output
 				json_save.Entries.push(json_data.Entries[i])
@@ -2244,7 +2251,7 @@ function GenerateMasterData() {
 	};
 	for (ckey in categories) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// TODO: Fix ___DELETE___
+			// No need to Fix ___DELETE___
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
 				// Save to output
 				json_save.Entries.push(json_data.Entries[i])
@@ -2253,7 +2260,7 @@ function GenerateMasterData() {
 	}
 	for (ckey in target_team) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// TODO: Fix ___DELETE___
+			// No need to Fix ___DELETE___
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
 				// Save to output
 				json_save.Entries.push(json_data.Entries[i])
@@ -2718,14 +2725,15 @@ function UpdateSettings() {
 	document.getElementById("show_reminders").innerHTML = output;
 }
 
-// TODO: Fix for json
+// Fixed for json
 function Delete() {
 	var uid = document.getElementById("unique_id").innerHTML;
-	var element_to_remove = document.getElementById(uid);
+	DeleteUidFromJSON(uid);
+/*	var element_to_remove = document.getElementById(uid);
 	if(element_to_remove) {
 		element_to_remove.innerHTML += "<b style=\"background-color:black;color:red;\">___DELETE___</b>";
 	}
-	
+	*/
 	document.getElementById("need_save").style.display = "inline";
 	GeneratePersonalData();
 }
