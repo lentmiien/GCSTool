@@ -101,7 +101,7 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 		json_data.Entries[index].team = save_team;
 		json_data.Entries[index].authority = save_authority;
 		json_data.Entries[index].data = save_e_data;
-		json_data.Entries[index].history = save_history;
+		json_data.Entries[index].history = save_history + "<br>" + json_data.Entries[index].history;
 	}
 	else {
 		// Create new if not existing
@@ -292,8 +292,8 @@ function LoadDataToJSON(load_uid, this_type) {
  *  team        ()
  *  authority   (- only down, 0 down and up, + only up)
  *  data
- *   title
- *   content    (list of data entries)
+ *   Title
+ *   Content    (list of data entries)
  *  history
  * 
  */
