@@ -78,6 +78,18 @@ var json_data = {
 	Entries: []
 };
 
+var extMaster = "";
+var extPersonal = "";
+
+function ExistJSON(id) {
+	for (var i = 0; i < json_data.Entries.length; i++) {
+		if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 function UpdateJSONSettings() {
 	json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
 	json_data.Settings.i_language = document.getElementById('interface_language').innerHTML;
@@ -313,9 +325,9 @@ function CheckScriptEnabled() {
 
 	// Personal data
 	document.getElementById("input_personal").value = localStorage.getItem("input_personal");
-//	if (localStorage.hasOwnProperty("json_personal") == true) {
-//		document.getElementById("input_personal").value = localStorage.getItem("json_personal");
-//	}
+	if (localStorage.hasOwnProperty("json_personal") == true) {
+		extPersonal = JSON.parse(localStorage.getItem("json_personal"));
+	}
 
 	// Set style
 	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
@@ -578,15 +590,6 @@ function SaveTab(tab_id) {
 	}
 }
 
-function ExistJSON(id) {
-	for(var i = 0; i < json_data.Entries.length; i++) {
-		if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
-			return i;
-		}
-	}
-	return -1;
-}
-
 // Adjusted to json
 function LoadShareData() {
 	// Setup basic variables
@@ -644,40 +647,29 @@ String.prototype.replaceAll = function(search, replacement) {
 };
 */
 
-// TODO: Adjust to json
+// Adjusted to json
 function Approve(type) {
 	// Add to current data
 	
 	// Get data
 	var cnt = parseInt(document.getElementById("counter").innerHTML);
 	var entries = JSON.parse(document.getElementById("save_out").value);
+
+	var isMaster = false;
+	if (type == 1) { isMaster = true; }
 	
-	// Do Edit...()
-	var true_id = document.getElementById("suggested_entry").getElementsByTagName("DIV")[0].id;
-	if(entry_data[1].indexOf("templates") == 0) {
-		EditTemplate(true_id, type);
-	}
-	if(entry_data[1].indexOf("manual") == 0) {
-		EditManual(true_id, type);
-	}
-	if(entry_data[1].indexOf("ccontact") == 0) {
-		EditCContact(true_id, type);
-	}
-	if(entry_data[1].indexOf("assistant") == 0) {
-		EditAssist(true_id, type);
-	}
-	
-	// If has "<i style="color:#888888">Copy</i>" add copy to ID
-	var add_id = "";
-	if(document.getElementById("suggested_entry").innerHTML.indexOf('<i style="color:#888888">Copy</i>') >= 0) {
-		add_id = "_COPY";
-	}
-	
-	// Update unique ID (remove "_APPROVE" at the end)
-	document.getElementById("unique_id").innerHTML = document.getElementById("unique_id").innerHTML.slice(0, -8) + add_id;
-	
-	// Save entry
-	EditSave();
+	// Save
+	SaveDataToJSON(
+		entries.Entries[cnt].uid,
+		entries.Entries[cnt].type,
+		isMaster,
+		entries.Entries[cnt].lastupdate,
+		entries.Entries[cnt].category,
+		entries.Entries[cnt].team,
+		entries.Entries[cnt].authority,
+		entries.Entries[cnt].data,
+		entries.Entries[cnt].history
+	);
 	
 	// Go to next
 	Next();
@@ -1504,6 +1496,9 @@ var g_master_data;
 
 var g_v_offset = 0; // Used in MasterOldLoad()
 
+function JSON_Load_Data(personal_is_old) {
+}
+
 function LoadData() {
 	// Set style file
 	var file_name = document.getElementById('color_mode').value;
@@ -1517,6 +1512,32 @@ function LoadData() {
 	head.appendChild(link);
 
 	document.getElementById("lg_language2").value = document.getElementById("lg_language").value;
+
+	// Hide "initialize"
+	document.getElementById("initialize").style.display = "none";
+
+	if (extPersonal.hasOwnProperty('Settings')) {
+		json_data = extMaster;
+		json_data.Settings = extPersonal.Settings;
+
+		for(var i = 0; i < extPersonal.Entries.length; i++) {
+			SaveDataToJSON(
+				extPersonal.Entries[i].uid,
+				extPersonal.Entries[i].type,
+				extPersonal.Entries[i].ismaster,
+				extPersonal.Entries[i].lastupdate,
+				extPersonal.Entries[i].category,
+				extPersonal.Entries[i].team,
+				extPersonal.Entries[i].authority,
+				extPersonal.Entries[i].data,
+				extPersonal.Entries[i].history
+			);
+		}
+
+		FinalizeLoadData();
+
+		return;
+	}
 
 	// Load data
 	if (document.getElementById("input_personal").value.indexOf("||||") > 0) {
@@ -1536,9 +1557,6 @@ function LoadData() {
 	else {
 		g_master_data = document.getElementById("input_master").value.split("|===|");
 	}
-
-	// Hide "initialize"
-	document.getElementById("initialize").style.display = "none";
 
 	// Load data based on version of input data
 	var p_version = 0;
@@ -3858,8 +3876,6 @@ function LoginCheck() {
 /***************/
 
 function includeHTML() {
-	document.getElementById("input_master").value = "Loading...";
-	
 	var z, i, elmnt, file, xhttp;
 	/*loop through a collection of all HTML elements:*/
 	z = document.getElementsByTagName("*");
@@ -3868,12 +3884,19 @@ function includeHTML() {
 		/*search for elements with a certain atrribute:*/
 		file = elmnt.getAttribute("w3-include-html");
 		if (file) {
+			document.getElementById("input_master").value = "Loading...";
+
 			/*make an HTTP request using the attribute value as the file name:*/
 			xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
 				if (this.readyState == 4) {
 					if (this.status == 200) {
-						elmnt.innerHTML = this.responseText;
+						if (this.responseText.indexOf('{"Settings":') >= 0) {
+							extMaster = JSON.parse(this.responseText);
+						}
+						else {
+							elmnt.innerHTML = this.responseText;
+						}
 						document.getElementById("input_master").disabled = true;
 						document.getElementById("input_master").value += "Loaded!";
 					}
