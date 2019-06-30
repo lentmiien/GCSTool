@@ -325,9 +325,6 @@ function CheckScriptEnabled() {
 
 	// Personal data
 	document.getElementById("input_personal").value = localStorage.getItem("input_personal");
-	if (localStorage.hasOwnProperty("json_personal") == true) {
-		extPersonal = JSON.parse(localStorage.getItem("json_personal"));
-	}
 
 	// Set style
 	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
@@ -347,6 +344,16 @@ function CheckScriptEnabled() {
 	else {
 		document.getElementById("lg_language").value = "japanese";
 	}
+
+	// Load JSON Personal data if existing
+	if (localStorage.hasOwnProperty("json_personal") == true) {
+		extPersonal = JSON.parse(localStorage.getItem("json_personal"));
+
+		document.getElementById("color_mode").value = extPersonal.Settings.style;
+		document.getElementById("lg_language").value = extPersonal.Settings.i_language;
+	}
+	
+	// Update interface to correct language
 	UpdateLanguage('lg_language');
 }
 
@@ -2000,6 +2007,11 @@ function FinalizeLoadData() {
 
 	// Show news
 	News();
+
+	// If no JSON personal data exists, create it
+	if (localStorage.hasOwnProperty("json_personal") == false) {
+		GeneratePersonalData();
+	}
 }
 
 // Fixed for json
@@ -2213,9 +2225,6 @@ function GeneratePersonalData() {
 		}
 	}
 	localStorage.setItem("json_personal", JSON.stringify(json_save));
-
-	// Show the data that was saved...
-	document.getElementById("save_out").value = JSON.stringify(json_save);
 }
 function GenerateShareData() {
 	document.getElementById("save_out").value = "";
