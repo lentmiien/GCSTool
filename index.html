@@ -84,7 +84,8 @@
 					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
 					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> Template, 
 					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> Manual, 
-					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> Ccontact,
+					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> Contact,
+					<select id="cat_sel" onchange="ExpSearch()"><option value="_">All</option></select>
 					<span class="tooltip">+
 						<span class="tooltiptext">
 							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>

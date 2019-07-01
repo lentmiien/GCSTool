@@ -399,6 +399,12 @@ function Setup() {
 	for(var key in target_team) { output += '<option value="' + key + '">' + target_team_eng[key] + "/" + target_team[key] + '</option>'; }
 	output += '</select></div>';
 	document.getElementById("category").innerHTML = output;
+
+	// Search category
+	output = "";
+	for (var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
+	for (var key in target_team) { output += '<option value="' + key + '">' + target_team_eng[key] + "/" + target_team[key] + '</option>'; }
+	document.getElementById("cat_sel").innerHTML += output;
 	
 	// Set team
 	output = '<select id="team_select">';
@@ -1235,6 +1241,7 @@ function ExpSearch() {
 	if (document.getElementById('exp_ccontact').checked == true) {
 		types_to_check += 'ccontact';
 	}
+	var category_to_check = document.getElementById("cat_sel").value;
 
 	// Get all search words
 	var words = document.getElementById("all_stext").innerHTML.split(",");
@@ -1257,8 +1264,10 @@ function ExpSearch() {
 					if (json_data.Entries[u].data.Title.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
 						sub_find = true;
 					}
-					if (json_data.Entries[u].data.Content[0].toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
-						sub_find = true;
+					for (var n = 0; n < json_data.Entries[u].data.Content.length; n++) {
+						if (json_data.Entries[u].data.Content[n].toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
+							sub_find = true;
+						}
 					}
 
 					h = h + 1;
@@ -1269,15 +1278,23 @@ function ExpSearch() {
 			}
 			else {
 				// One word search
-				if (json_data.Entries[u].data.Title.toLowerCase().indexOf(words[k].toLowerCase()) == -1 &&
-					json_data.Entries[u].data.Content[0].toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
+				var sub_find = false;
+				if (json_data.Entries[u].data.Title.toLowerCase().indexOf(words[k].toLowerCase()) >= 0) {
+					sub_find = true;
+				}
+				for (var n = 0; n < json_data.Entries[u].data.Content.length; n++) {
+					if (json_data.Entries[u].data.Content[n].toLowerCase().indexOf(words[k].toLowerCase()) >= 0) {
+						sub_find = true;
+					}
+				}
+				if (sub_find == false) {
 					found = false;
 				}
 			}
 
 			k = k + 1;
 		}
-		if (found == true && types_to_check.indexOf(json_data.Entries[u].type) >= 0) {
+		if (found == true && types_to_check.indexOf(json_data.Entries[u].type) >= 0 && json_data.Entries[u].category.indexOf(category_to_check) >= 0) {
 			var class_name = json_data.Entries[u].type;
 			var text_input = json_data.Entries[u].type;
 
