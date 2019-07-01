@@ -2205,21 +2205,22 @@ function GeneratePersonalData() {
 		Settings: {},
 		Entries: []
 	};
+	var saved_ids = "";
 	json_save.Settings = json_data.Settings;
 	for (ckey in categories) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// No need to Fix ___DELETE___
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
 				// Save to output
+				saved_ids += '|' + json_data.Entries[i].uid + '|';
 				json_save.Entries.push(json_data.Entries[i])
 			}
 		}
 	}
 	for (ckey in target_team) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// No need to Fix ___DELETE___
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == false) {
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
 				// Save to output
+				saved_ids += '|' + json_data.Entries[i].uid + '|';
 				json_save.Entries.push(json_data.Entries[i])
 			}
 		}
@@ -2276,20 +2277,21 @@ function GenerateMasterData() {
 		Settings: {},
 		Entries: []
 	};
+	var saved_ids = "";
 	for (ckey in categories) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// No need to Fix ___DELETE___
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
 				// Save to output
+				saved_ids += '|' + json_data.Entries[i].uid + '|';
 				json_save.Entries.push(json_data.Entries[i])
 			}
 		}
 	}
 	for (ckey in target_team) {
 		for (i = 0; i < json_data.Entries.length; i++) {
-			// No need to Fix ___DELETE___
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 /*&& entries[i].innerHTML.indexOf("___DELETE___") < 0*/ && json_data.Entries[i].ismaster == true) {
+			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
 				// Save to output
+				saved_ids += '|' + json_data.Entries[i].uid + '|';
 				json_save.Entries.push(json_data.Entries[i])
 			}
 		}
