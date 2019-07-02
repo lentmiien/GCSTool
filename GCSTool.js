@@ -1283,8 +1283,13 @@ function ExpSearch() {
 					sub_find = true;
 				}
 				for (var n = 0; n < json_data.Entries[u].data.Content.length; n++) {
-					if (json_data.Entries[u].data.Content[n].toLowerCase().indexOf(words[k].toLowerCase()) >= 0) {
-						sub_find = true;
+					if(json_data.Entries[u].data.Content[n] == null) {
+						document.getElementById("debug").innerHTML += "ERROR: (" + json_data.Entries[u].uid + ") null content data...<br>";
+					}
+					else {
+						if (json_data.Entries[u].data.Content[n].toLowerCase().indexOf(words[k].toLowerCase()) >= 0) {
+							sub_find = true;
+						}
 					}
 				}
 				if (sub_find == false) {
