@@ -93,7 +93,8 @@ var json_language = {
 		_image_: "Image",
 		_search_btn_: "Search button",
 		_add_question_: "Add question",
-		_add_answer_: "Add answer"
+		_add_answer_: "Add answer",
+		_view_all_: "View all *SLOW*"
     },
     japanese: {
         _init_settings_: "初期設定",
@@ -189,7 +190,8 @@ var json_language = {
 		_image_: "画像",
 		_search_btn_: "検索ボタン",
 		_add_question_: "質問追加",
-		_add_answer_: "答え追加"
+		_add_answer_: "答え追加",
+		_view_all_: "全部表示 *遅い*"
     },
     swedish: {
         _init_settings_: "Starta inställningar",
@@ -285,7 +287,8 @@ var json_language = {
 		_image_: "Bild",
 		_search_btn_: "Sök knapp",
 		_add_question_: "Lägg till fråga",
-		_add_answer_: "Lägg till svar"
+		_add_answer_: "Lägg till svar",
+		_view_all_: "Visa alla *LÅNGSAM*"
     }
 }
 

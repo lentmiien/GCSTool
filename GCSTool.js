@@ -1229,6 +1229,45 @@ function News() {// JSON version
 // Return: -1 (date1 is first), 0 (same date), 1 (date 2 is first)
 //CDate(d1, d2)
 
+function ViewAll() {
+	document.getElementById("s_result").innerHTML = "";
+	for (var i = 0; i < json_data.Entries.length; i++) {
+		var myID = json_data.Entries[i].uid;
+		var class_name = json_data.Entries[i].type;
+		var text_input = json_data.Entries[i].type;
+
+		var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+
+		// Type of entry
+		output += "<i class=\"label\">" + text_input + "</i>";
+
+		// Master / Private
+		if (json_data.Entries[i].ismaster == true) {
+			output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
+		}
+		else {
+			output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
+		}
+
+		output += '<br><div id="c_' + myID + '" style="display:none;">';
+		output += '<button onclick="EditEntry(' + i + ')">Edit</button><br>';
+		for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
+			if (json_data.Entries[i].type.indexOf('manual') == 0) {
+				output += json_data.Entries[i].data.Content[cd];
+			}
+			else {
+				output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content[cd] + '</textarea>';
+			}
+		}
+		
+		output += '</div>';
+
+		output += "</div>";
+
+		document.getElementById("s_result").innerHTML += output;
+	}
+}
+
 function ExpSearch() {
 	document.getElementById("s_result").innerHTML = "";
 	var types_to_check = "";
