@@ -111,6 +111,7 @@ var json_language = {
 		_generate_data_: "Generate Data",
 		_time_: "Time",
 		_message_: "Message",
+		_view_all_: "View all *SLOW*",
 		/* categories */
 		_account_related_: "Account Related",
 		_order_item_statuses_: "Order/Item Statuses",
@@ -240,6 +241,7 @@ var json_language = {
 		_generate_data_: "データ作成",
 		_time_: "時間",
 		_message_: "メッセージ",
+    _view_all_: "全部表示 *遅い*",
 		/* categories */
 		_account_related_: "アカウント関連",
 		_order_item_statuses_: "注文・商品の状況",
@@ -369,6 +371,7 @@ var json_language = {
 		_generate_data_: "Skapa Data",
 		_time_: "Tid",
 		_message_: "Meddelande",
+    _view_all_: "Visa alla *LÅNGSAM*",
 		/* categories */
 		_account_related_: "Angående Konto",
 		_order_item_statuses_: "Beställning/Artikel Statusar",
