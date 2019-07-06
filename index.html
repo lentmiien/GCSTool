@@ -8,7 +8,6 @@
 </head>
 <body onload="CheckScriptEnabled()">
 	
-	<span id="online_master" w3-include-html="Master.txt" class="hidden"></span>
 	<span id="online_master_json" w3-include-html="Master.json" class="hidden"></span>
 	
 	<div class="contentblock">
@@ -27,7 +26,7 @@
 			<hr>
 
 			<h3 lg_language="_personal_data_"></h3>
-			<textarea name="input_personal" cols="40" rows="5" id="input_personal"></textarea>
+			<textarea name="input_personal" cols="40" rows="5" id="input_personal" disabled></textarea>
 			<span class="tooltip">?
 				<span class="tooltiptext">
 					<b lg_language="_personal_data_"></b><br>
@@ -82,10 +81,10 @@
 				<!-- Search field -->
 				<span class="frame">
 					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
-					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> Template, 
-					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> Manual, 
-					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> Contact,
-					<select id="cat_sel" onchange="ExpSearch()"><option value="_">All</option></select>
+					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> <span lg_language="_templates_"></span>, 
+					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> <span lg_language="_manual_"></span>, 
+					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> <span lg_language="_ccontact_"></span>,
+					<select id="cat_sel" onchange="ExpSearch()"><option value="_" lg_language="_all_"></option></select>
 					<span class="tooltip">+
 						<span class="tooltiptext">
 							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
@@ -110,8 +109,10 @@
 					<span class="tooltip">+
 						<span class="tooltiptext">
 							<b lg_language="_s_search_"></b><br>
+							<!--
 							<button onclick="ShowContent(-1, '', '_copy')"><span lg_language="_master_copy_"></span></button><br>
 							<button onclick="ShowContent(-1, '', 'edit (personal)')"><span lg_language="_personal_data_"></span></button><br>
+							-->
 							<button onclick="News()"><span lg_language="_new_"></span></button><br>
 							<button onclick="ViewAll()"><span lg_language="_view_all_"></span></button><br><br>
 						</span>
@@ -140,105 +141,18 @@
 			
 			<!-- Template layout -->
 			<div class="body_tab" id="ru_2_7" style="display:none">
-				<div class="layout_title"><span lg_language="_templates_"></span></div>
-				
-				<!-- Search field -->
-				<span class="frame frame_search">
-					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="te_inputfield" onkeyup="ProcessTextInput('te_')"></textarea>
-					<button onclick="Add('te_')"><span lg_language="_add_"></span></button>
-					<button onclick="Clear('te_')"><span lg_language="_clear_"></span></button>
-					<button onclick="ClearOne('te_')"><span lg_language="_remove_last_"></span></button>
-				</span>
-				<br>
-				<div id="te_keywords"></div><br>
-				<div id="te_tags"></div><br>
-				<div id="te_stext"></div><br>			
-				<table>
-					<tr>
-						<td><div id="te_categories_check"></div></td>
-					</tr>
-				</table>
-				
-				<!-- Template select area -->
-				<h2 lg_language="_templates_"></h2>
-				<div id="templates"></div>
 			</div>
-			
+
 			<!-- Manual layout -->
 			<div class="body_tab" id="ru_3_7" style="display:none">
-				<div class="layout_title"><span lg_language="_manual_"></span></div>
-				
-				<!-- Search field -->
-				<span class="frame frame_search">
-					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="ma_inputfield" onkeyup="ProcessTextInput('ma_')"></textarea>
-					<button onclick="Add('ma_')"><span lg_language="_add_"></span></button>
-					<button onclick="Clear('ma_')"><span lg_language="_clear_"></span></button>
-					<button onclick="ClearOne('ma_')"><span lg_language="_remove_last_"></span></button>
-				</span>
-				<br>
-				<div id="ma_keywords"></div><br>
-				<div id="ma_tags"></div><br>
-				<div id="ma_stext"></div><br>			
-				<table>
-					<tr>
-						<td><div id="ma_categories_check"></div></td>
-					</tr>
-				</table>
-				
-				<!-- Template select area -->
-				<h2 lg_language="_manual_"></h2>
-				<div id="manual"></div>
 			</div>
 			
 			<!-- Company contact layout -->
 			<div class="body_tab" id="ru_4_7" style="display:none">
-				<div class="layout_title"><span lg_language="_ccontact_"></span></div>
-				
-				<!-- Search field -->
-				<span class="frame frame_search">
-					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="cc_inputfield" onkeyup="ProcessTextInput('cc_')"></textarea>
-					<button onclick="Add('cc_')"><span lg_language="_add_"></span></button>
-					<button onclick="Clear('cc_')"><span lg_language="_clear_"></span></button>
-					<button onclick="ClearOne('cc_')"><span lg_language="_remove_last_"></span></button>
-				</span>
-				<br>
-				<div id="cc_keywords"></div><br>
-				<div id="cc_tags"></div><br>
-				<div id="cc_stext"></div><br>
-				<table>
-					<tr>
-						<td><div id="cc_categories_check"></div></td>
-					</tr>
-				</table>
-				
-				<!-- Template select area -->
-				<h2 lg_language="_ccontact_"></h2>
-				<div id="ccontact"></div>
 			</div>
 			
 			<!-- Assist layout -->
 			<div class="body_tab" id="ru_5_7" style="display:none">
-				<div class="layout_title"><span lg_language="_assistant_"></span></div>
-				
-				<!-- Search field -->
-				<span class="frame frame_search">
-					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="as_inputfield" onkeyup="ProcessTextInput('as_')"></textarea>
-					<button onclick="Add('as_')"><span lg_language="_add_"></span></button>
-					<button onclick="Clear('as_')"><span lg_language="_clear_"></span></button>
-					<button onclick="ClearOne('as_')"><span lg_language="_remove_last_"></span></button>
-				</span>
-				<br>
-				<div id="as_keywords"></div><br>
-				<div id="as_tags"></div><br>
-				<div id="as_stext"></div><br>			
-				<table>
-					<tr>
-						<td><div id="as_categories_check"></div></td>
-					</tr>
-				</table>
-				
-				<h2 lg_language="_assistant_"></h2>
-				<div id="assistant"></div>
 			</div>
 			
 			<!-- Edit layout (Master edit require Password) -->
@@ -249,7 +163,10 @@
 				<table>
 					<tr>
 						<td class="half">
-							<input type="radio" name="edit_user" onclick="SetEditStatus(0)" checked><span lg_language="_personal_"></span><input type="radio" name="edit_user" onclick="SetEditStatus(1)"><span lg_language="_master_"></span><span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><span lg_language="_login_"></span></button></span>
+							<button onclick="SetEditStatus(0)"><span lg_language="_personal_"></span></button>
+							<button onclick="SetEditStatus(1)"><span lg_language="_master_"></span></button>
+							
+							<span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><span lg_language="_login_"></span></button></span>
 						</td>
 						<td class="half">
 							<div id="current_mode"><span lg_language="_personal_"></span></div>
@@ -261,7 +178,6 @@
 							<button onclick="CreateNew('template')"><span lg_language="_new_template_"></span></button>
 							<button onclick="CreateNew('manual')"><span lg_language="_new_manual_"></span></button>
 							<button onclick="CreateNew('ccontact')"><span lg_language="_new_ccontact_"></span></button>
-							<button onclick="CreateNew('assistant')"><span lg_language="_new_asistant_"></span></button>
 						</td>
 					</tr>
 				</table>
@@ -272,38 +188,6 @@
 					<b><span lg_language="_team_"></span></b><div id="s_user_team"></div><br>
 					<b><span lg_language="_interface_"></span></b><input id="s_i_language_eng" name="lang_select" type="radio" onclick="SetILanguage()"> English, <input id="s_i_language_jap" name="lang_select" type="radio" onclick="SetILanguage()"> 日本語, <input id="s_i_language_swe" name="lang_select" type="radio" onclick="SetILanguage()"> Svenska<br><br>
 					<b><span lg_language="_style_"></span></b><div id="s_style"><input type="radio" name="style" id="s_normal" onclick="SetStyle()"><span lg_language="_color_normal_"></span>, <input type="radio" name="style" id="s_dark" onclick="SetStyle()"><span lg_language="_color_dark_"></span></div><br>
-					<b><span lg_language="_lang_priority"></span></b>
-					<table>
-						<tr>
-							<th class="forth"><span lg_language="_language_"></span></th>
-							<th class="forth"><span lg_language="_priority_"></span>1</th>
-							<th class="forth"><span lg_language="_priority_"></span>2</th>
-							<th class="forth"><span lg_language="_priority_"></span>3</th>
-						</tr>
-						<tr>
-							<td>English</td>
-							<td><input type="radio" id="eng_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="eng_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="eng_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
-						</tr>
-						<tr>
-							<td>日本語</td>
-							<td><input type="radio" id="jap_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="jap_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="jap_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
-						</tr>
-						<tr>
-							<td>Other / その他</td>
-							<td><input type="radio" id="oth_first" name="prio_first" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="oth_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="oth_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
-						</tr><tr>
-							<td>None / 無し</td>
-							<td></td>
-							<td><input type="radio" id="no_second" name="prio_second" onclick="UpdateLanguagePrio()"></td>
-							<td><input type="radio" id="no_third" name="prio_third" onclick="UpdateLanguagePrio()"></td>
-						</tr>
-					</table><br>
 					<b><span lg_language="_reminders_"></span></b>
 					<div id="show_reminders"></div>
 				</div>
@@ -367,12 +251,13 @@
 					</table>
 					<table>
 						<tr>
-							<td colspan="3"><span lg_language="_title_"></span><input id="title" type="text"><button onclick="AddTitle('eng')">Add English</button><button onclick="AddTitle('jap')">日本語追加</button><button onclick="AddTitle('other')">Add Other その他追加</button></td>
+							<td><span lg_language="_title_"></span><input id="title" type="text"><button onclick="AddTitle('eng')"><span lg_language="_set_title_"></span></button></td>
 						</tr>
 						<tr>
-							<td class="third"><h1 id="title_show_eng">Not set...</h1></td>
-							<td class="third"><h1 id="title_show_jap">Not set...</h1></td>
-							<td class="third"><h1 id="title_show_other">Not set...</h1></td>
+							<td><h1 id="title_show_eng">Not set...</h1></td>
+						</tr>
+						<tr>
+							<td><span lg_language="_update_note_"></span> <input id="history_box" type="text" style="width:100%;"></td>
 						</tr>
 					</table>
 					
@@ -383,9 +268,7 @@
 					
 					<table>
 						<tr>
-							<td class="third"><button onclick="SetLanguageTag('英語')">English</button></td>
-							<td class="third"><button onclick="SetLanguageTag('日本語')">日本語</button></td>
-							<td class="third"><button onclick="SetLanguageTag('その他')">Other / その他</button></td>
+							<td><button onclick="CreateInputBox()"><span lg_language="_add_content_"></span></button></td>
 						</tr>
 					</table>
 					<button onclick="Delete()" style="background-color:red;"><span lg_language="_delete_"></span></button>
@@ -481,10 +364,11 @@
 			</div>
 			
 			<!-- Used when approving "_COPY" entries -->
-			<div id="current_master"></div>
-			
+			<div id="current_master" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 30, 60);"></div>
+			<hr>
 			<!-- Suggested entries -->
-			<div id="suggested_entry"></div>
+			<div id="suggested_entry" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 60, 30);"></div>
+			<hr>
 			
 			<!-- Buttons -->
 			<div id="approve_buttons">
@@ -507,7 +391,7 @@
 		
 		<!-- Data -->
 		<div class="hidden" style="color:#CCCCCC;">
-			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">●日本語●</div><div id="content_language">●日本語●|●英語●|●その他●</div><div id="my_style"></div><div id="my_reminders"></div></div>
+			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">japanese</div><div id="my_style">Style_normal.css</div><div id="my_reminders"></div></div>
 			<div id="meeting"></div>
 			<div id="own_comments"></div>
 			<div id="var_labinv"></div>
@@ -521,18 +405,6 @@
 	<ul id="menubar" class="menubar hidden">
 		<li><a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)">
 			<span lg_language="_search_"></span>
-		</a></li>
-		<li style="display:none;"><a id="ru_2_btn" href="#Templates" onclick="TabHandler('ru_', 2)">
-			<span lg_language="_templates_"></span>
-		</a></li>
-		<li style="display:none;"><a id="ru_3_btn" href="#Manual" onclick="TabHandler('ru_', 3)">
-			<span lg_language="_manual_"></span>
-		</a></li>
-		<li style="display:none;"><a id="ru_4_btn" href="#CompanyContact" onclick="TabHandler('ru_', 4)">
-			<span lg_language="_ccontact_"></span>
-		</a></li>
-		<li style="display:none;"><a id="ru_5_btn" href="#Assistant" onclick="TabHandler('ru_', 5)">
-			<span lg_language="_assistant_"></span>
 		</a></li>
 		<li><a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)">
 			<span lg_language="_edit_"></span>
@@ -557,26 +429,6 @@
 				<option value="swedish">Svenska</option>
 			</select>
 		</li>
-		<!--
-		<li style="float:right">
-			<a href="#Other" onclick="ChangeLanguage('●その他●')">
-				<span class="resp_wide">Other / その他</span>
-				<span class="resp_tiny">O/他</span>
-			</a>
-		</li>
-		<li style="float:right">
-			<a href="#Japanese" onclick="ChangeLanguage('●日本語●')">
-				<span class="resp_wide">日本語</span>
-				<span class="resp_tiny">日</span>
-			</a>
-		</li>
-		<li style="float:right">
-			<a href="#English" onclick="ChangeLanguage('●英語●')">
-				<span class="resp_wide">English</span>
-				<span class="resp_tiny">E</span>
-			</a>
-		</li>
-		-->
 	</ul>
 	
 	<!-- Edit menu bar -->
@@ -610,19 +462,9 @@
 			<input id="search_word" type="text" style="height:30px;">
 			<select id="search_type">
 				<option value="all" lg_language="_search_"></option>
-				<option value="template" lg_language="_templates_"></option>
-				<option value="manual" lg_language="_manual_"></option>
-				<option value="ccontact" lg_language="_ccontact_"></option>
-				<option value="assist" lg_language="_assistant_"></option>
 			</select>
 		</li>
 		<li><a onclick="AddSearchButton('selected_input_box')"><span lg_language="_search_btn_"></span></a></li>
-		
-		<li><button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button></li>
-	</ul>
-	<ul id="editbar_assist" class="editbar hidden">
-		<li><a onclick="AddQuestion()"><span lg_language="_add_question_"></span></a></li>
-		<li><a onclick="AddAnswer()"><span lg_language="_add_answer_"></span></a></li>
 		
 		<li><button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button></li>
 	</ul>
