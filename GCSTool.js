@@ -1436,7 +1436,9 @@ function EditSave() {
 	// Content
 	var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
 	for (var i = 0; i < entries.length; i++) {
-		data.Content.push(entries[i].value);
+		if (entries[i].value.length > 0) {
+			data.Content.push(entries[i].value);
+		}
 	}
 	
 	if(document.getElementById("type").innerHTML.indexOf("Template") >= 0) {
@@ -1507,7 +1509,7 @@ function EditEntry(json_index) {
 	var t_area = json_data.Entries[json_index].data.Content;
 	var i = 0;
 	while (i < t_area.length) {
-		CreateInputBox('英語');
+		CreateInputBox();
 
 		i = i + 1;
 	}
@@ -1556,7 +1558,7 @@ function EditEntryCopy(json_index) {
 	var t_area = json_data.Entries[json_index].data.Content;
 	var i = 0;
 	while (i < t_area.length) {
-		CreateInputBox('英語');
+		CreateInputBox();
 
 		i = i + 1;
 	}
