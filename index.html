@@ -162,7 +162,10 @@
 				<table>
 					<tr>
 						<td class="half">
-							<input type="radio" name="edit_user" onclick="SetEditStatus(0)" checked><span lg_language="_personal_"></span><input type="radio" name="edit_user" onclick="SetEditStatus(1)"><span lg_language="_master_"></span><span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><span lg_language="_login_"></span></button></span>
+							<button onclick="SetEditStatus(0)"><span lg_language="_personal_"></span></button>
+							<button onclick="SetEditStatus(1)"><span lg_language="_master_"></span></button>
+							
+							<span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><span lg_language="_login_"></span></button></span>
 						</td>
 						<td class="half">
 							<div id="current_mode"><span lg_language="_personal_"></span></div>
