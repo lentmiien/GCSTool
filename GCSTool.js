@@ -632,7 +632,10 @@ function News() {// JSON version
 				}
 
 				output += '<br><div id="c_' + myID + '" style="display:none;">';
-				output += '<button onclick="EditEntry(' + i + ')">Edit</button><br>';
+				output += '<button onclick="EditEntry(' + i + ')">Edit</button>';
+				if (json_data.Entries[i].ismaster == true) {
+					output += '<button onclick="EditEntryCopy(' + i + ')">Edit(Copy)</button><br>';
+				}
 				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 					if (json_data.Entries[i].type.indexOf('manual') == 0) {
 						output += json_data.Entries[i].data.Content[cd];
@@ -966,7 +969,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Display list
-	output += "<button onclick=\"SetShareData()\" style=\"background-color:red;\">" + GenerateInterfaceText("●英語●Generate data●英語●●日本語●データ作成●日本語●") + "</button><br><hr>";
+	output += "<button onclick=\"SetShareData()\" style=\"background-color:red;\">Generate data</button><br><hr>";
 	document.getElementById("share_output").innerHTML = output;
 }
 
@@ -1129,7 +1132,7 @@ function ReminderDelete(id_num) {
 	var output = "<table>";
 	var updated_reminders = "";
 	// Header row
-	output += "<tr><th class=\"third\">" + GenerateInterfaceText("●英語●Time●英語●●日本語●時間●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Message●英語●●日本語●メッセージ●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Edit●英語●●日本語●編集●日本語●") + "</th></tr>";
+	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1140,7 +1143,7 @@ function ReminderDelete(id_num) {
 				var this_reminder = reminders[i].split("|");
 				output += "<td>" + this_reminder[0] + "</td>";
 				output += "<td>" + this_reminder[1] + "</td>";
-				output += "<td><button onclick=\"ReminderDelete(" + cnt + ")\">" + GenerateInterfaceText("●英語●Delete●英語●●日本語●削除●日本語●") + "</button></td>";
+				output += "<td><button onclick=\"ReminderDelete(" + cnt + ")\">Delete</button></td>";
 				output += "</tr>";
 				
 				if(updated_reminders.length > 0) {
@@ -1160,7 +1163,7 @@ function ReminderDelete(id_num) {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">" + GenerateInterfaceText("●英語●Add●英語●●日本語●追加●日本語●") + "</button></td>";
+	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1182,7 +1185,7 @@ function AddReminder() {
 	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
-	output += "<tr><th class=\"third\">" + GenerateInterfaceText("●英語●Time●英語●●日本語●時間●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Message●英語●●日本語●メッセージ●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Edit●英語●●日本語●編集●日本語●") + "</th></tr>";
+	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1191,7 +1194,7 @@ function AddReminder() {
 			var this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
-			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">" + GenerateInterfaceText("●英語●Delete●英語●●日本語●削除●日本語●") + "</button></td>";
+			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">Delete</button></td>";
 			output += "</tr>";
 			
 			i += 1;
@@ -1201,7 +1204,7 @@ function AddReminder() {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">" + GenerateInterfaceText("●英語●Add●英語●●日本語●追加●日本語●") + "</button></td>";
+	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1384,7 +1387,7 @@ function UpdateSettings() {
 	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
-	output += "<tr><th class=\"third\">" + GenerateInterfaceText("●英語●Time●英語●●日本語●時間●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Message●英語●●日本語●メッセージ●日本語●") + "</th><th class=\"third\">" + GenerateInterfaceText("●英語●Edit●英語●●日本語●編集●日本語●") + "</th></tr>";
+	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1393,7 +1396,7 @@ function UpdateSettings() {
 			var this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
-			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">" + GenerateInterfaceText("●英語●Delete●英語●●日本語●削除●日本語●") + "</button></td>";
+			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">Delete</button></td>";
 			output += "</tr>";
 			
 			i += 1;
@@ -1403,7 +1406,7 @@ function UpdateSettings() {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">" + GenerateInterfaceText("●英語●Add●英語●●日本語●追加●日本語●") + "</button></td>";
+	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1523,6 +1526,55 @@ function EditEntry(json_index) {
 	if (json_data.Entries[json_index].ismaster == true) {
 		document.getElementById("type").innerHTML += "<i>(Master)</i>";
 	}
+
+	// Title
+	document.getElementById("title_show_eng").innerHTML = json_data.Entries[json_index].data.Title;
+
+	// Content
+	document.getElementById("input_boxes").innerHTML = "";
+	var t_area = json_data.Entries[json_index].data.Content;
+	var i = 0;
+	while (i < t_area.length) {
+		SetLanguageTag('英語');
+
+		i = i + 1;
+	}
+	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	i = 0;
+	while (i < t_area.length) {
+		i_area[i].value = t_area[i];
+
+		i = i + 1;
+	}
+
+	// Open the tab and set up for editing
+	TabHandler('ru_', 6);
+	document.getElementById("edit_settings").style.display = "none";
+	document.getElementById("edit_body").style.display = "block";
+
+	document.getElementById("n_cat").style.display = "block";
+	//document.getElementById("t_cat").style.display = "none";
+
+	ShowEditBar(0);
+}
+function EditEntryCopy(json_index) {
+	// Edit copy as personal entry
+	SetEditStatus(0);
+
+	// Setup variables
+	document.getElementById("unique_id").innerHTML = json_data.Entries[json_index].uid + '_COPY';
+	if (json_data.Entries[json_index].type.indexOf("template") == 0) {
+		document.getElementById("type").innerHTML = "Template";
+	}
+	else if (json_data.Entries[json_index].type.indexOf("manual") == 0) {
+		document.getElementById("type").innerHTML = "Manual";
+	}
+	else if (json_data.Entries[json_index].type.indexOf("ccontact") == 0) {
+		document.getElementById("type").innerHTML = "Company Contact";
+	}
+	document.getElementById("category_select").value = json_data.Entries[json_index].category;
+	document.getElementById("team_select").value = json_data.Entries[json_index].team;
+	document.getElementById("last_updated").innerHTML = "NEW COPY";
 
 	// Title
 	document.getElementById("title_show_eng").innerHTML = json_data.Entries[json_index].data.Title;
