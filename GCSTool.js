@@ -311,44 +311,16 @@ function LoadShareData() {
 	// Setup basic variables
 	var entries = JSON.parse(document.getElementById("save_out").value);
 	var num_entries = entries.Entries.length;
-	document.getElementById("counter").innerHTML = "0";
-	document.getElementById("left_to_check").innerHTML = "1/" + num_entries;
+	document.getElementById("counter").innerHTML = "-1";
+	document.getElementById("left_to_check").innerHTML = "0/" + num_entries;
 	
 	// Stop if no data
 	if(num_entries <= 0) {
 		return;
 	}
-	
-	// Load first entry
-	document.getElementById("current_master").innerHTML = "";
-	var true_id = entries.Entries[0].uid;
-	if (true_id.indexOf("_COPY") >= 0) {
-		true_id = true_id.slice(0, -5);
-		var j_index = ExistJSON(true_id);
-		if (j_index >= 0) {
-			if(json_data.Entries[j_index].type.indexOf("manual") >= 0) {
-				for (var cnt = 0; cnt < json_data.Entries[j_index].data.Content.length; cnt++) {
-					document.getElementById("current_master").innerHTML = '<div class="entry">' + json_data.Entries[j_index].data.Content[cnt] + '</div>';
-				}				
-			}
-			else {
-				for (var cnt = 0; cnt < json_data.Entries[j_index].data.Content.length; cnt++) {
-					document.getElementById("current_master").innerHTML = '<textarea>' + json_data.Entries[j_index].data.Content[cnt] + '</textarea>';
-				}
-			}
-		}
-	}
 
-	if (entries.Entries[0].type.indexOf("manual") >= 0) {
-		for (var cnt = 0; cnt < entries.Entries[0].data.Content.length; cnt++) {
-			document.getElementById("current_master").innerHTML = '<div class="entry">' + entries.Entries[0].data.Content[cnt] + '</div>';
-		}
-	}
-	else {
-		for (var cnt = 0; cnt < entries.Entries[0].data.Content.length; cnt++) {
-			document.getElementById("current_master").innerHTML = '<textarea>' + entries.Entries[0].data.Content[cnt] + '</textarea>';
-		}
-	}
+	// Start by showing the next entry to check
+	Next();
 	
 	// Show Approve layout
 	document.getElementById("run").style.display = "none";
@@ -365,11 +337,17 @@ function Approve(type) {
 	var entries = JSON.parse(document.getElementById("save_out").value);
 
 	var isMaster = false;
-	if (type == 1) { isMaster = true; }
+	var thisID = entries.Entries[cnt].uid;
+	if (type == 1) {
+		isMaster = true;
+		if (thisID.indexOf('_COPY') >= 0) {
+			thisID = thisID.slice(0, -5);
+		}
+	}
 	
 	// Save
 	SaveDataToJSON(
-		entries.Entries[cnt].uid,
+		thisID,
 		entries.Entries[cnt].type,
 		isMaster,
 		entries.Entries[cnt].lastupdate,
@@ -405,36 +383,43 @@ function Next() {
 	}
 	
 	if(cnt < num_entries) {
-		// Load *cnt* entry
+		// Display any existing entries
 		document.getElementById("current_master").innerHTML = "";
 		var true_id = entries.Entries[cnt].uid;
 		if (true_id.indexOf("_COPY") >= 0) {
 			true_id = true_id.slice(0, -5);
 			var j_index = ExistJSON(true_id);
 			if (j_index >= 0) {
+				document.getElementById("current_master").innerHTML += "<h2>Original entry</h2>";
+				document.getElementById("current_master").innerHTML += '<h3>' + json_data.Entries[j_index].data.Title + '</h3>';
 				if (json_data.Entries[j_index].type.indexOf("manual") >= 0) {
 					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
-						document.getElementById("current_master").innerHTML = '<div class="entry">' + json_data.Entries[j_index].data.Content[c] + '</div>';
+						document.getElementById("current_master").innerHTML += '<div class="entry">' + json_data.Entries[j_index].data.Content[c] + '</div>';
 					}
 				}
 				else {
 					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
-						document.getElementById("current_master").innerHTML = '<textarea>' + json_data.Entries[j_index].data.Content[c] + '</textarea>';
+						document.getElementById("current_master").innerHTML += '<textarea>' + json_data.Entries[j_index].data.Content[c] + '</textarea>';
 					}
 				}
+				document.getElementById("current_master").innerHTML += '<div style="background-color:blue;">' + json_data.Entries[j_index].history + '</div>';
 			}
 		}
 
-		if (entries.Entries[0].type.indexOf("manual") >= 0) {
+		// Display the suggested entry
+		document.getElementById("suggested_entry").innerHTML = '<h2>Suggested entry</h2>';
+		document.getElementById("suggested_entry").innerHTML += '<h3>' + entries.Entries[cnt].data.Title + '</h3>';
+		if (entries.Entries[cnt].type.indexOf("manual") >= 0) {
 			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
-				document.getElementById("current_master").innerHTML = '<div class="entry">' + entries.Entries[cnt].data.Content[c] + '</div>';
+				document.getElementById("suggested_entry").innerHTML += '<div class="entry">' + entries.Entries[cnt].data.Content[c] + '</div>';
 			}
 		}
 		else {
 			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
-				document.getElementById("current_master").innerHTML = '<textarea>' + entries.Entries[cnt].data.Content[c] + '</textarea>';
+				document.getElementById("suggested_entry").innerHTML += '<textarea>' + entries.Entries[cnt].data.Content[c] + '</textarea>';
 			}
 		}
+		document.getElementById("suggested_entry").innerHTML += '<div style="background-color:blue;">' + entries.Entries[cnt].history + '</div>';
 	}
 	else {
 		Back();
@@ -445,6 +430,8 @@ function Back() {
 	document.getElementById("run").style.display = "block";
 	document.getElementById("menubar").style.display = "block";
 	document.getElementById("approve").style.display = "none";
+
+	News();
 }
 
 function ShowEditBar(id) {
@@ -1279,6 +1266,8 @@ function CreateNew(type) {
 	// Show edit_body
 	document.getElementById("edit_settings").style.display = "none";
 	document.getElementById("edit_body").style.display = "block";
+
+	document.getElementById('history_box').value = 'Created';
 }
 
 function SetID() {
