@@ -157,6 +157,15 @@ function CheckScriptEnabled() {
 	
 	// Update interface to correct language
 	UpdateLanguage('lg_language');
+
+	// Auto-start
+	setTimeout(AutoStart, 500);
+}
+
+function AutoStart() {
+	if((document.getElementById('input_personal').value.indexOf('Loaded!') == 0 || document.getElementById('input_personal').value.indexOf('New user, leave empty.') == 0) && document.getElementById('input_master').value.indexOf('Loading...Loaded!') == 0) {
+		LoadData();
+	}
 }
 
 // Do some initial setup
@@ -589,7 +598,7 @@ function News() {// JSON version
 				var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
 
 				// Type of entry
-				output += "<i class=\"label\">" + text_input + "</i>";
+				output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
 
 				// Master / Private
 				if (json_data.Entries[i].ismaster == true) {
@@ -600,9 +609,9 @@ function News() {// JSON version
 				}
 
 				output += '<br><div id="c_' + myID + '" style="display:none;">';
-				output += '<button onclick="EditEntry(' + i + ')">Edit</button>';
+				output += '<button onclick="EditEntry(' + i + ')">' + GetData('_edit_') + '</button>';
 				if (json_data.Entries[i].ismaster == true) {
-					output += '<button onclick="EditEntryCopy(' + i + ')">Edit(Copy)</button><br>';
+					output += '<button onclick="EditEntryCopy(' + i + ')">' + GetData('_edit_copy_') + '</button><br>';
 				}
 				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 					if (json_data.Entries[i].type.indexOf('manual') == 0) {
@@ -717,7 +726,7 @@ function ExpSearch() {
 			var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
 
 			// Type of entry
-			output += "<i class=\"label\">" + text_input + "</i>";
+			output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
 
 			// Master / Private
 			if (json_data.Entries[u].ismaster) {
@@ -728,7 +737,10 @@ function ExpSearch() {
 			}
 
 			output += '<br><div id="c_' + myID + '" style="display:none;">';
-			output += '<button onclick="EditEntry(' + u + ')">Edit</button><br>';
+			output += '<button onclick="EditEntry(' + u + ')">' + GetData('_edit_') + '</button>';
+			if (json_data.Entries[u].ismaster == true) {
+				output += '<button onclick="EditEntryCopy(' + u + ')">' + GetData('_edit_copy_') + '</button><br>';
+			}
 			for (var cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
 				if (json_data.Entries[u].type.indexOf('manual') == 0) {
 					output += '<div>' + json_data.Entries[u].data.Content[cd] + '</div>';
@@ -907,7 +919,7 @@ function ShareDataList() {
 	var i;
 	
 	// Template
-	output += "<h3>Templates</h3>";
+	output += '<h3>' + GetData('_templates_') + '</h3>';
 	for(i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("template") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="templates">' + json_data.Entries[i].data.Title + '<br>';
@@ -917,7 +929,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Manual
-	output += "<h3>Manuals</h3>";
+	output += '<h3>' + GetData('_manual_') + '</h3>';
 	for (i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("manual") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="manual">' + json_data.Entries[i].data.Title + '<br>';
@@ -927,7 +939,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Ccontact
-	output += "<h3>Company Contacts</h3>";
+	output += '<h3>' + GetData('_ccontact_') + '</h3>';
 	for (i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("ccontact") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + json_data.Entries[i].data.Title + '<br>';
@@ -937,7 +949,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Display list
-	output += "<button onclick=\"SetShareData()\" style=\"background-color:red;\">Generate data</button><br><hr>";
+	output += '<button onclick="SetShareData()" style="background-color:red;">' + GetData('_generate_data_') + '</button><br><hr>';
 	document.getElementById("share_output").innerHTML = output;
 }
 
@@ -1102,7 +1114,7 @@ function ReminderDelete(id_num) {
 	var output = "<table>";
 	var updated_reminders = "";
 	// Header row
-	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
+	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1113,7 +1125,7 @@ function ReminderDelete(id_num) {
 				var this_reminder = reminders[i].split("|");
 				output += "<td>" + this_reminder[0] + "</td>";
 				output += "<td>" + this_reminder[1] + "</td>";
-				output += "<td><button onclick=\"ReminderDelete(" + cnt + ")\">Delete</button></td>";
+				output += '<td><button onclick="ReminderDelete(' + cnt + ')">' + GetData('_delete_') + '</button></td>';
 				output += "</tr>";
 				
 				if(updated_reminders.length > 0) {
@@ -1133,7 +1145,7 @@ function ReminderDelete(id_num) {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
+	output += '<td><button onclick="AddReminder()">' + GetData('_add_') + '</button></td>';
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1155,7 +1167,7 @@ function AddReminder() {
 	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
-	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
+	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1164,7 +1176,7 @@ function AddReminder() {
 			var this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
-			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">Delete</button></td>";
+			output += '<td><button onclick="ReminderDelete(' + i + ')">' + GetData('_delete_') + '</button></td>';
 			output += "</tr>";
 			
 			i += 1;
@@ -1174,7 +1186,7 @@ function AddReminder() {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
+	output += '<td><button onclick="AddReminder()">' + GetData('_add_') + '</button></td>';
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1359,7 +1371,7 @@ function UpdateSettings() {
 	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
 	// Header row
-	output += "<tr><th class=\"third\">Time</th><th class=\"third\">Message</th><th class=\"third\">Edit</th></tr>";
+	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
 		var i = 0;
@@ -1368,7 +1380,7 @@ function UpdateSettings() {
 			var this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
-			output += "<td><button onclick=\"ReminderDelete(" + i + ")\">Delete</button></td>";
+			output += '<td><button onclick="ReminderDelete(' + i + ')">' + GetData('_delete_') + '</button></td>';
 			output += "</tr>";
 			
 			i += 1;
@@ -1378,7 +1390,7 @@ function UpdateSettings() {
 	output += "<tr>";
 	output += "<td><input id=\"rem_time\" type=\"text\"></td>";
 	output += "<td><input id=\"rem_text\" type=\"text\"></td>";
-	output += "<td><button onclick=\"AddReminder()\">Add</button></td>";
+	output += '<td><button onclick="AddReminder()">' + GetData('_add_') + '</button></td>';
 	output += "</tr>";
 	output += "</table>";
 	// Show
@@ -1903,7 +1915,7 @@ function LoginCheck() {
 		return true;
 	}
 	
-	alert("Please login from the Edit layout\n編集レイアウトからログインしてください。");
+	alert(GetData('_alert_login_'));
 	return false;
 }
 
@@ -2235,12 +2247,3 @@ function getemail(inputstring, index) {
 	}
 	return retval;
 }
-
-/*********************
- * 
- *  JSON data
- * 
- *  1. Language => lg_language.js
- *  2. Content
- * 
- */
