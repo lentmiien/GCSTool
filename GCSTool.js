@@ -6,13 +6,6 @@
 
 var g_i = 1;
 
-var types = {
-	"te_":"templates",
-	"ma_":"manual",
-	"cc_":"ccontact",
-	"as_":"assistant"
-};
-
 var categories = {
 	"_account_related_":"アカウント関連",
 	"_order_item_statuses_":"注文・商品の状況",
@@ -23,8 +16,12 @@ var categories = {
 	"_after_service_preowned_":"中古サポート",
 	"_returns_refunds_":"返品・返金",
 	"_claims_cases_":"クレーム・ケース",
-	"_other_":"その他",
-	"_work_related_":"仕事関連"
+	"_work_related_":"仕事関連",
+	"_case_assist_": "ケース対応",
+	"_customer_dep_": "カスタマーサポート",
+	"_logistics_dep_": "発送・ロジ課",
+	"_feedback_": "フィードバック",
+	"_other_": "その他"
 };
 var categories_eng = {
 	"_account_related_":"Account Related",
@@ -36,23 +33,12 @@ var categories_eng = {
 	"_after_service_preowned_":"After Service Pre-owned",
 	"_returns_refunds_":"Returns/Refunds",
 	"_claims_cases_":"Claims/Cases",
-	"_other_":"Other",
-	"_work_related_":"Work Related"
-};
-
-var target_team = {
-	"_case_assist_":"ケース対応",
-	"_customer_dep_":"カスタマーサポート",
-	"_logistics_dep_":"発送・ロジ課",
-	"_feedback_":"フィードバック",
-	"_other_":"その他"
-};
-var target_team_eng = {
-	"_case_assist_":"Case assist",
-	"_customer_dep_":"Customer Support",
-	"_logistics_dep_":"Shippin Logistics",
-	"_feedback_":"Feedback",
-	"_other_":"Other"
+	"_work_related_":"Work Related",
+	"_case_assist_": "Case assist",
+	"_customer_dep_": "Customer Support",
+	"_logistics_dep_": "Shippin Logistics",
+	"_feedback_": "Feedback",
+	"_other_": "Other"
 };
 
 var teams = {
@@ -135,160 +121,11 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 function DeleteUidFromJSON(del_uid) {
 	var index = ExistJSON(del_uid);
 	if(index >= 0) {
-		json_data.Entries.splice(index, 1); 
-	}
-}
+		json_data.Entries.splice(index, 1);
 
-function LoadDataToJSON(load_uid, this_type) {
-	var s_uid = load_uid;
-	var s_version = 2;
-	var s_type = this_type;
-	var s_isMaster = false;
-	var s_lastUpdate;
-	var s_category;
-	var s_team;
-	var s_authority = 0;
-	var s_e_data = { Title: "", Content: [] };
-	var s_history = ": New entry";
-
-	// Template
-	if (this_type.indexOf("template") == 0 && this_type.length == "template".length) {
-		// Get necesdsary data
-		var datatostore = document.getElementById(load_uid);
-		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
-		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
-		s_category = t_set[0];
-		s_team = t_set[1];
-		s_lastUpdate = t_set[2];
-		s_history = s_lastUpdate + s_history;
-		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
-		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea');
-		if(typeof t_title === "undefined") {
-			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
-		}
-		else {
-			s_e_data.Title = t_title;
-		}
-		for (var ta = 0; ta < t_cont.length-1; ta++) {
-			s_e_data.Content.push(t_cont[ta].value);
-		}
-
-		// Check if entry exists
-		var exist_id = -1;
-		for(var i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
-				exist_id = i;
-			}
-		}
-
-		// Ignore existing entries
-		if(exist_id == -1) {
-			// Add new
-			json_data.Entries.push({
-				uid: s_uid,
-				version: s_version,
-				type: s_type,
-				ismaster: s_isMaster,
-				lastupdate: s_lastUpdate,
-				category: s_category,
-				team: s_team,
-				authority: s_authority,
-				data: s_e_data,
-				history: s_history
-			});
-		}
-	}
-
-	// Manual
-	if (this_type.indexOf("manual") == 0 && this_type.length == "manual".length) {
-		// Get necesdsary data
-		var datatostore = document.getElementById(load_uid);
-		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
-		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
-		s_category = t_set[0];
-		s_team = t_set[1];
-		s_lastUpdate = t_set[2];
-		s_history = s_lastUpdate + s_history;
-		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
-		var t_cont = datatostore.getElementsByClassName('data')[1].innerHTML.split('●英語●')[1];
-		if (typeof t_title === "undefined") {
-			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
-		}
-		else {
-			s_e_data.Title = t_title;
-		}
-		s_e_data.Content.push(t_cont);
-
-		// Check if entry exists
-		var exist_id = -1;
-		for (var i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
-				exist_id = i;
-			}
-		}
-
-		// Ignore existing entries
-		if (exist_id == -1) {
-			// Add new
-			json_data.Entries.push({
-				uid: s_uid,
-				version: s_version,
-				type: s_type,
-				ismaster: s_isMaster,
-				lastupdate: s_lastUpdate,
-				category: s_category,
-				team: s_team,
-				authority: s_authority,
-				data: s_e_data,
-				history: s_history
-			});
-		}
-	}
-
-	// Ccontact
-	if (this_type.indexOf("ccontact") == 0 && this_type.length == "ccontact".length) {
-		// Get necesdsary data
-		var datatostore = document.getElementById(load_uid);
-		var t_title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●英語●')[1];
-		var t_set = document.getElementById(load_uid + '_settings').innerHTML.split('|');
-		s_category = t_set[0];
-		s_team = t_set[1];
-		s_lastUpdate = t_set[2];
-		s_history = s_lastUpdate + s_history;
-		if (t_set[3].indexOf('master') == 0) { s_isMaster = true; }
-		var t_cont = document.getElementById(load_uid + '_content').getElementsByTagName('textarea')[0].value;
-		if (typeof t_title === "undefined") {
-			s_e_data.Title = datatostore.getElementsByClassName('data')[0].innerHTML.split('●日本語●')[1];
-		}
-		else {
-			s_e_data.Title = t_title;
-		}
-		s_e_data.Content.push(t_cont);
-
-		// Check if entry exists
-		var exist_id = -1;
-		for (var i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].uid.indexOf(s_uid) == 0 && json_data.Entries[i].uid.length == s_uid.length) {
-				exist_id = i;
-			}
-		}
-
-		// Ignore existing entries
-		if (exist_id == -1) {
-			// Add new
-			json_data.Entries.push({
-				uid: s_uid,
-				version: s_version,
-				type: s_type,
-				ismaster: s_isMaster,
-				lastupdate: s_lastUpdate,
-				category: s_category,
-				team: s_team,
-				authority: s_authority,
-				data: s_e_data,
-				history: s_history
-			});
-		}
+		// Refresh the search page
+		document.getElementById('last_updated').innerHTML = "DELETED";
+		News();
 	}
 }
 
@@ -320,37 +157,19 @@ function LoadDataToJSON(load_uid, this_type) {
 function CheckScriptEnabled() {
 	document.getElementById("scriptenabled").style.display = "none";
 	
-	// Remove for IE compability
+	// Load Master data from server
 	includeHTML();
-
-	// Personal data
-	document.getElementById("input_personal").value = localStorage.getItem("input_personal");
-
-	// Set style
-	if (document.getElementById("input_personal").value.indexOf("Style_dark.css") >= 0) {
-		document.getElementById("color_mode").value = "Style_dark.css";
-	}
-
-	// Set interface language
-	if (document.getElementById("input_personal").value.indexOf("interface_language\">●英語●") >= 0) {
-		document.getElementById("lg_language").value = "english";
-	}
-	else if (document.getElementById("input_personal").value.indexOf("interface_language\">english") >= 0) {
-		document.getElementById("lg_language").value = "english";
-	}
-	else if (document.getElementById("input_personal").value.indexOf("interface_language\">swedish") >= 0) {
-		document.getElementById("lg_language").value = "swedish";
-	}
-	else {
-		document.getElementById("lg_language").value = "japanese";
-	}
 
 	// Load JSON Personal data if existing
 	if (localStorage.hasOwnProperty("json_personal") == true) {
 		extPersonal = JSON.parse(localStorage.getItem("json_personal"));
+		document.getElementById("input_personal").value = 'Loaded!';
 
 		document.getElementById("color_mode").value = extPersonal.Settings.style;
 		document.getElementById("lg_language").value = extPersonal.Settings.i_language;
+	}
+	else {
+		document.getElementById("input_personal").value = 'New user, leave empty.';
 	}
 	
 	// Update interface to correct language
@@ -359,51 +178,17 @@ function CheckScriptEnabled() {
 
 // Do some initial setup
 function Setup() {
-	// Setup category select on search pages
 	var output = " ";
-	for(var key in categories) {
-		if(document.getElementById("templates").innerHTML.indexOf(key) >= 0) {
-			output += '<span class="category ' + key + '"><input type="checkbox" id="te_' + key + '_check" value="' + key + '" onclick="ApplySearchParameters(\'te_\')">' + GenerateInterfaceText("●英語●" + categories_eng[key] + "●英語●●日本語●" + categories[key] + "●日本語●") + '</span> ';
-		}
-	}
-	document.getElementById("te_categories_check").innerHTML += output;
 	
-	output = " ";
-	for(var key in categories) {
-		if(document.getElementById("manual").innerHTML.indexOf(key) >= 0) {
-			output += '<span class="category ' + key + '"><input type="checkbox" id="ma_' + key + '_check" value="' + key + '" onclick="ApplySearchParameters(\'ma_\')">' + GenerateInterfaceText("●英語●" + categories_eng[key] + "●英語●●日本語●" + categories[key] + "●日本語●") + '</span> ';
-		}
-	}
-	document.getElementById("ma_categories_check").innerHTML += output;
-	
-	output = " ";
-	for(var key in target_team) {
-		if(document.getElementById("ccontact").innerHTML.indexOf(key) >= 0) {
-			output += '<span class="category ' + key + '"><input type="checkbox" id="cc_' + key + '_check" value="' + key + '" onclick="ApplySearchParameters(\'cc_\')">' + GenerateInterfaceText("●英語●" + target_team_eng[key] + "●英語●●日本語●" + target_team[key] + "●日本語●") + '</span> ';
-		}
-	}
-	document.getElementById("cc_categories_check").innerHTML += output;
-	
-	output = " ";
-	for(var key in categories) {
-		if(document.getElementById("assistant").innerHTML.indexOf(key) >= 0) {
-			output += '<span class="category ' + key + '"><input type="checkbox" id="as_' + key + '_check" value="' + key + '" onclick="ApplySearchParameters(\'as_\')">' + GenerateInterfaceText("●英語●" + categories_eng[key] + "●英語●●日本語●" + categories[key] + "●日本語●") + '</span> ';
-		}
-	}
-	document.getElementById("as_categories_check").innerHTML += output;
-	
-	// Settings for edit layout
-	// Set category
+	// Edit category
 	output = '<div id="n_cat"><select id="category_select">';
 	for(var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
-	for(var key in target_team) { output += '<option value="' + key + '">' + target_team_eng[key] + "/" + target_team[key] + '</option>'; }
 	output += '</select></div>';
 	document.getElementById("category").innerHTML = output;
 
 	// Search category
 	output = "";
 	for (var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
-	for (var key in target_team) { output += '<option value="' + key + '">' + target_team_eng[key] + "/" + target_team[key] + '</option>'; }
 	document.getElementById("cat_sel").innerHTML += output;
 	
 	// Set team
@@ -414,9 +199,6 @@ function Setup() {
 	
 	// Reminders
 	SetReminderFunction("16:59", "ShowDocuments()");
-	
-	// Setup Interface
-	SetupInterface();
 }
 
 // Desktop popup
@@ -441,10 +223,6 @@ else {
 	}
 }*/
 
-var t_cnt = 0;
-var m_cnt = 0;
-var c_cnt = 0;
-var a_cnt = 0;
 // Capture Ctrl+F
 window.onkeydown = function(e){
 	// Ctrl + Q  [Continue previous search]
@@ -460,66 +238,6 @@ window.onkeydown = function(e){
 		document.getElementById("all_inputfield").focus();
 		setTimeout("Empty('all_')", 100); // Clear the space that is added to the input box
 	}
-	/*
-	// T counter: 3 times and go to template layout
-	if(e.keyCode == 84) {
-		t_cnt += 1;
-		if(t_cnt >= 3) {
-			t_cnt = 0;
-			Clear("te_");
-			TabHandler("ru_", 2);
-			document.getElementById("te_inputfield").focus();
-			setTimeout("Empty('te_')", 100); // Clear the space that is added to the input box
-		}
-	}
-	else {
-		t_cnt = 0;
-	}
-	
-	// M counter: 3 times and go to manual layout
-	if(e.keyCode == 77) {
-		m_cnt += 1;
-		if(m_cnt >= 3) {
-			m_cnt = 0;
-			Clear("ma_");
-			TabHandler("ru_", 3);
-			document.getElementById("ma_inputfield").focus();
-			setTimeout("Empty('ma_')", 100); // Clear the space that is added to the input box
-		}
-	}
-	else {
-		m_cnt = 0;
-	}
-	
-	// C counter: 3 times and go to company contact layout
-	if(e.keyCode == 67) {
-		c_cnt += 1;
-		if(c_cnt >= 3) {
-			c_cnt = 0;
-			Clear("cc_");
-			TabHandler("ru_", 4);
-			document.getElementById("cc_inputfield").focus();
-			setTimeout("Empty('cc_')", 100); // Clear the space that is added to the input box
-		}
-	}
-	else {
-		c_cnt = 0;
-	}
-	
-	// A counter: 3 times and go to assist layout
-	if(e.keyCode == 65) {
-		a_cnt += 1;
-		if(a_cnt >= 3) {
-			a_cnt = 0;
-			Clear("as_");
-			TabHandler("ru_", 5);
-			document.getElementById("as_inputfield").focus();
-			setTimeout("Empty('as_')", 100); // Clear the space that is added to the input box
-		}
-	}
-	else {
-		a_cnt = 0;
-	}*/
 }
 
 function Empty(input) {
@@ -536,11 +254,11 @@ function TabHandler(prefix, id) {
 	while(cnt <= v_total) {
 		if(cnt == v_id) {
 			document.getElementById(prefix + cnt + "_" + v_total).style.display = "block";
-			document.getElementById(prefix + cnt + "_btn").style.color = "yellow";
+			//document.getElementById(prefix + cnt + "_btn").style.color = "yellow";
 		}
 		else {
 			document.getElementById(prefix + cnt + "_" + v_total).style.display = "none";
-			document.getElementById(prefix + cnt + "_btn").style.color = "white";
+			//document.getElementById(prefix + cnt + "_btn").style.color = "white";
 		}
 		
 		cnt = cnt + 1;
@@ -561,27 +279,12 @@ function TabHandler(prefix, id) {
 			else if(document.getElementById("type").innerHTML.indexOf("Company Contact") >= 0) {
 				ShowEditBar(0);
 			}
-			else if(document.getElementById("type").innerHTML.indexOf("Assistant") >= 0) {
-				ShowEditBar(2);
-			}
 		}
 	}
 	
 	// Focus search box
 	if(v_id == 1) {
 		document.getElementById("all_inputfield").focus();
-	}
-	else if(v_id == 2) {
-		document.getElementById("te_inputfield").focus();
-	}
-	else if(v_id == 3) {
-		document.getElementById("ma_inputfield").focus();
-	}
-	else if(v_id == 4) {
-		document.getElementById("cc_inputfield").focus();
-	}
-	else if(v_id == 5) {
-		document.getElementById("as_inputfield").focus();
 	}
 }
 
@@ -652,13 +355,6 @@ function LoadShareData() {
 	document.getElementById("menubar").style.display = "none";
 	document.getElementById("approve").style.display = "block";
 }
-
-/*
-String.prototype.replaceAll = function(search, replacement) {
-	var target = this;
-	return target.replace(new RegExp(search, 'g'), replacement);
-};
-*/
 
 // Adjusted to json
 function Approve(type) {
@@ -754,74 +450,12 @@ function Back() {
 function ShowEditBar(id) {
 	document.getElementById("editbar_text").style.display = "none";
 	document.getElementById("editbar_html").style.display = "none";
-	document.getElementById("editbar_assist").style.display = "none";
 	
 	if(id == 0) {
 		document.getElementById("editbar_text").style.display = "block";
 	}
 	if(id == 1) {
 		document.getElementById("editbar_html").style.display = "block";
-	}
-	if(id == 2) {
-		document.getElementById("editbar_assist").style.display = "block";
-	}
-}
-
-// Update interface language, if selected language is not available, then select language based on priority languages
-function ChangeLanguage(new_language) {
-	// Stop if the language is already set correctly
-	if(document.getElementById("interface_language").innerHTML.indexOf(new_language) == 0) {
-		return;
-	}
-	document.getElementById("interface_language").innerHTML = new_language;
-	
-	// Get all multi language elements
-	var multi_language = document.getElementsByClassName("multi_language");
-	// Get language priority
-	var language_priority = (new_language + "|" + document.getElementById("content_language").innerHTML).split("|");
-	
-	// Loop through all elements to update
-	var i = 0;
-	while(i < multi_language.length) {
-		var contents = multi_language[i].getElementsByTagName("SPAN");
-		
-		var j = 0;
-		var updated = 0;
-		while(j < language_priority.length && updated == 0) {
-			if(contents[1].innerHTML.indexOf(language_priority[j]) >= 0) {
-				contents[0].innerHTML = contents[1].innerHTML.split(language_priority[j])[1];
-				updated = 1;
-			}
-			
-			j = j + 1;
-		}
-		
-		i = i + 1;
-	}
-}
-function SetDefaultLanguage() {
-	// Get all multi language elements
-	var multi_language = document.getElementsByClassName("multi_language");
-	// Get language priority
-	var language_priority = (document.getElementById("interface_language").innerHTML + "|" + document.getElementById("content_language").innerHTML).split("|");
-	
-	// Loop through all elements to update
-	var i = 0;
-	while(i < multi_language.length) {
-		var contents = multi_language[i].getElementsByTagName("SPAN");
-		
-		var j = 0;
-		var updated = 0;
-		while(j < language_priority.length && updated == 0) {
-			if(contents[1].innerHTML.indexOf(language_priority[j]) >= 0) {
-				contents[0].innerHTML = contents[1].innerHTML.split(language_priority[j])[1];
-				updated = 1;
-			}
-			
-			j = j + 1;
-		}
-		
-		i = i + 1;
 	}
 }
 
@@ -847,70 +481,10 @@ function ClearOne(prefix) {
 		i = i + 1;
 	}
 	
-	ApplySearchParameters(prefix);
-}
-function ClearCheckBoxes(prefix) {
-	if(prefix.indexOf("all_") == 0) {
-		// Do nothing...
-	}
-	else if(prefix.indexOf("te_") == 0) {
-		for(key in categories) {
-			if(document.getElementById("templates").innerHTML.indexOf(key) >= 0) {
-				document.getElementById(prefix + key + "_check").checked = false;
-			}
-		}
-	}
-	else if(prefix.indexOf("ma_") == 0) {
-		for(key in categories) {
-			if(document.getElementById("manual").innerHTML.indexOf(key) >= 0) {
-				document.getElementById(prefix + key + "_check").checked = false;
-			}
-		}
-	}
-	else if(prefix.indexOf("cc_") == 0) {
-		for(key in target_team) {
-			if(document.getElementById("ccontact").innerHTML.indexOf(key) >= 0) {
-				document.getElementById(prefix + key + "_check").checked = false;
-			}
-		}
-	}
-	else {
-		for(key in categories) {
-			if(document.getElementById("assistant").innerHTML.indexOf(key) >= 0) {
-				document.getElementById(prefix + key + "_check").checked = false;
-			}
-		}
-	}
+	ExpSearch();
 }
 
-// Template Show/Hide
-function ShowTemplate(id) {
-	if(document.getElementById("own_comments").innerHTML.indexOf(id) > 0) {
-		document.getElementById(id + "_comment_input").value = document.getElementById(id + "_comment").innerHTML;
-	}
-	
-	if(document.getElementById(id + "_var2").innerHTML.indexOf("0") == 0) {
-		document.getElementById(id + "_content").style.display = "block";
-		document.getElementById(id + "_var2").innerHTML = "1";
-		
-		// Scale up size of text box to fit the text
-		var all_t_area = document.getElementById(id + "_content").getElementsByTagName("TEXTAREA");
-		var ata = 0;
-		while(ata < all_t_area.length) {
-			auto_grow(all_t_area[ata]);
-			ata += 1;
-		}
-	}
-	else {
-		document.getElementById(id + "_content").style.display = "none";
-		document.getElementById(id + "_var2").innerHTML = "0";
-	}
-}
-function HideTemplate(id) {
-	document.getElementById(id + "_content").style.display = "none";
-	document.getElementById(id + "_var2").innerHTML = "0";
-}
-
+// Select + Copy + Show "Copy" animation
 function Selector(this_element) {
 	this_element.select();
 	document.execCommand("copy");
@@ -923,6 +497,7 @@ function DeleteCOPY() {
 	element.parentElement.removeChild(element);
 }
 
+// Resize the text box
 function auto_grow(element) {
 	element.style.height = "5px";
 	element.style.height = (element.scrollHeight)+"px";
@@ -975,7 +550,7 @@ function ProcessTextInput(prefix) {
 			document.getElementById(prefix + "stext").innerHTML += document.getElementById(prefix + "tags").innerHTML.toLowerCase();
 			document.getElementById(prefix + "inputfield").value = "";
 			document.getElementById(prefix + "tags").innerHTML = "";
-			ApplySearchParameters(prefix);
+			ExpSearch();
 		}
 		else {
 			spacekey = true;
@@ -990,7 +565,7 @@ function ProcessTextInput(prefix) {
 		document.getElementById(prefix + "stext").innerHTML += lines[0].toLowerCase();
 		document.getElementById(prefix + "inputfield").value = "";
 		document.getElementById(prefix + "tags").innerHTML = "";
-		ApplySearchParameters(prefix);
+		ExpSearch();
 	}
 	
 	// Check for "-" input
@@ -998,145 +573,7 @@ function ProcessTextInput(prefix) {
 		document.getElementById(prefix + "stext").innerHTML  = "";
 		document.getElementById(prefix + "inputfield").value = "";
 		document.getElementById(prefix + "tags").innerHTML = "";
-		ApplySearchParameters(prefix);
-	}
-}
-
-// Apply search parameters
-function ApplySearchParameters(prefix) {
-	// Get all search words
-	var words = document.getElementById(prefix + "stext").innerHTML.split(",");
-	
-	// Add categories
-	var i = 0;
-	var c_search = "";
-	if(prefix.indexOf("all_") == 0) {
-		// Do nothing...
-	}
-	else if(prefix.indexOf("te_") == 0) {
-		for(key in categories) {
-			if(document.getElementById("templates").innerHTML.indexOf(key) >= 0) {
-				if(document.getElementById(prefix + key + "_check").checked == true) {
-					if(c_search.length > 0) {
-						c_search += "/";
-					}
-					c_search += key;
-				}
-			}
-		}
-	}
-	else if(prefix.indexOf("ma_") == 0) {
-		for(key in categories) {
-			if(document.getElementById("manual").innerHTML.indexOf(key) >= 0) {
-				if(document.getElementById(prefix + key + "_check").checked == true) {
-					if(c_search.length > 0) {
-						c_search += "/";
-					}
-					c_search += key;
-				}
-			}
-		}
-	}
-	else if(prefix.indexOf("cc_") == 0) {
-		for(key in target_team) {
-			if(document.getElementById("ccontact").innerHTML.indexOf(key) >= 0) {
-				if(document.getElementById(prefix + key + "_check").checked == true) {
-					if(c_search.length > 0) {
-						c_search += "/";
-					}
-					c_search += key;
-				}
-			}
-		}
-	}
-	else {
-		for(key in categories) {
-			if(document.getElementById("assistant").innerHTML.indexOf(key) >= 0) {
-				if(document.getElementById(prefix + key + "_check").checked == true) {
-					if(c_search.length > 0) {
-						c_search += "/";
-					}
-					c_search += key;
-				}
-			}
-		}
-	}
-	if(c_search.length > 0) {
-		words.push(c_search);
-	}
-	
-	// Get all templates
-	var entries;
-	if(prefix.indexOf("te_") == 0) {
-		entries = document.getElementById("templates").getElementsByClassName("entry");
-	}
-	else if(prefix.indexOf("ma_") == 0) {
-		entries = document.getElementById("manual").getElementsByClassName("entry");
-	}
-	else if(prefix.indexOf("cc_") == 0) {
-		entries = document.getElementById("ccontact").getElementsByClassName("entry");
-	}
-	else if(prefix.indexOf("as_") == 0) {
-		entries = document.getElementById("assistant").getElementsByClassName("entry");
-	}
-	else if(prefix.indexOf("all_") == 0) {
-		// Search for all entries
-		entries = new Array();
-		entries.push(document.getElementById("templates").getElementsByClassName("entry"));
-		entries.push(document.getElementById("manual").getElementsByClassName("entry"));
-		entries.push(document.getElementById("ccontact").getElementsByClassName("entry"));
-		entries.push(document.getElementById("assistant").getElementsByClassName("entry"));
-	}
-	
-	if(prefix.indexOf("all_") == -1) {
-		ShowHideSearch(words, entries);
-	}
-	else {
-		//FindLinkSearch(words, entries);
 		ExpSearch();
-	}
-}
-
-function ShowHideSearch(words, entries) {
-	// Apply search parameters
-	var i = 0;
-	while(i < entries.length) {
-		var myID = entries[i].id;
-		
-		// Show and colapse template by default
-		entries[i].style.display = "block";
-		HideTemplate(myID);
-		
-		// Word search (hide all entries that not include all search words)
-		var k = 0;
-		while(k < words.length) {
-			if(words[k].indexOf("/") >= 0) {
-				// Multi word search ("OR search")
-				var multiwords = words[k].split("/");
-				var found = false;
-				var h = 0;
-				while(h < multiwords.length) {
-					if(document.getElementById(myID).innerHTML.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
-						found = true;
-					}
-					
-					h = h + 1;
-				}
-				if(found == false) {
-					entries[i].style.display = "none";
-				}
-			}
-			else {
-				// One word search
-				if(document.getElementById(myID).innerHTML.toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
-					entries[i].style.display = "none";
-				}
-			}
-			
-			k = k + 1;
-		}
-		
-		i = i + 1;
 	}
 }
 
@@ -1204,6 +641,9 @@ function News() {// JSON version
 						output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content[cd] + '</textarea>';
 					}
 				}
+
+				// Display update history
+				output += '<hr><div>' + json_data.Entries[i].history + '</div>'
 				
 				output += '</div>';
 
@@ -1359,94 +799,7 @@ function DisplayEntry(uid) {
 	}
 }
 
-function FindLinkSearch(words, entries) {
-	// Empty previous search
-	document.getElementById("s_result").innerHTML = "";
-	
-	var u;
-	var v;
-	var max_results = 50;
-	for(u = 0; u < entries.length; u++) {
-		for(v = 0; v < entries[u].length; v++) {
-			var myID = entries[u][v].id;
-			
-			// Word search
-			var k = 0;
-			var found = true;
-			while(k < words.length) {
-				if(words[k].indexOf("/") >= 0) {
-					// Multi word search ("OR search")
-					var multiwords = words[k].split("/");
-					var sub_find = false;
-					var h = 0;
-					while(h < multiwords.length) {
-						if(document.getElementById(myID).innerHTML.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
-							sub_find = true;
-						}
-						
-						h = h + 1;
-					}
-					if(sub_find == false) {
-						found = false;
-					}
-				}
-				else {
-					// One word search
-					if(document.getElementById(myID).innerHTML.toLowerCase().indexOf(words[k].toLowerCase()) == -1) {
-						found = false;
-					}
-				}
-				
-				k = k + 1;
-			}
-			if(found == true) {
-				var class_name;
-				var text_input;
-				
-				if(u == 0) {
-					class_name = "template";
-					text_input = GenerateInterfaceText("●英語●Template●英語●●日本語●テンプレート●日本語●");
-				}
-				if(u == 1) {
-					class_name = "manual";
-					text_input = GenerateInterfaceText("●英語●Manual●英語●●日本語●マニュアル●日本語●");
-				}
-				if(u == 2) {
-					class_name = "ccontact";
-					text_input = GenerateInterfaceText("●英語●Company Contact●英語●●日本語●会社連絡●日本語●");
-				}
-				if(u == 3) {
-					class_name = "assist";
-					text_input = GenerateInterfaceText("●英語●Assistant●英語●●日本語●サポート●日本語●");
-				}
-				
-				var output = "<div class=\"entry " + class_name + "\"><button onclick=\"ShowContent(" + u + ",'" + myID + "','" + words.join(",") + "')\">" + document.getElementById(myID).getElementsByTagName("BUTTON")[0].innerHTML + "</button>";
-				
-				// Type of entry
-				output += "<i class=\"label\">" + text_input + "</i>";
-				
-				// Master / Private
-				if(document.getElementById(myID + "_settings").innerHTML.indexOf("master") >= 0) {
-					output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
-				}
-				else {
-					output += "<i class=\"label private" + "\" style=\"float:right;\">Private</i>";
-				}
-				
-				output += "</div>";
-				
-				document.getElementById("s_result").innerHTML += output;
-				
-				max_results -= 1;
-				if(max_results <= 0) {
-					document.getElementById("s_result").innerHTML += "<div class=\"entry\"><b style=\"color:red;background-color:black;\">Max results reached, please add more keywords to the search</b></div>"
-					return;
-				}
-			}
-		}
-	}
-}
-
+// Do a search
 function Search() {
 	ShowContent(-1, "", document.getElementById("all_inputfield").value);
 }
@@ -1466,18 +819,6 @@ function ShowContent(type_id, entry_id, words) {
 	// Do a search
 	if(type_id == -1) {
 		DoSearch("all_", search_frase);
-	}
-	if(type_id == 0) {
-		DoSearch("te_", search_frase);
-	}
-	if(type_id == 1) {
-		DoSearch("ma_", search_frase);
-	}
-	if(type_id == 2) {
-		DoSearch("cc_", search_frase);
-	}
-	if(type_id == 3) {
-		DoSearch("as_", search_frase);
 	}
 	
 	// Open the correct tab
@@ -1518,16 +859,6 @@ function CDate(date1, date2) {
 	return 0;
 }
 
-//javascript:{var temp = document.getElementById("__layout").innerHTML;var s_index = temp.indexOf("scode=") + 6;temp = temp.slice(s_index);s_index = temp.indexOf("&");temp = temp.slice(0, s_index);open("https://www.amiami.jp/top/detail/detail?gcode=" + temp).focus();};void(0);
-
-var g_personal_data;
-var g_master_data;
-
-var g_v_offset = 0; // Used in MasterOldLoad()
-
-function JSON_Load_Data(personal_is_old) {
-}
-
 function LoadData() {
 	// Set style file
 	var file_name = document.getElementById('color_mode').value;
@@ -1562,451 +893,16 @@ function LoadData() {
 				extPersonal.Entries[i].history
 			);
 		}
-
-		FinalizeLoadData();
-
-		return;
-	}
-
-	// Load data
-	if (document.getElementById("input_personal").value.indexOf("||||") > 0) {
-		g_personal_data = document.getElementById("input_personal").value.split("||||");
 	}
 	else {
-		g_personal_data = document.getElementById("input_personal").value.split("|===|");
-	}
-	// if (document.getElementById("online_master").innerHTML.length > 0) {
-	// 	document.getElementById("input_master").value = document.getElementById("online_master").innerHTML.split("!!!!!")[0];
-	// 	document.getElementById("online_master").innerHTML = "";
-	// }
-	if (document.getElementById("online_master").innerHTML.length > 0) {
-		g_master_data = document.getElementById("online_master").innerHTML.split("|===|");
-		document.getElementById("online_master").innerHTML = "";
-	}
-	else {
-		g_master_data = document.getElementById("input_master").value.split("|===|");
+		json_data = extMaster;
+		UpdateJSONSettings();
 	}
 
-	// Load data based on version of input data
-	var p_version = 0;
-	var m_version = 0;
-	if (g_personal_data[0].indexOf("__VERSION__") == 0) {
-		p_version = parseInt(g_personal_data[0].split("__")[2]);
-	}
-	if (g_master_data[0].indexOf("__VERSION__") == 0) {
-		m_version = parseInt(g_master_data[0].split("__")[2]);
-		g_v_offset = 1;
-	}
-	VersionLoad(p_version, m_version);
-}
-
-var categories_keys;
-var target_team_keys;
-function VersionLoad(p_version, m_version) {
-	// For backward compability
-	if(p_version == 0) {
-		PersonalOldLoad();
-		if (m_version == 0 || m_version == 1) {
-			MasterOldLoad();
-		}
-		else {
-			// Version 2+ is not yet available
-		}
-	}
-	else {
-		// Load Master and Personal at the same time, with Master prioritized
-		ParseData(p_version, m_version);
-	}
-}
-
-var g_mi = 0;
-var g_pi = 0;
-var g_type_cnt = 0;
-var g_m_process_data;
-var g_p_process_data;
-function ParseData(p_version, m_version) {
-	// Load Personal and Master data, with Master data being prioritizes
-
-	// Startup
-	if (g_type_cnt == 0) {
-		g_type_cnt = 1;
-		if(g_master_data.length > 0) {
-			g_m_process_data = g_master_data[g_type_cnt].split("|==|");
-		}
-		else {
-			g_m_process_data = [];
-		}
-		if(g_personal_data.length > 0) {
-			g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
-			document.getElementById("settings").innerHTML = g_personal_data[1];
-			UpdateJSONSettings();
-			document.getElementById("own_comments").innerHTML = g_personal_data[6];
-		}
-		else {
-			g_p_process_data = [];
-			UpdateJSONSettings();
-		}
-	}
-
-	// Templates
-	if (g_type_cnt == 1) {
-		if(g_mi < (g_m_process_data.length-1)) {
-			var cdata = g_m_process_data[g_mi].split("|=|");
-			if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-				// Compare latest updated date and only update if newer
-				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-				if (CDate(cdata[1], entry_date) >= 0) {
-					document.getElementById(cdata[0]).innerHTML = cdata[2];
-					LoadDataToJSON(cdata[0], 'template');
-				}
-			}
-			else {
-				// Add new entry to data
-				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'template');
-			}
-
-			g_mi += 1;
-		}
-		else if (g_pi < (g_p_process_data.length - 1)) {
-			var cdata = g_p_process_data[g_pi].split("|=|");
-			if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
-				// Add new entry to data
-				document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'template');
-			}
-
-			g_pi += 1;
-		}
-		else {
-			g_mi = 0;
-			g_pi = 0;
-			g_type_cnt = 2;
-			if (g_master_data.length > 0) {
-				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
-			}
-			else {
-				g_m_process_data = [];
-			}
-			if (g_personal_data.length > 0) {
-				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
-			}
-			else {
-				g_p_process_data = [];
-			}
-		}
-	}
-
-	// Manual
-	if (g_type_cnt == 2) {
-		if (g_mi < (g_m_process_data.length - 1)) {
-			var cdata = g_m_process_data[g_mi].split("|=|");
-			if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-				// Compare latest updated date and only update if newer
-				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-				if (CDate(cdata[1], entry_date) >= 0) {
-					document.getElementById(cdata[0]).innerHTML = cdata[2];
-					LoadDataToJSON(cdata[0], 'manual');
-				}
-			}
-			else {
-				// Add new entry to data
-				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'manual');
-			}
-
-			g_mi += 1;
-		}
-		else if (g_pi < (g_p_process_data.length - 1)) {
-			var cdata = g_p_process_data[g_pi].split("|=|");
-			if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
-				// Add new entry to data
-				document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'manual');
-			}
-
-			g_pi += 1;
-		}
-		else {
-			g_mi = 0;
-			g_pi = 0;
-			g_type_cnt = 3;
-			if (g_master_data.length > 0) {
-				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
-			}
-			else {
-				g_m_process_data = [];
-			}
-			if (g_personal_data.length > 0) {
-				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
-			}
-			else {
-				g_p_process_data = [];
-			}
-		}
-	}
-
-	// Company contact
-	if (g_type_cnt == 3) {
-		if (g_mi < (g_m_process_data.length - 1)) {
-			var cdata = g_m_process_data[g_mi].split("|=|");
-			if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-				// Compare latest updated date and only update if newer
-				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-				if (CDate(cdata[1], entry_date) >= 0) {
-					document.getElementById(cdata[0]).innerHTML = cdata[2];
-					LoadDataToJSON(cdata[0], 'ccontact');
-				}
-			}
-			else {
-				// Add new entry to data
-				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'ccontact');
-			}
-
-			g_mi += 1;
-		}
-		else if (g_pi < (g_p_process_data.length - 1)) {
-			var cdata = g_p_process_data[g_pi].split("|=|");
-			if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
-				// Add new entry to data
-				document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				LoadDataToJSON(cdata[0], 'ccontact');
-			}
-
-			g_pi += 1;
-		}
-		else {
-			g_mi = 0;
-			g_pi = 0;
-			g_type_cnt = 4;
-			if (g_master_data.length > 0) {
-				g_m_process_data = g_master_data[g_type_cnt].split("|==|");
-			}
-			else {
-				g_m_process_data = [];
-			}
-			if (g_personal_data.length > 0) {
-				g_p_process_data = g_personal_data[g_type_cnt + 1].split("|==|");
-			}
-			else {
-				g_p_process_data = [];
-			}
-		}
-	}
-
-	// Assist tool
-	if (g_type_cnt == 4) {
-		if (g_mi < (g_m_process_data.length - 1)) {
-			var cdata = g_m_process_data[g_mi].split("|=|");
-			if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-				// Compare latest updated date and only update if newer
-				var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-				if (CDate(cdata[1], entry_date) >= 0) {
-					document.getElementById(cdata[0]).innerHTML = cdata[2];
-				}
-			}
-			else {
-				// Add new entry to data
-				document.getElementById("assistant").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-			}
-
-			g_mi += 1;
-		}
-		else if (g_pi < (g_p_process_data.length - 1)) {
-			var cdata = g_p_process_data[g_pi].split("|=|");
-			if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") == -1) {
-				// Add new entry to data
-				document.getElementById("assistant").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-			}
-
-			g_pi += 1;
-		}
-		else {
-			g_mi = 0;
-			g_pi = 0;
-			g_type_cnt = 5;
-			// if (g_master_data.length > 0) {
-			// 	g_m_process_data = g_master_data[g_type_cnt].split("|==|");
-			// }
-			// else {
-			// 	g_m_process_data = [];
-			// }
-			// if (g_personal_data.length > 0) {
-			// 	g_p_process_data = g_personal_data[g_type_cnt+1].split("|==|");
-			// }
-			// else {
-			// 	g_p_process_data = [];
-			// }
-		}
-	}
-
-	// End
-	if (g_type_cnt == 5) {
-		document.getElementById('save_out').value = JSON.stringify(json_data);
-		FinalizeLoadData();
-	}
-	else {
-		var p_done = Math.round(((g_type_cnt - 1 + ((g_mi+g_pi) / (g_m_process_data.length + g_p_process_data.length))) / 4) * 100);
-		document.getElementById("load_progress").innerHTML = "Loading: " + p_done + "%";
-		document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
-		setTimeout("ParseData(" + p_version + ", " + m_version + ")", 1);
-	}
-}
-
-function PersonalOldLoad() {
-	// Load data in personal file
-	// If settings has been specified, overwrite settings in personal data
-	if (g_personal_data.length > 1) {
-		document.getElementById("settings").innerHTML = g_personal_data[0];
-		document.getElementById("templates").innerHTML = g_personal_data[1];
-		document.getElementById("manual").innerHTML = g_personal_data[2];
-		document.getElementById("ccontact").innerHTML = g_personal_data[3];
-		document.getElementById("assistant").innerHTML = g_personal_data[4];
-		document.getElementById("own_comments").innerHTML = g_personal_data[5];
-	}
-}
-
-
-var g_i = 0;
-var g_ci = -1;
-var g_process_data;
-function MasterOldLoad() {
-	// Load data in master file *If available
-	// Replace data in personal data if newer data is available in master data
-	if(g_master_data.length > 1) {
-		// Startup
-		if(g_ci == -1) {
-			g_ci = 0;
-			g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
-		}
-
-		// Templates
-		if (g_ci == 0) {
-			if (g_i < (g_process_data.length-1)) {
-				var cdata = g_process_data[g_i].split("|=|");
-				if (document.getElementById("templates").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-					// Compare latest updated date and only update if newer
-					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-					if(CDate(cdata[1], entry_date) >= 0) {
-						document.getElementById(cdata[0]).innerHTML = cdata[2];
-					}
-				}
-				else {
-					// Add new entry to data
-					document.getElementById("templates").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				}
-
-				g_i += 1;
-			}
-			else {
-				g_i = 0;
-				g_ci = 1;
-				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
-			}
-		}
-		
-		// Manuals
-		if (g_ci == 1) {
-			if (g_i < (g_process_data.length - 1)) {
-				var cdata = g_process_data[g_i].split("|=|");
-				if (document.getElementById("manual").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-					// Compare latest updated date and only update if newer
-					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-					if(CDate(cdata[1], entry_date) > 0) {
-						document.getElementById(cdata[0]).innerHTML = cdata[2];
-					}
-				}
-				else {
-					// Add new entry to data
-					document.getElementById("manual").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				}
-
-				g_i += 1;
-			}
-			else {
-				g_i = 0;
-				g_ci = 2;
-				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
-			}
-		}
-		
-		// Company Contact
-		if (g_ci == 2) {
-			if (g_i < (g_process_data.length - 1)) {
-				var cdata = g_process_data[g_i].split("|=|");
-				if (document.getElementById("ccontact").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-					// Compare latest updated date and only update if newer
-					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-					if(CDate(cdata[1], entry_date) > 0) {
-						document.getElementById(cdata[0]).innerHTML = cdata[2];
-					}
-				}
-				else {
-					// Add new entry to data
-					document.getElementById("ccontact").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				}
-
-				g_i += 1;
-			}
-			else {
-				g_i = 0;
-				g_ci = 3;
-				g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
-			}
-		}
-		
-		// Assistant
-		if (g_ci == 3) {
-			if (g_i < (g_process_data.length - 1)) {
-				var cdata = g_process_data[g_i].split("|=|");
-				if (document.getElementById("assistant").innerHTML.indexOf("\"" + cdata[0] + "\"") >= 0) {
-					// Compare latest updated date and only update if newer
-					var entry_date = document.getElementById(cdata[0] + "_settings").innerHTML.split("|")[2];
-					if(CDate(cdata[1], entry_date) > 0) {
-						document.getElementById(cdata[0]).innerHTML = cdata[2];
-					}
-				}
-				else {
-					// Add new entry to data
-					document.getElementById("assistant").innerHTML += '<div id="' + cdata[0] + '" class="entry">' + cdata[2] + '</div>';
-				}
-
-				g_i += 1;
-			}
-			else {
-				g_i = 0;
-				g_ci = 4;
-				//g_process_data = g_master_data[g_ci + g_v_offset].split("|==|");
-			}
-		}
-
-		// End
-		if (g_ci == 4) {
-			//document.getElementById("need_save").style.display = "inline";
-			FinalizeLoadData();
-		}
-		else {
-			var p_done = Math.round(((g_ci + (g_i / g_process_data.length)) / 4) * 100);
-			document.getElementById("load_progress").innerHTML = "Loading: " + p_done + "%";
-			document.getElementById("load_progress").innerHTML += '<div style="height:20px;width:' + p_done + '%;background-color:#00FF00;"></div>';
-			setTimeout("MasterOldLoad()", 1);
-		}
-	}
-	else {
-		FinalizeLoadData();
-	}
+	FinalizeLoadData();
 }
 
 function FinalizeLoadData() {
-/*	var apply_comments = document.getElementById("own_comments").getElementsByTagName("DIV");
-	var i = 0;
-	while(i < apply_comments.length) {
-		document.getElementById(apply_comments[i].id + "_input").value = apply_comments[i].innerHTML;
-		
-		i += 1;
-	}*/
-	
 	// Show "run"
 	document.getElementById("run").style.display = "block";
 	document.getElementById("menubar").style.display = "block";
@@ -2022,10 +918,8 @@ function FinalizeLoadData() {
 		i += 1;
 	}
 	
+	// Some basic interface setups
 	Setup();
-	
-	// Set default language according to user settings
-	SetDefaultLanguage();
 
 	// Show news
 	News();
@@ -2042,7 +936,7 @@ function ShareDataList() {
 	var i;
 	
 	// Template
-	output += "<h3>" + GenerateInterfaceText("●英語●Templates●英語●●日本語●テンプレート●日本語●") + "</h3>";
+	output += "<h3>Templates</h3>";
 	for(i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("template") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="templates">' + json_data.Entries[i].data.Title + '<br>';
@@ -2052,7 +946,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Manual
-	output += "<h3>" + GenerateInterfaceText("●英語●Manuals●英語●●日本語●マニュアル●日本語●") + "</h3>";
+	output += "<h3>Manuals</h3>";
 	for (i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("manual") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="manual">' + json_data.Entries[i].data.Title + '<br>';
@@ -2062,7 +956,7 @@ function ShareDataList() {
 	output += "<hr>";
 	
 	// Ccontact
-	output += "<h3>" + GenerateInterfaceText("●英語●Company Contacts●英語●●日本語●会社連絡●日本語●") + "</h3>";
+	output += "<h3>Company Contacts</h3>";
 	for (i = 0; i < json_data.Entries.length; i++) {
 		if (json_data.Entries[i].type.indexOf("ccontact") == 0 && json_data.Entries[i].ismaster == false) {
 			output += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + json_data.Entries[i].data.Title + '<br>';
@@ -2100,37 +994,6 @@ function SetShareData() {
 	
 	// Clear input
 	document.getElementById("share_output").innerHTML = "";
-}
-
-function GenerateInterfaceText(input_data) {
-	// input_data = "●英語●English●英語●●日本語●Japanese●日本語●........."
-	
-	// Get language priority
-	var language_priority = (document.getElementById("interface_language").innerHTML + "|" + document.getElementById("content_language").innerHTML + "|●その他●").split("|");
-	
-	var j = 0;
-	var out_string = "";
-	while(j < language_priority.length && out_string.length == 0) {
-		if(input_data.indexOf(language_priority[j]) >= 0) {
-			out_string = input_data.split(language_priority[j])[1];
-		}
-		
-		j = j + 1;
-	}
-	
-	var output = '<span class="multi_language"><span class="visible">' + out_string + '</span><span class="data">' + input_data + '</span></span>';
-	return output;
-}
-
-function SetupInterface() {
-	var int_elements = document.getElementsByClassName("setup_interface");
-	
-	var i = 0;
-	while(i < int_elements.length) {
-		int_elements[i].innerHTML = GenerateInterfaceText(int_elements[i].innerHTML);
-		
-		i += 1;
-	}
 }
 
 // Add shipping label/invoice to ask for
@@ -2182,45 +1045,6 @@ function ShowDocuments() {
 // Change(new data save): Only save personal data (as master data is loaded automatically at every start up)
 function GeneratePersonalData() {
 	var i;
-	// Settings
-	document.getElementById("save_out").value = "__VERSION__1__|===|" + document.getElementById("settings").innerHTML + "|===|";
-	
-	for(key in types) {
-		var entries = document.getElementById(types[key]).getElementsByClassName("entry");
-		if(key.indexOf("cc_") < 0) {
-			for(ckey in categories) {
-				for (i = 0; i < entries.length; i++) {
-					var uid = entries[i].id;
-					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") < 0) {
-						// Save to output
-						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + entries[i].innerHTML + "|==|";
-					}
-				}
-			}
-		}
-		else {
-			for(ckey in target_team) {
-				for (i = 0; i < entries.length; i++) {
-					var uid = entries[i].id;
-					if (entries[i].innerHTML.indexOf(ckey) >= 0 && entries[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") < 0) {
-						// Save to output
-						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + entries[i].innerHTML + "|==|";
-					}
-				}
-			}
-		}
-		document.getElementById("save_out").value += "|===|";
-	}
-
-	// Own comments
-	document.getElementById("save_out").value += document.getElementById("own_comments").innerHTML;
-
-	// Save
-	localStorage.setItem("input_personal", document.getElementById("save_out").value);
-
-	document.getElementById("need_save").style.display = "none";
 
 	// JSON save
 	var json_save = {
@@ -2238,16 +1062,10 @@ function GeneratePersonalData() {
 			}
 		}
 	}
-	for (ckey in target_team) {
-		for (i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
-				// Save to output
-				saved_ids += '|' + json_data.Entries[i].uid + '|';
-				json_save.Entries.push(json_data.Entries[i])
-			}
-		}
-	}
 	localStorage.setItem("json_personal", JSON.stringify(json_save));
+	document.getElementById("save_out").value = JSON.stringify(json_save);
+
+	document.getElementById("need_save").style.display = "none";
 }
 function GenerateShareData() {
 	document.getElementById("save_out").value = "";
@@ -2256,43 +1074,6 @@ function GenerateShareData() {
 }
 function GenerateMasterData() {
 	var i;
-	var process_data;
-	document.getElementById("save_out").value = "__VERSION__1__|===|";
-	
-	// Clear all searches
-	for(key in types) {
-		Clear(key);
-	}
-
-	// Generate master output data
-	for (key in types) {
-		process_data = document.getElementById(types[key]).getElementsByClassName("entry");
-		if (key.indexOf("cc_") < 0) {
-			for (ckey in categories) {
-				for (i = 0; i < process_data.length; i++) {
-					var uid = process_data[i].id;
-					if (process_data[i].innerHTML.indexOf(ckey) >= 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") >= 0) {
-						// Save to output
-						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-					}
-				}
-			}
-		}
-		else {
-			for (ckey in target_team) {
-				for (i = 0; i < process_data.length; i++) {
-					var uid = process_data[i].id;
-					if (process_data[i].innerHTML.indexOf(ckey) >= 0 && process_data[i].innerHTML.indexOf("___DELETE___") < 0 && document.getElementById(uid + "_settings").innerHTML.indexOf("master") >= 0) {
-						// Save to output
-						var settings = document.getElementById(uid + "_settings").innerHTML.split("|");
-						document.getElementById("save_out").value += uid + "|=|" + settings[2] + "|=|" + process_data[i].innerHTML + "|==|";
-					}
-				}
-			}
-		}
-		document.getElementById("save_out").value += "|===|";
-	}
 
 	// JSON save
 	var json_save = {
@@ -2301,15 +1082,6 @@ function GenerateMasterData() {
 	};
 	var saved_ids = "";
 	for (ckey in categories) {
-		for (i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
-				// Save to output
-				saved_ids += '|' + json_data.Entries[i].uid + '|';
-				json_save.Entries.push(json_data.Entries[i])
-			}
-		}
-	}
-	for (ckey in target_team) {
 		for (i = 0; i < json_data.Entries.length; i++) {
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
 				// Save to output
@@ -2473,8 +1245,6 @@ function CreateNew(type) {
 	
 	// Clear title
 	document.getElementById("title_show_eng").innerHTML = "Not set";
-	document.getElementById("title_show_jap").innerHTML = "未設定";
-	document.getElementById("title_show_other").innerHTML = "Not set　未設定";
 	
 	// Clear input boxes
 	document.getElementById("selected_input_box").innerHTML = "";
@@ -2482,42 +1252,22 @@ function CreateNew(type) {
 	
 	// Set type
 	if(type.indexOf("template") == 0) {
-		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Template●英語●●日本語●テンプレート●日本語●");
+		document.getElementById("type").innerHTML = "Template";
 		document.getElementById("n_cat").style.display = "block";
 		//document.getElementById("t_cat").style.display = "none";
 		ShowEditBar(0);
 	}
 	else if(type.indexOf("manual") == 0) {
-		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Manual●英語●●日本語●マニュアル●日本語●");
+		document.getElementById("type").innerHTML = "Manual";
 		document.getElementById("n_cat").style.display = "block";
 		//document.getElementById("t_cat").style.display = "none";
 		ShowEditBar(1);
 	}
 	else if(type.indexOf("ccontact") == 0) {
-		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Company Contact●英語●●日本語●会社連絡●日本語●");
+		document.getElementById("type").innerHTML = "Company Contact";
 		document.getElementById("n_cat").style.display = "block";
 		//document.getElementById("t_cat").style.display = "block";
 		ShowEditBar(0);
-	}
-	else if(type.indexOf("assistant") == 0) {
-		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Assistant●英語●●日本語●サポート●日本語●");
-		document.getElementById("n_cat").style.display = "block";
-		//document.getElementById("t_cat").style.display = "none";
-		ShowEditBar(2);
-		
-		// Set default input data
-		document.getElementById("input_boxes").innerHTML = '<div id="lang_settings" style="display:none"></div>';
-		document.getElementById("input_boxes").innerHTML += '<h3>' + GenerateInterfaceText("●英語●Questions●英語●●日本語●質問●日本語●") + '</h3>';
-		document.getElementById("input_boxes").innerHTML += '<div id="num_questions" style="display:none">0</div>';
-		document.getElementById("input_boxes").innerHTML += '<div id="questions"></div>';
-		document.getElementById("input_boxes").innerHTML += '<h3>' + GenerateInterfaceText("●英語●Answers●英語●●日本語●答え●日本語●") + '</h3>';
-		document.getElementById("input_boxes").innerHTML += '<div id="num_answers" style="display:none">0</div>';
-		document.getElementById("input_boxes").innerHTML += '<div id="answers"></div><br>';
-		document.getElementById("input_boxes").innerHTML += '<div id="output_matrix"></div>';
-	}
-	else {
-		document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Unknown●英語●●日本語●不明●日本語●");
-		document.getElementById("debug").innerHTML = "Unknown type";
 	}
 	if(master == true) {
 		document.getElementById("type").innerHTML += "<i>(Master)</i>";
@@ -2570,84 +1320,6 @@ function SetStyle() {
 
 	document.getElementById("need_save").style.display = "inline";
 }
-function UpdateLanguagePrio() {/*
-	var first = document.getElementsByName("prio_first");
-	var second = document.getElementsByName("prio_second");
-	var third = document.getElementsByName("prio_third");
-	
-	var output = "";
-	
-	var i = 0;
-	while(i < 3) {
-		if(first[i].checked == true) {
-			if(i == 0) {
-				output += "●英語●";
-			}
-			else if(i == 1) {
-				output += "●日本語●";
-			}
-			else if(i == 2) {
-				output += "●その他●";
-			}
-		}
-		
-		i += 1;
-	}
-	i = 0;
-	while(i < 3) {
-		if(second[i].checked == true) {
-			if(i == 0) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●英語●";
-			}
-			else if(i == 1) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●日本語●";
-			}
-			else if(i == 2) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●その他●";
-			}
-		}
-		
-		i += 1;
-	}
-	i = 0;
-	while(i < 3) {
-		if(third[i].checked == true) {
-			if(i == 0) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●英語●";
-			}
-			else if(i == 1) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●日本語●";
-			}
-			else if(i == 2) {
-				if(output.length > 0) {
-					output += "|";
-				}
-				output += "●その他●";
-			}
-		}
-		
-		i += 1;
-	}
-	
-	document.getElementById("content_language").innerHTML = output;
-	
-	document.getElementById("need_save").style.display = "inline";
-*/}
 /*
 json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
 json_data.Settings.i_language = document.getElementById('interface_language').innerHTML;
@@ -2708,44 +1380,6 @@ function UpdateSettings() {
 		document.getElementById("s_dark").checked = true;
 	}
 	
-	// Priority languages
-	/*
-	var langs = document.getElementById("content_language").innerHTML.split("|");
-	if(langs.length > 0) {
-		if(langs[0].indexOf("●日本語●") == 0) {
-			document.getElementById("jap_first").checked = true;
-		}
-		else if(langs[0].indexOf("●英語●") == 0) {
-			document.getElementById("eng_first").checked = true;
-		}
-		else {
-			document.getElementById("oth_first").checked = true;
-		}
-	}
-	if(langs.length > 1) {
-		if(langs[1].indexOf("●日本語●") == 0) {
-			document.getElementById("jap_second").checked = true;
-		}
-		else if(langs[1].indexOf("●英語●") == 0) {
-			document.getElementById("eng_second").checked = true;
-		}
-		else {
-			document.getElementById("oth_second").checked = true;
-		}
-	}
-	if(langs.length > 2) {
-		if(langs[2].indexOf("●日本語●") == 0) {
-			document.getElementById("jap_third").checked = true;
-		}
-		else if(langs[2].indexOf("●英語●") == 0) {
-			document.getElementById("eng_third").checked = true;
-		}
-		else {
-			document.getElementById("oth_third").checked = true;
-		}
-	}
-	*/
-	
 	// Reminders
 	var reminders = json_data.Settings.reminders.split("||");
 	var output = "<table>";
@@ -2780,11 +1414,6 @@ function UpdateSettings() {
 function Delete() {
 	var uid = document.getElementById("unique_id").innerHTML;
 	DeleteUidFromJSON(uid);
-/*	var element_to_remove = document.getElementById(uid);
-	if(element_to_remove) {
-		element_to_remove.innerHTML += "<b style=\"background-color:black;color:red;\">___DELETE___</b>";
-	}
-	*/
 	document.getElementById("need_save").style.display = "inline";
 	GeneratePersonalData();
 }
@@ -2796,6 +1425,11 @@ function EditSave() {
 		alert("There are no content to save.\n保存ができるコンテンツが無い。");
 		return;
 	}
+
+	if (document.getElementById("history_box").value.length == 0) {
+		alert("Please explain what you changed");
+		return;
+	}
 	
 	// Break if there is no title
 	if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == 0) {
@@ -2804,10 +1438,6 @@ function EditSave() {
 	}
 	
 	var uid = document.getElementById("unique_id").innerHTML;
-	var copy_string = "";
-	if(uid.indexOf("_COPY") >= 0) {
-		copy_string = " <i style=\"color:#888888\">Copy</i>"
-	}
 	var category = document.getElementById("category_select").value;
 	//var target = document.getElementById("target_select").value;
 	var team = document.getElementById("team_select").value;
@@ -2850,46 +1480,15 @@ function EditSave() {
 		document.getElementById("debug").innerHTML = "Unknown save type";
 	}
 
-	SaveDataToJSON(uid, type, ismaster, lastupdate, category, team, 0, data, "Updated by " + json_data.Settings.user_id + " at " + lastupdate);
+	var history = document.getElementById("history_box").value;
+	SaveDataToJSON(uid, type, ismaster, lastupdate, category, team, 0, data, "[" + json_data.Settings.user_id + ":" + lastupdate + "] " + history);
 	
 	document.getElementById("need_save").style.display = "inline";
 	GeneratePersonalData();
-}
 
-function Calculate(uid) {
-	var settings = document.getElementById(uid + "_aset").innerHTML.split(",");
-	var num_questions = parseInt(settings[1]);
-	var num_answers = parseInt(settings[2]);
-	
-	// Get which row to check
-	var i = num_questions - 1;
-	var row = 0;
-	while(i >= 0) {
-		row = row << 1;
-		if(document.getElementById(uid + "_q" + i).checked == true) {
-			row += 1;
-		}
-		
-		i -= 1;
-	}
-	
-	// Get row data
-	var answer_id = document.getElementById(uid + "_ct" + row).innerHTML.split("|");
-	
-	// Get answer data
-	var answer = "<ol style=\"color:#777700;\">";
-	var i = 0;
-	while(i < answer_id.length) {
-		if(answer_id[i].length > 0) {
-			answer += "<li>" + document.getElementById(uid + "_a" + answer_id[i]).innerHTML + "</li>";
-		}
-		
-		i += 1;
-	}
-	answer += "</ol>";
-	
-	// Output answer data
-	document.getElementById(uid + "_out").innerHTML = answer;
+	document.getElementById('history_box').value = '';
+	// Refresh the search page
+	News();
 }
 
 // Fixed for json
@@ -2954,405 +1553,6 @@ function EditEntry(json_index) {
 	//document.getElementById("t_cat").style.display = "none";
 
 	ShowEditBar(0);
-}
-function EditTemplate(uniqueID, e_type) {
-	// If trying to edit as master do a login check
-	if(e_type == 1) {
-		if(LoginCheck() == false) {
-			return;
-		}
-	}
-	SetEditStatus(e_type);
-	
-	// Setup variables
-	document.getElementById("unique_id").innerHTML = uniqueID;
-	document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Template●英語●●日本語●テンプレート●日本語●");
-	var template_settings = document.getElementById(uniqueID + "_settings").innerHTML.split("|");
-	document.getElementById("category_select").value = template_settings[0];
-	document.getElementById("team_select").value = template_settings[1];
-	document.getElementById("last_updated").innerHTML = template_settings[2];
-	
-	// type
-	if(template_settings[3].indexOf("master") == 0) {
-		if(e_type == 0) {
-			document.getElementById("unique_id").innerHTML += "_COPY";
-		}
-		else {
-			document.getElementById("type").innerHTML += "<i>(Master)</i>";
-		}
-	}
-	else if(e_type == 1) {
-		document.getElementById("type").innerHTML += "<i>(Master)</i>";
-	}
-	
-	// Title
-	var titles = document.getElementById(uniqueID).getElementsByClassName("data")[0].innerHTML;
-	if(titles.indexOf("●英語●") >= 0) {
-		document.getElementById("title_show_eng").innerHTML = titles.split("●英語●")[1];
-	}
-	else {
-		document.getElementById("title_show_eng").innerHTML = "Not set";
-	}
-	if(titles.indexOf("●日本語●") >= 0) {
-		document.getElementById("title_show_jap").innerHTML = titles.split("●日本語●")[1];
-	}
-	else {
-		document.getElementById("title_show_jap").innerHTML = "未設定";
-	}
-	if(titles.indexOf("●その他●") >= 0) {
-		document.getElementById("title_show_other").innerHTML = titles.split("●その他●")[1];
-	}
-	else {
-		document.getElementById("title_show_other").innerHTML = "Not set　未設定";
-	}
-	
-	// Content
-	document.getElementById("input_boxes").innerHTML = "";
-	var t_area = document.getElementById(uniqueID + "_content").getElementsByTagName("TEXTAREA");
-	var i = 0;
-	while(i < t_area.length-1) {
-		// Create necessary textareas
-		if(t_area[i].className.indexOf("●英語●") == 0) {
-			SetLanguageTag('英語');
-		}
-		else if(t_area[i].className.indexOf("●日本語●") == 0) {
-			SetLanguageTag('日本語');
-		}
-		else {
-			SetLanguageTag('その他');
-		}
-		
-		i = i + 1;
-	}
-	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	i = 0;
-	while(i < t_area.length-1) {
-		i_area[i].value = t_area[i].value;
-		
-		i = i + 1;
-	}
-	
-	// Open the tab and set up for editing
-	TabHandler('ru_', 6);
-	document.getElementById("edit_settings").style.display = "none";
-	document.getElementById("edit_body").style.display = "block";
-	
-	document.getElementById("n_cat").style.display = "block";
-	//document.getElementById("t_cat").style.display = "none";
-	
-	ShowEditBar(0);
-}
-function EditManual(uniqueID, e_type) {
-	// If trying to edit as master do a login check
-	if(e_type == 1) {
-		if(LoginCheck() == false) {
-			return;
-		}
-	}
-	SetEditStatus(e_type);
-	
-	// Setup variables
-	document.getElementById("unique_id").innerHTML = uniqueID;
-	document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Manual●英語●●日本語●マニュアル●日本語●");
-	var template_settings = document.getElementById(uniqueID + "_settings").innerHTML.split("|");
-	document.getElementById("category_select").value = template_settings[0];
-	document.getElementById("team_select").value = template_settings[1];
-	document.getElementById("last_updated").innerHTML = template_settings[2];
-	
-	// type
-	if(template_settings[3].indexOf("master") == 0) {
-		if(e_type == 0) {
-			document.getElementById("unique_id").innerHTML += "_COPY";
-		}
-		else {
-			document.getElementById("type").innerHTML += "<i>(Master)</i>";
-		}
-	}
-	else if(e_type == 1) {
-		document.getElementById("type").innerHTML += "<i>(Master)</i>";
-	}
-	
-	// Title
-	var titles = document.getElementById(uniqueID).getElementsByClassName("data")[0].innerHTML;
-	if(titles.indexOf("●英語●") >= 0) {
-		document.getElementById("title_show_eng").innerHTML = titles.split("●英語●")[1];
-	}
-	else {
-		document.getElementById("title_show_eng").innerHTML = "Not set";
-	}
-	if(titles.indexOf("●日本語●") >= 0) {
-		document.getElementById("title_show_jap").innerHTML = titles.split("●日本語●")[1];
-	}
-	else {
-		document.getElementById("title_show_jap").innerHTML = "未設定";
-	}
-	if(titles.indexOf("●その他●") >= 0) {
-		document.getElementById("title_show_other").innerHTML = titles.split("●その他●")[1];
-	}
-	else {
-		document.getElementById("title_show_other").innerHTML = "Not set　未設定";
-	}
-	
-	// Content
-	document.getElementById("input_boxes").innerHTML = "";
-	var t_area = document.getElementById(uniqueID + "_content").getElementsByClassName("data")[0].innerHTML;
-	// Create necessary textareas
-	if(t_area.indexOf("●英語●") >= 0) {
-		SetLanguageTag('英語');
-	}
-	if(t_area.indexOf("●日本語●") >= 0) {
-		SetLanguageTag('日本語');
-	}
-	if(t_area.indexOf("●その他●") >= 0) {
-		SetLanguageTag('その他');
-	}
-	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	var i = 0;
-	if(t_area.indexOf("●英語●") >= 0) {
-		i_area[i].value = t_area.split("●英語●")[1];
-		i = i + 1;
-	}
-	if(t_area.indexOf("●日本語●") >= 0) {
-		i_area[i].value = t_area.split("●日本語●")[1];
-		i = i + 1;
-	}
-	if(t_area.indexOf("●その他●") >= 0) {
-		i_area[i].value = t_area.split("●その他●")[1];
-	}
-	
-	// Open the tab and set up for editing
-	TabHandler('ru_', 6);
-	document.getElementById("edit_settings").style.display = "none";
-	document.getElementById("edit_body").style.display = "block";
-	
-	document.getElementById("n_cat").style.display = "block";
-	//document.getElementById("t_cat").style.display = "none";
-	ShowEditBar(1);
-}
-function EditCContact(uniqueID, e_type) {
-	// If trying to edit as master do a login check
-	if(e_type == 1) {
-		if(LoginCheck() == false) {
-			return;
-		}
-	}
-	SetEditStatus(e_type);
-	
-	// Setup variables
-	document.getElementById("unique_id").innerHTML = uniqueID;
-	document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Company Contact●英語●●日本語●会社連絡●日本語●");
-	var template_settings = document.getElementById(uniqueID + "_settings").innerHTML.split("|");
-	document.getElementById("target_select").value = template_settings[0];
-	document.getElementById("team_select").value = template_settings[1];
-	document.getElementById("last_updated").innerHTML = template_settings[2];
-	
-	// type
-	if(template_settings[3].indexOf("master") == 0) {
-		if(e_type == 0) {
-			document.getElementById("unique_id").innerHTML += "_COPY";
-		}
-		else {
-			document.getElementById("type").innerHTML += "<i>(Master)</i>";
-		}
-	}
-	else if(e_type == 1) {
-		document.getElementById("type").innerHTML += "<i>(Master)</i>";
-	}
-	
-	// Title
-	var titles = document.getElementById(uniqueID).getElementsByClassName("data")[0].innerHTML;
-	if(titles.indexOf("●英語●") >= 0) {
-		document.getElementById("title_show_eng").innerHTML = titles.split("●英語●")[1];
-	}
-	else {
-		document.getElementById("title_show_eng").innerHTML = "Not set";
-	}
-	if(titles.indexOf("●日本語●") >= 0) {
-		document.getElementById("title_show_jap").innerHTML = titles.split("●日本語●")[1];
-	}
-	else {
-		document.getElementById("title_show_jap").innerHTML = "未設定";
-	}
-	if(titles.indexOf("●その他●") >= 0) {
-		document.getElementById("title_show_other").innerHTML = titles.split("●その他●")[1];
-	}
-	else {
-		document.getElementById("title_show_other").innerHTML = "Not set　未設定";
-	}
-	
-	// Content
-	document.getElementById("input_boxes").innerHTML = "";
-	var t_area = document.getElementById(uniqueID + "_content").getElementsByTagName("TEXTAREA");
-	var i = 0;
-	while(i < t_area.length-1) {
-		// Create necessary textareas
-		if(t_area[i].className.indexOf("●英語●") == 0) {
-			SetLanguageTag('英語');
-		}
-		else if(t_area[i].className.indexOf("●日本語●") == 0) {
-			SetLanguageTag('日本語');
-		}
-		else {
-			SetLanguageTag('その他');
-		}
-		
-		i = i + 1;
-	}
-	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	i = 0;
-	while(i < t_area.length-1) {
-		i_area[i].value = t_area[i].value;
-		
-		i = i + 1;
-	}
-	
-	// Open the tab and set up for editing
-	TabHandler('ru_', 6);
-	document.getElementById("edit_settings").style.display = "none";
-	document.getElementById("edit_body").style.display = "block";
-	
-	document.getElementById("n_cat").style.display = "block";
-	//document.getElementById("t_cat").style.display = "block";
-	
-	ShowEditBar(0);
-}
-function EditAssist(uniqueID, e_type) {
-	// If trying to edit as master do a login check
-	if(e_type == 1) {
-		if(LoginCheck() == false) {
-			return;
-		}
-	}
-	SetEditStatus(e_type);
-	
-	// Setup variables
-	document.getElementById("unique_id").innerHTML = uniqueID;
-	document.getElementById("type").innerHTML = GenerateInterfaceText("●英語●Assistant●英語●●日本語●サポート●日本語●");
-	var template_settings = document.getElementById(uniqueID + "_settings").innerHTML.split("|");
-	document.getElementById("category_select").value = template_settings[0];
-	document.getElementById("team_select").value = template_settings[1];
-	document.getElementById("last_updated").innerHTML = template_settings[2];
-	
-	// type
-	if(template_settings[3].indexOf("master") == 0) {
-		if(e_type == 0) {
-			document.getElementById("unique_id").innerHTML += "_COPY";
-		}
-		else {
-			document.getElementById("type").innerHTML += "<i>(Master)</i>";
-		}
-	}
-	else if(e_type == 1) {
-		document.getElementById("type").innerHTML += "<i>(Master)</i>";
-	}
-	
-	// Title
-	var titles = document.getElementById(uniqueID).getElementsByClassName("data")[0].innerHTML;
-	if(titles.indexOf("●英語●") >= 0) {
-		document.getElementById("title_show_eng").innerHTML = titles.split("●英語●")[1];
-	}
-	else {
-		document.getElementById("title_show_eng").innerHTML = "Not set";
-	}
-	if(titles.indexOf("●日本語●") >= 0) {
-		document.getElementById("title_show_jap").innerHTML = titles.split("●日本語●")[1];
-	}
-	else {
-		document.getElementById("title_show_jap").innerHTML = "未設定";
-	}
-	if(titles.indexOf("●その他●") >= 0) {
-		document.getElementById("title_show_other").innerHTML = titles.split("●その他●")[1];
-	}
-	else {
-		document.getElementById("title_show_other").innerHTML = "Not set　未設定";
-	}
-	
-	// Content
-	// Set default empty input fields
-	document.getElementById("input_boxes").innerHTML = '<div id="lang_settings" style="display:none"></div>';
-	document.getElementById("input_boxes").innerHTML += '<h3>' + GenerateInterfaceText("●英語●Questions●英語●●日本語●質問●日本語●") + '</h3>';
-	document.getElementById("input_boxes").innerHTML += '<div id="num_questions" style="display:none">0</div>';
-	document.getElementById("input_boxes").innerHTML += '<div id="questions"></div>';
-	document.getElementById("input_boxes").innerHTML += '<h3>' + GenerateInterfaceText("●英語●Answers●英語●●日本語●答え●日本語●") + '</h3>';
-	document.getElementById("input_boxes").innerHTML += '<div id="num_answers" style="display:none">0</div>';
-	document.getElementById("input_boxes").innerHTML += '<div id="answers"></div><br>';
-	document.getElementById("input_boxes").innerHTML += '<div id="output_matrix"></div>';
-	
-	// Get settings
-	var settings = document.getElementById(uniqueID + "_aset").innerHTML.split(",");
-	
-	// Set lang_settings
-	document.getElementById("lang_settings").innerHTML = settings[0];
-	
-	// "Press" add question/add answer buttons the correct number of times
-	var i = 0;
-	while(i < settings[1]) {
-		AddQuestion();
-		
-		i += 1;
-	}
-	i = 0;
-	while(i < settings[2]) {
-		AddAnswer();
-		
-		i += 1;
-	}
-	
-	// Fill in questions + answers data
-	var t_input = document.getElementById(uniqueID + "_content").getElementsByClassName("data");
-	var i_box = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-	i = 0;
-	var cnt = 0;
-	while(i < (parseInt(settings[1]) + parseInt(settings[2]))) {
-		var i_data = t_input[i].innerHTML.split("●");
-		if(i_data.length >= 3) {
-			i_box[cnt].value = i_data[2];
-			cnt += 1;
-		}
-		if(i_data.length >= 7) {
-			i_box[cnt].value = i_data[6];
-			cnt += 1;
-		}
-		if(i_data.length >= 11) {
-			i_box[cnt].value = i_data[10];
-			cnt += 1;
-		}
-		
-		i += 1;
-	}
-	
-	// Fill in matrix data
-	i = 0;
-	while(i < Math.pow(2, settings[1])) {
-		var m_data = document.getElementById(uniqueID + "_ct" + i).innerHTML.split("|");
-		i_box[cnt].value = m_data[0];
-		i_box[cnt+1].value = m_data[1];
-		i_box[cnt+2].value = m_data[2];
-		
-		cnt += 3;
-		i += 1;
-	}
-	
-	// Open the tab and set up for editing
-	TabHandler('ru_', 6);
-	document.getElementById("edit_settings").style.display = "none";
-	document.getElementById("edit_body").style.display = "block";
-	
-	document.getElementById("n_cat").style.display = "block";
-	//document.getElementById("t_cat").style.display = "none";
-	
-	ShowEditBar(2);
-}
-
-function SaveComment(save_id) {
-	save_id = save_id + "_comment";
-	
-	if(document.getElementById("own_comments").innerHTML.indexOf(save_id) > 0) {
-		document.getElementById(save_id).innerHTML = document.getElementById(save_id + "_input").value;
-	}
-	else {
-		document.getElementById("own_comments").innerHTML += "<div id=\"" + save_id + "\">" + document.getElementById(save_id + "_input").value + "</div>";
-	}
 }
 
 function GenerateUID() {
@@ -3448,142 +1648,6 @@ function GenerateDateTime(type) {
 	return output;
 }
 
-function AddQuestion() {
-	// Temporarilly save the content
-	var old_input_id = new Array();
-	var old_input_value = new Array();
-	if(document.getElementById("input_boxes").innerHTML.length > 0) {
-		var i_box = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-		for(var c = 0; c < i_box.length; c++) {
-			old_input_id.push(i_box[c].id);
-			old_input_value.push(i_box[c].value);
-		}
-	}
-	
-	// Create necessary input boxes
-	var num_questions = document.getElementById("num_questions").innerHTML;
-	var lang_settings = document.getElementById("lang_settings").innerHTML.split("|");
-	var output = '<div id="q' + num_questions + '"><b>Q' + num_questions + '</b>';
-	for(var c = 0; c < lang_settings.length; c++) {
-		var ls = lang_settings[c];
-		if(ls.indexOf("english") == 0) {
-			output += '<div><input id="q' + num_questions + 'english"><i>(English)</i></div>';
-		}
-		if(ls.indexOf("japanese") == 0) {
-			output += '<div><input id="q' + num_questions + 'japanese"><i>(日本語)</i></div>';
-		}
-		if(ls.indexOf("other") == 0) {
-			output += '<div><input id="q' + num_questions + 'other"><i>(Other その他)</i></div>';
-		}
-	}
-	output += '</div>';
-	document.getElementById("questions").innerHTML += output;
-	document.getElementById("num_questions").innerHTML = parseInt(num_questions) + 1;
-	
-	// Update output matrix (table)
-	document.getElementById("output_matrix").innerHTML = GenerateOutputMatrix(parseInt(num_questions) + 1);
-	
-	// Restore data
-	var i = 0;
-	while(i < old_input_id.length) {
-		document.getElementById(old_input_id[i]).value = old_input_value[i];
-		
-		i += 1;
-	}
-}
-function GenerateOutputMatrix(num_questions) {
-	var output = '<table>';
-	
-	var rows = Math.pow(2, num_questions);
-	var cols = num_questions + 3;
-	
-	// Header row
-	output += '<tr>';
-	var i = 0;
-	while(i < num_questions) {
-		output += '<th>Q' + (num_questions - i - 1) + '</th>';
-		
-		i += 1;
-	}
-	output += '<th>' + GenerateInterfaceText("●英語●Normal●英語●●日本語●通常●日本語●") + '</th>';
-	output += '<th>' + GenerateInterfaceText("●英語●Alternative●英語●●日本語●代替案●日本語●") + '</th>';
-	output += '<th>' + GenerateInterfaceText("●英語●Other●英語●●日本語●その他●日本語●") + '</th>';
-	output += '</tr>';
-	
-	// Table body
-	i = 0;
-	while(i < rows) {
-		output += '<tr>';
-		
-		var looper = rows;
-		var b_cnt = 1 << (num_questions - 1);
-		
-		// Content
-		var cnt = 0;
-		while(cnt < num_questions) {
-			if((i&b_cnt) > 0) {
-				output += '<td>●</td>';
-			}
-			else {
-				output += '<td></td>';
-			}
-			
-			b_cnt = b_cnt >> 1;
-			cnt += 1;
-		}
-		output += '<th><input id="' + i + 'th_row_n" type="number"></th>';
-		output += '<th><input id="' + i + 'th_row_na" type="number"></th>';
-		output += '<th><input id="' + i + 'th_row_a" type="number"></th>';
-		
-		output += '</tr>';
-		
-		i += 1;
-	}
-	
-	output += '</table>';
-	return output;
-}
-function AddAnswer() {
-	// Temporarilly save the content
-	var old_input_id = new Array();
-	var old_input_value = new Array();
-	if(document.getElementById("input_boxes").innerHTML.length > 0) {
-		var i_box = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-		for(var c = 0; c < i_box.length; c++) {
-			old_input_id.push(i_box[c].id);
-			old_input_value.push(i_box[c].value);
-		}
-	}
-	
-	// Create necessary input boxes
-	var num_answers = document.getElementById("num_answers").innerHTML;
-	var lang_settings = document.getElementById("lang_settings").innerHTML.split("|");
-	var output = '<div id="a' + num_answers + '"><b>A' + num_answers + '</b>';
-	for(var c = 0; c < lang_settings.length; c++) {
-		var ls = lang_settings[c];
-		if(ls.indexOf("english") == 0) {
-			output += '<div><input id="a' + num_answers + 'english"><i>(English)</i></div>';
-		}
-		if(ls.indexOf("japanese") == 0) {
-			output += '<div><input id="a' + num_answers + 'japanese"><i>(日本語)</i></div>';
-		}
-		if(ls.indexOf("other") == 0) {
-			output += '<div><input id="a' + num_answers + 'other"><i>(Other その他)</i></div>';
-		}
-	}
-	output += '</div>';
-	document.getElementById("answers").innerHTML += output;
-	document.getElementById("num_answers").innerHTML = parseInt(num_answers) + 1;
-	
-	// Restore data
-	var i = 0;
-	while(i < old_input_id.length) {
-		document.getElementById(old_input_id[i]).value = old_input_value[i];
-		
-		i += 1;
-	}
-}
-
 function AddTitle(identifier) {
 	document.getElementById("title_show_" + identifier).innerHTML = document.getElementById("title").value;
 }
@@ -3667,54 +1731,6 @@ function SetLanguageTag(language) {
 	i = 0;
 	while(i < current_data.length) {
 		current_data[i].value = old_data[i];
-		
-		i += 1;
-	}
-}
-
-function AddAssistantLanguage(class_language, display_language) {
-	// Temporarilly save the content
-	var old_input_id = new Array();
-	var old_input_value = new Array();
-	var num_questions = 0;
-	var num_answers = 0;
-	if(document.getElementById("input_boxes").innerHTML.length > 0) {
-		var i_box = document.getElementById("input_boxes").getElementsByTagName("INPUT");
-		for(var c = 0; c < i_box.length; c++) {
-			old_input_id.push(i_box[c].id);
-			old_input_value.push(i_box[c].value);
-		}
-		
-		num_questions = document.getElementById("num_questions").innerHTML;
-		num_answers = document.getElementById("num_answers").innerHTML;
-	}
-	
-	// Create necessary input boxes
-	var i = 0;
-	while(i < num_questions) {
-		document.getElementById("q" + i).innerHTML += "<div><input id=\"q" + i  + class_language + "\" type=\"text\"><i>(" + display_language + ")</i></div>";
-		
-		i += 1;
-	}
-	i = 0;
-	while(i < num_answers) {
-		document.getElementById("a" + i).innerHTML += "<div><input id=\"a" + i  + class_language + "\" type=\"text\"><i>(" + display_language + ")</i></div>";
-		
-		i += 1;
-	}
-	
-	// Update language settings
-	if(document.getElementById("lang_settings").innerHTML.length > 0) {
-		document.getElementById("lang_settings").innerHTML += "|" + class_language;
-	}
-	else {
-		document.getElementById("lang_settings").innerHTML = class_language;
-	}
-	
-	// Restore data
-	i = 0;
-	while(i < old_input_id.length) {
-		document.getElementById(old_input_id[i]).value = old_input_value[i];
 		
 		i += 1;
 	}
@@ -3828,20 +1844,6 @@ function AddSearchButton(myField) {
 	
 	// Determine type id
 	var type_id = -1;
-	if(search_option.indexOf("template") == 0) {
-		type_id = 0;
-	}
-	if(search_option.indexOf("manual") == 0) {
-		type_id = 1;
-	}
-	if(search_option.indexOf("ccontact") == 0) {
-		type_id = 2;
-	}
-	if(search_option.indexOf("assist") == 0) {
-		type_id = 3;
-	}
-
-	type_id = -1;
 	
 	// Add button
 	insertAtCursor(myField, '<button onclick="ShowContent(' + type_id + ', \'\', \'' + search_frase + '\')">' + search_frase + '</button>');
@@ -3944,7 +1946,7 @@ function includeHTML() {
 
 					/*remove the attribute, and call this function once more:*/
 					elmnt.removeAttribute("w3-include-html");
-					includeHTML();
+					//includeHTML();
 				}
 			}
 			d = new Date();
