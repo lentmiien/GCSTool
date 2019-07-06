@@ -26,7 +26,7 @@
 			<hr>
 
 			<h3 lg_language="_personal_data_"></h3>
-			<textarea name="input_personal" cols="40" rows="5" id="input_personal"></textarea>
+			<textarea name="input_personal" cols="40" rows="5" id="input_personal" disabled></textarea>
 			<span class="tooltip">?
 				<span class="tooltiptext">
 					<b lg_language="_personal_data_"></b><br>
@@ -81,10 +81,10 @@
 				<!-- Search field -->
 				<span class="frame">
 					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
-					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> Template, 
-					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> Manual, 
-					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> Contact,
-					<select id="cat_sel" onchange="ExpSearch()"><option value="_">All</option></select>
+					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> <span lg_language="_templates_"></span>, 
+					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> <span lg_language="_manual_"></span>, 
+					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> <span lg_language="_ccontact_"></span>,
+					<select id="cat_sel" onchange="ExpSearch()"><option value="_" lg_language="_all_"></option></select>
 					<span class="tooltip">+
 						<span class="tooltiptext">
 							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
@@ -250,13 +250,13 @@
 					</table>
 					<table>
 						<tr>
-							<td><span lg_language="_title_"></span><input id="title" type="text"><button onclick="AddTitle('eng')">Set Title</button></td>
+							<td><span lg_language="_title_"></span><input id="title" type="text"><button onclick="AddTitle('eng')"><span lg_language="_set_title_"></span></button></td>
 						</tr>
 						<tr>
 							<td><h1 id="title_show_eng">Not set...</h1></td>
 						</tr>
 						<tr>
-							<td>Update Note <input id="history_box" type="text" style="width:100%;"></td>
+							<td><span lg_language="_update_note_"></span> <input id="history_box" type="text" style="width:100%;"></td>
 						</tr>
 					</table>
 					
@@ -267,7 +267,7 @@
 					
 					<table>
 						<tr>
-							<td><button onclick="SetLanguageTag('英語')">Add</button></td>
+							<td><button onclick="CreateInputBox()"><span lg_language="_add_content_"></span></button></td>
 						</tr>
 					</table>
 					<button onclick="Delete()" style="background-color:red;"><span lg_language="_delete_"></span></button>
@@ -363,10 +363,10 @@
 			</div>
 			
 			<!-- Used when approving "_COPY" entries -->
-			<div id="current_master"></div>
+			<div id="current_master" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 30, 60);"></div>
 			<hr>
 			<!-- Suggested entries -->
-			<div id="suggested_entry"></div>
+			<div id="suggested_entry" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 60, 30);"></div>
 			<hr>
 			
 			<!-- Buttons -->
@@ -390,7 +390,7 @@
 		
 		<!-- Data -->
 		<div class="hidden" style="color:#CCCCCC;">
-			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">●日本語●</div><div id="content_language">●日本語●|●英語●|●その他●</div><div id="my_style"></div><div id="my_reminders"></div></div>
+			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">japanese</div><div id="my_style">Style_normal.css</div><div id="my_reminders"></div></div>
 			<div id="meeting"></div>
 			<div id="own_comments"></div>
 			<div id="var_labinv"></div>

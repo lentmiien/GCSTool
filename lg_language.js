@@ -1,5 +1,10 @@
 var json_language = {
     english: {
+		/* alert */
+		_alert_nodata_: "There are no content to save",
+		_alert_noupdate_: "Fill in 'Update Note'",
+		_alert_notitle_: "Fill in a title",
+		/* interface */
         _init_settings_: "Startup settings",
         _personal_data_: "Personal data",
         _personal_data_explain_: "Your last saved data should automatically be filled in, or you can copy-paste a backup file here.<br><i>*For new users only: Leave Empty</i>",
@@ -93,9 +98,36 @@ var json_language = {
 		_image_: "Image",
 		_search_btn_: "Search button",
 		_add_question_: "Add question",
-		_add_answer_: "Add answer"
+		_add_answer_: "Add answer",
+		_update_note_: "Update Note",
+		_set_title_: "Set title",
+		_all_: "All",
+		_add_content_: "Add content",
+		_original_entry_: "Original entry",
+		_suggested_entry_: "Suggested entry",
+		/* categories */
+		_account_related_: "Account Related",
+		_order_item_statuses_: "Order/Item Statuses",
+		_order_modifying_: "Order Modifying",
+		_payment_shipping_: "Payment/Shipping",
+		_after_service_shipping_: "After Service Shipping",
+		_after_service_defect_: "After Service Defect",
+		_after_service_preowned_: "After Service Pre-owned",
+		_returns_refunds_: "Returns/Refunds",
+		_claims_cases_: "Claims/Cases",
+		_work_related_: "Work Related",
+		_case_assist_: "Case assist",
+		_customer_dep_: "Customer Support",
+		_logistics_dep_: "Shipping Logistics",
+		_feedback_: "Feedback",
+		_other_: "Other"
     },
-    japanese: {
+	japanese: {
+		/* alert */
+		_alert_nodata_: "保存ができるコンテンツが無い",
+		_alert_noupdate_: "「更新メモ」を入力してください",
+		_alert_notitle_: "タイトルを入力してください",
+		/* interface */
         _init_settings_: "初期設定",
         _personal_data_: "個人データ",
         _personal_data_explain_: "一番最近セーブしたデータは自動的に記入される、そしてバックアップデータのコピーペーストも可能です。<br><i>※新しいユーザーのみ：空にしてください。</i>",
@@ -189,9 +221,36 @@ var json_language = {
 		_image_: "画像",
 		_search_btn_: "検索ボタン",
 		_add_question_: "質問追加",
-		_add_answer_: "答え追加"
+		_add_answer_: "答え追加",
+		_update_note_: "更新メモ",
+		_set_title_: "タイトル設定",
+		_all_: "すべて",
+		_add_content_: "内容追加",
+		_original_entry_: "元データ",
+		_suggested_entry_: "提案データ",
+		/* categories */
+		_account_related_: "アカウント関連",
+		_order_item_statuses_: "注文・商品の状況",
+		_order_modifying_: "注文編集",
+		_payment_shipping_: "決済・発送",
+		_after_service_shipping_: "配達サポート",
+		_after_service_defect_: "不良サポート",
+		_after_service_preowned_: "中古サポート",
+		_returns_refunds_: "返品・返金",
+		_claims_cases_: "クレーム・ケース",
+		_work_related_: "仕事関連",
+		_case_assist_: "ケース対応",
+		_customer_dep_: "カスタマーサポート",
+		_logistics_dep_: "発送・ロジ課",
+		_feedback_: "フィードバック",
+		_other_: "その他"
     },
-    swedish: {
+	swedish: {
+		/* alert */
+		_alert_nodata_: "Inget innehåll att spara",
+		_alert_noupdate_: "Fyll i 'Ändrad Notering'",
+		_alert_notitle_: "Fyll i en titel",
+		/* interface */
         _init_settings_: "Starta inställningar",
         _personal_data_: "Personlig data",
         _personal_data_explain_: "Din senaste sparade data fylls in automatiskt, men du kan också kopiera-klistra in säkerhets sparad data.<br><i>*För nya användare: Lämna tom</i>",
@@ -285,12 +344,35 @@ var json_language = {
 		_image_: "Bild",
 		_search_btn_: "Sök knapp",
 		_add_question_: "Lägg till fråga",
-		_add_answer_: "Lägg till svar"
+		_add_answer_: "Lägg till svar",
+		_update_note_: "Ändrad Notering",
+		_set_title_: "Sätt title",
+		_all_: "Alla",
+		_add_content_: "Lägg till innehåll",
+		_original_entry_: "Orginal data",
+		_suggested_entry_: "Förslag data",
+		/* categories */
+		_account_related_: "Angående Konto",
+		_order_item_statuses_: "Beställning/Artikel Statusar",
+		_order_modifying_: "Beställning Redigering",
+		_payment_shipping_: "Betalning/Frakt",
+		_after_service_shipping_: "Efter Service Frakt",
+		_after_service_defect_: "Efter Service Defekt",
+		_after_service_preowned_: "Efter Service Begagnad",
+		_returns_refunds_: "Returer/Återbetalning",
+		_claims_cases_: "Klagomål",
+		_work_related_: "Angående Jobbet",
+		_case_assist_: "Case assist",
+		_customer_dep_: "Kundsupport",
+		_logistics_dep_: "Fraktlogistik",
+		_feedback_: "Feedback",
+		_other_: "Annat"
     }
 }
 
+var language_id = "japanese";
 function UpdateLanguage(source) {
-    var language_id = document.getElementById(source).value;
+    language_id = document.getElementById(source).value;
     var z = document.getElementsByTagName("*");
 
     for (var i = 0; i < z.length; i++) {
@@ -302,3 +384,11 @@ function UpdateLanguage(source) {
     }
 }
 UpdateLanguage("lg_language");
+
+function GetData(key) {
+	return json_language[language_id][key];
+}
+
+function GetHTMLElement(key) {
+	return '<span lg_language="' + key + '">' + json_language[language_id][key] + '</span>';
+}

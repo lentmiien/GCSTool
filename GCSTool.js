@@ -6,40 +6,23 @@
 
 var g_i = 1;
 
-var categories = {
-	"_account_related_":"アカウント関連",
-	"_order_item_statuses_":"注文・商品の状況",
-	"_order_modifying_":"注文編集",
-	"_payment_shipping_":"決済・発送",
-	"_after_service_shipping_":"配達サポート",
-	"_after_service_defect_":"不良サポート",
-	"_after_service_preowned_":"中古サポート",
-	"_returns_refunds_":"返品・返金",
-	"_claims_cases_":"クレーム・ケース",
-	"_work_related_":"仕事関連",
-	"_case_assist_": "ケース対応",
-	"_customer_dep_": "カスタマーサポート",
-	"_logistics_dep_": "発送・ロジ課",
-	"_feedback_": "フィードバック",
-	"_other_": "その他"
-};
-var categories_eng = {
-	"_account_related_":"Account Related",
-	"_order_item_statuses_":"Order/Item Statuses",
-	"_order_modifying_":"Order Modifying",
-	"_payment_shipping_":"Payment/Shipping",
-	"_after_service_shipping_":"After Service Shipping",
-	"_after_service_defect_":"After Service Defect",
-	"_after_service_preowned_":"After Service Pre-owned",
-	"_returns_refunds_":"Returns/Refunds",
-	"_claims_cases_":"Claims/Cases",
-	"_work_related_":"Work Related",
-	"_case_assist_": "Case assist",
-	"_customer_dep_": "Customer Support",
-	"_logistics_dep_": "Shippin Logistics",
-	"_feedback_": "Feedback",
-	"_other_": "Other"
-};
+var category_keys = [
+	"_account_related_",
+	"_order_item_statuses_",
+	"_order_modifying_",
+	"_payment_shipping_",
+	"_after_service_shipping_",
+	"_after_service_defect_",
+	"_after_service_preowned_",
+	"_returns_refunds_",
+	"_claims_cases_",
+	"_work_related_",
+	"_case_assist_",
+	"_customer_dep_",
+	"_logistics_dep_",
+	"_feedback_",
+	"_other_"
+];
 
 var teams = {
 	"ohami":"大網",
@@ -178,17 +161,15 @@ function CheckScriptEnabled() {
 
 // Do some initial setup
 function Setup() {
-	var output = " ";
+	var i = 0;
+	var output = "";
 	
 	// Edit category
-	output = '<div id="n_cat"><select id="category_select">';
-	for(var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
-	output += '</select></div>';
-	document.getElementById("category").innerHTML = output;
-
+	for(i = 0; i < category_keys.length; i++) {
+		output += '<option value="' + category_keys[i] + '" lg_language="' + category_keys[i] + '">' + GetData(category_keys[i]) + '</option>';
+	}
+	document.getElementById("category").innerHTML = '<div id="n_cat"><select id="category_select">' + output + '</select></div>';
 	// Search category
-	output = "";
-	for (var key in categories) { output += '<option value="' + key + '">' + categories_eng[key] + "/" + categories[key] + '</option>'; }
 	document.getElementById("cat_sel").innerHTML += output;
 	
 	// Set team
@@ -390,7 +371,7 @@ function Next() {
 			true_id = true_id.slice(0, -5);
 			var j_index = ExistJSON(true_id);
 			if (j_index >= 0) {
-				document.getElementById("current_master").innerHTML += "<h2>Original entry</h2>";
+				document.getElementById("current_master").innerHTML += '<h2>' + GetData('_original_entry_') + '</h2>';
 				document.getElementById("current_master").innerHTML += '<h3>' + json_data.Entries[j_index].data.Title + '</h3>';
 				if (json_data.Entries[j_index].type.indexOf("manual") >= 0) {
 					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
@@ -407,7 +388,7 @@ function Next() {
 		}
 
 		// Display the suggested entry
-		document.getElementById("suggested_entry").innerHTML = '<h2>Suggested entry</h2>';
+		document.getElementById("suggested_entry").innerHTML = '<h2>' + GetData('_suggested_entry_') + '</h2>';
 		document.getElementById("suggested_entry").innerHTML += '<h3>' + entries.Entries[cnt].data.Title + '</h3>';
 		if (entries.Entries[cnt].type.indexOf("manual") >= 0) {
 			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
@@ -625,7 +606,7 @@ function News() {// JSON version
 				}
 				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 					if (json_data.Entries[i].type.indexOf('manual') == 0) {
-						output += json_data.Entries[i].data.Content[cd];
+						output += '<div>' + json_data.Entries[i].data.Content[cd] + '</div>';
 					}
 					else {
 						output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content[cd] + '</textarea>';
@@ -750,7 +731,7 @@ function ExpSearch() {
 			output += '<button onclick="EditEntry(' + u + ')">Edit</button><br>';
 			for (var cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
 				if (json_data.Entries[u].type.indexOf('manual') == 0) {
-					output += json_data.Entries[u].data.Content[cd];
+					output += '<div>' + json_data.Entries[u].data.Content[cd] + '</div>';
 				}
 				else {
 					output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[u].data.Content[cd] + '</textarea>';
@@ -1043,7 +1024,8 @@ function GeneratePersonalData() {
 	};
 	var saved_ids = "";
 	json_save.Settings = json_data.Settings;
-	for (ckey in categories) {
+	for(var x = 0; x < category_keys.length; x++) {
+		var ckey = category_keys[x];
 		for (i = 0; i < json_data.Entries.length; i++) {
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
 				// Save to output
@@ -1071,7 +1053,8 @@ function GenerateMasterData() {
 		Entries: []
 	};
 	var saved_ids = "";
-	for (ckey in categories) {
+	for (var x = 0; x < category_keys.length; x++) {
+		var ckey = category_keys[x];
 		for (i = 0; i < json_data.Entries.length; i++) {
 			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
 				// Save to output
@@ -1414,18 +1397,18 @@ function Delete() {
 function EditSave() {
 	// Break if there is no content
 	if(document.getElementById("input_boxes").innerHTML.length == 0) {
-		alert("There are no content to save.\n保存ができるコンテンツが無い。");
+		alert(GetData('_alert_nodata_'));
 		return;
 	}
 
 	if (document.getElementById("history_box").value.length == 0) {
-		alert("Please explain what you changed");
+		alert(GetData('_alert_noupdate_'));
 		return;
 	}
 	
 	// Break if there is no title
 	if(document.getElementById("title_show_eng").innerHTML.indexOf("Not set") == 0) {
-		alert("Can not save as no title has been set.\nタイトルが設定されていない為に、保存ができない。");
+		alert(GetData('_alert_notitle_'));
 		return;
 	}
 	
@@ -1524,7 +1507,7 @@ function EditEntry(json_index) {
 	var t_area = json_data.Entries[json_index].data.Content;
 	var i = 0;
 	while (i < t_area.length) {
-		SetLanguageTag('英語');
+		CreateInputBox('英語');
 
 		i = i + 1;
 	}
@@ -1573,7 +1556,7 @@ function EditEntryCopy(json_index) {
 	var t_area = json_data.Entries[json_index].data.Content;
 	var i = 0;
 	while (i < t_area.length) {
-		SetLanguageTag('英語');
+		CreateInputBox('英語');
 
 		i = i + 1;
 	}
@@ -1717,32 +1700,9 @@ function CreateTable(myField) {
 	insertAtCursor(myField, output);
 }
 
-function SetLanguageTag(language) {
+function CreateInputBox() {
 	// Break if no edit has been started
 	if(document.getElementById("unique_id").innerHTML.length == 0) {
-		return;
-	}
-	
-	// Parse language
-	var class_language = "other";
-	var display_language = "Other / その他";
-	if(language.indexOf("英語") == 0) {
-		class_language = "english";
-		display_language = "English";
-	}
-	if(language.indexOf("日本語") == 0) {
-		class_language = "japanese";
-		display_language = "日本語";
-	}
-	
-	// Break if textarea already exists, exception is templates
-	if(document.getElementById("type").innerHTML.indexOf("Template") == -1 && document.getElementById("input_boxes").innerHTML.indexOf(class_language) >= 0) {
-		return;
-	}
-	
-	// Special procedures for assistant
-	if(document.getElementById("type").innerHTML.indexOf("Assistant") >= 0) {
-		AddAssistantLanguage(class_language, display_language);
 		return;
 	}
 	
@@ -1752,7 +1712,6 @@ function SetLanguageTag(language) {
 	var i = 0;
 	while(i < current_data.length) {
 		document.getElementById("temp_save").innerHTML += current_data[i].value + "|";
-		
 		i += 1;
 	}
 	
@@ -1761,8 +1720,7 @@ function SetLanguageTag(language) {
 	if(document.getElementById("input_boxes").innerHTML > 0) {
 		output = "<br>";
 	}
-	output += "<b>" + display_language + "</b><br>";
-	output += '<textarea id="' + class_language + GenerateUID() + g_i + '" class="textarea_edit ' + class_language + '" onclick="SelectTextarea(this)"></textarea>';
+	output += '<textarea id="' + GenerateUID() + g_i + '" class="textarea_edit" onclick="SelectTextarea(this)"></textarea>';
 	g_i += 1;
 	document.getElementById("input_boxes").innerHTML += output;
 	
