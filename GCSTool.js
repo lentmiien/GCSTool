@@ -659,7 +659,7 @@ function ViewAll() {
 		var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
 
 		// Type of entry
-		output += "<i class=\"label\">" + text_input + "</i>";
+		output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
 
 		// Master / Private
 		if (json_data.Entries[i].ismaster == true) {
@@ -670,7 +670,10 @@ function ViewAll() {
 		}
 
 		output += '<br><div id="c_' + myID + '" style="display:none;">';
-		output += '<button onclick="EditEntry(' + i + ')">Edit</button><br>';
+		output += '<button onclick="EditEntry(' + i + ')">' + GetData('_edit_') + '</button>';
+		if (json_data.Entries[i].ismaster == true) {
+			output += '<button onclick="EditEntryCopy(' + i + ')">' + GetData('_edit_copy_') + '</button><br>';
+		}
 		for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 			if (json_data.Entries[i].type.indexOf('manual') == 0) {
 				output += json_data.Entries[i].data.Content[cd];
