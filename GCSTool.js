@@ -443,7 +443,6 @@ function Add(prefix) {
 }
 function Clear(prefix) {
 	document.getElementById(prefix + "inputfield").value += "-";
-	ClearCheckBoxes(prefix);
 	ProcessTextInput(prefix);
 }
 function ClearOne(prefix) {
