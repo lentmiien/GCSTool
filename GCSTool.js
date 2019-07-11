@@ -82,7 +82,12 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 		json_data.Entries[index].team = save_team;
 		json_data.Entries[index].authority = save_authority;
 		json_data.Entries[index].data = save_e_data;
-		json_data.Entries[index].history = save_history + "<br>" + json_data.Entries[index].history;
+		var history_to_save = save_history + "<br>" + json_data.Entries[index].history;
+		var history_check = history_to_save.split("<br>");
+		if(history_check.length > 10) {
+			history_to_save = history_check.slice(0, 10).join('<br>');
+		}
+		json_data.Entries[index].history = history_to_save;
 	}
 	else {
 		// Create new if not existing
@@ -622,7 +627,12 @@ function News() {// JSON version
 				}
 
 				// Display update history
-				output += '<hr><div>' + json_data.Entries[i].history + '</div>'
+				var latest_updates = json_data.Entries[i].history.split('<br>');
+				output += '<hr><div>';
+				for(var lu = 0; lu < 3; lu++) {
+					output += latest_updates[lu] + '<br>';
+				}
+				output += '</div>';
 				
 				output += '</div>';
 
