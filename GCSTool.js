@@ -629,7 +629,7 @@ function News() {// JSON version
 				// Display update history
 				var latest_updates = json_data.Entries[i].history.split('<br>');
 				output += '<hr><div>';
-				for(var lu = 0; lu < 3; lu++) {
+				for(var lu = 0; lu < 3 && lu < latest_updates.length; lu++) {
 					output += latest_updates[lu] + '<br>';
 				}
 				output += '</div>';
