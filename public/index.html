@@ -1,475 +1,554 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<link rel="stylesheet" href="Style.css">
-	<title>AmiAmi Template/Manual Tool</title>
-</head>
-<body onload="CheckScriptEnabled()">
-	
-	<span id="online_master_json" w3-include-html="Master.json" class="hidden"></span>
-	
-	<div class="contentblock">
-		
-		<div id="scriptenabled" class="error_text">
-			<b>ERROR! Could not run the necessary scripts.</b>
-			<b>エラー！　必要なスクリプトが発動できなかった。</b>
-		</div>
-		
-		<div id="debug" class="debug"><div id="load_progress"></div></div>
-		
-		<!-- Initialize -->
-		<div id="initialize">
-			<h1 lg_language="_init_settings_"></h1>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="Style.css" />
+    <title>AmiAmi Template/Manual Tool</title>
+  </head>
+  <body onload="CheckScriptEnabled()">
+    <span id="online_master_json" w3-include-html="Master.json" class="hidden"></span>
 
-			<hr>
+    <div class="contentblock">
+      <div id="scriptenabled" class="error_text">
+        <b>ERROR! Could not run the necessary scripts.</b>
+        <b>エラー！　必要なスクリプトが発動できなかった。</b>
+      </div>
 
-			<h3 lg_language="_personal_data_"></h3>
-			<textarea name="input_personal" cols="40" rows="5" id="input_personal" disabled></textarea>
-			<span class="tooltip">?
-				<span class="tooltiptext">
-					<b lg_language="_personal_data_"></b><br>
-					<span lg_language="_personal_data_explain_"></span>
-				</span>
-			</span>
-			<h3 lg_language="_master_data_"></h3>
-			<textarea name="input_master" cols="40" rows="5" id="input_master" disabled></textarea>
-			<span class="tooltip">?
-				<span class="tooltiptext">
-					<b lg_language="_master_data_"></b><br>
-					<span lg_language="_master_data_explain_"></span>
-				</span>
-			</span>
+      <div id="debug" class="debug"><div id="load_progress"></div></div>
 
-			<br><br>
+      <!-- Initialize -->
+      <div id="initialize">
+        <h1 lg_language="_init_settings_"></h1>
 
-			<hr>
-			
-			<h3 lg_language="_color_settings_"></h3>
-			<select name="color_mode" id="color_mode">
-				<option value="Style_normal.css" lg_language="_color_normal_"></option>
-				<option value="Style_dark.css" lg_language="_color_dark_"></option>
-			</select>
+        <hr />
 
-			<br>
+        <h3 lg_language="_personal_data_"></h3>
+        <textarea name="input_personal" cols="40" rows="5" id="input_personal" disabled></textarea>
+        <span class="tooltip"
+          >?
+          <span class="tooltiptext">
+            <b lg_language="_personal_data_"></b><br />
+            <span lg_language="_personal_data_explain_"></span>
+          </span>
+        </span>
+        <h3 lg_language="_master_data_"></h3>
+        <textarea name="input_master" cols="40" rows="5" id="input_master" disabled></textarea>
+        <span class="tooltip"
+          >?
+          <span class="tooltiptext">
+            <b lg_language="_master_data_"></b><br />
+            <span lg_language="_master_data_explain_"></span>
+          </span>
+        </span>
 
-			<h3 lg_language="_language_settings_"></h3>
-			<select name="lg_language" id="lg_language" onchange="UpdateLanguage('lg_language')">
-				<option value="japanese">日本語</option>
-				<option value="english">English</option>
-				<option value="swedish">Svenska</option>
-			</select>
-			
-			<br><br>
+        <br /><br />
 
-			<hr>
+        <hr />
 
-			<br>
-			
-			<button id="load_button" class="important_button" onclick="LoadData()" lg_language="_start_tool_"></button>
-		</div>
-		
-		<!-- Run -->
-		<div id="run" class="hidden">
-			<div id="ru_tabcnt" class="hidden">7</div>
-			
-			<!-- Input/Search layout -->
-			<div class="body_tab" id="ru_1_7">
-				<div class="layout_title"><span lg_language="_search_"></span></div>
-				
-				<!-- Search field -->
-				<span class="frame">
-					<span lg_language="_input_"></span> <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
-					<input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()"> <span lg_language="_templates_"></span>, 
-					<input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()"> <span lg_language="_manual_"></span>, 
-					<input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()"> <span lg_language="_ccontact_"></span>,
-					<select id="cat_sel" onchange="ExpSearch()"><option value="_" lg_language="_all_"></option></select>
-					<span class="tooltip">+
-						<span class="tooltiptext">
-							<a href="https://ohami.zendesk.com/agent/dashboard" target='_blank'>Zendesk</a><br>
-							<a href="https://www.amiami.com/eng/" target='_blank'>AmiAmi.com</a><br>
-							<a href="https://www.xe.com/" target='_blank'>XE Currency</a><br>
-							<a href="http://www.dhl.co.jp/ja/contact_center/contact_express/report_delivery_problem.html"
-								target='_blank'>DHL Support</a><br>
-							<a href="http://www.dhl.co.jp/en/express/shipping/shipping_advice/express_fuel_surcharge_apem.html"
-								target='_blank'>DHL Fuel</a><br>
-							<a href="https://mesg.ebay.com/mesgweb/ViewMessages/0/All" target='_blank'>Ebay messages</a><br>
-							<a href="https://www.paypal.com/disputes/" target='_blank'>PayPal disputes</a><br>
-							<a href="https://sellercentral.amazon.com/home" target='_blank'>Amazon messages</a><br>
-							<a href="https://www.post.japanpost.jp/int/ems/delivery/link.html" target='_blank'>EMS tracking pages</a>
-						</span>
-					</span>
-				</span>
-				<span class="frame frame_search">
-					<span lg_language="_search_"></span>
-					<button onclick="Add('all_')"><span lg_language="_add_"></span></button>
-					<button onclick="Clear('all_')"><span lg_language="_clear_"></span></button>
-					<button onclick="ClearOne('all_')"><span lg_language="_remove_last_"></span></button>
-					<span class="tooltip">+
-						<span class="tooltiptext">
-							<b lg_language="_s_search_"></b><br>
-							<!--
+        <h3 lg_language="_color_settings_"></h3>
+        <select name="color_mode" id="color_mode">
+          <option value="Style_normal.css" lg_language="_color_normal_"></option>
+          <option value="Style_dark.css" lg_language="_color_dark_"></option>
+        </select>
+
+        <br />
+
+        <h3 lg_language="_language_settings_"></h3>
+        <select name="lg_language" id="lg_language" onchange="UpdateLanguage('lg_language')">
+          <option value="japanese">日本語</option>
+          <option value="english">English</option>
+          <option value="swedish">Svenska</option>
+        </select>
+
+        <br /><br />
+
+        <hr />
+
+        <br />
+
+        <button id="load_button" class="important_button" onclick="LoadData()" lg_language="_start_tool_"></button>
+      </div>
+
+      <!-- Run -->
+      <div id="run" class="hidden">
+        <div id="ru_tabcnt" class="hidden">7</div>
+
+        <!-- Input/Search layout -->
+        <div class="body_tab" id="ru_1_7">
+          <div class="layout_title"><span lg_language="_search_"></span></div>
+
+          <!-- Search field -->
+          <span class="frame">
+            <span lg_language="_input_"></span>
+            <textarea class="textarea_search" rows="1" cols="25" id="all_inputfield" onkeyup="ProcessTextInput('all_')"></textarea>
+            <input type="checkbox" name="type_selection" id="exp_template" checked onclick="ExpSearch()" />
+            <span lg_language="_templates_"></span>,
+            <input type="checkbox" name="type_selection" id="exp_manual" checked onclick="ExpSearch()" />
+            <span lg_language="_manual_"></span>,
+            <input type="checkbox" name="type_selection" id="exp_ccontact" checked onclick="ExpSearch()" />
+            <span lg_language="_ccontact_"></span>,
+            <select id="cat_sel" onchange="ExpSearch()"
+              ><option value="_" lg_language="_all_"></option
+            ></select>
+            <span class="tooltip"
+              >+
+              <span class="tooltiptext">
+                <a href="https://ohami.zendesk.com/agent/dashboard" target="_blank">Zendesk</a><br />
+                <a href="https://www.amiami.com/eng/" target="_blank">AmiAmi.com</a><br />
+                <a href="https://www.xe.com/" target="_blank">XE Currency</a><br />
+                <a href="http://www.dhl.co.jp/ja/contact_center/contact_express/report_delivery_problem.html" target="_blank">DHL Support</a
+                ><br />
+                <a href="http://www.dhl.co.jp/en/express/shipping/shipping_advice/express_fuel_surcharge_apem.html" target="_blank"
+                  >DHL Fuel</a
+                ><br />
+                <a href="https://mesg.ebay.com/mesgweb/ViewMessages/0/All" target="_blank">Ebay messages</a><br />
+                <a href="https://www.paypal.com/disputes/" target="_blank">PayPal disputes</a><br />
+                <a href="https://sellercentral.amazon.com/home" target="_blank">Amazon messages</a><br />
+                <a href="https://www.post.japanpost.jp/int/ems/delivery/link.html" target="_blank">EMS tracking pages</a>
+              </span>
+            </span>
+          </span>
+          <span class="frame frame_search">
+            <span lg_language="_search_"></span>
+            <button onclick="Add('all_')"><span lg_language="_add_"></span></button>
+            <button onclick="Clear('all_')"><span lg_language="_clear_"></span></button>
+            <button onclick="ClearOne('all_')"><span lg_language="_remove_last_"></span></button>
+            <span class="tooltip"
+              >+
+              <span class="tooltiptext">
+                <b lg_language="_s_search_"></b><br />
+                <!--
 							<button onclick="ShowContent(-1, '', '_copy')"><span lg_language="_master_copy_"></span></button><br>
 							<button onclick="ShowContent(-1, '', 'edit (personal)')"><span lg_language="_personal_data_"></span></button><br>
 							-->
-							<button onclick="News()"><span lg_language="_new_"></span></button><br>
-							<button onclick="ViewAll()"><span lg_language="_view_all_"></span></button><br><br>
-						</span>
-					</span>
-				</span>
-				<span class="frame frame_shipping">
-					<span lg_language="_request_"></span>
-					<button onclick="myGetDocument(1)"><span lg_language="_s_label_"></span></button>
-					<button onclick="myGetDocument(2)"><span lg_language="_s_invoice_"></span></button>
-					<button onclick="myGetDocument(0)"><span lg_language="_s_label_invoice_"></span></button>
-					<button onclick="ShowDocuments()"><span lg_language="_show_"></span></button>
-				</span>
-				<span class="frame frame_parse">
-					<span lg_language="_find_"></span>
-					<button onclick="findordernumemail()"><span lg_language="_find_order_mail_"></span></button>
-				</span>
-				<br>
-				<div id="all_keywords"></div><br>
-				<div id="all_tags"></div><br>
-				<div id="all_stext"></div><br>
-				
-				<!-- Search result area -->
-				<h2 lg_language="_search_result_"></h2>
-				<div id="s_result"></div>
-			</div>
-			
-			<!-- Template layout -->
-			<div class="body_tab" id="ru_2_7" style="display:none">
-			</div>
+                <button onclick="News()"><span lg_language="_new_"></span></button><br />
+                <button onclick="ViewAll()"><span lg_language="_view_all_"></span></button><br /><br />
+              </span>
+            </span>
+          </span>
+          <span class="frame frame_shipping">
+            <span lg_language="_request_"></span>
+            <button onclick="myGetDocument(1)"><span lg_language="_s_label_"></span></button>
+            <button onclick="myGetDocument(2)"><span lg_language="_s_invoice_"></span></button>
+            <button onclick="myGetDocument(0)"><span lg_language="_s_label_invoice_"></span></button>
+            <button onclick="ShowDocuments()"><span lg_language="_show_"></span></button>
+          </span>
+          <span class="frame frame_parse">
+            <span lg_language="_find_"></span>
+            <button onclick="findordernumemail()"><span lg_language="_find_order_mail_"></span></button>
+          </span>
+          <br />
+          <div id="all_keywords"></div>
+          <br />
+          <div id="all_tags"></div>
+          <br />
+          <div id="all_stext"></div>
+          <br />
 
-			<!-- Manual layout -->
-			<div class="body_tab" id="ru_3_7" style="display:none">
-			</div>
-			
-			<!-- Company contact layout -->
-			<div class="body_tab" id="ru_4_7" style="display:none">
-			</div>
-			
-			<!-- Assist layout -->
-			<div class="body_tab" id="ru_5_7" style="display:none">
-			</div>
-			
-			<!-- Edit layout (Master edit require Password) -->
-			<div class="body_tab" id="ru_6_7" style="display:none">
-				<div class="layout_title"><span lg_language="_edit_"></span></div>
-				
-				<!-- Edit menu -->
-				<table>
-					<tr>
-						<td class="half">
-							<button onclick="SetEditStatus(0)"><span lg_language="_personal_"></span></button>
-							<button onclick="SetEditStatus(1)"><span lg_language="_master_"></span></button>
-							
-							<span id="login" class="hidden"><input id="password" type="password"><button onclick="Login()"><span lg_language="_login_"></span></button></span>
-						</td>
-						<td class="half">
-							<div id="current_mode"><span lg_language="_personal_"></span></div>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<button onclick="UpdateSettings()"><span lg_language="_change_settings_"></span></button>
-							<button onclick="CreateNew('template')"><span lg_language="_new_template_"></span></button>
-							<button onclick="CreateNew('manual')"><span lg_language="_new_manual_"></span></button>
-							<button onclick="CreateNew('ccontact')"><span lg_language="_new_ccontact_"></span></button>
-						</td>
-					</tr>
-				</table>
-				
-				<!-- Edit settings -->
-				<div id="edit_settings" class="hidden">
-					<b><span lg_language="_user_id_"></span></b><input id="s_user_id" type="text" onchange="SetID()"><br><br>
-					<b><span lg_language="_team_"></span></b><div id="s_user_team"></div><br>
-					<b><span lg_language="_interface_"></span></b><input id="s_i_language_eng" name="lang_select" type="radio" onclick="SetILanguage()"> English, <input id="s_i_language_jap" name="lang_select" type="radio" onclick="SetILanguage()"> 日本語, <input id="s_i_language_swe" name="lang_select" type="radio" onclick="SetILanguage()"> Svenska<br><br>
-					<b><span lg_language="_style_"></span></b><div id="s_style"><input type="radio" name="style" id="s_normal" onclick="SetStyle()"><span lg_language="_color_normal_"></span>, <input type="radio" name="style" id="s_dark" onclick="SetStyle()"><span lg_language="_color_dark_"></span></div><br>
-					<b><span lg_language="_reminders_"></span></b>
-					<div id="show_reminders"></div>
-				</div>
-				
-				<!-- Edit content -->
-				<div id="edit_body" class="hidden">
-					<table>
-						<tr>
-							<td class="fifth"><span lg_language="_unique_id_"></span></td>
-							<td class="fifth"><span lg_language="_type_"></span></td>
-							<td class="fifth">
-								<span lg_language="_category_"></span>
-								<span class="tooltip">?
-									<span class="tooltiptext">
-										<b>Order/Item Statuses/注文・商品の状況</b><br>
-										Item questions, Order status/confirmation, Release dates<br>
-										商品質問、注文状況・確認、発売日<br>
-										<b>Order Modifying/注文編集</b><br>
-										Cancellations, Splitting/Moving items, Changing address/payment/shipping, Combining orders<br>
-										キャンセル、分割・移動、住所・決済・発送変更、同梱<br>
-										<b>Account Related/アカウント関連</b><br>
-										Updating password/email, Status of account<br>
-										パスワード・メール変更、アカウント状況<br>
-										<b>Payment/Shipping/決済・発送</b><br>
-										Payments, Shipping methods, Shipping estimates<br>
-										入金、発送方法、送料見積もり<br>
-										<b>After Service Shipping/配達サポート</b><br>
-										Shipping problems, Wrongly delivered items, Missing items<br>
-										発送中のトラブル、テレコ、不足<br>
-										<b>After Service Defect/不良サポート</b><br>
-										Defects, Missing parts<br>
-										不良、欠品<br>
-										<b>After Service Pre-owned/中古サポート</b><br>
-										About pre-owned items<br>
-										中古関連<br>
-										<b>Returns/Refunds/返品・返金</b><br>
-										Returns, Refunds<br>
-										返品、返金<br>
-										<b>Claims/Cases/クレーム・ケース</b><br>
-										PP Disputes/Claims, Ebay cases/claims, Amazon claims<br>
-										PP異議・クレーム、ebayケース・クレーム、Amazonクレーム<br>
-										<b>Other/その他</b><br>
-										Other, Things we do not assist with<br>
-										その他、対応しないもの<br>
-										<b>Work Related/仕事関連</b><br>
-										About working at AmiAmi<br>
-										あみあみで働くに関した
-									</span>
-								</span>
-							</td>
-							<td class="fifth"><span lg_language="_team_"></span></td>
-							<td class="fifth"><span lg_language="_last_updated_"></span></td>
-						</tr>
-						<tr>
-							<td><b id="unique_id"></b></td>
-							<td><b id="type"></b></td>
-							<td><b id="category"></b></td>
-							<td><b id="team"></b></td>
-							<td><b id="last_updated"></b></td>
-						</tr>
-					</table>
-					<table>
-						<tr>
-							<td><span lg_language="_title_"></span><input id="title" type="text"><button onclick="AddTitle('eng')"><span lg_language="_set_title_"></span></button></td>
-						</tr>
-						<tr>
-							<td><h1 id="title_show_eng">Not set...</h1></td>
-						</tr>
-						<tr>
-							<td><span lg_language="_update_note_"></span> <input id="history_box" type="text" style="width:100%;"></td>
-						</tr>
-					</table>
-					
-					<!-- Content input areas -->
-					<div id="selected_input_box" class="hidden"></div>
-					<div id="input_boxes"></div>
-					<div id="temp_save" class="hidden"></div>
-					
-					<table>
-						<tr>
-							<td><button onclick="CreateInputBox()"><span lg_language="_add_content_"></span></button></td>
-						</tr>
-					</table>
-					<button onclick="Delete()" style="background-color:red;"><span lg_language="_delete_"></span></button>
-				</div>
-			</div>
-			
-			<!-- Save -->
-			<div class="body_tab" id="ru_7_7" style="display:none">
-				<div class="layout_title"><span lg_language="_save_load_"></span></div>
-				
-				<table>
-					<tr>
-						<td class="third">
-							<input id="personal" type="radio" name="save_tab" onclick="SaveTab(0)" checked> <span lg_language="_personal_"></span>
-							<span class="tooltip">?
-								<span class="tooltiptext">
-									<b lg_language="_personal_data_"></b><br>
-									<span lg_language="_save_pd_explain_"></span><br>
-									<b lg_language="_process_"></b><br>
-									<span lg_language="_save_pd_process_"></span><br>
-								</span>
-							</span>
-						</td>
-						<td class="third">
-							<input id="share" type="radio" name="save_tab" onclick="SaveTab(1)"> <span lg_language="_share_"></span>
-							<span class="tooltip">?
-								<span class="tooltiptext">
-									<b lg_language="_share_data_"></b><br>
-									<span lg_language="_save_sd_explain_"></span><br>
-									<b lg_language="_process_share_"></b><br>
-									<span lg_language="_save_sd_share_process_"></span><br>
-									<b lg_language="_process_load_"></b><br>
-									<span lg_language="_save_sd_load_process_"></span><br>
-								</span>
-							</span>
-						</td>
-						<td class="third">
-							<input id="master" type="radio" name="save_tab" onclick="SaveTab(2)"> <span lg_language="_master_"></span>
-							<span class="tooltip">?
-								<span class="tooltiptext">
-									<b lg_language="_master_data_"></b><br>
-									<span lg_language="_save_md_explain_"></span><br>
-									<b lg_language="_process_"></b><br>
-									<span lg_language="_save_md_process_"></span><br>
-								</span>
-							</span>
-						</td>
-					</tr>
-				</table>
-				
-				<h3 lg_language="_save_content_"></h3>
-				
-				<div id="private_tab">
-					<span class="frame frame_search">
-						<button onclick="GeneratePersonalData()"><span lg_language="_personal_data_"></span></button>
-					</span>
-				</div>
-				
-				<div id="share_tab" class="hidden">
-					<span class="frame frame_search">
-						<button onclick="GenerateShareData()"><span lg_language="_share_data_"></span></button>
-						<button onclick="LoadShareData()"><span lg_language="_load_data_"></span></button>
-					</span>
-					<div id="share_output"></div>
-				</div>
-				
-				<div id="master_tab" class="hidden">
-					<span class="frame frame_shipping">
-						<button onclick="GenerateMasterData()"><span lg_language="_master_data_"></span></button>
-					</span>
-				</div>
-				
-				
-				
-				<h3 lg_language="_data_"></h3>
-				<textarea id="save_out" style="width:100%;height:500px;" onclick="Selector(this)"></textarea><br>
-				<span style="color:red;"><b lg_language="_save_explain_"></b></span>
-			</div>
-		</div>
-		
-		<!-- Approve share data (share private -> master) -->
-		<div id="approve" class="hidden">
-			<div id="top_status_bar">
-				<table>
-					<tr>
-						<td class="third"></td>
-						<td class="third"><h3 lg_language="_approve_master_"></h3></td>
-						<td class="third"><b id="left_to_check">1/1</b></td>
-					</tr>
-				</table>
-				
-				<div id="counter" class="hidden">0</div>
-			</div>
-			
-			<!-- Used when approving "_COPY" entries -->
-			<div id="current_master" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 30, 60);"></div>
-			<hr>
-			<!-- Suggested entries -->
-			<div id="suggested_entry" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 60, 30);"></div>
-			<hr>
-			
-			<!-- Buttons -->
-			<div id="approve_buttons">
-				<button onclick="Approve(1)"><span lg_language="_approve_m_"></span></button>
-				<button onclick="Approve(0)"><span lg_language="_approve_p_"></span></button>
-				<button onclick="Reject()"><span lg_language="_reject_"></span></button>
-				
-				<span class="tooltip">?
-					<span class="tooltiptext">
-						<b lg_language="_process_approve_"></b><br>
-						<span lg_language="_approve_process_"></span><br>
-					</span>
-				</span>
-				
-				<br><br>
-				
-				<button onclick="Back()"><span lg_language="_back_"></span></button>
-			</div>
-		</div>
-		
-		<!-- Data -->
-		<div class="hidden" style="color:#CCCCCC;">
-			<div id="settings"><div id="user_id">NewUser</div><div id="user_team">ohami</div><div id="interface_language">japanese</div><div id="my_style">Style_normal.css</div><div id="my_reminders"></div></div>
-			<div id="meeting"></div>
-			<div id="own_comments"></div>
-			<div id="var_labinv"></div>
-			<div id="var_label"></div>
-			<div id="var_invoice"></div>
-		</div>
-		
-	</div> <!-- class="contentblock" -->
-	
-	<!-- New menu bar -->
-	<ul id="menubar" class="menubar hidden">
-		<li><a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)">
-			<span lg_language="_search_"></span>
-		</a></li>
-		<li><a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)">
-			<span lg_language="_edit_"></span>
-		</a></li>
-		<li>
-			<a id="ru_7_btn" href="#Save" onclick="TabHandler('ru_', 7)">
-				<span lg_language="_save_load_"></span>
-				<span id="need_save" class="hidden">
-					<span class="tooltip"><b style="color:red;">★</b>
-						<span class="tooltiptext">
-							<b>★ <span lg_language="_need_save_"></span></b>
-						</span>
-					</span>
-				</span>
-			</a>
-		</li>
-		
-		<li style="float:right">
-			<select name="lg_language" id="lg_language2" onchange="UpdateLanguage('lg_language2')" style="height:100%">
-				<option value="japanese">日本語</option>
-				<option value="english">English</option>
-				<option value="swedish">Svenska</option>
-			</select>
-		</li>
-	</ul>
-	
-	<!-- Edit menu bar -->
-	<ul id="editbar_text" class="editbar hidden">
-		<li><button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button></li>
-	</ul>
-	<ul id="editbar_html" class="editbar hidden">
-		<li><a onclick="TagText('selected_input_box', 'b')"><b>B</b></a></li>
-		<li><a onclick="TagText('selected_input_box', 'i')"><i>I</i></a></li>
-		<li><a onclick="TagText('selected_input_box', 'u')"><u>U</u></a></li>
-		<li><a onclick="TagText('selected_input_box', 'h2')"><span lg_language="_title_"></span></a></li>
-		<li><a onclick="TagText('selected_input_box', 'h3')"><span lg_language="_subtitle_"></span></a></li>
-		<li><a onclick="SingelTagText('selected_input_box', '<br>')"><span lg_language="_new_line_"></span></a></li>
-		<li><a onclick="SingelTagText('selected_input_box', '<hr>')"><span lg_language="_divider_"></span></a></li>
-		
-		<li><input id="color" type="color" name="favcolor" value="#000000" style="height:30px;width:40px;"></li>
-		<li><a onclick="SetBackground('selected_input_box', 'color')"><span lg_language="_background_"></span></a></li>
-		<li><a onclick="SetTextcolor('selected_input_box', 'color')"><span lg_language="_text_color_"></span></a></li>
-		
-		<li><input id="rows" type="number" style="height:30px;width:40px;"> X <input id="cols" type="number" style="height:30px;width:40px;"></li>
-		<li><a onclick="CreateTable('selected_input_box')"><span lg_language="_table_"></span></a></li>
-		
-		<li><a onclick="TagText('selected_input_box', 'ul')"><span lg_language="_dot_list_"></span></a></li>
-		<li><a onclick="TagText('selected_input_box', 'ol')"><span lg_language="_num_list_"></span></a></li>
-		<li><a onclick="TagText('selected_input_box', 'li')"><span lg_language="_list_element_"></span></a></li>
-		
-		<li><input id="image_link" type="text" style="height:30px;"></li>
-		<li><a onclick="AddImage('selected_input_box')"><span lg_language="_image_"></span></a></li>
-		
-		<li>
-			<input id="search_word" type="text" style="height:30px;">
-			<select id="search_type">
-				<option value="all" lg_language="_search_"></option>
-			</select>
-		</li>
-		<li><a onclick="AddSearchButton('selected_input_box')"><span lg_language="_search_btn_"></span></a></li>
-		
-		<li><button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button></li>
-	</ul>
-	
-	<script src="GCSTool.js"></script>
-	<script src="lg_language.js"></script>
-</body>
+          <!-- Search result area -->
+          <h2 lg_language="_search_result_"></h2>
+          <div id="s_result"></div>
+        </div>
+
+        <!-- Template layout -->
+        <div class="body_tab" id="ru_2_7" style="display:none"></div>
+
+        <!-- Manual layout -->
+        <div class="body_tab" id="ru_3_7" style="display:none"></div>
+
+        <!-- Company contact layout -->
+        <div class="body_tab" id="ru_4_7" style="display:none"></div>
+
+        <!-- Assist layout -->
+        <div class="body_tab" id="ru_5_7" style="display:none"></div>
+
+        <!-- Edit layout (Master edit require Password) -->
+        <div class="body_tab" id="ru_6_7" style="display:none">
+          <div class="layout_title"><span lg_language="_edit_"></span></div>
+
+          <!-- Edit menu -->
+          <table>
+            <tr>
+              <td class="half">
+                <button onclick="SetEditStatus(0)"><span lg_language="_personal_"></span></button>
+                <button onclick="SetEditStatus(1)"><span lg_language="_master_"></span></button>
+
+                <span id="login" class="hidden"
+                  ><input id="password" type="password"/><button onclick="Login()"><span lg_language="_login_"></span></button
+                ></span>
+              </td>
+              <td class="half">
+                <div id="current_mode"><span lg_language="_personal_"></span></div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <button onclick="UpdateSettings()"><span lg_language="_change_settings_"></span></button>
+                <button onclick="CreateNew('template')"><span lg_language="_new_template_"></span></button>
+                <button onclick="CreateNew('manual')"><span lg_language="_new_manual_"></span></button>
+                <button onclick="CreateNew('ccontact')"><span lg_language="_new_ccontact_"></span></button>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Edit settings -->
+          <div id="edit_settings" class="hidden">
+            <b><span lg_language="_user_id_"></span></b><input id="s_user_id" type="text" onchange="SetID()" /><br /><br />
+            <b><span lg_language="_team_"></span></b>
+            <div id="s_user_team"></div>
+            <br />
+            <b><span lg_language="_interface_"></span></b
+            ><input id="s_i_language_eng" name="lang_select" type="radio" onclick="SetILanguage()" /> English,
+            <input id="s_i_language_jap" name="lang_select" type="radio" onclick="SetILanguage()" /> 日本語,
+            <input id="s_i_language_swe" name="lang_select" type="radio" onclick="SetILanguage()" /> Svenska<br /><br />
+            <b><span lg_language="_style_"></span></b>
+            <div id="s_style">
+              <input type="radio" name="style" id="s_normal" onclick="SetStyle()" /><span lg_language="_color_normal_"></span>,
+              <input type="radio" name="style" id="s_dark" onclick="SetStyle()" /><span lg_language="_color_dark_"></span>
+            </div>
+            <br />
+            <b><span lg_language="_reminders_"></span></b>
+            <div id="show_reminders"></div>
+          </div>
+
+          <!-- Edit content -->
+          <div id="edit_body" class="hidden">
+            <table>
+              <tr>
+                <td class="fifth"><span lg_language="_unique_id_"></span></td>
+                <td class="fifth"><span lg_language="_type_"></span></td>
+                <td class="fifth">
+                  <span lg_language="_category_"></span>
+                  <span class="tooltip"
+                    >?
+                    <span class="tooltiptext">
+                      <b>Order/Item Statuses/注文・商品の状況</b><br />
+                      Item questions, Order status/confirmation, Release dates<br />
+                      商品質問、注文状況・確認、発売日<br />
+                      <b>Order Modifying/注文編集</b><br />
+                      Cancellations, Splitting/Moving items, Changing address/payment/shipping, Combining orders<br />
+                      キャンセル、分割・移動、住所・決済・発送変更、同梱<br />
+                      <b>Account Related/アカウント関連</b><br />
+                      Updating password/email, Status of account<br />
+                      パスワード・メール変更、アカウント状況<br />
+                      <b>Payment/Shipping/決済・発送</b><br />
+                      Payments, Shipping methods, Shipping estimates<br />
+                      入金、発送方法、送料見積もり<br />
+                      <b>After Service Shipping/配達サポート</b><br />
+                      Shipping problems, Wrongly delivered items, Missing items<br />
+                      発送中のトラブル、テレコ、不足<br />
+                      <b>After Service Defect/不良サポート</b><br />
+                      Defects, Missing parts<br />
+                      不良、欠品<br />
+                      <b>After Service Pre-owned/中古サポート</b><br />
+                      About pre-owned items<br />
+                      中古関連<br />
+                      <b>Returns/Refunds/返品・返金</b><br />
+                      Returns, Refunds<br />
+                      返品、返金<br />
+                      <b>Claims/Cases/クレーム・ケース</b><br />
+                      PP Disputes/Claims, Ebay cases/claims, Amazon claims<br />
+                      PP異議・クレーム、ebayケース・クレーム、Amazonクレーム<br />
+                      <b>Other/その他</b><br />
+                      Other, Things we do not assist with<br />
+                      その他、対応しないもの<br />
+                      <b>Work Related/仕事関連</b><br />
+                      About working at AmiAmi<br />
+                      あみあみで働くに関した
+                    </span>
+                  </span>
+                </td>
+                <td class="fifth"><span lg_language="_team_"></span></td>
+                <td class="fifth"><span lg_language="_last_updated_"></span></td>
+              </tr>
+              <tr>
+                <td><b id="unique_id"></b></td>
+                <td><b id="type"></b></td>
+                <td><b id="category"></b></td>
+                <td><b id="team"></b></td>
+                <td><b id="last_updated"></b></td>
+              </tr>
+            </table>
+
+            <table>
+              <tr>
+                <td>
+                  <span lg_language="_title_"></span><input id="title" type="text" /><button onclick="AddTitle('eng')">
+                    <span lg_language="_set_title_"></span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td><h1 id="title_show_eng">Not set...</h1></td>
+              </tr>
+              <tr>
+                <td><span lg_language="_update_note_"></span> <input id="history_box" type="text" style="width:100%;" /></td>
+              </tr>
+            </table>
+
+            <!-- Content input areas -->
+            <div id="selected_input_box" class="hidden"></div>
+            <div id="input_boxes"></div>
+            <div id="temp_save" class="hidden"></div>
+
+            <table>
+              <tr>
+                <td>
+                  <button onclick="CreateInputBox()"><span lg_language="_add_content_"></span></button>
+                </td>
+              </tr>
+            </table>
+
+            <button onclick="Delete()" style="background-color:red;"><span lg_language="_delete_"></span></button>
+          </div>
+        </div>
+
+        <!-- Save -->
+        <div class="body_tab" id="ru_7_7" style="display:none">
+          <div class="layout_title"><span lg_language="_save_load_"></span></div>
+
+          <table>
+            <tr>
+              <td class="third">
+                <input id="personal" type="radio" name="save_tab" onclick="SaveTab(0)" checked /> <span lg_language="_personal_"></span>
+                <span class="tooltip"
+                  >?
+                  <span class="tooltiptext">
+                    <b lg_language="_personal_data_"></b><br />
+                    <span lg_language="_save_pd_explain_"></span><br />
+                    <b lg_language="_process_"></b><br />
+                    <span lg_language="_save_pd_process_"></span><br />
+                  </span>
+                </span>
+              </td>
+              <td class="third">
+                <input id="share" type="radio" name="save_tab" onclick="SaveTab(1)" /> <span lg_language="_share_"></span>
+                <span class="tooltip"
+                  >?
+                  <span class="tooltiptext">
+                    <b lg_language="_share_data_"></b><br />
+                    <span lg_language="_save_sd_explain_"></span><br />
+                    <b lg_language="_process_share_"></b><br />
+                    <span lg_language="_save_sd_share_process_"></span><br />
+                    <b lg_language="_process_load_"></b><br />
+                    <span lg_language="_save_sd_load_process_"></span><br />
+                  </span>
+                </span>
+              </td>
+              <td class="third">
+                <input id="master" type="radio" name="save_tab" onclick="SaveTab(2)" /> <span lg_language="_master_"></span>
+                <span class="tooltip"
+                  >?
+                  <span class="tooltiptext">
+                    <b lg_language="_master_data_"></b><br />
+                    <span lg_language="_save_md_explain_"></span><br />
+                    <b lg_language="_process_"></b><br />
+                    <span lg_language="_save_md_process_"></span><br />
+                  </span>
+                </span>
+              </td>
+            </tr>
+          </table>
+
+          <h3 lg_language="_save_content_"></h3>
+
+          <div id="private_tab">
+            <span class="frame frame_search">
+              <button onclick="GeneratePersonalData()"><span lg_language="_personal_data_"></span></button>
+            </span>
+          </div>
+
+          <div id="share_tab" class="hidden">
+            <span class="frame frame_search">
+              <button onclick="GenerateShareData()"><span lg_language="_share_data_"></span></button>
+              <button onclick="LoadShareData()"><span lg_language="_load_data_"></span></button>
+            </span>
+            <div id="share_output"></div>
+          </div>
+
+          <div id="master_tab" class="hidden">
+            <span class="frame frame_shipping">
+              <button onclick="GenerateMasterData()"><span lg_language="_master_data_"></span></button>
+            </span>
+          </div>
+
+          <h3 lg_language="_data_"></h3>
+          <textarea id="save_out" style="width:100%;height:500px;" onclick="Selector(this)"></textarea><br />
+          <span style="color:red;"><b lg_language="_save_explain_"></b></span>
+        </div>
+      </div>
+
+      <!-- Approve share data (share private -> master) -->
+      <div id="approve" class="hidden">
+        <div id="top_status_bar">
+          <table>
+            <tr>
+              <td class="third"></td>
+              <td class="third"><h3 lg_language="_approve_master_"></h3></td>
+              <td class="third"><b id="left_to_check">1/1</b></td>
+            </tr>
+          </table>
+
+          <div id="counter" class="hidden">0</div>
+        </div>
+
+        <!-- Used when approving "_COPY" entries -->
+        <div id="current_master" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 30, 60);"></div>
+        <hr />
+        <!-- Suggested entries -->
+        <div id="suggested_entry" style="border: 4px double grey;margin:3px;padding:3px;background-color:rgb(30, 60, 30);"></div>
+        <hr />
+
+        <!-- Buttons -->
+        <div id="approve_buttons">
+          <button onclick="Approve(1)"><span lg_language="_approve_m_"></span></button>
+          <button onclick="Approve(0)"><span lg_language="_approve_p_"></span></button>
+          <button onclick="Reject()"><span lg_language="_reject_"></span></button>
+
+          <span class="tooltip"
+            >?
+            <span class="tooltiptext">
+              <b lg_language="_process_approve_"></b><br />
+              <span lg_language="_approve_process_"></span><br />
+            </span>
+          </span>
+
+          <br /><br />
+
+          <button onclick="Back()"><span lg_language="_back_"></span></button>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="hidden" style="color:#CCCCCC;">
+        <div id="settings">
+          <div id="user_id">NewUser</div>
+          <div id="user_team">ohami</div>
+          <div id="interface_language">japanese</div>
+          <div id="my_style">Style_normal.css</div>
+          <div id="my_reminders"></div>
+        </div>
+        <div id="meeting"></div>
+        <div id="own_comments"></div>
+        <div id="var_labinv"></div>
+        <div id="var_label"></div>
+        <div id="var_invoice"></div>
+      </div>
+    </div>
+    <!-- class="contentblock" -->
+
+    <!-- New menu bar -->
+    <ul id="menubar" class="menubar hidden">
+      <li>
+        <a id="ru_1_btn" href="#Search" onclick="TabHandler('ru_', 1)">
+          <span lg_language="_search_"></span>
+        </a>
+      </li>
+      <li>
+        <a id="ru_6_btn" href="#Edit" onclick="TabHandler('ru_', 6)">
+          <span lg_language="_edit_"></span>
+        </a>
+      </li>
+      <li>
+        <a id="ru_7_btn" href="#Save" onclick="TabHandler('ru_', 7)">
+          <span lg_language="_save_load_"></span>
+          <span id="need_save" class="hidden">
+            <span class="tooltip"
+              ><b style="color:red;">★</b>
+              <span class="tooltiptext">
+                <b>★ <span lg_language="_need_save_"></span></b>
+              </span>
+            </span>
+          </span>
+        </a>
+      </li>
+
+      <li style="float:right">
+        <select name="lg_language" id="lg_language2" onchange="UpdateLanguage('lg_language2')" style="height:100%">
+          <option value="japanese">日本語</option>
+          <option value="english">English</option>
+          <option value="swedish">Svenska</option>
+        </select>
+      </li>
+    </ul>
+
+    <!-- Edit menu bar -->
+    <ul id="editbar_text" class="editbar hidden">
+      <li>
+        <button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button>
+      </li>
+    </ul>
+    <ul id="editbar_html" class="editbar hidden">
+      <li>
+        <a onclick="TagText('selected_input_box', 'b')"><b>B</b></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'i')"><i>I</i></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'u')"><u>U</u></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'h2')"><span lg_language="_title_"></span></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'h3')"><span lg_language="_subtitle_"></span></a>
+      </li>
+      <li>
+        <a onclick="SingelTagText('selected_input_box', '<br>')"><span lg_language="_new_line_"></span></a>
+      </li>
+      <li>
+        <a onclick="SingelTagText('selected_input_box', '<hr>')"><span lg_language="_divider_"></span></a>
+      </li>
+
+      <li><input id="color" type="color" name="favcolor" value="#000000" style="height:30px;width:40px;" /></li>
+      <li>
+        <a onclick="SetBackground('selected_input_box', 'color')"><span lg_language="_background_"></span></a>
+      </li>
+      <li>
+        <a onclick="SetTextcolor('selected_input_box', 'color')"><span lg_language="_text_color_"></span></a>
+      </li>
+
+      <li>
+        <input id="rows" type="number" style="height:30px;width:40px;" /> X
+        <input id="cols" type="number" style="height:30px;width:40px;" />
+      </li>
+      <li>
+        <a onclick="CreateTable('selected_input_box')"><span lg_language="_table_"></span></a>
+      </li>
+
+      <li>
+        <a onclick="TagText('selected_input_box', 'ul')"><span lg_language="_dot_list_"></span></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'ol')"><span lg_language="_num_list_"></span></a>
+      </li>
+      <li>
+        <a onclick="TagText('selected_input_box', 'li')"><span lg_language="_list_element_"></span></a>
+      </li>
+
+      <li><input id="image_link" type="text" style="height:30px;" /></li>
+      <li>
+        <a onclick="AddImage('selected_input_box')"><span lg_language="_image_"></span></a>
+      </li>
+
+      <li>
+        <input id="search_word" type="text" style="height:30px;" />
+        <select id="search_type">
+          <option value="all" lg_language="_search_"></option>
+        </select>
+      </li>
+      <li>
+        <a onclick="AddSearchButton('selected_input_box')"><span lg_language="_search_btn_"></span></a>
+      </li>
+
+      <li>
+        <button class="important_button" onclick="EditSave()"><span lg_language="_save_"></span></button>
+      </li>
+    </ul>
+
+    <script src="GCSTool.js"></script>
+    <script src="lg_language.js"></script>
+  </body>
 </html>
