@@ -6,7 +6,7 @@
 
 let g_i = 1;
 
-let category_keys = [
+const category_keys = [
 	"_account_related_",
 	"_order_item_statuses_",
 	"_order_modifying_",
@@ -24,7 +24,7 @@ let category_keys = [
 	"_other_"
 ];
 
-let teams = {
+const teams = {
 	"ohami":"大網",
 	"ohami_cs":"CS課",
 	"ohami_global":"グローバル課",
