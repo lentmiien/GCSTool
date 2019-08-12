@@ -4,9 +4,9 @@
 *
 **********************************************/
 
-var g_i = 1;
+let g_i = 1;
 
-var category_keys = [
+let category_keys = [
 	"_account_related_",
 	"_order_item_statuses_",
 	"_order_modifying_",
@@ -24,7 +24,7 @@ var category_keys = [
 	"_other_"
 ];
 
-var teams = {
+let teams = {
 	"ohami":"大網",
 	"ohami_cs":"CS課",
 	"ohami_global":"グローバル課",
@@ -36,7 +36,7 @@ var teams = {
 * JSON
 */
 
-var json_data = {
+let json_data = {
 	Settings: {
 		user_id: "New User",
 		i_language: "english",
@@ -47,16 +47,23 @@ var json_data = {
 	Entries: []
 };
 
-var extMaster = "";
-var extPersonal = "";
+let extMaster = "";
+let extPersonal = "";
 
 function ExistJSON(id) {
-	for (var i = 0; i < json_data.Entries.length; i++) {
-		if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
-			return i;
+	let id_index = -1;
+	json_data.Entries.forEach((entry, i) => {
+		if (entry.uid === id) {
+			id_index = i;
 		}
-	}
-	return -1;
+	});
+	// UPDATED TO NEWER SYNTAX
+	// for (let i = 0; i < json_data.Entries.length; i++) {
+	// 	if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
+	// 		return i;
+	// 	}
+	// }
+	return id_index;
 }
 
 function UpdateJSONSettings() {
@@ -68,8 +75,8 @@ function UpdateJSONSettings() {
 }
 
 function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, save_category, save_team, save_authority, save_e_data, save_history) {
-	var index = ExistJSON(save_uid);
-	var s_version = 2;
+	let index = ExistJSON(save_uid);
+	let s_version = 2;
 
 	if(index >= 0) {
 		// Update if existing
@@ -82,8 +89,8 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 		json_data.Entries[index].team = save_team;
 		json_data.Entries[index].authority = save_authority;
 		json_data.Entries[index].data = save_e_data;
-		var history_to_save = save_history + "<br>" + json_data.Entries[index].history;
-		var history_check = history_to_save.split("<br>");
+		let history_to_save = save_history + "<br>" + json_data.Entries[index].history;
+		let history_check = history_to_save.split("<br>");
 		if(history_check.length > 10) {
 			history_to_save = history_check.slice(0, 10).join('<br>');
 		}
@@ -107,7 +114,7 @@ function SaveDataToJSON(save_uid, save_type, save_ismaster, save_lastupdate, sav
 }
 
 function DeleteUidFromJSON(del_uid) {
-	var index = ExistJSON(del_uid);
+	let index = ExistJSON(del_uid);
 	if(index >= 0) {
 		json_data.Entries.splice(index, 1);
 
@@ -175,20 +182,23 @@ function AutoStart() {
 
 // Do some initial setup
 function Setup() {
-	var i = 0;
-	var output = "";
+	let output = "";
 	
 	// Edit category
-	for(i = 0; i < category_keys.length; i++) {
-		output += '<option value="' + category_keys[i] + '" lg_language="' + category_keys[i] + '">' + GetData(category_keys[i]) + '</option>';
-	}
+	category_keys.forEach(cat => {
+		output += '<option value="' + cat + '" lg_language="' + cat + '">' + GetData(cat) + '</option>';
+	});
+	// UPDATED TO NEWER SYNTAX
+	// for(i = 0; i < category_keys.length; i++) {
+	// 	output += '<option value="' + category_keys[i] + '" lg_language="' + category_keys[i] + '">' + GetData(category_keys[i]) + '</option>';
+	// }
 	document.getElementById("category").innerHTML = '<div id="n_cat"><select id="category_select">' + output + '</select></div>';
 	// Search category
 	document.getElementById("cat_sel").innerHTML += output;
 	
 	// Set team
 	output = '<select id="team_select">';
-	for(var key in teams) { output += '<option value="' + key + '">' + teams[key] + '</option>'; }
+	for(let key in teams) { output += '<option value="' + key + '">' + teams[key] + '</option>'; }
 	output += '</select>';
 	document.getElementById("team").innerHTML = output;
 	
@@ -204,7 +214,7 @@ if(Notification.permission !== "granted") {
 	//		Notification.requestPermission();
 }
 else {
-	var notification = new Notification(
+	let notification = new Notification(
 		'Notification',
 		{
 			icon: 'images/Note_icon.png',
@@ -236,27 +246,23 @@ window.onkeydown = function(e){
 }
 
 function Empty(input) {
-	var ctext = document.getElementById(input + "inputfield").value;
+	let ctext = document.getElementById(input + "inputfield").value;
 	document.getElementById(input + "inputfield").value = ctext.slice(1);
 }
 
 // TabHandler
 function TabHandler(prefix, id) {
-	var v_id = parseInt(id);
-	var v_total = parseInt(document.getElementById(prefix + "tabcnt").innerHTML);
-	var cnt = 1;
-	
-	while(cnt <= v_total) {
+	let v_id = parseInt(id);
+	let v_total = parseInt(document.getElementById(prefix + "tabcnt").innerHTML);
+
+	// Show/Hide tabs
+	for(let cnt = 1; cnt <= v_total; cnt++) {
 		if(cnt == v_id) {
 			document.getElementById(prefix + cnt + "_" + v_total).style.display = "block";
-			//document.getElementById(prefix + cnt + "_btn").style.color = "yellow";
 		}
 		else {
 			document.getElementById(prefix + cnt + "_" + v_total).style.display = "none";
-			//document.getElementById(prefix + cnt + "_btn").style.color = "white";
 		}
-		
-		cnt = cnt + 1;
 	}
 	
 	// Hide edit bar in all layouts beside the edit layout
@@ -304,8 +310,8 @@ function SaveTab(tab_id) {
 // Adjusted to json
 function LoadShareData() {
 	// Setup basic variables
-	var entries = JSON.parse(document.getElementById("save_out").value);
-	var num_entries = entries.Entries.length;
+	let entries = JSON.parse(document.getElementById("save_out").value);
+	let num_entries = entries.Entries.length;
 	document.getElementById("counter").innerHTML = "-1";
 	document.getElementById("left_to_check").innerHTML = "0/" + num_entries;
 	
@@ -314,13 +320,13 @@ function LoadShareData() {
 		return;
 	}
 
-	// Start by showing the next entry to check
-	Next();
-	
 	// Show Approve layout
 	document.getElementById("run").style.display = "none";
 	document.getElementById("menubar").style.display = "none";
 	document.getElementById("approve").style.display = "block";
+
+	// Start by showing the next entry to check
+	Next();
 }
 
 // Adjusted to json
@@ -328,11 +334,11 @@ function Approve(type) {
 	// Add to current data
 	
 	// Get data
-	var cnt = parseInt(document.getElementById("counter").innerHTML);
-	var entries = JSON.parse(document.getElementById("save_out").value);
+	let cnt = parseInt(document.getElementById("counter").innerHTML);
+	let entries = JSON.parse(document.getElementById("save_out").value);
 
-	var isMaster = false;
-	var thisID = entries.Entries[cnt].uid;
+	let isMaster = false;
+	let thisID = entries.Entries[cnt].uid;
 	if (type == 1) {
 		isMaster = true;
 		if (thisID.indexOf('_COPY') >= 0) {
@@ -364,12 +370,12 @@ function Reject() {
 
 // Adjusted to json
 function Next() {
-	var cnt = 1 + parseInt(document.getElementById("counter").innerHTML);
+	let cnt = 1 + parseInt(document.getElementById("counter").innerHTML);
 	document.getElementById("counter").innerHTML = cnt;
 	
 	// Setup basic variables
-	var entries = JSON.parse(document.getElementById("save_out").value);
-	var num_entries = entries.Entries.length;
+	let entries = JSON.parse(document.getElementById("save_out").value);
+	let num_entries = entries.Entries.length;
 	document.getElementById("left_to_check").innerHTML = (1+cnt) + "/" + num_entries;
 	
 	// Stop if no data
@@ -380,22 +386,30 @@ function Next() {
 	if(cnt < num_entries) {
 		// Display any existing entries
 		document.getElementById("current_master").innerHTML = "";
-		var true_id = entries.Entries[cnt].uid;
+		let true_id = entries.Entries[cnt].uid;
 		if (true_id.indexOf("_COPY") >= 0) {
 			true_id = true_id.slice(0, -5);
-			var j_index = ExistJSON(true_id);
+			let j_index = ExistJSON(true_id);
 			if (j_index >= 0) {
 				document.getElementById("current_master").innerHTML += '<h2>' + GetData('_original_entry_') + '</h2>';
 				document.getElementById("current_master").innerHTML += '<h3>' + json_data.Entries[j_index].data.Title + '</h3>';
 				if (json_data.Entries[j_index].type.indexOf("manual") >= 0) {
-					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
-						document.getElementById("current_master").innerHTML += '<div class="entry">' + json_data.Entries[j_index].data.Content[c] + '</div>';
-					}
+					json_data.Entries[j_index].data.Content.forEach(content => {
+						document.getElementById("current_master").innerHTML += '<div class="entry">' + content + '</div>';
+					});
+					// UPDATED TO NEWER SYNTAX
+					// for (let c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
+					// 	document.getElementById("current_master").innerHTML += '<div class="entry">' + json_data.Entries[j_index].data.Content[c] + '</div>';
+					// }
 				}
 				else {
-					for (var c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
-						document.getElementById("current_master").innerHTML += '<textarea>' + json_data.Entries[j_index].data.Content[c] + '</textarea>';
-					}
+					json_data.Entries[j_index].data.Content.forEach(content => {
+						document.getElementById("current_master").innerHTML += '<textarea style="width:100%;" readonly>' + content + '</textarea>';
+					});
+					// UPDATED TO NEWER SYNTAX
+					// for (let c = 0; c < json_data.Entries[j_index].data.Content.length; c++) {
+					// 	document.getElementById("current_master").innerHTML += '<textarea>' + json_data.Entries[j_index].data.Content[c] + '</textarea>';
+					// }
 				}
 				document.getElementById("current_master").innerHTML += '<div style="background-color:blue;">' + json_data.Entries[j_index].history + '</div>';
 			}
@@ -405,20 +419,33 @@ function Next() {
 		document.getElementById("suggested_entry").innerHTML = '<h2>' + GetData('_suggested_entry_') + '</h2>';
 		document.getElementById("suggested_entry").innerHTML += '<h3>' + entries.Entries[cnt].data.Title + '</h3>';
 		if (entries.Entries[cnt].type.indexOf("manual") >= 0) {
-			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
-				document.getElementById("suggested_entry").innerHTML += '<div class="entry">' + entries.Entries[cnt].data.Content[c] + '</div>';
-			}
+			entries.Entries[cnt].data.Content.forEach(content => {
+				document.getElementById("suggested_entry").innerHTML += '<div class="entry">' + content + '</div>';
+			});
+			// UPDATED TO NEWER SYNTAX
+			// for (let c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
+			// 	document.getElementById("suggested_entry").innerHTML += '<div class="entry">' + entries.Entries[cnt].data.Content[c] + '</div>';
+			// }
 		}
 		else {
-			for (var c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
-				document.getElementById("suggested_entry").innerHTML += '<textarea>' + entries.Entries[cnt].data.Content[c] + '</textarea>';
-			}
+			entries.Entries[cnt].data.Content.forEach(content => {
+				document.getElementById("suggested_entry").innerHTML += '<textarea style="width:100%;" readonly>' + content + '</textarea>';
+			});
+			// UPDATED TO NEWER SYNTAX
+			// for (let c = 0; c < entries.Entries[cnt].data.Content.length; c++) {
+			// 	document.getElementById("suggested_entry").innerHTML += '<textarea>' + entries.Entries[cnt].data.Content[c] + '</textarea>';
+			// }
 		}
 		document.getElementById("suggested_entry").innerHTML += '<div style="background-color:blue;">' + entries.Entries[cnt].history + '</div>';
 	}
 	else {
 		Back();
 	}
+
+	let all_t_area = document.getElementById('current_master').getElementsByTagName("TEXTAREA");
+	for (let ata = 0; ata < all_t_area.length; ata++) { auto_grow(all_t_area[ata]); }
+	all_t_area = document.getElementById('suggested_entry').getElementsByTagName("TEXTAREA");
+	for (let ata = 0; ata < all_t_area.length; ata++) { auto_grow(all_t_area[ata]); }
 }
 
 function Back() {
@@ -451,15 +478,14 @@ function Clear(prefix) {
 	ProcessTextInput(prefix);
 }
 function ClearOne(prefix) {
-	var all_text = document.getElementById(prefix + "stext").innerHTML.split(",");
+	let all_text = document.getElementById(prefix + "stext").innerHTML.split(",");
 	document.getElementById(prefix + "stext").innerHTML = "";
-	var i = 0;
-	while(i < all_text.length-1) {
+
+	for(let i = 0; i < all_text.length-1; i++) {
 		if(document.getElementById(prefix + "stext").innerHTML.length > 0) {
 			document.getElementById(prefix + "stext").innerHTML += ",";
 		}
 		document.getElementById(prefix + "stext").innerHTML += all_text[i];
-		i = i + 1;
 	}
 	
 	ExpSearch();
@@ -474,7 +500,7 @@ function Selector(this_element) {
 	setTimeout(DeleteCOPY, 1000);
 }
 function DeleteCOPY() {
-	var element = document.getElementById("test");
+	let element = document.getElementById("test");
 	element.parentElement.removeChild(element);
 }
 
@@ -487,8 +513,8 @@ function auto_grow(element) {
 // Process text input
 function ProcessTextInput(prefix) {
 	// Get new input
-	var inputValue = document.getElementById(prefix + "inputfield").value;
-	var lines = inputValue.split(/\r\n|\r|\n/g);
+	let inputValue = document.getElementById(prefix + "inputfield").value;
+	let lines = inputValue.split(/\r\n|\r|\n/g);
 	
 	// When copy pasting long text break
 	if(lines.length > 2) {
@@ -502,27 +528,25 @@ function ProcessTextInput(prefix) {
 	}
 	
 	// Check tags
-	var i = 0;
-	var tags = document.getElementsByClassName("tag");
-	var taginput = lines[0];
-	var tagkey = false;
-	var spacekey = false;
+	//let tags = document.getElementsByClassName("tag");
+	//let taginput = lines[0];
+	let tagkey = false;
+	let spacekey = false;
 	if(lines.length > 1) {
 		tagkey = true;
 	}
 	document.getElementById(prefix + "tags").innerHTML = "";
-	while(i < tags.length) {
-		// Check tag
-		var tagdata = tags[i].innerHTML.split("|");
-		if(tagdata[0].indexOf(taginput) == 0 && tagdata[0].length == taginput.length) {
-			if(document.getElementById(prefix + "tags").innerHTML.length > 0) {
-				document.getElementById(prefix + "tags").innerHTML += "/";
-			}
-			document.getElementById(prefix + "tags").innerHTML += tagdata[1];
-		}
-		
-		i = i + 1;
-	}
+	// NOT USING TAGS
+	// for(let i = 0; i < tags.length; i++) {
+	// 	// Check tag
+	// 	let tagdata = tags[i].innerHTML.split("|");
+	// 	if(tagdata[0] === taginput) {
+	// 		if(document.getElementById(prefix + "tags").innerHTML.length > 0) {
+	// 			document.getElementById(prefix + "tags").innerHTML += "/";
+	// 		}
+	// 		document.getElementById(prefix + "tags").innerHTML += tagdata[1];
+	// 	}
+	// }
 	if(tagkey == true) {
 		if(document.getElementById(prefix + "tags").innerHTML.length > 0) {
 			if(document.getElementById(prefix + "stext").innerHTML.length > 0) {
@@ -560,25 +584,25 @@ function ProcessTextInput(prefix) {
 
 function News() {// JSON version
 	document.getElementById("s_result").innerHTML = "";
-	var d = new Date();
-	var d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
-	var d3 = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 3);
-	var d_str = ((((d.getFullYear() * 100) + (d.getMonth() + 1)) * 100) + d.getDate()).toString();
-	var d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
-	var d3_str = ((((d3.getFullYear() * 100) + (d3.getMonth() + 1)) * 100) + d3.getDate()).toString();
-	var newest = d_str;
-	var next_newest = "99999999";
-	var max_results = 50;
+	let d = new Date();
+	let d2 = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
+	let d3 = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 3);
+	let d_str = ((((d.getFullYear() * 100) + (d.getMonth() + 1)) * 100) + d.getDate()).toString();
+	let d2_str = ((((d2.getFullYear() * 100) + (d2.getMonth() + 1)) * 100) + d2.getDate()).toString();
+	let d3_str = ((((d3.getFullYear() * 100) + (d3.getMonth() + 1)) * 100) + d3.getDate()).toString();
+	let newest = d_str;
+	let next_newest = "99999999";
+	let max_results = 50;
 	while (max_results > 0 && next_newest.indexOf("00000000") == -1) {
 		next_newest = "00000000";
-		var first = true;
-		for (var i = 0; i < json_data.Entries.length && max_results > 0; i++) {
-			var myID = json_data.Entries[i].uid;
-			var tdat = json_data.Entries[i].lastupdate;
+		let first = true;
+		for (let i = 0; i < json_data.Entries.length && max_results > 0; i++) {
+			let myID = json_data.Entries[i].uid;
+			let tdat = json_data.Entries[i].lastupdate;
 			if (CDate(newest, tdat) == 0) {
 				if (first == true) {
-					var d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
-					var new_label = "";
+					let d_string = newest.slice(0, 4) + " / " + newest.slice(4, 6) + " / " + newest.slice(6);
+					let new_label = "";
 					if (CDate(d3_str, newest) < 0) {
 						new_label = "<span style=\"color:#FFD700;\"><big>★★NEW★★</big></span>";
 					}
@@ -588,9 +612,9 @@ function News() {// JSON version
 					document.getElementById("s_result").innerHTML += "<h2>" + d_string + new_label + "</h2>";
 					first = false;
 				}
-				var class_name = json_data.Entries[i].type;
-				var text_input = json_data.Entries[i].type;
-				var u = 0;
+				let class_name = json_data.Entries[i].type;
+				let text_input = json_data.Entries[i].type;
+				let u = 0;
 
 				if (class_name.indexOf('manual') == 0) {
 					u = 1;
@@ -599,7 +623,7 @@ function News() {// JSON version
 					u = 2;
 				}
 
-				var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+				let output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
 
 				// Type of entry
 				output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
@@ -617,7 +641,7 @@ function News() {// JSON version
 				if (json_data.Entries[i].ismaster == true) {
 					output += '<button onclick="EditEntryCopy(' + i + ')">' + GetData('_edit_copy_') + '</button><br>';
 				}
-				for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
+				for (let cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
 					if (json_data.Entries[i].type.indexOf('manual') == 0) {
 						output += '<div>' + json_data.Entries[i].data.Content[cd] + '</div>';
 					}
@@ -627,9 +651,9 @@ function News() {// JSON version
 				}
 
 				// Display update history
-				var latest_updates = json_data.Entries[i].history.split('<br>');
+				let latest_updates = json_data.Entries[i].history.split('<br>');
 				output += '<hr><div>';
-				for(var lu = 0; lu < 3 && lu < latest_updates.length; lu++) {
+				for(let lu = 0; lu < 3 && lu < latest_updates.length; lu++) {
 					output += latest_updates[lu] + '<br>';
 				}
 				output += '</div>';
@@ -660,18 +684,22 @@ function News() {// JSON version
 
 function ViewAll() {
 	document.getElementById("s_result").innerHTML = "";
-	for (var i = 0; i < json_data.Entries.length; i++) {
-		var myID = json_data.Entries[i].uid;
-		var class_name = json_data.Entries[i].type;
-		var text_input = json_data.Entries[i].type;
+	json_data.Entries.forEach((e, i) => {
 
-		var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[i].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[i].data.Title + "</button>";
+	//});// myID = json_data.Entries[i] -> e
+	// UPDATED TO NEWER SYNTAX
+	// for (let i = 0; i < json_data.Entries.length; i++) {
+		let myID = e.uid;
+		let class_name = e.type;
+		let text_input = e.type;
+
+		let output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + e.category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + e.data.Title + "</button>";
 
 		// Type of entry
 		output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
 
 		// Master / Private
-		if (json_data.Entries[i].ismaster == true) {
+		if (e.ismaster == true) {
 			output += "<i class=\"label master" + "\" style=\"float:right;\">Master</i>";
 		}
 		else {
@@ -680,15 +708,15 @@ function ViewAll() {
 
 		output += '<br><div id="c_' + myID + '" style="display:none;">';
 		output += '<button onclick="EditEntry(' + i + ')">' + GetData('_edit_') + '</button>';
-		if (json_data.Entries[i].ismaster == true) {
+		if (e.ismaster == true) {
 			output += '<button onclick="EditEntryCopy(' + i + ')">' + GetData('_edit_copy_') + '</button><br>';
 		}
-		for (var cd = 0; cd < json_data.Entries[i].data.Content.length; cd++) {
-			if (json_data.Entries[i].type.indexOf('manual') == 0) {
-				output += json_data.Entries[i].data.Content[cd];
+		for (let cd = 0; cd < e.data.Content.length; cd++) {
+			if (e.type.indexOf('manual') == 0) {
+				output += e.data.Content[cd];
 			}
 			else {
-				output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + json_data.Entries[i].data.Content[cd] + '</textarea>';
+				output += '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' + e.data.Content[cd] + '</textarea>';
 			}
 		}
 		
@@ -697,12 +725,12 @@ function ViewAll() {
 		output += "</div>";
 
 		document.getElementById("s_result").innerHTML += output;
-	}
+	});
 }
 
 function ExpSearch() {
 	document.getElementById("s_result").innerHTML = "";
-	var types_to_check = "";
+	let types_to_check = "";
 	if (document.getElementById('exp_template').checked == true) {
 		types_to_check += 'template';
 	}
@@ -712,30 +740,30 @@ function ExpSearch() {
 	if (document.getElementById('exp_ccontact').checked == true) {
 		types_to_check += 'ccontact';
 	}
-	var category_to_check = document.getElementById("cat_sel").value;
+	let category_to_check = document.getElementById("cat_sel").value;
 
 	// Get all search words
-	var words = document.getElementById("all_stext").innerHTML.split(",");
+	let words = document.getElementById("all_stext").innerHTML.split(",");
 
-	var u;
-	var max_results = 50;
+	let u;
+	let max_results = 50;
 	for (u = 0; u < json_data.Entries.length; u++) {
-		var myID = json_data.Entries[u].uid;
+		let myID = json_data.Entries[u].uid;
 
 		// Word search
-		var k = 0;
-		var found = true;
+		let k = 0;
+		let found = true;
 		while (k < words.length) {
 			if (words[k].indexOf("/") >= 0) {
 				// Multi word search ("OR search")
-				var multiwords = words[k].split("/");
-				var sub_find = false;
-				var h = 0;
+				let multiwords = words[k].split("/");
+				let sub_find = false;
+				let h = 0;
 				while (h < multiwords.length) {
 					if (json_data.Entries[u].data.Title.toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
 						sub_find = true;
 					}
-					for (var n = 0; n < json_data.Entries[u].data.Content.length; n++) {
+					for (let n = 0; n < json_data.Entries[u].data.Content.length; n++) {
 						if (json_data.Entries[u].data.Content[n].toLowerCase().indexOf(multiwords[h].toLowerCase()) >= 0) {
 							sub_find = true;
 						}
@@ -749,11 +777,11 @@ function ExpSearch() {
 			}
 			else {
 				// One word search
-				var sub_find = false;
+				let sub_find = false;
 				if (json_data.Entries[u].data.Title.toLowerCase().indexOf(words[k].toLowerCase()) >= 0) {
 					sub_find = true;
 				}
-				for (var n = 0; n < json_data.Entries[u].data.Content.length; n++) {
+				for (let n = 0; n < json_data.Entries[u].data.Content.length; n++) {
 					if(json_data.Entries[u].data.Content[n] == null) {
 						document.getElementById("debug").innerHTML += "ERROR: (" + json_data.Entries[u].uid + ") null content data...<br>";
 					}
@@ -771,10 +799,10 @@ function ExpSearch() {
 			k = k + 1;
 		}
 		if (found == true && types_to_check.indexOf(json_data.Entries[u].type) >= 0 && json_data.Entries[u].category.indexOf(category_to_check) >= 0) {
-			var class_name = json_data.Entries[u].type;
-			var text_input = json_data.Entries[u].type;
+			let class_name = json_data.Entries[u].type;
+			let text_input = json_data.Entries[u].type;
 
-			var output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
+			let output = "<div class=\"entry " + class_name + "\"><button class=\"title_button " + json_data.Entries[u].category + "\" onclick=\"DisplayEntry('" + myID + "')\">" + json_data.Entries[u].data.Title + "</button>";
 
 			// Type of entry
 			output += "<i class=\"label\">" + GetData('_' + text_input + '_') + "</i>";
@@ -792,7 +820,7 @@ function ExpSearch() {
 			if (json_data.Entries[u].ismaster == true) {
 				output += '<button onclick="EditEntryCopy(' + u + ')">' + GetData('_edit_copy_') + '</button><br>';
 			}
-			for (var cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
+			for (let cd = 0; cd < json_data.Entries[u].data.Content.length; cd++) {
 				if (json_data.Entries[u].type.indexOf('manual') == 0) {
 					output += '<div>' + json_data.Entries[u].data.Content[cd] + '</div>';
 				}
@@ -821,12 +849,8 @@ function DisplayEntry(uid) {
 		document.getElementById('c_' + uid).style.display = 'block';
 
 		// Scale up size of text box to fit the text
-		var all_t_area = document.getElementById('c_' + uid).getElementsByTagName("TEXTAREA");
-		var ata = 0;
-		while (ata < all_t_area.length) {
-			auto_grow(all_t_area[ata]);
-			ata += 1;
-		}
+		let all_t_area = document.getElementById('c_' + uid).getElementsByTagName("TEXTAREA");
+		for (let ata = 0; ata < all_t_area.length; ata++) { auto_grow(all_t_area[ata]); }
 	}
 	else {
 		document.getElementById('c_' + uid).style.display = 'none';
@@ -840,7 +864,7 @@ function Search() {
 
 function ShowContent(type_id, entry_id, words) {
 	// Generate the search frase
-	var search_frase = words;
+	let search_frase = words;
 	if(search_frase.length > 0 && entry_id.length > 0) {
 		search_frase += "," + entry_id;;
 	}
@@ -878,26 +902,29 @@ function DoSearch(prefix, search_term) {
 
 // Return: -1 (date1 is first), 0 (same date), 1 (date 2 is first)
 function CDate(date1, date2) {
-	var j = 0;
-	while(j < date1.length) {
-		if(date1[j] < date2[j]) {
-			return -1;
-		}
-		else if(date1[j] > date2[j]) {
-			return 1;
-		}
-		
-		j += 1;
-	}
-	
+	if (date1 < date2) { return -1; }
+	if (date2 < date1) { return 1; }
 	return 0;
+	// let j = 0;
+	// while(j < date1.length) {
+	// 	if(date1[j] < date2[j]) {
+	// 		return -1;
+	// 	}
+	// 	else if(date1[j] > date2[j]) {
+	// 		return 1;
+	// 	}
+		
+	// 	j += 1;
+	// }
+	
+	// return 0;
 }
 
 function LoadData() {
 	// Set style file
-	var file_name = document.getElementById('color_mode').value;
-	var head = document.getElementsByTagName('head')[0];
-	var link = document.createElement('link');
+	let file_name = document.getElementById('color_mode').value;
+	let head = document.getElementsByTagName('head')[0];
+	let link = document.createElement('link');
 	link.id = 'myCss';
 	link.rel = 'stylesheet';
 	link.type = 'text/css';
@@ -914,19 +941,32 @@ function LoadData() {
 		json_data = extMaster;
 		json_data.Settings = extPersonal.Settings;
 
-		for(var i = 0; i < extPersonal.Entries.length; i++) {
+		extPersonal.Entries.forEach(entry => {
 			SaveDataToJSON(
-				extPersonal.Entries[i].uid,
-				extPersonal.Entries[i].type,
-				extPersonal.Entries[i].ismaster,
-				extPersonal.Entries[i].lastupdate,
-				extPersonal.Entries[i].category,
-				extPersonal.Entries[i].team,
-				extPersonal.Entries[i].authority,
-				extPersonal.Entries[i].data,
-				extPersonal.Entries[i].history
+				entry.uid,
+				entry.type,
+				entry.ismaster,
+				entry.lastupdate,
+				entry.category,
+				entry.team,
+				entry.authority,
+				entry.data,
+				entry.history
 			);
-		}
+		});
+		// for(let i = 0; i < extPersonal.Entries.length; i++) {
+		// 	SaveDataToJSON(
+		// 		extPersonal.Entries[i].uid,
+		// 		extPersonal.Entries[i].type,
+		// 		extPersonal.Entries[i].ismaster,
+		// 		extPersonal.Entries[i].lastupdate,
+		// 		extPersonal.Entries[i].category,
+		// 		extPersonal.Entries[i].team,
+		// 		extPersonal.Entries[i].authority,
+		// 		extPersonal.Entries[i].data,
+		// 		extPersonal.Entries[i].history
+		// 	);
+		// }
 	}
 	else {
 		json_data = extMaster;
@@ -943,13 +983,10 @@ function FinalizeLoadData() {
 	document.getElementById("debug").innerHTML = "";
 	
 	// Setup reminders
-	var reminders = json_data.Settings.reminders.split("||");
-	var i = 0;
-	while(i < reminders.length) {
-		var this_reminder = reminders[i].split("|");
+	let reminders = json_data.Settings.reminders.split("||");
+	for (let i = 0; i < reminders.length; i++) {
+		let this_reminder = reminders[i].split("|");
 		SetReminderPopup(this_reminder[0], this_reminder[1]);
-		
-		i += 1;
 	}
 	
 	// Some basic interface setups
@@ -966,36 +1003,56 @@ function FinalizeLoadData() {
 
 // Fixed for json
 function ShareDataList() {
-	var output = "<br><hr>";
-	var i;
+	let output = '<br><hr>';
+	let output_te = '';
+	let output_ma = '';
+	let output_cc = '';
 	
-	// Template
-	output += '<h3>' + GetData('_templates_') + '</h3>';
-	for(i = 0; i < json_data.Entries.length; i++) {
-		if (json_data.Entries[i].type.indexOf("template") == 0 && json_data.Entries[i].ismaster == false) {
-			output += '<input type="checkbox" id="check_' + i + '" class="templates">' + json_data.Entries[i].data.Title + '<br>';
+	// Loop all entries
+	json_data.Entries.forEach((entry, i) => {
+		// Templates
+		if (entry.type.indexOf("template") == 0 && entry.ismaster == false) {
+			output_te += '<input type="checkbox" id="check_' + i + '" class="templates">' + entry.data.Title + '<br>';
 		}
-	}
-	
-	output += "<hr>";
-	
-	// Manual
-	output += '<h3>' + GetData('_manual_') + '</h3>';
-	for (i = 0; i < json_data.Entries.length; i++) {
-		if (json_data.Entries[i].type.indexOf("manual") == 0 && json_data.Entries[i].ismaster == false) {
-			output += '<input type="checkbox" id="check_' + i + '" class="manual">' + json_data.Entries[i].data.Title + '<br>';
+
+		// Manuals
+		if (entry.type.indexOf("manual") == 0 && entry.ismaster == false) {
+			output_ma += '<input type="checkbox" id="check_' + i + '" class="manual">' + entry.data.Title + '<br>';
 		}
-	}
-	
-	output += "<hr>";
-	
-	// Ccontact
-	output += '<h3>' + GetData('_ccontact_') + '</h3>';
-	for (i = 0; i < json_data.Entries.length; i++) {
-		if (json_data.Entries[i].type.indexOf("ccontact") == 0 && json_data.Entries[i].ismaster == false) {
-			output += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + json_data.Entries[i].data.Title + '<br>';
+
+		// Company Contacts
+		if (entry.type.indexOf("ccontact") == 0 && entry.ismaster == false) {
+			output_cc += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + entry.data.Title + '<br>';
 		}
-	}
+	});
+	// UPDATED TO NEWER SYNTAX
+	// for(i = 0; i < json_data.Entries.length; i++) {
+	// 	if (json_data.Entries[i].type.indexOf("template") == 0 && json_data.Entries[i].ismaster == false) {
+	// 		output += '<input type="checkbox" id="check_' + i + '" class="templates">' + json_data.Entries[i].data.Title + '<br>';
+	// 	}
+	// }
+	
+	output += '<h3>' + GetData('_templates_') + '</h3>' + output_te + '<hr>';
+	output += '<h3>' + GetData('_manual_') + '</h3>' + output_ma + '<hr>';
+	output += '<h3>' + GetData('_ccontact_') + '</h3>' + output_cc + '<hr>';
+	
+	// // Manual
+	// output += '<h3>' + GetData('_manual_') + '</h3>';
+	// for (i = 0; i < json_data.Entries.length; i++) {
+	// 	if (json_data.Entries[i].type.indexOf("manual") == 0 && json_data.Entries[i].ismaster == false) {
+	// 		output += '<input type="checkbox" id="check_' + i + '" class="manual">' + json_data.Entries[i].data.Title + '<br>';
+	// 	}
+	// }
+	
+	// output += "<hr>";
+	
+	// // Ccontact
+	// output += '<h3>' + GetData('_ccontact_') + '</h3>';
+	// for (i = 0; i < json_data.Entries.length; i++) {
+	// 	if (json_data.Entries[i].type.indexOf("ccontact") == 0 && json_data.Entries[i].ismaster == false) {
+	// 		output += '<input type="checkbox" id="check_' + i + '" class="ccontact">' + json_data.Entries[i].data.Title + '<br>';
+	// 	}
+	// }
 	
 	output += "<hr>";
 	
@@ -1010,17 +1067,16 @@ function SetShareData() {
 	document.getElementById("save_out").value = "";
 	
 	// Get all the check boxes
-	var input_data = document.getElementById("share_output").getElementsByTagName("INPUT");
+	let input_data = document.getElementById("share_output").getElementsByTagName("INPUT");
 	
 	// Save all
-	var json_data_to_share = {
+	let json_data_to_share = {
 		Settings: {},
 		Entries: []
 	};
-	var i;
-	for(i = 0; i < input_data.length; i++) {
+	for(let i = 0; i < input_data.length; i++) {
 		if(input_data[i].checked == true) {
-			var my_index = parseInt(input_data[i].id.slice(6));
+			let my_index = parseInt(input_data[i].id.slice(6));
 			json_data_to_share.Entries.push(json_data.Entries[my_index]);
 		}
 	}
@@ -1032,7 +1088,7 @@ function SetShareData() {
 
 // Add shipping label/invoice to ask for
 function myGetDocument(type) {
-	var input = document.getElementById("all_inputfield").value;
+	let input = document.getElementById("all_inputfield").value;
 	if(input.length == 0) { return; }
 	if(type == 0) {
 		if(document.getElementById("var_labinv").innerHTML.length > 0) {
@@ -1056,7 +1112,7 @@ function myGetDocument(type) {
 }
 function ShowDocuments() {
 	if (document.getElementById("var_label").innerHTML.length > 0 || document.getElementById("var_invoice").innerHTML.length > 0 || document.getElementById("var_labinv").innerHTML.length > 0) {
-		var op = "<div>お疲れ様です。<br><br>";
+		let op = "<div>お疲れ様です。<br><br>";
 		if (document.getElementById("var_labinv").innerHTML.length > 0) {
 			op += "伝票画像+インボイス<br>" + document.getElementById("var_labinv").innerHTML + "<br><br>";
 		}
@@ -1078,25 +1134,33 @@ function ShowDocuments() {
 
 // Change(new data save): Only save personal data (as master data is loaded automatically at every start up)
 function GeneratePersonalData() {
-	var i;
-
 	// JSON save
-	var json_save = {
+	let json_save = {
 		Settings: {},
 		Entries: []
 	};
-	var saved_ids = "";
+	let saved_ids = "";
 	json_save.Settings = json_data.Settings;
-	for(var x = 0; x < category_keys.length; x++) {
-		var ckey = category_keys[x];
-		for (i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
+	category_keys.forEach(ckey => {
+		json_data.Entries.forEach(entry => {
+			if (entry.category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + entry.uid + '|') == -1 && entry.ismaster == false) {
 				// Save to output
-				saved_ids += '|' + json_data.Entries[i].uid + '|';
-				json_save.Entries.push(json_data.Entries[i])
+				saved_ids += '|' + entry.uid + '|';
+				json_save.Entries.push(entry);
 			}
-		}
-	}
+		});
+	});
+	// UPDATED TO NEWER SYNTAX
+	// for(let x = 0; x < category_keys.length; x++) {
+	// 	let ckey = category_keys[x];
+	// 	for (i = 0; i < json_data.Entries.length; i++) {
+	// 		if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == false) {
+	// 			// Save to output
+	// 			saved_ids += '|' + json_data.Entries[i].uid + '|';
+	// 			json_save.Entries.push(json_data.Entries[i])
+	// 		}
+	// 	}
+	// }
 	localStorage.setItem("json_personal", JSON.stringify(json_save));
 	document.getElementById("save_out").value = JSON.stringify(json_save);
 
@@ -1108,24 +1172,34 @@ function GenerateShareData() {
 	ShareDataList();
 }
 function GenerateMasterData() {
-	var i;
+	let i;
 
 	// JSON save
-	var json_save = {
+	let json_save = {
 		Settings: {},
 		Entries: []
 	};
-	var saved_ids = "";
-	for (var x = 0; x < category_keys.length; x++) {
-		var ckey = category_keys[x];
-		for (i = 0; i < json_data.Entries.length; i++) {
-			if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
+	let saved_ids = "";
+	category_keys.forEach(ckey => {
+		json_data.Entries.forEach(entry => {
+			if (entry.category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + entry.uid + '|') == -1 && entry.ismaster == true) {
 				// Save to output
-				saved_ids += '|' + json_data.Entries[i].uid + '|';
-				json_save.Entries.push(json_data.Entries[i])
+				saved_ids += '|' + entry.uid + '|';
+				json_save.Entries.push(entry)
 			}
-		}
-	}
+		});
+	});
+	// UPDATED TO NEWER SYNTAX
+	// for (let x = 0; x < category_keys.length; x++) {
+	// 	let ckey = category_keys[x];
+	// 	for (i = 0; i < json_data.Entries.length; i++) {
+	// 		if (json_data.Entries[i].category.indexOf(ckey) >= 0 && saved_ids.indexOf('|' + json_data.Entries[i].uid + '|') == -1 && json_data.Entries[i].ismaster == true) {
+	// 			// Save to output
+	// 			saved_ids += '|' + json_data.Entries[i].uid + '|';
+	// 			json_save.Entries.push(json_data.Entries[i])
+	// 		}
+	// 	}
+	// }
 	document.getElementById("save_out").value = JSON.stringify(json_save);
 }
 
@@ -1136,23 +1210,23 @@ function GenerateMasterData() {
 **********************************************/
 
 function SetReminderPopup(trigger_time, message) {
-	var nowdate = new Date();
-	var split_time = trigger_time.split(":");
-	var milliseconds_left = new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
+	let nowdate = new Date();
+	let split_time = trigger_time.split(":");
+	let milliseconds_left = new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
 	if(milliseconds_left > 0) {
 		setTimeout('Reminder("' + message + '")', milliseconds_left);
 	}
 }
 function SetReminderFunction(trigger_time, functionname) {
-	var nowdate = new Date();
-	var split_time = trigger_time.split(":");
-	var milliseconds_left = new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
+	let nowdate = new Date();
+	let split_time = trigger_time.split(":");
+	let milliseconds_left = new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
 	if(milliseconds_left > 0) {
 		setTimeout(functionname, milliseconds_left);
 	}
 }
 function Reminder(message) {
-	var color = document.body.style.backgroundColor;
+	let color = document.body.style.backgroundColor;
 	document.body.style.backgroundColor = "red";
 	notifyMe(message);
 	alert(message);
@@ -1161,19 +1235,18 @@ function Reminder(message) {
 
 function ReminderDelete(id_num) {
 	// Update Reminders
-	var reminders = json_data.Settings.reminders.split("||");
-	var output = "<table>";
-	var updated_reminders = "";
+	let reminders = json_data.Settings.reminders.split("||");
+	let output = "<table>";
+	let updated_reminders = "";
 	// Header row
 	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
-		var i = 0;
-		var cnt = 0;
-		while(i < reminders.length) {
+		let cnt = 0;
+		for(let i = 0; i < reminders.length; i++) {
 			if(i != id_num) {
 				output += "<tr>";
-				var this_reminder = reminders[i].split("|");
+				let this_reminder = reminders[i].split("|");
 				output += "<td>" + this_reminder[0] + "</td>";
 				output += "<td>" + this_reminder[1] + "</td>";
 				output += '<td><button onclick="ReminderDelete(' + cnt + ')">' + GetData('_delete_') + '</button></td>';
@@ -1184,11 +1257,7 @@ function ReminderDelete(id_num) {
 				}
 				updated_reminders += reminders[i];
 				
-				i += 1;
 				cnt += 1;
-			}
-			else {
-				i += 1;
 			}
 		}
 	}
@@ -1215,22 +1284,19 @@ function AddReminder() {
 	SetReminderPopup(document.getElementById("rem_time").value, document.getElementById("rem_text").value);
 	
 	// Update Reminders
-	var reminders = json_data.Settings.reminders.split("||");
-	var output = "<table>";
+	let reminders = json_data.Settings.reminders.split("||");
+	let output = "<table>";
 	// Header row
 	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
-		var i = 0;
-		while(i < reminders.length) {
+		for (let i = 0; i < reminders.length; i++) {
 			output += "<tr>";
-			var this_reminder = reminders[i].split("|");
+			let this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
 			output += '<td><button onclick="ReminderDelete(' + i + ')">' + GetData('_delete_') + '</button></td>';
 			output += "</tr>";
-			
-			i += 1;
 		}
 	}
 	// Add reminder row
@@ -1255,12 +1321,9 @@ function AddReminder() {
 function SelectTextarea(selected) {
 	document.getElementById("selected_input_box").innerHTML = selected.id;
 	
-	var t_areas = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	var i = 0;
-	while(i < t_areas.length) {
+	let t_areas = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	for (let i = 0; i < t_areas.length; i++) {
 		t_areas[i].style.border = "1px none #000000";
-		
-		i += 1;
 	}
 	
 	selected.style.border = "5px solid green";
@@ -1271,7 +1334,7 @@ function CreateNew(type) {
 	document.getElementById("unique_id").innerHTML = GenerateUID();
 	
 	// Check if in edit master mode
-	var master = (document.getElementById("current_mode").innerHTML.indexOf("Master") == 0);
+	let master = (document.getElementById("current_mode").innerHTML.indexOf("Master") == 0);
 	
 	// Set team
 	document.getElementById("team_select").value = json_data.Settings.team;
@@ -1373,7 +1436,7 @@ function UpdateSettings() {
 	document.getElementById("s_user_id").value = json_data.Settings.user_id;
 	
 	// Team
-	var output = '<select id="s_user_team_sel" onclick="SetTeam()">';
+	let output = '<select id="s_user_team_sel" onclick="SetTeam()">';
 	for(key in teams) {
 		output += '<option value="' + key + '">' + teams[key] + '</option>';
 	}
@@ -1419,22 +1482,19 @@ function UpdateSettings() {
 	}
 	
 	// Reminders
-	var reminders = json_data.Settings.reminders.split("||");
-	var output = "<table>";
+	let reminders = json_data.Settings.reminders.split("||");
+	output = "<table>";
 	// Header row
 	output += '<tr><th class="third">' + GetData('_time_') + '</th><th class="third">' + GetData('_message_') + '</th><th class="third">' + GetData('_edit_') + '</th></tr>';
 	// Current reminder row(s)
 	if(reminders[0].length > 0) {
-		var i = 0;
-		while(i < reminders.length) {
+		for (let i = 0; i < reminders.length; i++) {
 			output += "<tr>";
-			var this_reminder = reminders[i].split("|");
+			let this_reminder = reminders[i].split("|");
 			output += "<td>" + this_reminder[0] + "</td>";
 			output += "<td>" + this_reminder[1] + "</td>";
 			output += '<td><button onclick="ReminderDelete(' + i + ')">' + GetData('_delete_') + '</button></td>';
 			output += "</tr>";
-			
-			i += 1;
 		}
 	}
 	// Add reminder row
@@ -1450,7 +1510,7 @@ function UpdateSettings() {
 
 // Fixed for json
 function Delete() {
-	var uid = document.getElementById("unique_id").innerHTML;
+	let uid = document.getElementById("unique_id").innerHTML;
 	DeleteUidFromJSON(uid);
 	document.getElementById("need_save").style.display = "inline";
 	GeneratePersonalData();
@@ -1475,20 +1535,20 @@ function EditSave() {
 		return;
 	}
 	
-	var uid = document.getElementById("unique_id").innerHTML;
-	var category = document.getElementById("category_select").value;
-	//var target = document.getElementById("target_select").value;
-	var team = document.getElementById("team_select").value;
-	var lastupdate = GenerateDateTime("yyyymmdd");
-	var ismaster = false;
+	let uid = document.getElementById("unique_id").innerHTML;
+	let category = document.getElementById("category_select").value;
+	//let target = document.getElementById("target_select").value;
+	let team = document.getElementById("team_select").value;
+	let lastupdate = GenerateDateTime("yyyymmdd");
+	let ismaster = false;
 	if(document.getElementById("type").innerHTML.indexOf("Master") >= 0) {
 		ismaster = true;
 	}
-	var data = {
+	let data = {
 		Title: "",
 		Content: []
 	};
-	var type = "";
+	let type = "";
 	
 	// Update last updated
 	document.getElementById("last_updated").innerHTML = lastupdate;
@@ -1497,8 +1557,8 @@ function EditSave() {
 	data.Title = document.getElementById("title_show_eng").innerHTML;
 
 	// Content
-	var entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	for (var i = 0; i < entries.length; i++) {
+	let entries = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	for (let i = 0; i < entries.length; i++) {
 		if (entries[i].value.length > 0) {
 			data.Content.push(entries[i].value);
 		}
@@ -1520,7 +1580,7 @@ function EditSave() {
 		document.getElementById("debug").innerHTML = "Unknown save type";
 	}
 
-	var history = document.getElementById("history_box").value;
+	let history = document.getElementById("history_box").value;
 	SaveDataToJSON(uid, type, ismaster, lastupdate, category, team, 0, data, "[" + json_data.Settings.user_id + ":" + lastupdate + "] " + history);
 	
 	document.getElementById("need_save").style.display = "inline";
@@ -1569,19 +1629,13 @@ function EditEntry(json_index) {
 
 	// Content
 	document.getElementById("input_boxes").innerHTML = "";
-	var t_area = json_data.Entries[json_index].data.Content;
-	var i = 0;
-	while (i < t_area.length) {
+	let t_area = json_data.Entries[json_index].data.Content;
+	for (let i = 0; i < t_area.length; i++) {
 		CreateInputBox();
-
-		i = i + 1;
 	}
-	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	i = 0;
-	while (i < t_area.length) {
+	let i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	for (let i = 0; i < t_area.length; i++) {
 		i_area[i].value = t_area[i];
-
-		i = i + 1;
 	}
 
 	// Open the tab and set up for editing
@@ -1618,19 +1672,13 @@ function EditEntryCopy(json_index) {
 
 	// Content
 	document.getElementById("input_boxes").innerHTML = "";
-	var t_area = json_data.Entries[json_index].data.Content;
-	var i = 0;
-	while (i < t_area.length) {
+	let t_area = json_data.Entries[json_index].data.Content;
+	for (let i = 0; i < t_area.length; i++) {
 		CreateInputBox();
-
-		i = i + 1;
 	}
-	var i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	i = 0;
-	while (i < t_area.length) {
+	let i_area = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	for (let i = 0; i < t_area.length; i++) {
 		i_area[i].value = t_area[i];
-
-		i = i + 1;
 	}
 
 	// Open the tab and set up for editing
@@ -1645,18 +1693,18 @@ function EditEntryCopy(json_index) {
 }
 
 function GenerateUID() {
-	var user_id = json_data.Settings.user_id;
-	var datetime = GenerateDateTime("yyyymmddHHMMSS");
+	let user_id = json_data.Settings.user_id;
+	let datetime = GenerateDateTime("yyyymmddHHMMSS");
 	
 	return user_id + datetime;
 }
 
 function GenerateDateTime(type) {
-	var now = new Date();
-	var output = "";
+	let now = new Date();
+	let output = "";
 	
 	// Check year
-	var yyyy = now.getFullYear();
+	let yyyy = now.getFullYear();
 	if(type.indexOf("yyyy") >= 0) {
 		output += yyyy;
 	}
@@ -1665,7 +1713,7 @@ function GenerateDateTime(type) {
 	}
 	
 	// Check month
-	var mm = now.getMonth() + 1;
+	let mm = now.getMonth() + 1;
 	if(type.indexOf("mm") >= 0) {
 		if(mm < 10) {
 			output += "0" + mm;
@@ -1679,7 +1727,7 @@ function GenerateDateTime(type) {
 	}
 	
 	// Check date
-	var dd = now.getDate();
+	let dd = now.getDate();
 	if(type.indexOf("dd") >= 0) {
 		if(dd < 10) {
 			output += "0" + dd;
@@ -1693,7 +1741,7 @@ function GenerateDateTime(type) {
 	}
 	
 	// Check hours
-	var HH = now.getHours();
+	let HH = now.getHours();
 	if(type.indexOf("HH") >= 0) {
 		if(HH < 10) {
 			output += "0" + HH;
@@ -1707,7 +1755,7 @@ function GenerateDateTime(type) {
 	}
 	
 	// Check minutes
-	var MM = now.getMinutes();
+	let MM = now.getMinutes();
 	if(type.indexOf("MM") >= 0) {
 		if(MM < 10) {
 			output += "0" + MM;
@@ -1721,7 +1769,7 @@ function GenerateDateTime(type) {
 	}
 	
 	// Check seconds
-	var SS = now.getSeconds();
+	let SS = now.getSeconds();
 	if(type.indexOf("SS") >= 0) {
 		if(SS < 10) {
 			output += "0" + SS;
@@ -1746,13 +1794,13 @@ function CreateTable(myField) {
 	if(document.getElementById(myField).innerHTML.length == 0) { return; }
 	
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var rows = parseInt(document.getElementById("rows").value);
-	var cols = parseInt(document.getElementById("cols").value);
-	var output = "";
+	let rows = parseInt(document.getElementById("rows").value);
+	let cols = parseInt(document.getElementById("cols").value);
+	let output = "";
 	
 	output = "<table>\n";
-	var i;
-	var j;
+	let i;
+	let j;
 	for(i = 0; i < rows; i++) {
 		output += "  <tr>\n";
 		for(j = 0; j < cols; j++) {
@@ -1772,16 +1820,14 @@ function CreateInputBox() {
 	}
 	
 	// Temporarilly save the content
-	var current_data = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
+	let current_data = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
 	document.getElementById("temp_save").innerHTML = "";
-	var i = 0;
-	while(i < current_data.length) {
+	for (let i = 0; i < current_data.length; i++) {
 		document.getElementById("temp_save").innerHTML += current_data[i].value + "|";
-		i += 1;
 	}
 	
 	// Create new textarea
-	var output = "";
+	let output = "";
 	if(document.getElementById("input_boxes").innerHTML > 0) {
 		output = "<br>";
 	}
@@ -1791,12 +1837,9 @@ function CreateInputBox() {
 	
 	// Restore data
 	current_data = document.getElementById("input_boxes").getElementsByTagName("TEXTAREA");
-	var old_data = document.getElementById("temp_save").innerHTML.split("|");
-	i = 0;
-	while(i < current_data.length) {
+	let old_data = document.getElementById("temp_save").innerHTML.split("|");
+	for (let i = 0; i < current_data.length; i++) {
 		current_data[i].value = old_data[i];
-		
-		i += 1;
 	}
 }
 
@@ -1806,7 +1849,7 @@ function SetBackground(myField, input) {
 	
 	input = document.getElementById(input).value;
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var output = "";
+	let output = "";
 	
 	//IE support
 	if (document.selection) {
@@ -1816,8 +1859,8 @@ function SetBackground(myField, input) {
 	}
 	//MOZILLA and others
 	else if (myField.selectionStart || myField.selectionStart == '0') {
-		var startPos = myField.selectionStart;
-		var endPos = myField.selectionEnd;
+		let startPos = myField.selectionStart;
+		let endPos = myField.selectionEnd;
 		output = "<span style=\"background-color:" + input + ";\">" + myField.value.substring(startPos, endPos) + "</span>";
 	}
 	else {
@@ -1833,7 +1876,7 @@ function SetTextcolor(myField, input) {
 	
 	input = document.getElementById(input).value;
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var output = "";
+	let output = "";
 	
 	//IE support
 	if (document.selection) {
@@ -1843,8 +1886,8 @@ function SetTextcolor(myField, input) {
 	}
 	//MOZILLA and others
 	else if (myField.selectionStart || myField.selectionStart == '0') {
-		var startPos = myField.selectionStart;
-		var endPos = myField.selectionEnd;
+		let startPos = myField.selectionStart;
+		let endPos = myField.selectionEnd;
 		output = "<span style=\"color:" + input + ";\">" + myField.value.substring(startPos, endPos) + "</span>";
 	}
 	else {
@@ -1859,7 +1902,7 @@ function TagText(myField, tag) {
 	if(document.getElementById(myField).innerHTML.length == 0) { return; }
 	
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var output = "";
+	let output = "";
 	
 	//IE support
 	if (document.selection) {
@@ -1869,8 +1912,8 @@ function TagText(myField, tag) {
 	}
 	//MOZILLA and others
 	else if (myField.selectionStart || myField.selectionStart == '0') {
-		var startPos = myField.selectionStart;
-		var endPos = myField.selectionEnd;
+		let startPos = myField.selectionStart;
+		let endPos = myField.selectionEnd;
 		output = "<" + tag + ">" + myField.value.substring(startPos, endPos) + "</" + tag + ">";
 	}
 	else {
@@ -1893,7 +1936,7 @@ function AddImage(myField) {
 	if(document.getElementById(myField).innerHTML.length == 0) { return; }
 	
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var image_link = "images/" + document.getElementById("image_link").value;
+	let image_link = "images/" + document.getElementById("image_link").value;
 	insertAtCursor(myField, "<img src=\"" + image_link + "\" alt=\"" + image_link + "\">");
 }
 
@@ -1903,11 +1946,11 @@ function AddSearchButton(myField) {
 	
 	// Get relevant input data
 	myField = document.getElementById(document.getElementById(myField).innerHTML);
-	var search_frase = document.getElementById("search_word").value;
-	var search_option = document.getElementById("search_type").value;
+	let search_frase = document.getElementById("search_word").value;
+	let search_option = document.getElementById("search_type").value;
 	
 	// Determine type id
-	var type_id = -1;
+	let type_id = -1;
 	
 	// Add button
 	insertAtCursor(myField, '<button onclick="ShowContent(' + type_id + ', \'\', \'' + search_frase + '\')">' + search_frase + '</button>');
@@ -1922,8 +1965,8 @@ function insertAtCursor(myField, myValue) {
 	}
 	//MOZILLA and others
 	else if (myField.selectionStart || myField.selectionStart == '0') {
-		var startPos = myField.selectionStart;
-		var endPos = myField.selectionEnd;
+		let startPos = myField.selectionStart;
+		let endPos = myField.selectionEnd;
 		myField.value = myField.value.substring(0, startPos) + myValue + myField.value.substring(endPos, myField.value.length);
 		myField.selectionStart = startPos + myValue.length;
 		myField.selectionEnd = startPos + myValue.length;
@@ -1953,7 +1996,7 @@ function SetEditStatus(type) {
 }
 
 function Login() {
-	var password = document.getElementById("password").value;
+	let password = document.getElementById("password").value;
 	if(password.indexOf("amiami") == 0 && password.length == 6) {
 		document.getElementById("login").style.display = "none";
 		document.getElementById("current_mode").innerHTML = "Master";
@@ -1961,7 +2004,7 @@ function Login() {
 }
 
 function LoginCheck() {
-	var password = document.getElementById("password").value;
+	let password = document.getElementById("password").value;
 	if(password.indexOf("amiami") == 0 && password.length == 6) {
 		return true;
 	}
@@ -1975,7 +2018,7 @@ function LoginCheck() {
 /***************/
 
 function includeHTML() {
-	var z, i, elmnt, file, xhttp;
+	let z, i, elmnt, file, xhttp;
 	/*loop through a collection of all HTML elements:*/
 	z = document.getElementsByTagName("*");
 	for (i = 0; i < z.length; i++) {
@@ -2037,7 +2080,7 @@ function getIndexToUpdate(theArray,data){
 		return -1;//already exists
 	}
 	
-	var i = 0;
+	let i = 0;
 	while(i < theArray.length){
 		//is theArray[i] part of data?
 		if(data.indexOf(theArray[i])>=0){
@@ -2053,17 +2096,17 @@ function getIndexToUpdate(theArray,data){
 	return 1000;//new entry
 }
 function findordernumemail() {
-	var outData = new Array();
-	var inputstring = document.getElementById("all_inputfield").value;
-	var emailstring = inputstring;
+	let outData = new Array();
+	let inputstring = document.getElementById("all_inputfield").value;
+	let emailstring = inputstring;
 	inputstring = inputstring.replace(/ /g,"");
 	inputstring = inputstring.replace(/\n/g,"");
 	inputstring = inputstring.replace(/>/g,"");
 	
 	// Order number
-	var next2index = inputstring.indexOf("2");
-	var next7index = inputstring.indexOf("7");
-	var output = "";
+	let next2index = inputstring.indexOf("2");
+	let next7index = inputstring.indexOf("7");
+	let output = "";
 	while(next2index >= 0 || next7index >= 0) {
 		if(next2index  != -1) {
 			output = getordernumber(inputstring, next2index);
@@ -2071,7 +2114,7 @@ function findordernumemail() {
 				output = "";
 			}
 			if(output.length > 0){
-				var flag = getIndexToUpdate(outData, output);
+				let flag = getIndexToUpdate(outData, output);
 				if(flag==1000){
 					outData.push(output);
 				}
@@ -2079,7 +2122,7 @@ function findordernumemail() {
 					outData[flag]=output;
 				}
 			}
-			var nextat = inputstring.slice(next2index+1).indexOf("2");
+			let nextat = inputstring.slice(next2index+1).indexOf("2");
 			if(nextat >= 0) {
 				next2index += nextat + 1;
 			}
@@ -2093,7 +2136,7 @@ function findordernumemail() {
 				output = "";
 			}
 			if(output.length > 0){
-				var flag = getIndexToUpdate(outData, output);
+				let flag = getIndexToUpdate(outData, output);
 				if(flag==1000){
 					outData.push(output);
 				}
@@ -2101,7 +2144,7 @@ function findordernumemail() {
 					outData[flag]=output;
 				}
 			}
-			var nextat = inputstring.slice(next7index+1).indexOf("7");
+			let nextat = inputstring.slice(next7index+1).indexOf("7");
 			if(nextat >= 0) {
 				next7index += nextat + 1;
 			}
@@ -2112,11 +2155,11 @@ function findordernumemail() {
 	}
 	
 	// Email
-	var nextATindex = emailstring.indexOf("@");
+	let nextATindex = emailstring.indexOf("@");
 	while(nextATindex > 0) {
 		output = getemail(emailstring, nextATindex);
 		if(output.length > 0){
-			var flag = getIndexToUpdate(outData, output);
+			let flag = getIndexToUpdate(outData, output);
 			if(flag==1000){
 				outData.push(output);
 			}
@@ -2124,7 +2167,7 @@ function findordernumemail() {
 				outData[flag]=output;
 			}
 		}
-		var nextat = emailstring.slice(nextATindex+1).indexOf("@");
+		let nextat = emailstring.slice(nextATindex+1).indexOf("@");
 		if(nextat > 0) {
 			nextATindex += nextat + 1;
 		}
@@ -2135,7 +2178,7 @@ function findordernumemail() {
 	
 	// Result
 	if(outData.length>=0){
-		var i = 1;
+		let i = 1;
 		document.getElementById("s_result").innerHTML = outData[0];
 		while(i<outData.length){
 			document.getElementById("s_result").innerHTML += "<br>" + outData[i];
@@ -2152,10 +2195,10 @@ function findordernumemail() {
 *  Find order number function
 */
 function getordernumber(inputstring, index) {
-	var retval = "";
-	var type = 0;
-	var tempstring = "";
-	var cnt = 1;
+	let retval = "";
+	let type = 0;
+	let tempstring = "";
+	let cnt = 1;
 	
 	tempstring += inputstring.charAt(index);
 	if(type == 0) {
@@ -2240,13 +2283,13 @@ function getordernumber(inputstring, index) {
 	return retval;
 }
 function getemail(inputstring, index) {
-	var retval = "";
-	var tempstring = "@";
+	let retval = "";
+	let tempstring = "@";
 	
 	// Front part
-	var fcnt = index - 1;
+	let fcnt = index - 1;
 	while(fcnt >= 0) {
-		var ccode = inputstring.charCodeAt(fcnt);
+		let ccode = inputstring.charCodeAt(fcnt);
 		if(ccode >= 97 && ccode <= 122) {
 			tempstring = inputstring.charAt(fcnt) + tempstring;
 			fcnt--;
@@ -2269,9 +2312,9 @@ function getemail(inputstring, index) {
 	}
 	
 	// Back part
-	var bcnt = index + 1;
+	let bcnt = index + 1;
 	while(bcnt < inputstring.length) {
-		var ccode = inputstring.charCodeAt(bcnt);
+		let ccode = inputstring.charCodeAt(bcnt);
 		if(ccode >= 97 && ccode <= 122) {
 			tempstring = tempstring + inputstring.charAt(bcnt);
 			bcnt++;
