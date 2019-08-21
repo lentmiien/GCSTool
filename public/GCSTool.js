@@ -1331,7 +1331,8 @@ function ReminderDelete(id_num) {
   // Update saved reminders
   json_data.Settings.reminders = updated_reminders;
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 function AddReminder() {
   if (json_data.Settings.reminders.length > 0) {
@@ -1373,7 +1374,8 @@ function AddReminder() {
   // Show
   document.getElementById('show_reminders').innerHTML = output;
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 
 /**********************************************
@@ -1445,13 +1447,15 @@ function SetID() {
   document.getElementById('user_id').innerHTML = document.getElementById('s_user_id').value;
   json_data.Settings.user_id = document.getElementById('s_user_id').value;
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 function SetTeam() {
   document.getElementById('user_team').innerHTML = document.getElementById('s_user_team_sel').value;
   json_data.Settings.team = document.getElementById('s_user_team_sel').value;
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 function SetILanguage() {
   if (document.getElementById('s_i_language_eng').checked == true) {
@@ -1464,7 +1468,8 @@ function SetILanguage() {
     json_data.Settings.i_language = 'swedish';
   }
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 function SetStyle() {
   if (document.getElementById('settings').innerHTML.indexOf('my_style') == -1) {
@@ -1478,7 +1483,8 @@ function SetStyle() {
     json_data.Settings.style = 'Style_dark.css';
   }
 
-  document.getElementById('need_save').style.display = 'inline';
+  GeneratePersonalData();
+  //  document.getElementById('need_save').style.display = 'inline';
 }
 /*
 json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
@@ -1573,7 +1579,7 @@ function UpdateSettings() {
 function Delete() {
   let uid = document.getElementById('unique_id').innerHTML;
   DeleteUidFromJSON(uid);
-  document.getElementById('need_save').style.display = 'inline';
+  //  document.getElementById('need_save').style.display = 'inline';
   GeneratePersonalData();
 }
 
@@ -1651,7 +1657,7 @@ function EditSave() {
     '[' + json_data.Settings.user_id + ':' + lastupdate + '] ' + history
   );
 
-  document.getElementById('need_save').style.display = 'inline';
+  //  document.getElementById('need_save').style.display = 'inline';
   GeneratePersonalData();
 
   document.getElementById('history_box').value = '';
