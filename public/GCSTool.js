@@ -205,11 +205,18 @@ function AutoStart() {
       staff: 4,
       work: true
     }
+  ],
+  [
+    {
+    	year: 2019,
+    	month: 8,
+        date: 22
+    }
   ]);
 }
 
 // Setup scheduler
-function SetupScheduler(schedule) {
+function SetupScheduler(schedule, holidays) {
   let dom_scheduler = document.getElementById('schedule');
   dom_scheduler.innerHTML =
     '<tr><th style="background-color:rgb(141, 71, 71);" >日曜日</th><th>月曜日</th><th>火曜日</th><th>水曜日</th><th>木曜日</th><th>金曜日</th><th>土曜日</th></tr>';
@@ -221,7 +228,16 @@ function SetupScheduler(schedule) {
     output += '<tr>';
     for (let wd = 0; wd < 7; wd++) {
       let td = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + wd);
-      output += '<td>' + td.getDate() + '/' + (td.getMonth() + 1) + '<br><hr>';
+      let isholiday = '';
+      if(td.getDay() == 0) {
+      	isholiday = ' style="background-color:rgb(141, 71, 71);"';
+      }
+      for(let i = 0; i < holidays.length; i++) {
+      	if(td.getFullYear() == holidays[i].year && td.getMonth()+1 == holidays[i].month && td.getDate() == holidays[i].date) {
+      		isholiday = ' style="background-color:rgb(141, 71, 71);"';
+      	}
+      }
+      output += '<td' + isholiday + '>' + td.getDate() + '/' + (td.getMonth() + 1) + '<br><hr>';
       for (let sm = 0; sm < staff.length; sm++) {
         let isWork = 'green';
         if (sm == 0 && (td.getDay() == 4 || td.getDay() == 0)) {
