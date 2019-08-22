@@ -190,6 +190,87 @@ function AutoStart() {
   ) {
     LoadData();
   }
+
+  // Setup scheduler
+  SetupScheduler([
+    {
+      month: 8,
+      date: 21,
+      staff: 4,
+      work: false
+    },
+    {
+      month: 8,
+      date: 23,
+      staff: 4,
+      work: true
+    }
+  ],
+  [
+    {
+    	year: 2019,
+    	month: 8,
+        date: 22
+    }
+  ]);
+}
+
+// Setup scheduler
+function SetupScheduler(schedule, holidays) {
+  let dom_scheduler = document.getElementById('schedule');
+  dom_scheduler.innerHTML =
+    '<tr><th style="background-color:rgb(141, 71, 71);" >日曜日</th><th>月曜日</th><th>火曜日</th><th>水曜日</th><th>木曜日</th><th>金曜日</th><th>土曜日</th></tr>';
+  let d = new Date();
+  let output = '';
+  let staff = ['Eva', 'Jemmie', 'Victoria', 'Schoppmann', 'Lennart'];
+  d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  for (let wks = 0; wks < 3; wks++) {
+    output += '<tr>';
+    for (let wd = 0; wd < 7; wd++) {
+      let td = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + wd);
+      let isholiday = '';
+      if(td.getDay() == 0) {
+      	isholiday = ' style="background-color:rgb(141, 71, 71);"';
+      }
+      for(let i = 0; i < holidays.length; i++) {
+      	if(td.getFullYear() == holidays[i].year && td.getMonth()+1 == holidays[i].month && td.getDate() == holidays[i].date) {
+      		isholiday = ' style="background-color:rgb(141, 71, 71);"';
+      	}
+      }
+      output += '<td' + isholiday + '>' + td.getDate() + '/' + (td.getMonth() + 1) + '<br><hr>';
+      for (let sm = 0; sm < staff.length; sm++) {
+        let isWork = 'green';
+        if (sm == 0 && (td.getDay() == 4 || td.getDay() == 0)) {
+          isWork = 'red';
+        }
+        if (sm == 1 && (td.getDay() == 5 || td.getDay() == 0)) {
+          isWork = 'red';
+        }
+        if (sm == 2 && (td.getDay() == 5 || td.getDay() == 0)) {
+          isWork = 'red';
+        }
+        if (sm == 3 && (td.getDay() == 6 || td.getDay() == 0)) {
+          isWork = 'red';
+        }
+        if (sm == 4 && (td.getDay() == 6 || td.getDay() == 0)) {
+          isWork = 'red';
+        }
+        for (let i = 0; i < schedule.length; i++) {
+          if (td.getMonth() + 1 == schedule[i].month && td.getDate() == schedule[i].date && sm == schedule[i].staff) {
+            if (schedule[i].work == true) {
+              isWork = 'green';
+            } else {
+              isWork = 'red';
+            }
+          }
+        }
+        output += '<b style="color:' + isWork + ';">' + staff[sm] + '</b><br>';
+      }
+      output += '</td>';
+    }
+    output += '</tr>';
+  }
+  dom_scheduler.innerHTML += output;
 }
 
 // Do some initial setup
