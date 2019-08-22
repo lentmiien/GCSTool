@@ -283,7 +283,7 @@ function SetupScheduler() {
         }
         for (let i = 0; i < json_data.Schedule.daysoff.length; i++) {
           let dayoff = json_data.Schedule.daysoff[i];
-          if (td.getMonth() + 1 == dayoff.month && td.getDate() == dayoff.date && sm == dayoff.staff) {
+          if (td.getFullYear() == dayoff.year && td.getMonth() + 1 == dayoff.month && td.getDate() == dayoff.date && sm == dayoff.staff) {
             if (dayoff.work == true) {
               isWork = 'green';
             } else {
@@ -291,13 +291,77 @@ function SetupScheduler() {
             }
           }
         }
-        output += '<b style="color:' + isWork + ';">' + s.name + '</b><br>';
+        output +=
+          '<div onclick="Toggle(this,\'' +
+          td.getFullYear() +
+          "','" +
+          (td.getMonth() + 1) +
+          "','" +
+          td.getDate() +
+          "','" +
+          sm +
+          '\')" style="width:100%;background-color:' +
+          isWork +
+          ';">' +
+          s.name +
+          '</div>';
       }
       output += '</td>';
     }
     output += '</tr>';
   }
   dom_scheduler.innerHTML += output;
+}
+
+function Toggle(e, y, m, d, s) {
+  if (sLoginCheck() == false) {
+    return;
+  }
+
+  let year = parseInt(y);
+  let month = parseInt(m);
+  let date = parseInt(d);
+  let staff = parseInt(s);
+
+  if (e.style.backgroundColor == 'red') {
+    let added = false;
+    for (let i = 0; i < json_data.Schedule.daysoff.length; i++) {
+      let dayoff = json_data.Schedule.daysoff[i];
+      if (dayoff.year == year && dayoff.month == month && dayoff.date == date && dayoff.staff == staff) {
+        json_data.Schedule.daysoff[i].work = true;
+        added = true;
+      }
+    }
+    if (added == false) {
+      json_data.Schedule.daysoff.push({
+        year,
+        month,
+        date,
+        staff,
+        work: true
+      });
+    }
+    e.style.backgroundColor = 'green';
+  } else {
+    let added = false;
+    for (let i = 0; i < json_data.Schedule.daysoff.length; i++) {
+      let dayoff = json_data.Schedule.daysoff[i];
+      if (dayoff.year == year && dayoff.month == month && dayoff.date == date && dayoff.staff == staff) {
+        json_data.Schedule.daysoff[i].work = false;
+        added = true;
+      }
+    }
+    if (added == false) {
+      json_data.Schedule.daysoff.push({
+        year,
+        month,
+        date,
+        staff,
+        work: false
+      });
+    }
+    e.style.backgroundColor = 'red';
+  }
 }
 
 // Do some initial setup
@@ -2186,6 +2250,15 @@ function LoginCheck() {
   }
 
   alert(GetData('_alert_login_'));
+  return false;
+}
+
+// Silent check, does not show any warnings
+function sLoginCheck() {
+  let password = document.getElementById('password').value;
+  if (password.indexOf('amiami') == 0 && password.length == 6) {
+    return true;
+  }
   return false;
 }
 
