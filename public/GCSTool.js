@@ -194,55 +194,8 @@ function AutoStart() {
   // Setup scheduler
   if (json_data.hasOwnProperty('Schedule') == false) {
     json_data['Schedule'] = {
-      staff: [
-        {
-          name: 'Eva',
-          daysoff: [0, 4]
-        },
-        {
-          name: 'Jammie',
-          daysoff: [0, 5]
-        },
-        {
-          name: 'Victoria',
-          daysoff: [0, 5]
-        },
-        {
-          name: 'Schoppmann',
-          daysoff: [0, 6]
-        },
-        {
-          name: 'Lennart',
-          daysoff: [0, 6]
-        }
-      ],
-      holidays: [
-        {
-          year: 2019,
-          month: 9,
-          date: 16
-        },
-        {
-          year: 2019,
-          month: 9,
-          date: 23
-        },
-        {
-          year: 2019,
-          month: 10,
-          date: 14
-        },
-        {
-          year: 2019,
-          month: 11,
-          date: 4
-        },
-        {
-          year: 2019,
-          month: 11,
-          date: 23
-        }
-      ],
+      staff: [],
+      holidays: [],
       daysoff: []
     };
   }
