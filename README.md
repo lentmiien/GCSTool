@@ -25,11 +25,15 @@ HTML formated text
 
 Basically the same as templates, but a separate category
 
+- Schedule
+
+An easy to view schedule of who is working
+
 ## How to add data?
-Data can be added from the Edit page.
+Data can be added from the Edit page. Schedule data can be changed on the schedule page if you are in master edit mode.
 
 When changing settings or adding personal data, the data is saved automatically in the browser.
 
 *Note: Should you clear your browser memory or switch to a different browser, the data will be lost. It is however possible to access the data from the save page to save a backup copy of the data if needed.*
 
-When adding master data, it is necessary to manually save the data through the save page, and manually upload the data to the server.
+When adding master data or changing schedule data, it is necessary to manually save the data through the save page, and manually upload the data to the server.
