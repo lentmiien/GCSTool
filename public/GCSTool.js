@@ -199,9 +199,28 @@ function AutoStart() {
       daysoff: []
     };
   }
+  let d = new Date();
+  document.getElementById('year_select').value = d.getFullYear();
+  document.getElementById('month_select').value = d.getMonth();
+  document.getElementById('date_select').value = d.getDate();
+  document.getElementById('show_weeks').value = 3;
   SetupScheduler();
 }
 
+const month_names = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december'
+];
 // Setup scheduler
 function SetupScheduler() {
   let dom_scheduler = document.getElementById('schedule');
@@ -209,8 +228,14 @@ function SetupScheduler() {
     '<tr><th style="background-color:rgb(141, 71, 71);" >日曜日</th><th>月曜日</th><th>火曜日</th><th>水曜日</th><th>木曜日</th><th>金曜日</th><th>土曜日</th></tr>';
   let today = new Date();
   let output = '';
-  d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-  for (let wks = 0; wks < 10; wks++) {
+  let checkDate = new Date(
+    parseInt(document.getElementById('year_select').value),
+    parseInt(document.getElementById('month_select').value),
+    parseInt(document.getElementById('date_select').value)
+  );
+  let show_weeks = parseInt(document.getElementById('show_weeks').value);
+  d = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate() - checkDate.getDay());
+  for (let wks = 0; wks < show_weeks; wks++) {
     output += '<tr>';
     for (let wd = 0; wd < 7; wd++) {
       let td = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + wd);
@@ -224,7 +249,18 @@ function SetupScheduler() {
           isholiday = ' style="background-color:rgb(141, 71, 71);"';
         }
       }
-      output += '<td' + isholiday + '>' + td.getDate() + '/' + (td.getMonth() + 1) + '<br><hr>';
+      let isToday = td.getMonth() == today.getMonth() && td.getDate() == today.getDate() ? ' today' : '';
+      output +=
+        '<td class="' +
+        month_names[td.getMonth()] +
+        isToday +
+        '" ' +
+        isholiday +
+        '>' +
+        td.getDate() +
+        '/' +
+        (td.getMonth() + 1) +
+        '<br><hr>';
       for (let sm = 0; sm < json_data.Schedule.staff.length; sm++) {
         let s = json_data.Schedule.staff[sm];
         let isWork = 'green';
