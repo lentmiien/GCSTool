@@ -162,26 +162,26 @@
 
         <!-- Scheduler -->
         <div class="body_tab" id="ru_5_7" style="display:none">
-          <div class="layout_title"><span>Scheduler (TODO:lg_language)</span></div>
+          <div class="layout_title"><span lg_language="_scheduler_"></span></div>
 
-          Start date:
+          <span lg_language="_start_date_"></span>
           <select name="dateselect" id="year_select">
             <option value="2019">2019</option>
             <option value="2020">2020</option>
           </select>
           <select name="dateselect" id="month_select">
-            <option value="0">January</option>
-            <option value="1">February</option>
-            <option value="2">March</option>
-            <option value="3">April</option>
-            <option value="4">May</option>
-            <option value="5">June</option>
-            <option value="6">July</option>
-            <option value="7">August</option>
-            <option value="8">September</option>
-            <option value="9">October</option>
-            <option value="10">November</option>
-            <option value="11">December</option>
+            <option lg_language="_jan_" value="0"></option>
+            <option lg_language="_feb_" value="1"></option>
+            <option lg_language="_mar_" value="2"></option>
+            <option lg_language="_apr_" value="3"></option>
+            <option lg_language="_may_" value="4"></option>
+            <option lg_language="_jun_" value="5"></option>
+            <option lg_language="_jul_" value="6"></option>
+            <option lg_language="_aug_" value="7"></option>
+            <option lg_language="_sep_" value="8"></option>
+            <option lg_language="_oct_" value="9"></option>
+            <option lg_language="_nov_" value="10"></option>
+            <option lg_language="_dec_" value="11"></option>
           </select>
           <select name="dateselect" id="date_select">
             <option value="1">1</option>
@@ -214,10 +214,10 @@
             <option value="28">28</option>
             <option value="29">29</option>
             <option value="30">30</option>
-            <option value="31">31</option> </select
-          ><br />
+            <option value="31">31</option>
+          </select>
 
-          Show weeks:
+          <span lg_language="_show_weeks_"></span>
           <select name="dateselect" id="show_weeks">
             <option value="1">1</option>
             <option value="2">2</option>
@@ -238,12 +238,44 @@
             <option value="17">17</option>
             <option value="18">18</option>
             <option value="19">19</option>
-            <option value="20">20</option> </select
-          ><br />
+            <option value="20">20</option>
+          </select>
 
-          <button onclick="SetupScheduler()">Update</button>
+          <button lg_language="_update_" onclick="SetupScheduler()"></button>
 
           <table id="schedule"></table>
+
+          <hr />
+          <h2 lg_language="_add_user_"></h2>
+          <br />
+          <span lg_language="_name_"></span> <input type="text" id="new_user_name" /><br />
+          <span lg_language="_days_off_"></span>
+          <select name="dateselect" id="day_off_1">
+            <option lg_language="_su_" value="0"></option>
+            <option lg_language="_m_" value="1"></option>
+            <option lg_language="_tu_" value="2"></option>
+            <option lg_language="_w_" value="3"></option>
+            <option lg_language="_th_" value="4"></option>
+            <option lg_language="_f_" value="5"></option>
+            <option lg_language="_sa_" value="6"></option>
+          </select>
+          <select name="dateselect" id="day_off_2">
+            <option lg_language="_su_" value="0"></option>
+            <option lg_language="_m_" value="1"></option>
+            <option lg_language="_tu_" value="2"></option>
+            <option lg_language="_w_" value="3"></option>
+            <option lg_language="_th_" value="4"></option>
+            <option lg_language="_f_" value="5"></option>
+            <option lg_language="_sa_" value="6"></option> </select
+          ><br />
+          <button lg_language="_add_" onclick="AddUser()"></button>
+
+          <hr />
+          <h2 lg_language="_remove_user_"></h2>
+          <br />
+          <select name="select_user" id="select_user"></select
+          ><br />
+          <button lg_language="_delete_" onclick="RemoveUser()"></button>
         </div>
 
         <!-- Edit layout (Master edit require Password) -->
@@ -548,7 +580,7 @@
       </li>
       <li>
         <a id="ru_5_btn" href="#Scheduler" onclick="TabHandler('ru_', 5)">
-          <span>Scheduler (TEST)</span>
+          <span lg_language="_scheduler_"></span>
         </a>
       </li>
 

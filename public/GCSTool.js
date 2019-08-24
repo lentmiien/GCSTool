@@ -225,7 +225,21 @@ const month_names = [
 function SetupScheduler() {
   let dom_scheduler = document.getElementById('schedule');
   dom_scheduler.innerHTML =
-    '<tr><th style="background-color:rgb(141, 71, 71);" >日曜日</th><th>月曜日</th><th>火曜日</th><th>水曜日</th><th>木曜日</th><th>金曜日</th><th>土曜日</th></tr>';
+    '<tr><th style="background-color:rgb(141, 71, 71);" >' +
+    GetHTMLElement('_su_') +
+    '</th><th>' +
+    GetHTMLElement('_m_') +
+    '</th><th>' +
+    GetHTMLElement('_tu_') +
+    '</th><th>' +
+    GetHTMLElement('_w_') +
+    '</th><th>' +
+    GetHTMLElement('_th_') +
+    '</th><th>' +
+    GetHTMLElement('_f_') +
+    '</th><th>' +
+    GetHTMLElement('_sa_') +
+    '</th></tr>';
   let today = new Date();
   let output = '';
   let checkDate = new Date(
@@ -300,6 +314,51 @@ function SetupScheduler() {
     output += '</tr>';
   }
   dom_scheduler.innerHTML += output;
+
+  // Fill in remove user
+  const usrs = document.getElementById('select_user');
+  usrs.innerHTML = '';
+  json_data.Schedule.staff.forEach((d, i) => {
+    usrs.innerHTML += '<option value="' + i + '">' + d.name + '</option>';
+  });
+}
+function AddUser() {
+  if (sLoginCheck() == false) {
+    return;
+  }
+
+  let user_name = document.getElementById('new_user_name').value;
+  let day_off_1 = parseInt(document.getElementById('day_off_1').value);
+  let day_off_2 = parseInt(document.getElementById('day_off_2').value);
+  json_data.Schedule.staff.push({
+    name: user_name,
+    daysoff: [day_off_1, day_off_2]
+  });
+
+  // Update schedule
+  SetupScheduler();
+}
+function RemoveUser() {
+  if (sLoginCheck() == false) {
+    return;
+  }
+
+  const user_to_remove = parseInt(document.getElementById('select_user').value);
+
+  // Remove user
+  json_data.Schedule.staff.splice(user_to_remove, 1);
+
+  // Remove/Update scheduled days off
+  let filter_data = json_data.Schedule.daysoff.filter(d => d.staff != user_to_remove);
+  for (let i = 0; i < filter_data.length; i++) {
+    if (filter_data[i].staff >= user_to_remove) {
+      filter_data[i].staff -= 1;
+    }
+  }
+  json_data.Schedule.daysoff = filter_data;
+
+  // Update schedule
+  SetupScheduler();
 }
 
 function Toggle(e, y, m, d, s) {
