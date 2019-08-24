@@ -323,6 +323,7 @@ function SetupScheduler() {
   });
 }
 function AddUser() {
+  // Only for master edit mode
   if (sLoginCheck() == false) {
     return;
   }
@@ -339,6 +340,7 @@ function AddUser() {
   SetupScheduler();
 }
 function RemoveUser() {
+  // Only for master edit mode
   if (sLoginCheck() == false) {
     return;
   }
