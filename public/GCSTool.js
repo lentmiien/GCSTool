@@ -205,6 +205,11 @@ function AutoStart() {
   document.getElementById('date_select').value = d.getDate();
   document.getElementById('show_weeks').value = 3;
   SetupScheduler();
+
+  // Auto-login Lennart in master edit mode
+  if (json_data.Settings.user_id === 'Lennart') {
+    document.getElementById('password').value = 'amiami';
+  }
 }
 
 const month_names = [
