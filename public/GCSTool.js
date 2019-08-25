@@ -33,6 +33,40 @@ const teams = {
 };
 
 /*******
+ * Most used
+ */
+
+let most_used = [];
+
+function AddUse(id) {
+  let done = false;
+  for (let i = 0; i < most_used.length; i++) {
+    if (most_used[i].id === id) {
+      most_used[i].uses++;
+      done = true;
+    }
+  }
+  if (!done) {
+    most_used.push({ id, uses: 1 });
+  }
+
+  // Save to local storage
+  localStorage.setItem('most_used', JSON.stringify(most_used));
+}
+
+function SortList() {
+  most_used.sort((a, b) => {
+    if (a.uses < b.uses) {
+      return 1;
+    }
+    if (a.uses > b.uses) {
+      return -1;
+    }
+    return 0;
+  });
+}
+
+/*******
  * JSON
  */
 
@@ -57,12 +91,6 @@ function ExistJSON(id) {
       id_index = i;
     }
   });
-  // UPDATED TO NEWER SYNTAX
-  // for (let i = 0; i < json_data.Entries.length; i++) {
-  // 	if (json_data.Entries[i].uid.indexOf(id) == 0 && json_data.Entries[i].uid.length == id.length) {
-  // 		return i;
-  // 	}
-  // }
   return id_index;
 }
 
@@ -173,6 +201,11 @@ function CheckScriptEnabled() {
     document.getElementById('lg_language').value = extPersonal.Settings.i_language;
   } else {
     document.getElementById('input_personal').value = 'New user, leave empty.';
+  }
+
+  // Load most used
+  if (localStorage.hasOwnProperty('most_used') == true) {
+    most_used = JSON.parse(localStorage.getItem('most_used'));
   }
 
   // Update interface to correct language
@@ -983,6 +1016,63 @@ function ViewAll() {
   });
 }
 
+// View most used
+function ViewMostUsed() {
+  SortList();
+  document.getElementById('s_result').innerHTML = '';
+  most_used.forEach(e => {
+    let myID = e.id;
+    let index = ExistJSON(myID);
+    if (index != -1) {
+      let class_name = json_data.Entries[index].type;
+      let text_input = json_data.Entries[index].type;
+
+      let output =
+        '<div class="entry ' +
+        class_name +
+        '"><button class="title_button ' +
+        json_data.Entries[index].category +
+        '" onclick="DisplayEntry(\'' +
+        myID +
+        '\')">' +
+        json_data.Entries[index].data.Title +
+        '</button>';
+
+      // Type of entry
+      output += '<i class="label">' + GetData('_' + text_input + '_') + '</i>';
+
+      // Master / Private
+      if (json_data.Entries[index].ismaster == true) {
+        output += '<i class="label master' + '" style="float:right;">Master</i>';
+      } else {
+        output += '<i class="label private' + '" style="float:right;">Private</i>';
+      }
+
+      output += '<br><div id="c_' + myID + '" style="display:none;">';
+      output += '<button onclick="EditEntry(' + index + ')">' + GetData('_edit_') + '</button>';
+      if (json_data.Entries[index].ismaster == true) {
+        output += '<button onclick="EditEntryCopy(' + index + ')">' + GetData('_edit_copy_') + '</button><br>';
+      }
+      for (let cd = 0; cd < json_data.Entries[index].data.Content.length; cd++) {
+        if (json_data.Entries[index].type.indexOf('manual') == 0) {
+          output += json_data.Entries[index].data.Content[cd];
+        } else {
+          output +=
+            '<textarea style="width: 100%; height: 135px;" onclick="Selector(this)" readonly>' +
+            json_data.Entries[index].data.Content[cd] +
+            '</textarea>';
+        }
+      }
+
+      output += '</div>';
+
+      output += '</div>';
+
+      document.getElementById('s_result').innerHTML += output;
+    }
+  });
+}
+
 function ExpSearch() {
   document.getElementById('s_result').innerHTML = '';
   let types_to_check = '';
@@ -1121,6 +1211,8 @@ function DisplayEntry(uid) {
     for (let ata = 0; ata < all_t_area.length; ata++) {
       auto_grow(all_t_area[ata]);
     }
+
+    AddUse(uid);
   } else {
     document.getElementById('c_' + uid).style.display = 'none';
   }

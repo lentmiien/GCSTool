@@ -145,6 +145,7 @@ var json_language = {
     _name_: 'Name',
     _days_off_: 'Days off',
     _remove_user_: 'Remove user',
+    _view_most_used_: 'View most used',
     /* categories */
     _account_related_: 'Account Related',
     _order_item_statuses_: 'Order/Item Statuses',
@@ -308,6 +309,7 @@ var json_language = {
     _name_: '名前',
     _days_off_: '定休日',
     _remove_user_: 'ユーザー削除',
+    _view_most_used_: 'ようく使う表示',
     /* categories */
     _account_related_: 'アカウント関連',
     _order_item_statuses_: '注文・商品の状況',
@@ -471,6 +473,7 @@ var json_language = {
     _name_: 'Namn',
     _days_off_: 'Lediga dagar',
     _remove_user_: 'Ta bort användare',
+    _view_most_used_: 'Visa mest använda',
     /* categories */
     _account_related_: 'Angående Konto',
     _order_item_statuses_: 'Beställning/Artikel Statusar',
