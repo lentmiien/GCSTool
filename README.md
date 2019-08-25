@@ -6,11 +6,12 @@ Data handling tool
 - Upload the tool to an existing webserver (only need content from public folder)
 
 ## External files
-Besides the HTML/CSS/JavaScript files, the tool additionally loads the following 2 JSON data files.
+Besides the HTML/CSS/JavaScript files, the tool additionally loads the following 3 JSON data files.
 - `Master.json` is loaded from the webserver
 - `json_personal` is loaded from the browsers local storage
+- `most_used` is loaded from the browsers local storage
 
-*Note: `Master.json` needs to be manually uploaded to the server, while `json_personal` is updated automatically when using the tool.*
+*Note: `Master.json` needs to be manually uploaded to the server, while `json_personal` and `most_used` is updated automatically when using the tool.*
 
 ## Handled data
 - Templates
