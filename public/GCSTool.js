@@ -287,7 +287,15 @@ function SetupScheduler() {
   );
   let show_weeks = parseInt(document.getElementById('show_weeks').value);
   d = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate() - checkDate.getDay());
+  let draw_month = -1;
   for (let wks = 0; wks < show_weeks; wks++) {
+    output += '<tr><td colspan="7"><h2>';
+    let dtest = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + 6);
+    if (dtest.getMonth() != draw_month) {
+      draw_month = dtest.getMonth();
+      output += GetHTMLElement('_' + month_names[draw_month].slice(0, 3) + '_');
+    }
+    output += '</h2></td></tr>';
     output += '<tr>';
     for (let wd = 0; wd < 7; wd++) {
       let td = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + wd);
@@ -362,7 +370,7 @@ function SetupScheduler() {
 }
 function AddUser() {
   // Only for master edit mode
-  if (sLoginCheck() == false) {
+  if (LoginCheck() == false) {
     return;
   }
 
@@ -379,7 +387,7 @@ function AddUser() {
 }
 function RemoveUser() {
   // Only for master edit mode
-  if (sLoginCheck() == false) {
+  if (LoginCheck() == false) {
     return;
   }
 
