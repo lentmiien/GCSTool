@@ -761,7 +761,11 @@ function ClearOne(prefix) {
     document.getElementById(prefix + 'stext').innerHTML += all_text[i];
   }
 
-  ExpSearch();
+  if (document.getElementById(prefix + 'stext').innerHTML.length == 0) {
+    ViewMostUsed();
+  } else {
+    ExpSearch();
+  }
 }
 
 // Select + Copy + Show "Copy" animation
@@ -850,7 +854,8 @@ function ProcessTextInput(prefix) {
     document.getElementById(prefix + 'stext').innerHTML = '';
     document.getElementById(prefix + 'inputfield').value = '';
     document.getElementById(prefix + 'tags').innerHTML = '';
-    ExpSearch();
+    ViewMostUsed();
+    //    ExpSearch();
   }
 }
 
