@@ -310,7 +310,7 @@ function SetupScheduler() {
         }
       }
       let isToday = td.getMonth() == today.getMonth() && td.getDate() == today.getDate() ? ' today' : '';
-      let datestring = td.getDate() + '/' + (td.getMonth() + 1);
+      let datestring = td.getMonth() + 1 + '/' + td.getDate();
       if (isToday.length > 0) {
         datestring = '<b style="border: 5px solid orange; border-radius: 20%;">' + datestring + '</b>';
       }
