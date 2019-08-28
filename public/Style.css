@@ -1,249 +1,250 @@
 /* Global settings */
 .hidden {
-	display: none;
+  display: none;
 }
 .data {
-	display: none;
+  display: none;
 }
 
 /* Layout settings */
 .layout_title {
-	font-size: 25px;
-	float: right;
-	color: #FFFFFF;
-	padding: 5px;
-	border-style: solid;
-	border-color: #000000;
-	background-color: #606060;
-	border-radius: 15px;
+  font-size: 25px;
+  float: right;
+  color: #ffffff;
+  padding: 5px;
+  border-style: solid;
+  border-color: #000000;
+  background-color: #606060;
+  border-radius: 15px;
 }
 .body_tab {
-	border-style: solid;
-	padding: 5px;
-	margin-top: 10px;
+  border-style: solid;
+  padding: 5px;
+  margin-top: 10px;
 }
 
 a {
-	color: rgb(166, 166, 255);
+  color: rgb(166, 166, 255);
 }
 
 table {
-	width: 100%;
+  width: 100%;
 }
-th, td {
-	text-align: center;
+th,
+td {
+  text-align: center;
 }
 
 .full {
-	width: 100%;
+  width: 100%;
 }
 .half {
-	width: 50%;
+  width: 50%;
 }
 .third {
-	width: 33%;
+  width: 33%;
 }
 .forth {
-	width: 25%;
+  width: 25%;
 }
 .fifth {
-	width: 20%;
+  width: 20%;
 }
 
 /* Interface settings */
 .important_button {
-	font-size: 20px;
-	padding: 14px 16px;
-	-webkit-transition-duration: 0.4s; /* Safari */
-	transition-duration: 0.4s;
-	cursor: pointer;
-	background-color: white;
-	color: black;
-	border: 2px solid #555555;
-	border-radius: 8px;
+  font-size: 20px;
+  padding: 14px 16px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+  background-color: white;
+  color: black;
+  border: 2px solid #555555;
+  border-radius: 8px;
 }
 .important_button:hover {
-	background-color: #555555;
-	color: white;
+  background-color: #555555;
+  color: white;
 }
 
 .textarea_edit {
-	width: 100%;
-	height: 500px;
-	overflow: scroll;
+  width: 100%;
+  height: 500px;
+  overflow: scroll;
 }
 .textarea_search {
-	overflow: none;
-	resize: none;
+  overflow: none;
+  resize: none;
 }
 
 .output {
-	border-style: solid solid solid solid;
+  border-style: solid solid solid solid;
 }
 
 .checking {
-	background-color: #FFFF00;
+  background-color: #ffff00;
 }
 
 .category {
-	border-style: solid;
-	border-radius: 5px 5px 5px 5px;
-	color: black;
-	float: left;
-	height: 36px;
+  border-style: solid;
+  border-radius: 5px 5px 5px 5px;
+  color: black;
+  float: left;
+  height: 36px;
 }
 
 /* New menu bar */
 .menubar {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #333;
-	position: fixed;
-	top: 0;
-	width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
 }
-.menubar li{
-	float: left;
-	height: 62px;
+.menubar li {
+  float: left;
+  height: 62px;
 }
 .menubar li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-	height: 52px;
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  height: 52px;
 }
 .menubar li a:hover {
-	background-color: #111;
+  background-color: #111;
 }
 .editbar {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #333;
-	position: fixed;
-	bottom: 0;
-	width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
-.editbar li{
-	float: left;
-	height: 60px;
+.editbar li {
+  float: left;
+  height: 60px;
 }
 .editbar li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 18px 5px;
-	text-decoration: none;
-	height: 60px;
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 18px 5px;
+  text-decoration: none;
+  height: 60px;
 }
 .editbar input {
-	margin-top: 12px;
-	margin-left: 5px;
-	margin-right: 2px;
+  margin-top: 12px;
+  margin-left: 5px;
+  margin-right: 2px;
 }
 .editbar li a:hover {
-	background-color: #111;
+  background-color: #111;
 }
 .contentblock {
-	padding: 20px;
-	margin-top: 40px;
-	margin-bottom: 40px;
+  padding: 20px;
+  margin-top: 40px;
+  margin-bottom: 40px;
 }
 
 .warning_text {
-	background-color:yellow;
+  background-color: yellow;
 }
 .error_text {
-	background-color:red;
+  background-color: red;
 }
 
 .tooltip {
-	position: relative;
-	display: inline-block;
-	border: 2px solid rgb(75, 55, 255);
-	border-radius: 100%;
-	width: 20px;
-	height: 20px;
+  position: relative;
+  display: inline-block;
+  border: 2px solid rgb(75, 55, 255);
+  border-radius: 100%;
+  width: 20px;
+  height: 20px;
 }
 
 .tooltip .tooltiptext {
-	visibility: hidden;
-	width: 500px;
-	background-color: black;
-	color: #fff;
-	text-align: center;
-	border-radius: 6px;
-	padding: 5px 0;
-	font-size: 12px;
-	
-	/* Position the tooltip */
-	position: absolute;
-	z-index: 1;
-	top: 100%;
-	left: 50%;
-	margin-left: -250px;
+  visibility: hidden;
+  width: 500px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  font-size: 12px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 50%;
+  margin-left: -250px;
 }
 
 .tooltip:hover .tooltiptext {
-	visibility: visible;
+  visibility: visible;
 }
 
 .tooltip b {
-	color: rgb(226, 226, 30);
+  color: rgb(226, 226, 30);
 }
 
 /* Category colors */
 ._order_item_statuses_ {
-	background-color: #E0E034;
+  background-color: #e0e034;
 }
 ._order_modifying_ {
-	background-color: #FF70D8;
+  background-color: #ff70d8;
 }
 ._account_related_ {
-	background-color: #80FF80;
+  background-color: #80ff80;
 }
 ._payment_shipping_ {
-	background-color: #8888FF;
+  background-color: #8888ff;
 }
 ._after_service_shipping_ {
-	background-color: #AA8888;
+  background-color: #aa8888;
 }
 ._after_service_defect_ {
-	background-color: #AA8888;
+  background-color: #aa8888;
 }
 ._after_service_preowned_ {
-	background-color: #AA8888;
+  background-color: #aa8888;
 }
 ._returns_refunds_ {
-	background-color: #FFCC88;
+  background-color: #ffcc88;
 }
 ._claims_cases_ {
-	background-color: #FF8888;
+  background-color: #ff8888;
 }
 ._other_ {
-	background-color: #FF6699;
+  background-color: #ff6699;
 }
 ._work_related_ {
-	background-color: #9090E0;
+  background-color: #9090e0;
 }
 
 /* Target colors */
 ._case_assist_ {
-	background-color: #66FFFF;
+  background-color: #66ffff;
 }
 ._customer_dep_ {
-	background-color: #00FF99;
+  background-color: #00ff99;
 }
 ._logistics_dep_ {
-	background-color: #33CC33;
+  background-color: #33cc33;
 }
 ._feedback_ {
-	background-color: #FFCC66;
+  background-color: #ffcc66;
 }
 /*._other_ {
 	background-color: #FF6699;

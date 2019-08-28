@@ -310,17 +310,11 @@ function SetupScheduler() {
         }
       }
       let isToday = td.getMonth() == today.getMonth() && td.getDate() == today.getDate() ? ' today' : '';
-      output +=
-        '<td class="' +
-        month_names[td.getMonth()] +
-        isToday +
-        '" ' +
-        isholiday +
-        '>' +
-        td.getDate() +
-        '/' +
-        (td.getMonth() + 1) +
-        '<br><hr>';
+      let datestring = td.getDate() + '/' + (td.getMonth() + 1);
+      if (isToday.length > 0) {
+        datestring = '<b style="border: 5px solid orange; border-radius: 20%;">' + datestring + '</b>';
+      }
+      output += '<td class="' + month_names[td.getMonth()] + '" ' + isholiday + '>' + datestring + '<br><hr>';
       for (let sm = 0; sm < json_data.Schedule.staff.length; sm++) {
         let s = json_data.Schedule.staff[sm];
         let isWork = 'green';
