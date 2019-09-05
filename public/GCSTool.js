@@ -33,6 +33,30 @@ const teams = {
 };
 
 /*******
+* Analyze
+*/
+function AnalyzeData() {
+	let total_entries = json_data.Entries.length;
+	let multicontent_entries = 0;
+	let longest_entry = 0;
+	json_data.Entries.forEach(d => {
+		if(d.data.Content.length > 1) {
+			multicontent_entries++;
+		}
+		let thisentrylength = d.data.Title.length;
+		for(let i = 0; i < d.data.Content.length; i++) {
+			thisentrylength += d.data.Content[i].length;
+		}
+		if(thisentrylength > longest_entry) {
+			longest_entry = thisentrylength;
+		}
+    });
+    document.getElementById('debug').innerHTML = 'Total entries: ' + total_entries + '<br>';
+    document.getElementById('debug').innerHTML += 'Multicontent entries: ' + multicontent_entries + '<br>';
+    document.getElementById('debug').innerHTML += 'Longest entry: ' + longest_entry + '<br>';
+}
+
+/*******
  * Most used
  */
 
