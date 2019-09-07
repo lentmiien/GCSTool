@@ -1,27 +1,21 @@
 const Sequelize = require('sequelize');
+// Load models
+const UserModel = require('./models/user');
+
+// Connect to DB
 const sequelize = new Sequelize('gcstool', 'root', '', {
   dialect: 'mysql'
 });
 
-class User extends Sequelize.Model {}
-User.init(
-  {
-    username: Sequelize.STRING,
-    birthday: Sequelize.DATE
-  },
-  { sequelize, modelName: 'user' }
-);
+// Attach DB to model
+const User = UserModel(sequelize, Sequelize);
 
-sequelize
-  .sync()
-  .then(() =>
-    User.create({
-      username: '田中',
-      birthday: new Date(1980, 6, 20)
-    })
-  )
-  .then(jane => {
-    console.log(jane.toJSON());
-  });
+// Create all necessary tables
+sequelize.sync().then(() => {
+  console.log(`Database & tables created!`);
+});
 
-module.exports = User;
+// Export models
+module.exports = {
+  User
+};
