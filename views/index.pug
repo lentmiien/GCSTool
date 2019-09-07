@@ -2,4 +2,14 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+  p Welcome to #{title}. If this is the first time using the tool, please fill in the settings below.
+  p If you have used the tool before, then you should be re-directed automatically, or you can use the menu at the top to start using the tool.
+
+  hr
+  h3 Settings
+  p User ID
+  input#user_id(type='text')
+
+  br
+  br
+  button Start

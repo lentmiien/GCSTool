@@ -1,8 +1,20 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  padding: 15px;
+  font: 14px 'Lucida Grande', Helvetica, Arial, sans-serif;
 }
 
 a {
-  color: #00B7FF;
+  color: #00b7ff;
+}
+
+.topbar-nav li {
+  display: inline;
+  padding: 5px;
+  border-radius: 25%;
+  margin-right: 15px;
+  background-color: rgb(244, 245, 255);
+}
+
+.topbar-nav a {
+  padding: 10px;
 }
