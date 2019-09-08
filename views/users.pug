@@ -3,4 +3,8 @@ extends layout
 block content
     ul
         each val in users
-            li= val.username
+            li
+                = val.title
+                ul
+                    each content in val.contents
+                        li= content.data

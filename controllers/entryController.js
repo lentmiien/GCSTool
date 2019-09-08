@@ -1,11 +1,11 @@
 // Require necessary database models
-const { User } = require('../sequelize');
+const { Entry, Content, Staff, Holiday, Schedule } = require('../sequelize');
 
 // Display all Entries
 exports.entry_list = function(req, res) {
   //res.send('NOT IMPLEMENTED: Entry List');
 
-  User.findAll().then(users => res.render('users', { users: users }));
+  Entry.findAll({ include: [{ model: Content }] }).then(users => res.render('users', { users: users }));
 };
 
 // Display Entry create form on GET

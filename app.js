@@ -10,7 +10,7 @@ var entryRouter = require('./routes/entry');
 
 var app = express();
 
-const { User } = require('./sequelize');
+const { Entry, Content, Staff, Holiday, Schedule } = require('./sequelize');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

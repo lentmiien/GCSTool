@@ -1,6 +1,10 @@
 const Sequelize = require('sequelize');
 // Load models
-const UserModel = require('./models/user');
+const EntryModel = require('./models/entry');
+const ContentModel = require('./models/content');
+const StaffModel = require('./models/staff');
+const HolidayModel = require('./models/holiday');
+const ScheduleModel = require('./models/schedule');
 
 // Connect to DB
 const sequelize = new Sequelize('gcstool', 'root', '', {
@@ -8,7 +12,15 @@ const sequelize = new Sequelize('gcstool', 'root', '', {
 });
 
 // Attach DB to model
-const User = UserModel(sequelize, Sequelize);
+const Entry = EntryModel(sequelize, Sequelize);
+const Content = ContentModel(sequelize, Sequelize);
+const Staff = StaffModel(sequelize, Sequelize);
+const Holiday = HolidayModel(sequelize, Sequelize);
+const Schedule = ScheduleModel(sequelize, Sequelize);
+
+// Create table relations
+Entry.hasMany(Content);
+Staff.hasMany(Schedule);
 
 // Create all necessary tables
 sequelize.sync().then(() => {
@@ -17,5 +29,9 @@ sequelize.sync().then(() => {
 
 // Export models
 module.exports = {
-  User
+  Entry,
+  Content,
+  Staff,
+  Holiday,
+  Schedule
 };
