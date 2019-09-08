@@ -1233,6 +1233,18 @@ function ExpSearch() {
   }
 }
 
+function Filter() {
+  const e = document.getElementsByClassName('entry');
+  const s_string = document.getElementById('s_box').value;
+  for (let i = 0; i < e.length; i++) {
+    if (e[i].innerHTML.indexOf(s_string) >= 0) {
+      e[i].style.display = 'block';
+    } else {
+      e[i].style.display = 'none';
+    }
+  }
+}
+
 function DisplayEntry(uid) {
   if (document.getElementById(uid).style.display.indexOf('none') == 0) {
     document.getElementById(uid).style.display = 'block';
