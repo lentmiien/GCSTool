@@ -1,10 +1,13 @@
 extends layout
 
 block content
-    ul
-        each val in users
-            li
-                = val.title
+    each val in users
+        div(class='entry ' + val.category)
+            button(class='title_button ' + val.tag, onclick='DisplayEntry(\'entry' + val.id + '\')')= val.title
+            i.label= val.category
+            i(class='label' + (val.ismaster ? ' master' : ''), style='float:right;')= val.ismaster ? 'Master' : 'Private'
+            br
+            div(id='entry' + val.id, style='display:none;')
                 ul
                     each content in val.contents
                         li= content.data
