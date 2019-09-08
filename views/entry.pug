@@ -8,6 +8,8 @@ block content
             i(class='label' + (val.ismaster ? ' master' : ''), style='float:right;')= val.ismaster ? 'Master' : 'Private'
             br
             div(id='entry' + val.id, style='display:none;')
-                ul
-                    each content in val.contents
-                        li= content.data
+                each content in val.contents
+                    if val.category == 'manual'
+                        div !{content.data}
+                    else
+                        textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data

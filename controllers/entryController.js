@@ -5,7 +5,7 @@ const { Entry, Content, Staff, Holiday, Schedule } = require('../sequelize');
 exports.entry_list = function(req, res) {
   //res.send('NOT IMPLEMENTED: Entry List');
 
-  Entry.findAll({ include: [{ model: Content }] }).then(users => res.render('users', { users: users }));
+  Entry.findAll({ include: [{ model: Content }] }).then(users => res.render('entry', { users: users }));
 };
 
 // Display Entry create form on GET
