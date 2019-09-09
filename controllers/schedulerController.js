@@ -19,8 +19,6 @@ exports.index = function(req, res) {
       res.render('scheduler', { data: results });
     }
   );
-
-  //Staff.findAll({ include: [{ model: Schedule }] }).then(s => res.render('scheduler', { staff: s }));
 };
 
 // // Display Entry create form on GET

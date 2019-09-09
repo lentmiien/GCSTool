@@ -1,9 +1,22 @@
 extends layout
 
 block content
-    ol
-        each s in data.staff
-            li= s.name
-    ul
-        each d in data.holidays
-            li= d.date
+    - let d = new Date()
+    - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay())
+    table
+        each week in [0, 1, 2, 3]
+            tr
+                each day in [0, 1, 2, 3, 4, 5, 6]
+                    - let celldate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + (week * 7) + day)
+                    - let datecolor = (day == 0 ? 'red' : 'green')
+                    td(style='background-color:' + datecolor + ';')
+                        b= celldate.getFullYear() + '/' + (celldate.getMonth()+1) + '/' + celldate.getDate()
+                        hr
+                        each s in data.staff
+                            div= s.name
+    //- ol
+    //-     each s in data.staff
+    //-         li= s.name
+    //- ul
+    //-     each d in data.holidays
+    //-         li= d.date
