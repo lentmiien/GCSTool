@@ -1,0 +1,9 @@
+extends layout
+
+block content
+    ol
+        each s in data.staff
+            li= s.name
+    ul
+        each d in data.holidays
+            li= d.date
