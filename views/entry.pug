@@ -1,6 +1,7 @@
 extends layout
 
 block content
+    - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_'];
     h2 Filter
     span.frame
         span(lg_language='_input_')
@@ -14,6 +15,11 @@ block content
         | 
         input#s_ccontact(name='search', type='checkbox', checked)
         span(lg_language='_ccontact_')
+        | 
+        select#s_tag(name="search")
+            option(value='_', lg_language='_all_')
+            each tag in tags
+                option(value=tag, lg_language=tag)
         | 
         button(onclick='Filter()') Apply Filter
     hr
