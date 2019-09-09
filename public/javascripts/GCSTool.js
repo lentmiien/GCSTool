@@ -1238,7 +1238,15 @@ function Filter() {
   const s_string = document.getElementById('s_box').value;
   for (let i = 0; i < e.length; i++) {
     if (e[i].innerHTML.indexOf(s_string) >= 0) {
-      e[i].style.display = 'block';
+      if (
+        (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||
+        (e[i].className.indexOf('manual') >= 0 && document.getElementById('s_manual').checked == true) ||
+        (e[i].className.indexOf('ccontact') >= 0 && document.getElementById('s_ccontact').checked == true)
+      ) {
+        e[i].style.display = 'block';
+      } else {
+        e[i].style.display = 'none';
+      }
     } else {
       e[i].style.display = 'none';
     }
