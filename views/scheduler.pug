@@ -11,4 +11,19 @@ block content
                 ul
                     li= 'Day off ' + s.dayoff1
                     li= 'Day off ' + s.dayoff2
-    div= JSON.stringify(data)
+    hr
+    select#year_select
+        each year in [2019, 2020]
+            option(value=year)= year
+    select#month_select
+        each month in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            option(value=(month-1))= month
+    select#date_select
+        each date in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+            option(value=date)= date
+    select#show_weeks
+        each weeks in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+            option(value=weeks)= weeks + " weeks"
+    button(onclick='SetupScheduler()') Show Schedule
+    table#schedule
+    div#data.hidden= JSON.stringify(data)

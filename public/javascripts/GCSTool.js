@@ -286,6 +286,7 @@ const month_names = [
 // Setup scheduler
 function SetupScheduler() {
   let dom_scheduler = document.getElementById('schedule');
+  let data = JSON.parse(document.getElementById('data').innerHTML);
   dom_scheduler.innerHTML =
     '<tr><th style="background-color:rgb(141, 71, 71);" >' +
     GetHTMLElement('_su_') +
@@ -327,8 +328,13 @@ function SetupScheduler() {
       if (td.getDay() == 0) {
         isholiday = ' style="background-color:rgb(141, 71, 71);"';
       }
-      for (let i = 0; i < json_data.Schedule.holidays.length; i++) {
-        let holiday = json_data.Schedule.holidays[i];
+      for (let i = 0; i < data.holidays.length; i++) {
+        let data_split = data.holidays[i].date.split('-');
+        let holiday = {
+          year: parseInt(data_split[0]),
+          month: parseInt(data_split[1]),
+          date: parseInt(data_split[2])
+        };
         if (td.getFullYear() == holiday.year && td.getMonth() + 1 == holiday.month && td.getDate() == holiday.date) {
           isholiday = ' style="background-color:rgb(141, 71, 71);"';
         }
@@ -339,19 +345,24 @@ function SetupScheduler() {
         datestring = '<b style="border: 5px solid orange; border-radius: 20%;">' + datestring + '</b>';
       }
       output += '<td class="' + month_names[td.getMonth()] + '" ' + isholiday + '>' + datestring + '<br><hr>';
-      for (let sm = 0; sm < json_data.Schedule.staff.length; sm++) {
-        let s = json_data.Schedule.staff[sm];
+      for (let sm = 0; sm < data.staff.length; sm++) {
+        let s = data.staff[sm];
         let isWork = 'green';
-        if (td.getDay() == s.daysoff[0] || td.getDay() == s.daysoff[1]) {
+        if (td.getDay() == s.dayoff1 || td.getDay() == s.dayoff2) {
           isWork = 'red';
         }
         if (isholiday.length > 0) {
           isWork = 'red';
         }
-        for (let i = 0; i < json_data.Schedule.daysoff.length; i++) {
-          let dayoff = json_data.Schedule.daysoff[i];
-          if (td.getFullYear() == dayoff.year && td.getMonth() + 1 == dayoff.month && td.getDate() == dayoff.date && sm == dayoff.staff) {
-            if (dayoff.work == true) {
+        for (let i = 0; i < s.schedules.length; i++) {
+          let date_split = s.schedules[i].date.split('-');
+          let dayoff = {
+            year: parseInt(date_split[0]),
+            month: parseInt(date_split[1]),
+            date: parseInt(date_split[2])
+          };
+          if (td.getFullYear() == dayoff.year && td.getMonth() + 1 == dayoff.month && td.getDate() == dayoff.date) {
+            if (s.schedules[i].work == true) {
               isWork = 'green';
             } else {
               isWork = 'red';
@@ -380,11 +391,11 @@ function SetupScheduler() {
   dom_scheduler.innerHTML += output;
 
   // Fill in remove user
-  const usrs = document.getElementById('select_user');
-  usrs.innerHTML = '';
-  json_data.Schedule.staff.forEach((d, i) => {
-    usrs.innerHTML += '<option value="' + i + '">' + d.name + '</option>';
-  });
+  // const usrs = document.getElementById('select_user');
+  // usrs.innerHTML = '';
+  // json_data.Schedule.staff.forEach((d, i) => {
+  //   usrs.innerHTML += '<option value="' + i + '">' + d.name + '</option>';
+  // });
 }
 function AddUser() {
   // Only for master edit mode
