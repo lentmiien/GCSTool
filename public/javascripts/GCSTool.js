@@ -205,6 +205,39 @@ function DeleteUidFromJSON(del_uid) {
 
 /**********************************************
  *
+ *                SETTINGS
+ *
+ **********************************************/
+
+let my_settings = {
+  userid: 'NewUser',
+  language: 'japanese'
+};
+function Loaded() {
+  if (localStorage.hasOwnProperty('settings') == true) {
+    my_settings = JSON.parse(localStorage.getItem('settings'));
+  }
+  let dom_uid = document.getElementById('user_id');
+  if (dom_uid) {
+    dom_uid.value = my_settings.userid;
+  }
+  document.getElementById('lg_language').value = my_settings.language;
+  UpdateLanguage('lg_language');
+}
+
+function UpdateUserID() {
+  my_settings.userid = document.getElementById('user_id').value;
+  localStorage.setItem('settings', JSON.stringify(my_settings));
+}
+
+function UpdateLanguageSettings() {
+  my_settings.language = document.getElementById('lg_language').value;
+  localStorage.setItem('settings', JSON.stringify(my_settings));
+  UpdateLanguage('lg_language');
+}
+
+/**********************************************
+ *
  *                 INTERFACE
  *
  **********************************************/

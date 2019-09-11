@@ -10,7 +10,7 @@ html(lang='en')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/style.css')
     link(rel='stylesheet', href='/Style_normal.css')
-  body
+  body(onload='Loaded()')
     div(class='container-fluid')
       div(class='row')
         div(class='col-sm-12')
@@ -34,7 +34,7 @@ html(lang='en')
               li 
                 a(href='/about', lg_language='_about_')
               li 
-                select#lg_language(onchange='UpdateLanguage(\'lg_language\')')
+                select#lg_language(onchange='UpdateLanguageSettings()')
                   option(value='japanese') 日本語
                   option(value='english') English
                   option(value='swedish') Svenska
