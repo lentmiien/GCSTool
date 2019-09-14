@@ -1,5 +1,5 @@
-const { body, validationResult } = require('express-validator/check');
-const { sanitizeBody } = require('express-validator/filter');
+const { body, validationResult } = require('express-validator');
+const { sanitizeBody } = require('express-validator');
 
 // Require necessary database models
 const { Entry, Content, Staff, Holiday, Schedule } = require('../sequelize');
@@ -63,7 +63,15 @@ exports.entry_create_post = [
       //for (let i = 0; i < d.data.Content.length; i++) {
       input_data.contents.push({ data: req.body.content1 });
       //}
-      Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', {}));
+
+      // ismaster can only be added by approved staff
+      let warning = '';
+      if (input_data.ismaster == 1 && input_data.creator != 'Lennart') {
+        input_data.ismaster = 0;
+        warning = 'Can not add master data, added as personal data instead.';
+      }
+
+      Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', { warning: warning }));
     }
   }
 ];

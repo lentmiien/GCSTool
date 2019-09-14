@@ -1,8 +1,18 @@
 var json_language = {
+  _template_: {
+    english: 'Template',
+    swedish: 'Mall',
+    japanese: 'テンプレート'
+  },
   _templates_: {
     english: 'Templates',
     swedish: 'Mallar',
     japanese: 'テンプレート'
+  },
+  _manual_: {
+    english: 'Manual',
+    swedish: 'Manual',
+    japanese: 'マニュアル'
   },
   _manuals_: {
     english: 'Manuals',
