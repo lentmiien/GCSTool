@@ -46,12 +46,24 @@ exports.entry_create_post = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('newentry', { errors: errors.array() });
+      console.log(req.body);
+      res.render('newentry', { content: req.body, errors: errors.array() });
       return;
     } else {
       // Add data to database
-
-      res.render('entryadded', {});
+      const input_data = {
+        creator: req.body.creator,
+        category: req.body.category,
+        ismaster: req.body.ismaster ? 1 : 0,
+        tag: req.body.tag,
+        team: req.body.team,
+        title: req.body.title,
+        contents: []
+      };
+      //for (let i = 0; i < d.data.Content.length; i++) {
+      input_data.contents.push({ data: req.body.content1 });
+      //}
+      Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', {}));
     }
   }
 ];

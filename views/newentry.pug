@@ -7,36 +7,77 @@ block content
                 li!= error.msg
         hr
     h1 New Entry
-    form(action="/entry/create", method="post")
-        input#creator(type="hidden", name="creator")
-        | Title 
-        input#title(type="text", name="title")
-        br
-        | Category 
-        select#category(name="category")
-            option(value='template' lg_language='_template_')
-            option(value='manual' lg_language='_manual_')
-            option(value='ccontact' lg_language='_ccontact_')
-        br
-        input#ismaster(type="checkbox", name="ismaster")
-        |  Is Master
-        br
-        | Tag 
-        select#tag(name="tag")
-            option(value='_account_related_' lg_language='_account_related_')
-            option(value='tag2') Tag2
-            option(value='tag3') Tag3
-        br
-        | Team 
-        select#team(name="team")
-            option(value='ohami_global_support') GCS Mail team
-            option(value='team2') Team2
-            option(value='team3') Team3
-        br
-        | Content
-        br
-        div#contents
-            textarea#content1(name="content1", cols="30", rows="10")
-        button(onclick='AddContent()') Add content
-        br
-        button(type="submit") Submit
+    form(action='/entry/create', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='title') Title
+            input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=(undefined===content ? '' : content.title))
+            br
+            label(for='category') Category
+            select#category.form-control(name='category')
+                if undefined===content
+                    option(value='template', lg_language='_template_')
+                    option(value='manual', lg_language='_manual_')
+                    option(value='ccontact', lg_language='_ccontact_')
+                else
+                    if content.category==='template'
+                        option(value='template', lg_language='_template_', selected)
+                    else
+                        option(value='template', lg_language='_template_')
+                    if content.category==='manual'
+                        option(value='manual', lg_language='_manual_', selected)
+                    else
+                        option(value='manual', lg_language='_manual_')
+                    if content.category==='ccontact'
+                        option(value='ccontact', lg_language='_ccontact_', selected)
+                    else
+                        option(value='ccontact', lg_language='_ccontact_')
+            br
+            label(for='ismaster') Is Master
+            input#ismaster.form-control(type='checkbox', name='ismaster', checked=(undefined===content ? false : (undefined===content.ismaster ? false : true)))
+            br
+            label(for='tag') Tag
+            select#tag.form-control(name='tag')
+                if undefined===content
+                    option(value='_account_related_' lg_language='_account_related_')
+                    option(value='tag2') Tag2
+                    option(value='tag3') Tag3
+                else
+                    if content.tag==='_account_related_'
+                        option(value='_account_related_', lg_language='_account_related_', selected)
+                    else
+                        option(value='_account_related_', lg_language='_account_related_')
+                    if content.tag==='tag2'
+                        option(value='tag2', selected) Tag2
+                    else
+                        option(value='tag2') Tag2
+                    if content.tag==='tag3'
+                        option(value='tag3', selected) Tag3
+                    else
+                        option(value='tag3') Tag3
+            br
+            label(for='team') Team
+            select#team.form-control(name='team')
+                if undefined===content
+                    option(value='ohami_global_support') GCS Mail team
+                    option(value='team2') Team2
+                    option(value='team3') Team3
+                else
+                    if content.team==='ohami_global_support'
+                        option(value='ohami_global_support', selected) GCS Mail team
+                    else
+                        option(value='ohami_global_support') GCS Mail team
+                    if content.team==='team2'
+                        option(value='team2', selected) Team2
+                    else
+                        option(value='team2') Team2
+                    if content.team==='team3'
+                        option(value='team3', selected) Team3
+                    else
+                        option(value='team3') Team3
+        div.form-group
+            label(for='content1') Content
+            div#contents
+                textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===content ? '' : content.content1)
+            button(onclick='AddContent()') Add content
+        button.btn.btn-primary(type='submit') Submit
