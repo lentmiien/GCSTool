@@ -1,7 +1,7 @@
 extends layout
 
 block content
-    a(href='/entry/create', lg_language='_create_')
+    a(href='/entry/create', lg_language='_create_new_')
     hr
     - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_'];
     h2 Filter
@@ -13,7 +13,7 @@ block content
         span(lg_language='_templates_')
         | 
         input#s_manual(name='search', type='checkbox', checked)
-        span(lg_language='_manual_')
+        span(lg_language='_manuals_')
         | 
         input#s_ccontact(name='search', type='checkbox', checked)
         span(lg_language='_ccontact_')

@@ -39,7 +39,7 @@ exports.entry_create_post = [
   // Sanitize fields
   sanitizeBody('creator').escape(),
   sanitizeBody('title').escape(),
-  sanitizeBody('content1').escape(),
+  //sanitizeBody('content1').escape(),
 
   (req, res) => {
     // Extract the validation errors from a request.
