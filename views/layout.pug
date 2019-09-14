@@ -9,7 +9,6 @@ html(lang='en')
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/style.css')
-    link(rel='stylesheet', href='/Style_normal.css')
   body(onload='Loaded()')
     div(class='container-fluid')
       div(class='row')
@@ -20,8 +19,6 @@ html(lang='en')
                 a(href='/entry', lg_language='_search_')
               li 
                 a(href='/scheduler', lg_language='_scheduler_')
-              li 
-                a(href='/entry/create', lg_language='_create_')
       hr
       div(class='row')
         div(class='col-sm-12')
@@ -38,5 +35,5 @@ html(lang='en')
                   option(value='japanese') 日本語
                   option(value='english') English
                   option(value='swedish') Svenska
-    script(src='lg_language.js')
-    script(src='javascripts/GCSTool.js')
+    script(src='/lg_language.js')
+    script(src='/javascripts/GCSTool.js')

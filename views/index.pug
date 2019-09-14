@@ -9,7 +9,9 @@ block content
   h3 Settings
   p User ID
   input#user_id(type='text')
-
-  br
-  br
   button(onclick='UpdateUserID()') Update User ID
+  br
+  select#cmode(name="colormode")
+    option(value='Style_normal.css') Normal
+    option(value='Style_dark.css') Dark
+  button(onclick='UpdateColorMode()') Update Color Mode

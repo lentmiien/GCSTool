@@ -211,22 +211,48 @@ function DeleteUidFromJSON(del_uid) {
 
 let my_settings = {
   userid: 'NewUser',
+  colormode: 'Style_normal.css',
   language: 'japanese'
 };
 function Loaded() {
   if (localStorage.hasOwnProperty('settings') == true) {
     my_settings = JSON.parse(localStorage.getItem('settings'));
   }
+
   let dom_uid = document.getElementById('user_id');
   if (dom_uid) {
     dom_uid.value = my_settings.userid;
   }
+  dom_uid = document.getElementById('creator');
+  if (dom_uid) {
+    dom_uid.value = my_settings.userid;
+  }
+
   document.getElementById('lg_language').value = my_settings.language;
   UpdateLanguage('lg_language');
+
+  let dom_cmode = document.getElementById('cmode');
+  if (dom_cmode) {
+    dom_cmode.value = my_settings.colormode;
+  }
+
+  let head = document.getElementsByTagName('head')[0];
+  let link = document.createElement('link');
+  link.id = 'myCss';
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = '/' + my_settings.colormode;
+  link.media = 'all';
+  head.appendChild(link);
 }
 
 function UpdateUserID() {
   my_settings.userid = document.getElementById('user_id').value;
+  localStorage.setItem('settings', JSON.stringify(my_settings));
+}
+
+function UpdateColorMode() {
+  my_settings.colormode = document.getElementById('cmode').value;
   localStorage.setItem('settings', JSON.stringify(my_settings));
 }
 

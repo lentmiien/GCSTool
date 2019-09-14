@@ -1,0 +1,42 @@
+extends layout
+
+block content
+    if errors
+        ul
+            for error in errors
+                li!= error.msg
+        hr
+    h1 New Entry
+    form(action="/entry/create", method="post")
+        input#creator(type="hidden", name="creator")
+        | Title 
+        input#title(type="text", name="title")
+        br
+        | Category 
+        select#category(name="category")
+            option(value='template' lg_language='_template_')
+            option(value='manual' lg_language='_manual_')
+            option(value='ccontact' lg_language='_ccontact_')
+        br
+        input#ismaster(type="checkbox", name="ismaster")
+        |  Is Master
+        br
+        | Tag 
+        select#tag(name="tag")
+            option(value='_account_related_' lg_language='_account_related_')
+            option(value='tag2') Tag2
+            option(value='tag3') Tag3
+        br
+        | Team 
+        select#team(name="team")
+            option(value='ohami_global_support') GCS Mail team
+            option(value='team2') Team2
+            option(value='team3') Team3
+        br
+        | Content
+        br
+        div#contents
+            textarea#content1(name="content1", cols="30", rows="10")
+        button(onclick='AddContent()') Add content
+        br
+        button(type="submit") Submit
