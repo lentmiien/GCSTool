@@ -25,15 +25,16 @@ block content
         | 
         button(onclick='Filter()') Apply Filter
     hr
-    each val in users
-        div(class='entry ' + val.category)
-            button(class='title_button ' + val.tag, onclick='DisplayEntry(\'entry' + val.id + '\')')= val.title
-            i.label= val.category
-            i(class='label' + (val.ismaster ? ' master' : ''), style='float:right;')= val.ismaster ? 'Master' : 'Private'
+    each entry in entries
+        div(class='entry ' + entry.category)
+            button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
+            i.label= entry.category
+            i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;')= entry.ismaster ? 'Master' : 'Private'
             br
-            div(id='entry' + val.id, style='display:none;')
-                each content in val.contents
-                    if val.category == 'manual'
+            div(id='entry' + entry.id, style='display:none;')
+                each content in entry.contents
+                    if entry.category == 'manual'
                         div !{content.data}
                     else
                         textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
+                a(href='./entry/' + entry.id + '/delete') DELETE

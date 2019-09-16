@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    if errors===undefined
+        h2 Confirm Delete
+        p= 'Do you wish to delete "' + entry.title + '"?'
+        form(action='/entry/' + entry.id + '/delete', method="post")
+            input#creator(type='hidden', name='creator')
+            button.btn.btn-primary(type='submit') Delete
+    else
+        h2 Could not delete
+        ul
+            for error in errors
+                li!= error.msg
+        hr
+        a(href="/entry") Back
