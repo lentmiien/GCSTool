@@ -45,6 +45,10 @@ block content
                         option(value='ohami_global_support') GCS Mail team
             div.form-group
                 each i in [0, 1, 2, 3, 4]
+                    if !(undefined===entry.contents[i])
+                        input(id='contentid' + (i+1), type='hidden', name='contentid' + (i+1), value=(entry.contents[i].id))
+                    else
+                        b (NEW)
                     label(for='content' + (i+1))= 'Content' + (i+1)
                     textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
             button.btn.btn-primary(type='submit') Update

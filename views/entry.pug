@@ -37,7 +37,8 @@ block content
                         div !{content.data}
                     else
                         textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
+                    hr
                 i= 'Created by ' + entry.creator + '.'
                 br
-                a(href='./entry/' + entry.id + '/update') EDIT
-                a(href='./entry/' + entry.id + '/delete') DELETE
+                a.entry_control(href='./entry/' + entry.id + '/update') EDIT
+                a.entry_control(href='./entry/' + entry.id + '/delete') DELETE

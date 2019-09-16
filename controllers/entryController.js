@@ -203,6 +203,160 @@ exports.entry_update_get = function(req, res) {
 };
 
 // Handle Entry update on POST.
-exports.entry_update_post = function(req, res) {
-  res.send('NOT IMPLEMENTED: Entry update POST');
-};
+exports.entry_update_post = [
+  // Validation fields
+  body('creator')
+    .isLength({ min: 1 })
+    .trim()
+    .withMessage('User ID is needed.')
+    .isAlphanumeric()
+    .withMessage('User ID has non-alphanumeric characters.'),
+  body('title')
+    .isLength({ min: 1 })
+    .trim()
+    .withMessage('A title is needed.'),
+
+  // Sanitize fields
+  sanitizeBody('creator').escape(),
+  sanitizeBody('title').escape(),
+  //sanitizeBody('content1').escape(),
+
+  (req, res) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.render('entryupdate', { errors: errors.array() });
+      return;
+    } else {
+      async.parallel(
+        {
+          entry: function(callback) {
+            Entry.findAll({
+              where: { id: req.params.id },
+              include: [{ model: Content }]
+            }).then(entry => callback(null, entry[0]));
+          }
+        },
+        function(err, results) {
+          if (err) {
+            return next(err);
+          }
+          if (results.entry == null) {
+            // No results.
+            res.redirect('/entry');
+          }
+
+          // Successful, so continue.
+          // ismaster can only be updated by approved staff
+          const update_data = {
+            category: req.body.category,
+            ismaster: req.body.ismaster ? 1 : 0,
+            tag: req.body.tag,
+            team: req.body.team,
+            title: req.body.title
+          };
+
+          // ismaster can only be updated by approved staff
+          let warning = '';
+          if (results.entry.ismaster == 1 && req.body.creator != 'Lennart') {
+            warning = 'You can not update master data.';
+            res.render('entryupdated', { warning: warning });
+          } else {
+            // Update database data
+            Entry.update(update_data, {
+              where: { id: req.params.id }
+            }).then(d =>
+              async.parallel(
+                {
+                  content1: function(callback) {
+                    if (req.body.contentid1 != undefined) {
+                      if (req.body.content1.length > 0) {
+                        Content.update({ data: req.body.content1 }, { where: { id: req.body.contentid1 } }).then(r => callback(null, r));
+                      } else {
+                        Content.destroy({ where: { id: req.body.contentid1 } }).then(r => callback(null, r));
+                      }
+                    } else {
+                      if (req.body.content1.length > 0) {
+                        Content.create({ data: req.body.content1, entryId: req.params.id }).then(r => callback(null, r));
+                      } else {
+                        callback(null, null);
+                      }
+                    }
+                  },
+                  content2: function(callback) {
+                    if (req.body.contentid2 != undefined) {
+                      if (req.body.content2.length > 0) {
+                        Content.update({ data: req.body.content2 }, { where: { id: req.body.contentid2 } }).then(r => callback(null, r));
+                      } else {
+                        Content.destroy({ where: { id: req.body.contentid2 } }).then(r => callback(null, r));
+                      }
+                    } else {
+                      if (req.body.content2.length > 0) {
+                        Content.create({ data: req.body.content2, entryId: req.params.id }).then(r => callback(null, r));
+                      } else {
+                        callback(null, null);
+                      }
+                    }
+                  },
+                  content3: function(callback) {
+                    if (req.body.contentid3 != undefined) {
+                      if (req.body.content3.length > 0) {
+                        Content.update({ data: req.body.content3 }, { where: { id: req.body.contentid3 } }).then(r => callback(null, r));
+                      } else {
+                        Content.destroy({ where: { id: req.body.contentid3 } }).then(r => callback(null, r));
+                      }
+                    } else {
+                      if (req.body.content3.length > 0) {
+                        Content.create({ data: req.body.content3, entryId: req.params.id }).then(r => callback(null, r));
+                      } else {
+                        callback(null, null);
+                      }
+                    }
+                  },
+                  content4: function(callback) {
+                    if (req.body.contentid4 != undefined) {
+                      if (req.body.content4.length > 0) {
+                        Content.update({ data: req.body.content4 }, { where: { id: req.body.contentid4 } }).then(r => callback(null, r));
+                      } else {
+                        Content.destroy({ where: { id: req.body.contentid4 } }).then(r => callback(null, r));
+                      }
+                    } else {
+                      if (req.body.content4.length > 0) {
+                        Content.create({ data: req.body.content4, entryId: req.params.id }).then(r => callback(null, r));
+                      } else {
+                        callback(null, null);
+                      }
+                    }
+                  },
+                  content5: function(callback) {
+                    if (req.body.contentid5 != undefined) {
+                      if (req.body.content5.length > 0) {
+                        Content.update({ data: req.body.content5 }, { where: { id: req.body.contentid5 } }).then(r => callback(null, r));
+                      } else {
+                        Content.destroy({ where: { id: req.body.contentid5 } }).then(r => callback(null, r));
+                      }
+                    } else {
+                      if (req.body.content5.length > 0) {
+                        Content.create({ data: req.body.content5, entryId: req.params.id }).then(r => callback(null, r));
+                      } else {
+                        callback(null, null);
+                      }
+                    }
+                  }
+                },
+                function(err, results) {
+                  if (err) {
+                    return next(err);
+                  }
+                  // Successful, so render.
+                  res.render('entryupdated', { warning: warning });
+                }
+              )
+            );
+          }
+        }
+      );
+    }
+  }
+];

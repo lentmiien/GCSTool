@@ -18,3 +18,11 @@ a {
 .topbar-nav a {
   padding: 10px;
 }
+
+.entry_control {
+  padding: 2px;
+  border: 1px solid black;
+  border-radius: 5%;
+  margin-left: 3px;
+  margin-right: 3px;
+}
