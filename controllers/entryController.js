@@ -36,7 +36,7 @@ exports.entry_create_post = [
   body('content1')
     .isLength({ min: 1 })
     .trim()
-    .withMessage('Content#1 is needed.'),
+    .withMessage('Content 1 is needed.'),
 
   // Sanitize fields
   sanitizeBody('creator').escape(),
@@ -61,9 +61,20 @@ exports.entry_create_post = [
         title: req.body.title,
         contents: []
       };
-      //for (let i = 0; i < d.data.Content.length; i++) {
+
       input_data.contents.push({ data: req.body.content1 });
-      //}
+      if (req.body.content2.length > 0) {
+        input_data.contents.push({ data: req.body.content2 });
+      }
+      if (req.body.content3.length > 0) {
+        input_data.contents.push({ data: req.body.content3 });
+      }
+      if (req.body.content4.length > 0) {
+        input_data.contents.push({ data: req.body.content4 });
+      }
+      if (req.body.content5.length > 0) {
+        input_data.contents.push({ data: req.body.content5 });
+      }
 
       // ismaster can only be added by approved staff
       let warning = '';
@@ -166,7 +177,29 @@ exports.entry_delete_post = [
 
 // Display Entry update form on GET.
 exports.entry_update_get = function(req, res) {
-  res.send('NOT IMPLEMENTED: Entry update GET');
+  //res.send('NOT IMPLEMENTED: Entry update GET');
+
+  async.parallel(
+    {
+      entry: function(callback) {
+        Entry.findAll({
+          where: { id: req.params.id },
+          include: [{ model: Content }]
+        }).then(entry => callback(null, entry[0]));
+      }
+    },
+    function(err, results) {
+      if (err) {
+        return next(err);
+      }
+      if (results.entry == null) {
+        // No results.
+        res.redirect('/entry');
+      }
+      // Successful, so render.
+      res.render('entryupdate', { entry: results.entry });
+    }
+  );
 };
 
 // Handle Entry update on POST.

@@ -37,24 +37,17 @@ block content
             input#ismaster.form-control(type='checkbox', name='ismaster', checked=(undefined===content ? false : (undefined===content.ismaster ? false : true)))
             br
             label(for='tag') Tag
+            - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
             select#tag.form-control(name='tag')
                 if undefined===content
-                    option(value='_account_related_' lg_language='_account_related_')
-                    option(value='tag2') Tag2
-                    option(value='tag3') Tag3
+                    each tag in tags
+                        option(value=tag lg_language=tag)
                 else
-                    if content.tag==='_account_related_'
-                        option(value='_account_related_', lg_language='_account_related_', selected)
-                    else
-                        option(value='_account_related_', lg_language='_account_related_')
-                    if content.tag==='tag2'
-                        option(value='tag2', selected) Tag2
-                    else
-                        option(value='tag2') Tag2
-                    if content.tag==='tag3'
-                        option(value='tag3', selected) Tag3
-                    else
-                        option(value='tag3') Tag3
+                    each tag in tags
+                        if content.tag===tag
+                            option(value=tag, lg_language=tag, selected)
+                        else
+                            option(value=tag, lg_language=tag)
             br
             label(for='team') Team
             select#team.form-control(name='team')
@@ -76,7 +69,14 @@ block content
                     else
                         option(value='team3') Team3
         div.form-group
-            label(for='content1') Content
-            div#contents
-                textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===content ? '' : content.content1)
+            label(for='content1') Content 1
+            textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===content ? '' : content.content1)
+            label(for='content2') Content 2
+            textarea#content2.form-control(name='content2', cols='30', rows='10')= (undefined===content ? '' : content.content2)
+            label(for='content3') Content 3
+            textarea#content3.form-control(name='content3', cols='30', rows='10')= (undefined===content ? '' : content.content3)
+            label(for='content4') Content 4
+            textarea#content4.form-control(name='content4', cols='30', rows='10')= (undefined===content ? '' : content.content4)
+            label(for='content5') Content 5
+            textarea#content5.form-control(name='content5', cols='30', rows='10')= (undefined===content ? '' : content.content5)
         button.btn.btn-primary(type='submit') Submit
