@@ -163,9 +163,6 @@ exports.entry_delete_post = [
     }
   }
 ];
-/*entry_delete_post = function(req, res) {
-  res.send('NOT IMPLEMENTED: Entry delete POST');
-};*/
 
 // Display Entry update form on GET.
 exports.entry_update_get = function(req, res) {
