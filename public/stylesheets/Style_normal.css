@@ -1,0 +1,185 @@
+/* Global settings */
+body {
+  background-color: #fafaff;
+  margin: 0;
+}
+
+/* Dictionary settings */
+div.entry {
+  border-style: solid;
+  border-color: #f0f0f0;
+  position: relative;
+}
+/* entry_c needed for News() function to work properly */
+div.entry_c {
+  border-style: solid;
+  border-color: #f0f0f0;
+}
+
+.w3-animate-opacity {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  align-content: center;
+  align-items: center;
+  font-size: 50px;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  vertical-align: middle;
+  color: red;
+  background-color: #fafaff;
+  animation: opac 1s;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+@keyframes opac {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+table,
+th,
+td {
+  font-size: 20px;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+.frame {
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 15px;
+  display: block;
+}
+.frame_search {
+  background-color: #ddddff;
+}
+.frame_shipping {
+  background-color: #ffdddd;
+}
+.frame_parse {
+  background-color: #ffffdd;
+}
+
+.label {
+  border: 2px dotted black;
+  border-radius: 5px;
+  margin-left: 5px;
+}
+.template {
+  background-color: #ccccff;
+}
+.manual {
+  background-color: #ffcccc;
+}
+.ccontact {
+  background-color: #dddd88;
+}
+.assist {
+  background-color: #ccffff;
+}
+.master {
+  background-color: #aaffaa;
+}
+.private {
+  background-color: #ffffcc;
+}
+
+.title_button {
+  font-size: 20px;
+  padding: 1px 15px;
+  cursor: pointer;
+  border: 2px solid;
+  border-radius: 3px;
+}
+
+/* Default settings for input areas */
+textarea {
+  resize: none;
+  overflow: hidden;
+  background-color: #ffffdd;
+}
+input {
+  background-color: #ffffdd;
+}
+select {
+  background-color: #ffffdd;
+}
+
+.textarea_comment {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  background-color: #ddb2ff;
+}
+
+/* Debug */
+.debug {
+  background-color: yellow;
+  text-align: center;
+  width: 100%;
+  font-size: 20px;
+  border: 2px solid red;
+}
+
+.todo_to_be_hidden {
+  background-color: black;
+  margin-top: 50px;
+}
+
+.january {
+  background-color: rgb(255, 186, 130);
+}
+.february {
+  background-color: rgb(161, 134, 255);
+}
+.march {
+  background-color: rgb(255, 186, 130);
+}
+.april {
+  background-color: rgb(161, 134, 255);
+}
+.may {
+  background-color: rgb(255, 186, 130);
+}
+.june {
+  background-color: rgb(161, 134, 255);
+}
+.july {
+  background-color: rgb(255, 186, 130);
+}
+.august {
+  background-color: rgb(161, 134, 255);
+}
+.september {
+  background-color: rgb(255, 186, 130);
+}
+.october {
+  background-color: rgb(161, 134, 255);
+}
+.november {
+  background-color: rgb(255, 186, 130);
+}
+.december {
+  background-color: rgb(161, 134, 255);
+}
+
+.today {
+  border: 5px solid rgb(255, 72, 0);
+}
+
+td {
+  padding: 5px;
+  border-bottom: 5px solid rgb(124, 124, 124);
+}
+
+.admin_control {
+  background-color: #ffd993;
+}

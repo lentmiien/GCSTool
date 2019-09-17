@@ -246,7 +246,6 @@ function UpdateLanguage(source) {
     }
   }
 }
-UpdateLanguage('lg_language');
 
 function GetData(key) {
   return json_language[key][language_id];

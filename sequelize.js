@@ -6,6 +6,7 @@ const ContentModel = require('./models/content');
 const StaffModel = require('./models/staff');
 const HolidayModel = require('./models/holiday');
 const ScheduleModel = require('./models/schedule');
+const AdminModel = require('./models/admin');
 
 // Connect to DB
 const sequelize = new Sequelize('gcstool', 'root', '', {
@@ -18,6 +19,7 @@ const Content = ContentModel(sequelize, Sequelize);
 const Staff = StaffModel(sequelize, Sequelize);
 const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
+const Admin = AdminModel(sequelize, Sequelize);
 
 // Create table relations
 Entry.Content = Entry.hasMany(Content);
@@ -77,6 +79,7 @@ sequelize.sync().then(() => {
         };
         Holiday.create(input_data);
       });
+      Admin.create({ userid: Lennart });
     }
   });
   //////////////////////////////////////////////////////////////////////////
@@ -90,5 +93,6 @@ module.exports = {
   Content,
   Staff,
   Holiday,
-  Schedule
+  Schedule,
+  Admin
 };

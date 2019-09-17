@@ -1,211 +1,6 @@
 /**********************************************
  *
- *                 VARIABLES
- *
- **********************************************/
-
-let g_i = 1;
-
-const category_keys = [
-  '_account_related_',
-  '_order_item_statuses_',
-  '_order_modifying_',
-  '_payment_shipping_',
-  '_after_service_shipping_',
-  '_after_service_defect_',
-  '_after_service_preowned_',
-  '_returns_refunds_',
-  '_claims_cases_',
-  '_work_related_',
-  '_case_assist_',
-  '_customer_dep_',
-  '_logistics_dep_',
-  '_feedback_',
-  '_other_'
-];
-
-const teams = {
-  ohami: '大網',
-  ohami_cs: 'CS課',
-  ohami_global: 'グローバル課',
-  ohami_global_support: 'グローバル課（サポート）',
-  ohami_global_order: 'グローバル課（注文管理）'
-};
-
-/*******
- * Analyze
- */
-function AnalyzeData() {
-  let total_entries = json_data.Entries.length;
-  let multicontent_entries = 0;
-  let longest_entry = 0;
-  json_data.Entries.forEach(d => {
-    if (d.data.Content.length > 1) {
-      multicontent_entries++;
-    }
-    let thisentrylength = d.data.Title.length;
-    for (let i = 0; i < d.data.Content.length; i++) {
-      thisentrylength += d.data.Content[i].length;
-    }
-    if (thisentrylength > longest_entry) {
-      longest_entry = thisentrylength;
-    }
-  });
-  document.getElementById('debug').innerHTML = 'Total entries: ' + total_entries + '<br>';
-  document.getElementById('debug').innerHTML += 'Multicontent entries: ' + multicontent_entries + '<br>';
-  document.getElementById('debug').innerHTML += 'Longest entry: ' + longest_entry + '<br>';
-}
-
-/*******
- * Most used
- */
-
-let most_used = [];
-
-function AddUse(id) {
-  let done = false;
-  for (let i = 0; i < most_used.length; i++) {
-    if (most_used[i].id === id) {
-      most_used[i].uses++;
-      done = true;
-    }
-  }
-  if (!done) {
-    most_used.push({ id, uses: 1 });
-  }
-
-  // Save to local storage
-  localStorage.setItem('most_used', JSON.stringify(most_used));
-}
-
-function SortList() {
-  most_used.sort((a, b) => {
-    if (a.uses < b.uses) {
-      return 1;
-    }
-    if (a.uses > b.uses) {
-      return -1;
-    }
-    return 0;
-  });
-}
-
-/*******
- * JSON
- */
-
-let json_data = {
-  Settings: {
-    user_id: 'New User',
-    i_language: 'english',
-    team: 'ohami',
-    style: 'Style_dark.css',
-    reminders: ''
-  },
-  Entries: []
-};
-
-let extMaster = '';
-let extPersonal = '';
-
-function ExistJSON(id) {
-  let id_index = -1;
-  json_data.Entries.forEach((entry, i) => {
-    if (entry.uid === id) {
-      id_index = i;
-    }
-  });
-  return id_index;
-}
-
-function UpdateJSONSettings() {
-  json_data.Settings.user_id = document.getElementById('user_id').innerHTML;
-  json_data.Settings.i_language = document.getElementById('interface_language').innerHTML;
-  json_data.Settings.team = document.getElementById('user_team').innerHTML;
-  json_data.Settings.style = document.getElementById('my_style').innerHTML;
-  json_data.Settings.reminders = document.getElementById('my_reminders').innerHTML;
-}
-
-function SaveDataToJSON(
-  save_uid,
-  save_type,
-  save_ismaster,
-  save_lastupdate,
-  save_category,
-  save_team,
-  save_authority,
-  save_e_data,
-  save_history
-) {
-  let index = ExistJSON(save_uid);
-  let s_version = 2;
-
-  if (index >= 0) {
-    // Update if existing
-    json_data.Entries[index].uid = save_uid;
-    json_data.Entries[index].version = s_version;
-    json_data.Entries[index].type = save_type;
-    json_data.Entries[index].ismaster = save_ismaster;
-    json_data.Entries[index].lastupdate = save_lastupdate;
-    json_data.Entries[index].category = save_category;
-    json_data.Entries[index].team = save_team;
-    json_data.Entries[index].authority = save_authority;
-    json_data.Entries[index].data = save_e_data;
-    let history_to_save = save_history + '<br>' + json_data.Entries[index].history;
-    let history_check = history_to_save.split('<br>');
-    if (history_check.length > 10) {
-      history_to_save = history_check.slice(0, 10).join('<br>');
-    }
-    json_data.Entries[index].history = history_to_save;
-  } else {
-    // Create new if not existing
-    json_data.Entries.push({
-      uid: save_uid,
-      version: s_version,
-      type: save_type,
-      ismaster: save_ismaster,
-      lastupdate: save_lastupdate,
-      category: save_category,
-      team: save_team,
-      authority: save_authority,
-      data: save_e_data,
-      history: save_history
-    });
-  }
-}
-
-function DeleteUidFromJSON(del_uid) {
-  let index = ExistJSON(del_uid);
-  if (index >= 0) {
-    json_data.Entries.splice(index, 1);
-
-    // Refresh the search page
-    document.getElementById('last_updated').innerHTML = 'DELETED';
-    News();
-  }
-}
-
-/*******
- * Entry
- *
- *  uid         (unique ID)
- *  version     (version)
- *  type        (template, manual...)
- *  ismaster    (true, false)
- *  lastupdate  (last updated)
- *  category    ()
- *  team        ()
- *  authority   (- only down, 0 down and up, + only up)
- *  data
- *   Title
- *   Content    (list of data entries)
- *  history
- *
- */
-
-/**********************************************
- *
- *                SETTINGS
+ *                   GLOBALS
  *
  **********************************************/
 
@@ -214,43 +9,83 @@ let my_settings = {
   colormode: 'Style_normal.css',
   language: 'japanese'
 };
+
+/**********************************************
+ *
+ *                SETTINGS
+ *
+ **********************************************/
+
+// Run when every page has been loaded
 function Loaded() {
+  // Load local settings
   if (localStorage.hasOwnProperty('settings') == true) {
     my_settings = JSON.parse(localStorage.getItem('settings'));
   }
 
+  // Set user ID
   let dom_uid = document.getElementById('user_id');
   if (dom_uid) {
     dom_uid.value = my_settings.userid;
+    if (!(my_settings.userid === 'NewUser')) {
+      dom_uid.readOnly = true;
+    }
   }
   dom_uid = document.getElementById('creator');
   if (dom_uid) {
     dom_uid.value = my_settings.userid;
   }
 
+  // Set interface language
   document.getElementById('lg_language').value = my_settings.language;
   UpdateLanguage('lg_language');
 
+  // Set color mode
   let dom_cmode = document.getElementById('cmode');
   if (dom_cmode) {
     dom_cmode.value = my_settings.colormode;
   }
-
+  // Load css file for selected color mode
   let head = document.getElementsByTagName('head')[0];
   let link = document.createElement('link');
   link.id = 'myCss';
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = '/' + my_settings.colormode;
+  link.href = '/stylesheets/' + my_settings.colormode;
   link.media = 'all';
   head.appendChild(link);
 
   // If has entries, then hide all private entries from other users
+  DisplayOthersPrivateEntries('none');
+
+  // Setup admin_control
+  const admins = document.getElementsByClassName('admin');
+  const admin_controls = document.getElementsByClassName('admin_control');
+  let is_admin = false;
+  for (let i = 0; i < admins.length; i++) {
+    if (my_settings.userid === admins[i].innerHTML) {
+      is_admin = true;
+    }
+  }
+  if (is_admin == true) {
+    for (let i = 0; i < admin_controls.length; i++) {
+      admin_controls[i].style.display = 'inline';
+    }
+  }
+}
+
+function AdminCheckBox() {
+  if (document.getElementById('admin').checked == false) {
+    DisplayOthersPrivateEntries('none');
+  }
+}
+
+function DisplayOthersPrivateEntries(property) {
   let entries = document.getElementsByClassName('entry');
   for (let i = 0; i < entries.length; i++) {
     if (entries[i].innerHTML.indexOf('>Private<') >= 0) {
       if (entries[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1) {
-        entries[i].style.display = 'none';
+        entries[i].style.display = property;
       }
     }
   }
@@ -1318,7 +1153,10 @@ function Filter() {
   const s_string = document.getElementById('s_box').value;
   const s_tag = document.getElementById('s_tag').value;
   for (let i = 0; i < e.length; i++) {
-    if (!(e[i].innerHTML.indexOf('>Private<') >= 0 && e[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1)) {
+    if (
+      !(e[i].innerHTML.indexOf('>Private<') >= 0 && e[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1) ||
+      document.getElementById('admin').checked == true
+    ) {
       if (e[i].innerHTML.indexOf(s_string) >= 0 && e[i].innerHTML.indexOf(s_tag) >= 0) {
         if (
           (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||

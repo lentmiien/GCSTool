@@ -4,13 +4,30 @@ const { body, validationResult } = require('express-validator');
 const { sanitizeBody } = require('express-validator');
 
 // Require necessary database models
-const { Entry, Content, Staff, Holiday, Schedule } = require('../sequelize');
+const { Entry, Content, Staff, Holiday, Schedule, Admin } = require('../sequelize');
 
 // Display all Entries
 exports.entry_list = function(req, res) {
   //res.send('NOT IMPLEMENTED: Entry List');
 
-  Entry.findAll({ include: [{ model: Content }] }).then(data => res.render('entry', { entries: data }));
+  async.parallel(
+    {
+      entry: function(callback) {
+        Entry.findAll({ include: [{ model: Content }] }).then(entry => callback(null, entry));
+      },
+      admin: function(callback) {
+        Admin.findAll().then(admin => callback(null, admin));
+      }
+    },
+    function(err, results) {
+      if (err) {
+        return next(err);
+      }
+
+      // Successful, so render.
+      res.render('entry', { entries: results.entry, admin: results.admin });
+    }
+  );
 };
 
 // Display Entry create form on GET
