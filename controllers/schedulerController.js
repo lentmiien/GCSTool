@@ -3,7 +3,7 @@ const async = require('async');
 const { Staff, Holiday, Schedule } = require('../sequelize');
 
 // Display all Entries
-exports.index = function(req, res) {
+exports.view = function(req, res) {
   //res.send('NOT IMPLEMENTED: Entry List');
 
   async.parallel(

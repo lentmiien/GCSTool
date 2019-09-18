@@ -7,24 +7,30 @@ var scheduler_controller = require('../controllers/schedulerController');
 /// SCHEDULER ROUTES ///
 
 // GET entry home page.
-router.get('/', scheduler_controller.index);
+router.get('/', scheduler_controller.view);
 
-// // GET request for creating a entry. NOTE This must come before routes that display Book (uses id).
-// router.get('/create', entry_controller.entry_create_get);
+// GET request for adding a national holiday to scheduler
+router.get('/addholiday', scheduler_controller.view);
 
-// // POST request for creating entry.
-// router.post('/create', entry_controller.entry_create_post);
+// POST request for adding a national holiday to scheduler
+router.post('/addholiday', scheduler_controller.view);
 
-// // GET request to delete entry.
-// router.get('/:id/delete', entry_controller.entry_delete_get);
+// GET request for adding a day off or day to work for staff members in scheduler
+router.get('/addschedule', scheduler_controller.view);
 
-// // POST request to delete entry.
-// router.post('/:id/delete', entry_controller.entry_delete_post);
+// POST request for adding a day off or day to work for staff members in scheduler
+router.post('/addschedule', scheduler_controller.view);
 
-// // GET request to update entry.
-// router.get('/:id/update', entry_controller.entry_update_get);
+// GET request for adding staff member to scheduler
+router.get('/addstaff', scheduler_controller.view);
 
-// // POST request to update entry.
-// router.post('/:id/update', entry_controller.entry_update_post);
+// POST request for adding staff member to scheduler
+router.post('/addstaff', scheduler_controller.view);
+
+// GET request for removing staff member from scheduler
+router.get('/removestaff', scheduler_controller.view);
+
+// POST request for removing staff member from scheduler
+router.post('/removestaff', scheduler_controller.view);
 
 module.exports = router;
