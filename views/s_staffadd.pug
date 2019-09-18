@@ -1,0 +1,28 @@
+extends layout
+
+block content
+    h1 Add Staff
+    form(action='/scheduler/addstaff', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='name') Name
+            input#name.form-control(type='text' name='name' required='true')
+            label(for='dayoff1') Dayoff 1
+            select#dayoff1.form-control(name='dayoff1')
+                option(value=0) Sunday
+                option(value=1) Monday
+                option(value=2) Tuesday
+                option(value=3) Wednesday
+                option(value=4) Thursday
+                option(value=5) Friday
+                option(value=6) Saturday
+            label(for='dayoff2') Dayoff 2
+            select#dayoff2.form-control(name='dayoff2')
+                option(value=0) Sunday
+                option(value=1) Monday
+                option(value=2) Tuesday
+                option(value=3) Wednesday
+                option(value=4) Thursday
+                option(value=5) Friday
+                option(value=6) Saturday
+        button.btn.btn-primary(type='submit') Submit
