@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    h1 Add Schedule
+    form(action='/scheduler/addschedule', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='date') Date
+            input#date.form-control(type='date' name='date' required='true' value='2019-07-11')
+            label(for='staff') Staff
+            select#staff.form-control(name='staff')
+                each s in staff
+                    option(value=s.id)= s.name
+            label(for='work') Work
+            select#work.form-control(name='work')
+                option(value=0) Day off
+                option(value=1) Work
+        button.btn.btn-primary(type='submit') Submit

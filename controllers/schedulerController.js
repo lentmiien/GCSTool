@@ -34,8 +34,8 @@ exports.add_holiday_post = function(req, res) {
         date: req.body.date
       };
 
-      if (req.body.creator != 'Lennart') {
-        res.render('s_holidayadded', { message: 'You can not add holidays!', request: req.body });
+      if (req.body.isadmin == false) {
+        res.render('s_holidayadded', { message: 'Only admin users can add holidays.', request: req.body });
       } else {
         Holiday.create(input_data).then(() => {
           res.render('s_holidayadded', { message: 'Holiday added!', request: req.body });
@@ -45,22 +45,82 @@ exports.add_holiday_post = function(req, res) {
   });
 };
 
-// // Display Entry delete form on GET.
-// exports.entry_delete_get = function (req, res) {
-//     res.send('NOT IMPLEMENTED: Entry delete GET');
+// Display add schedule form on GET
+exports.add_schedule_get = function(req, res) {
+  Staff.findAll().then(staff => {
+    res.render('s_scheduleadd', { staff: staff, request: req.body });
+  });
+};
+
+// Handle add schedule create on POST.
+exports.add_schedule_post = function(req, res) {
+  if (req.body.isadmin == false) {
+    res.render('s_scheduleadded', { message: 'Only admin users can add schedules.', request: req.body });
+  } else {
+    Schedule.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
+      if (s.length == 0) {
+        // Add new schedule
+        Schedule.create({ date: req.body.date, work: req.body.work, staffId: req.body.staff }).then(() => {
+          res.render('s_scheduleadded', { message: 'Schedule added!', request: req.body });
+        });
+      } else {
+        // Update existing schedule
+        Schedule.update({ work: req.body.work }, { where: { id: s[0].id } }).then(() => {
+          res.render('s_scheduleadded', { message: 'Schedule updated!', request: req.body });
+        });
+      }
+    });
+  }
+};
+
+// // Display add staff form on GET
+// exports.add_holiday_get = function (req, res) {
+//   res.render('s_holidayadd', { request: req.body });
 // };
 
-// // Handle Entry delete on POST.
-// exports.entry_delete_post = function (req, res) {
-//     res.send('NOT IMPLEMENTED: Entry delete POST');
+// // Handle add staff create on POST.
+// exports.add_holiday_post = function (req, res) {
+//   Holiday.findAll({ where: { date: req.body.date } }).then(r => {
+//     if (r.length > 0) {
+//       res.render('s_holidayadded', { message: 'Holiday already existing!', request: req.body });
+//     } else {
+//       const input_data = {
+//         date: req.body.date
+//       };
+
+//       if (req.body.isadmin == false) {
+//         res.render('s_holidayadded', { message: 'Only admin users can add holidays.', request: req.body });
+//       } else {
+//         Holiday.create(input_data).then(() => {
+//           res.render('s_holidayadded', { message: 'Holiday added!', request: req.body });
+//         });
+//       }
+//     }
+//   });
 // };
 
-// // Display Entry update form on GET.
-// exports.entry_update_get = function (req, res) {
-//     res.send('NOT IMPLEMENTED: Entry update GET');
+// // Display remove staff form on GET
+// exports.add_holiday_get = function (req, res) {
+//   res.render('s_holidayadd', { request: req.body });
 // };
 
-// // Handle Entry update on POST.
-// exports.entry_update_post = function (req, res) {
-//     res.send('NOT IMPLEMENTED: Entry update POST');
+// // Handle remove staff create on POST.
+// exports.add_holiday_post = function (req, res) {
+//   Holiday.findAll({ where: { date: req.body.date } }).then(r => {
+//     if (r.length > 0) {
+//       res.render('s_holidayadded', { message: 'Holiday already existing!', request: req.body });
+//     } else {
+//       const input_data = {
+//         date: req.body.date
+//       };
+
+//       if (req.body.isadmin == false) {
+//         res.render('s_holidayadded', { message: 'Only admin users can add holidays.', request: req.body });
+//       } else {
+//         Holiday.create(input_data).then(() => {
+//           res.render('s_holidayadded', { message: 'Holiday added!', request: req.body });
+//         });
+//       }
+//     }
+//   });
 // };

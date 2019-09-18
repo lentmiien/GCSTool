@@ -16,10 +16,10 @@ router.get('/addholiday', scheduler_controller.add_holiday_get);
 router.post('/addholiday', scheduler_controller.add_holiday_post);
 
 // GET request for adding a day off or day to work for staff members in scheduler
-router.get('/addschedule', scheduler_controller.view);
+router.get('/addschedule', scheduler_controller.add_schedule_get);
 
 // POST request for adding a day off or day to work for staff members in scheduler
-router.post('/addschedule', scheduler_controller.view);
+router.post('/addschedule', scheduler_controller.add_schedule_post);
 
 // GET request for adding staff member to scheduler
 router.get('/addstaff', scheduler_controller.view);

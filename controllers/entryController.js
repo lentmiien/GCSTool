@@ -88,7 +88,7 @@ exports.entry_create_post = [
 
       // ismaster can only be added by approved staff
       let warning = '';
-      if (input_data.ismaster == 1 && input_data.creator != 'Lennart') {
+      if (input_data.ismaster == 1 && req.body.isadmin == false) {
         input_data.ismaster = 0;
         warning = 'Can not add master data, added as personal data instead.';
       }
@@ -168,7 +168,7 @@ exports.entry_delete_post = [
           // Successful, so continue.
           // ismaster can only be deleted by approved staff
           let warning = '';
-          if (results.entry.ismaster == 1 && req.body.creator != 'Lennart') {
+          if (results.entry.ismaster == 1 && req.body.isadmin == false) {
             warning = 'You can not delete master data.';
             res.render('entrydeleted', { warning: warning, request: req.body });
           } else {
@@ -269,7 +269,7 @@ exports.entry_update_post = [
 
           // ismaster can only be updated by approved staff
           let warning = '';
-          if (results.entry.ismaster == 1 && req.body.creator != 'Lennart') {
+          if (results.entry.ismaster == 1 && req.body.isadmin == false) {
             warning = 'You can not update master data.';
             res.render('entryupdated', { warning: warning, request: req.body });
           } else {

@@ -7,6 +7,14 @@ const { Admin } = require('../sequelize');
 exports.all = function(req, res, next) {
   Admin.findAll().then(admin => {
     req.body['admin'] = admin;
+    req.body['isadmin'] = false;
+    if (!(req.body.creator === undefined)) {
+      admin.forEach(ad => {
+        if (ad.userid === req.body.creator) {
+          req.body['isadmin'] = true;
+        }
+      });
+    }
     next();
   });
 };
