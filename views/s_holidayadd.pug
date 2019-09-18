@@ -1,0 +1,10 @@
+extends layout
+
+block content
+    h1 Add Holiday
+    form(action='/scheduler/addholiday', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='date') Date
+            input#date.form-control(type='date' name='date' required='true' value='2019-07-11')
+        button.btn.btn-primary(type='submit') Submit
