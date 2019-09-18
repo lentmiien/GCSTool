@@ -1,13 +1,14 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'GCS Tool' });
-});
+// Require controller modules.
+var index_controller = require('../controllers/indexController');
 
-router.get('/about', function(req, res, next) {
-  res.render('about', { title: 'GCS Tool' });
-});
+router.all('*', index_controller.all);
+
+/* GET home page. */
+router.get('/', index_controller.index);
+
+router.get('/about', index_controller.about);
 
 module.exports = router;

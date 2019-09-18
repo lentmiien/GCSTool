@@ -10,6 +10,10 @@ html(lang='en')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
   body(onload='Loaded()')
+    if !(request===undefined)
+      if !(request.admin===undefined)
+        each a in request.admin
+          span.admin(style='display: none;')= a.userid
     div(class='container-fluid')
       div(class='row')
         div(class='col-sm-12')

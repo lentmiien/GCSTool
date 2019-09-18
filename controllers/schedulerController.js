@@ -1,6 +1,6 @@
 const async = require('async');
 // Require necessary database models
-const { Entry, Content, Staff, Holiday, Schedule } = require('../sequelize');
+const { Staff, Holiday, Schedule } = require('../sequelize');
 
 // Display all Entries
 exports.index = function(req, res) {
@@ -16,7 +16,7 @@ exports.index = function(req, res) {
       }
     },
     function(err, results) {
-      res.render('scheduler', { data: results });
+      res.render('scheduler', { data: results, request: req.body });
     }
   );
 };

@@ -1,8 +1,6 @@
 extends layout
 
 block content
-    each a in admin
-        span.admin(style='display: none;')= a.userid
     a(href='/entry/create', lg_language='_create_new_')
     hr
     - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_'];

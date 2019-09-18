@@ -4,19 +4,14 @@ const { body, validationResult } = require('express-validator');
 const { sanitizeBody } = require('express-validator');
 
 // Require necessary database models
-const { Entry, Content, Staff, Holiday, Schedule, Admin } = require('../sequelize');
+const { Entry, Content } = require('../sequelize');
 
 // Display all Entries
 exports.entry_list = function(req, res) {
-  //res.send('NOT IMPLEMENTED: Entry List');
-
   async.parallel(
     {
       entry: function(callback) {
         Entry.findAll({ include: [{ model: Content }] }).then(entry => callback(null, entry));
-      },
-      admin: function(callback) {
-        Admin.findAll().then(admin => callback(null, admin));
       }
     },
     function(err, results) {
@@ -25,16 +20,14 @@ exports.entry_list = function(req, res) {
       }
 
       // Successful, so render.
-      res.render('entry', { entries: results.entry, admin: results.admin });
+      res.render('entry', { entries: results.entry, request: req.body });
     }
   );
 };
 
 // Display Entry create form on GET
 exports.entry_create_get = function(req, res) {
-  //res.send('NOT IMPLEMENTED: Entry create GET');
-
-  res.render('entryadd', {});
+  res.render('entryadd', { request: req.body });
 };
 
 // Handle Entry create on POST.
@@ -65,7 +58,7 @@ exports.entry_create_post = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('entryadd', { content: req.body, errors: errors.array() });
+      res.render('entryadd', { errors: errors.array(), request: req.body });
       return;
     } else {
       // Add data to database
@@ -100,7 +93,7 @@ exports.entry_create_post = [
         warning = 'Can not add master data, added as personal data instead.';
       }
 
-      Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', { warning: warning }));
+      Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', { warning: warning, request: req.body }));
     }
   }
 ];
@@ -127,7 +120,7 @@ exports.entry_delete_get = function(req, res) {
         res.redirect('/entry');
       }
       // Successful, so render.
-      res.render('entrydelete', { entry: results.entry });
+      res.render('entrydelete', { entry: results.entry, request: req.body });
     }
   );
 };
@@ -150,7 +143,7 @@ exports.entry_delete_post = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('entrydelete', { errors: errors.array() });
+      res.render('entrydelete', { errors: errors.array(), request: req.body });
       return;
     } else {
       // Load data to be deleted from database
@@ -177,13 +170,13 @@ exports.entry_delete_post = [
           let warning = '';
           if (results.entry.ismaster == 1 && req.body.creator != 'Lennart') {
             warning = 'You can not delete master data.';
-            res.render('entrydeleted', { warning: warning });
+            res.render('entrydeleted', { warning: warning, request: req.body });
           } else {
             // Delete data from database
             Content.destroy({ where: { entryId: req.params.id } }).then(d => {
               Entry.destroy({
                 where: { id: req.params.id }
-              }).then(d => res.render('entrydeleted', { warning: warning }));
+              }).then(d => res.render('entrydeleted', { warning: warning, request: req.body }));
             });
           }
         }
@@ -214,7 +207,7 @@ exports.entry_update_get = function(req, res) {
         res.redirect('/entry');
       }
       // Successful, so render.
-      res.render('entryupdate', { entry: results.entry });
+      res.render('entryupdate', { entry: results.entry, request: req.body });
     }
   );
 };
@@ -243,7 +236,7 @@ exports.entry_update_post = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('entryupdate', { errors: errors.array() });
+      res.render('entryupdate', { errors: errors.array(), request: req.body });
       return;
     } else {
       async.parallel(
@@ -278,7 +271,7 @@ exports.entry_update_post = [
           let warning = '';
           if (results.entry.ismaster == 1 && req.body.creator != 'Lennart') {
             warning = 'You can not update master data.';
-            res.render('entryupdated', { warning: warning });
+            res.render('entryupdated', { warning: warning, request: req.body });
           } else {
             // Update database data
             Entry.update(update_data, {
@@ -367,7 +360,7 @@ exports.entry_update_post = [
                     return next(err);
                   }
                   // Successful, so render.
-                  res.render('entryupdated', { warning: warning });
+                  res.render('entryupdated', { warning: warning, request: req.body });
                 }
               )
             );
