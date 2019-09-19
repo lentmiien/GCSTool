@@ -1,0 +1,50 @@
+extends layout
+
+block content
+    a.admin_control(href='/scheduler/addholiday', style='display: none;') Add Holiday
+    | 
+    a.admin_control(href='/scheduler/addschedule', style='display: none;') Add Schedule
+    | 
+    a.admin_control(href='/scheduler/addstaff', style='display: none;') Add Staff
+    | 
+    a.admin_control(href='/scheduler/removestaff', style='display: none;') Remove Staff
+    hr
+    - const today = new Date()
+    - const weekdays = ['_su_', '_m_', '_tu_', '_w_', '_th_', '_f_', '_sa_']
+    h3= 'Today is ' + today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate()
+    h3 Team members
+    ul
+        each s in data.staff
+            li
+                = s.name
+                ul
+                    li Days off: 
+                        span(lg_language=weekdays[s.dayoff1])
+                        | , 
+                        span(lg_language=weekdays[s.dayoff2])
+    hr
+    select#year_select
+        each year in [today.getFullYear()-1, today.getFullYear(), today.getFullYear()+1]
+            if year == today.getFullYear()
+                option(value=year, selected)= year
+            else
+                option(value=year)= year
+    select#month_select
+        each month in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            if month == (today.getMonth()+1)
+                option(value=(month-1), selected)= month
+            else
+                option(value=(month-1))= month
+    select#date_select
+        each date in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+            if date == today.getDate()
+                option(value=date, selected)= date
+            else
+                option(value=date)= date
+    select#show_weeks
+        each weeks in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+            option(value=weeks)= weeks + " weeks"
+    button(onclick='SetupScheduler()') Show Schedule
+    br
+    table#schedule
+    div#data.hidden= JSON.stringify(data)

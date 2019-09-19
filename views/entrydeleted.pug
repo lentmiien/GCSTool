@@ -1,0 +1,8 @@
+extends layout
+
+block content
+    if warning.length > 0
+        b.debug= warning
+        br
+    else
+        b Entry deleted!

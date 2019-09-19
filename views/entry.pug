@@ -1,0 +1,48 @@
+extends layout
+
+block content
+    a(href='/entry/create', lg_language='_create_new_')
+    hr
+    - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_'];
+    h2 Filter
+    span.frame
+        span(lg_language='_input_')
+        input#s_box(name='search', type='text')
+        | 
+        input#s_template(name='search', type='checkbox', checked)
+        span(lg_language='_templates_')
+        | 
+        input#s_manual(name='search', type='checkbox', checked)
+        span(lg_language='_manuals_')
+        | 
+        input#s_ccontact(name='search', type='checkbox', checked)
+        span(lg_language='_ccontact_')
+        | 
+        select#s_tag(name='search')
+            option(value='_', lg_language='_all_')
+            each tag in tags
+                option(value=tag, lg_language=tag)
+        | 
+        span.admin_control(style='display: none;')
+            input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
+            |  Show Other Users Data
+            | 
+        button(onclick='Filter()') Apply Filter
+    hr
+    each entry in entries
+        div(class='entry ' + entry.category)
+            button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
+            i.label= entry.category
+            i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;')= entry.ismaster ? 'Master' : 'Private'
+            br
+            div(id='entry' + entry.id, style='display:none;')
+                each content in entry.contents
+                    if entry.category == 'manual'
+                        div !{content.data}
+                    else
+                        textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
+                    hr
+                i= 'Created by ' + entry.creator + '.'
+                br
+                a.entry_control(href='./entry/' + entry.id + '/update') EDIT
+                a.entry_control(href='./entry/' + entry.id + '/delete') DELETE

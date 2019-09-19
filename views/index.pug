@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}. You can find the latest updated content below, and at the bottom you can specify your personal settings.
+
+  hr
+  h3 News
+  i *Updated within last 30 days
+  each entry in entries
+    div(class='entry ' + entry.category)
+      button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
+      i.label= entry.category
+      i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;')= entry.ismaster ? 'Master' : 'Private'
+      br
+      div(id='entry' + entry.id, style='display:none;')
+        each content in entry.contents
+          if entry.category == 'manual'
+            div !{content.data}
+          else
+            textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
+          hr
+        i= 'Created by ' + entry.creator + '.'
+
+  hr
+  h3 Settings
+  p User ID
+  input#user_id(type='text')
+  button(onclick='UpdateUserID()') Update User ID
+  br
+  select#cmode(name="colormode")
+    option(value='Style_normal.css') Normal
+    option(value='Style_dark.css') Dark
+  button(onclick='UpdateColorMode()') Update Color Mode

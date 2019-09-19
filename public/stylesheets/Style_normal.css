@@ -179,3 +179,7 @@ td {
   padding: 5px;
   border-bottom: 5px solid rgb(124, 124, 124);
 }
+
+.admin_control {
+  background-color: #ffd993;
+}

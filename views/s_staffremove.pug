@@ -1,0 +1,12 @@
+extends layout
+
+block content
+    h1 Remove Staff
+    form(action='/scheduler/removestaff', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='staff') Staff
+            select#staff.form-control(name='staff')
+                each s in staff
+                    option(value=s.id)= s.name
+        button.btn.btn-primary(type='submit') Submit
