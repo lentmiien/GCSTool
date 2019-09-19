@@ -11,7 +11,10 @@ exports.entry_list = function(req, res) {
   async.parallel(
     {
       entry: function(callback) {
-        Entry.findAll({ include: [{ model: Content }] }).then(entry => callback(null, entry));
+        Entry.findAll({
+          include: [{ model: Content }],
+          order: [['tag', 'ASC'], ['category', 'DESC'], ['ismaster', 'DESC']]
+        }).then(entry => callback(null, entry));
       }
     },
     function(err, results) {
