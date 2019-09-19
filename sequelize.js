@@ -21,6 +21,8 @@ const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
 const Admin = AdminModel(sequelize, Sequelize);
 
+const Op = Sequelize.Op;
+
 // Create table relations
 Entry.Content = Entry.hasMany(Content);
 Staff.Schedule = Staff.hasMany(Schedule);
@@ -94,5 +96,6 @@ module.exports = {
   Staff,
   Holiday,
   Schedule,
-  Admin
+  Admin,
+  Op
 };

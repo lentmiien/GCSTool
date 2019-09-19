@@ -299,14 +299,14 @@ function auto_grow(element) {
 
 function Filter() {
   const e = document.getElementsByClassName('entry');
-  const s_string = document.getElementById('s_box').value;
+  const s_string = document.getElementById('s_box').value.toLocaleLowerCase();
   const s_tag = document.getElementById('s_tag').value;
   for (let i = 0; i < e.length; i++) {
     if (
       !(e[i].innerHTML.indexOf('>Private<') >= 0 && e[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1) ||
       document.getElementById('admin').checked == true
     ) {
-      if (e[i].innerHTML.indexOf(s_string) >= 0 && e[i].innerHTML.indexOf(s_tag) >= 0) {
+      if (e[i].innerHTML.toLocaleLowerCase().indexOf(s_string) >= 0 && e[i].innerHTML.indexOf(s_tag) >= 0) {
         if (
           (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||
           (e[i].className.indexOf('manual') >= 0 && document.getElementById('s_manual').checked == true) ||

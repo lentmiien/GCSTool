@@ -1,0 +1,11 @@
+extends layout
+
+block content
+    a(href='/adminadd') Add Staff
+    | 
+    a(href='/adminremove') Remove Staff
+    hr
+    h1 Admin Staff
+    ul
+        each a in request.admin
+            li= a.userid

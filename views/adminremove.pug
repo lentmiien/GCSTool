@@ -1,0 +1,12 @@
+extends layout
+
+block content
+    h1 Add Admin Staff
+    form(action='/adminremove', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='userid') User ID
+            select#userid.form-control(name='userid')
+                each a in request.admin
+                    option(value=a.id)= a.userid
+        button.btn.btn-primary(type='submit') Submit

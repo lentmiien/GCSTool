@@ -13,7 +13,7 @@ exports.entry_list = function(req, res) {
       entry: function(callback) {
         Entry.findAll({
           include: [{ model: Content }],
-          order: [['tag', 'ASC'], ['category', 'DESC'], ['ismaster', 'DESC']]
+          order: [['tag', 'ASC'], ['category', 'DESC'], ['ismaster', 'DESC'], ['updatedAt', 'DESC']]
         }).then(entry => callback(null, entry));
       }
     },
