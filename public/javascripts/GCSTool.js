@@ -247,16 +247,10 @@ function SetupScheduler() {
 window.onkeydown = function(e) {
   // Ctrl + Q  [Continue previous search]
   if (e.keyCode == 81 && e.ctrlKey) {
-    TabHandler('ru_', 1);
-    document.getElementById('all_inputfield').focus();
   }
 
   // Ctrl + Space  [New empty search]
   if (e.keyCode == 32 && e.ctrlKey) {
-    Clear('all_');
-    TabHandler('ru_', 1);
-    document.getElementById('all_inputfield').focus();
-    setTimeout("Empty('all_')", 100); // Clear the space that is added to the input box
   }
 };
 
