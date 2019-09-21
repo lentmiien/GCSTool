@@ -119,7 +119,7 @@ function ShowReminders() {
       ')">Delete</button></td></tr>';
   }
   reminder_html +=
-    '<tr><td><input id="reminder_time" type="text"></td><td><input id="reminder_message" type="text"></td><td><button onclick="AddReminder()">Add New</button></td></tr>';
+    '<tr><td><input id="reminder_time" type="text", placeholder="12:00"></td><td><input id="reminder_message" type="text" placeholder="Message"></td><td><button onclick="AddReminder()">Add New</button></td></tr>';
   document.getElementById('reminders').innerHTML = reminder_html;
 }
 
