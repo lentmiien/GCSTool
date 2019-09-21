@@ -2,15 +2,17 @@ extends layout
 
 block content
     if errors===undefined
-        h2 Update Entry
-        p= 'Update entry "' + entry.title + '" below.'
+        h2(lg_language='_update_entry_')
+        span(lg_language='_update_entry_1_')
+        span= entry.title
+        span(lg_language='_update_entry_2_')
         form(action='/entry/' + entry.id + '/update', method="post")
             div.form-group
                 input#creator(type='hidden', name='creator')
-                label(for='title') Title
+                label(for='title', lg_language='_title_')
                 input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=entry.title)
                 br
-                label(for='category') Category
+                label(for='category', lg_language='_category_')
                 select#category.form-control(name='category')
                     if entry.category==='template'
                         option(value='template', lg_language='_template_', selected)
@@ -25,10 +27,11 @@ block content
                     else
                         option(value='ccontact', lg_language='_ccontact_')
                 br
-                label(for='ismaster') Is Master
-                input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
-                br
-                label(for='tag') Tag
+                div.admin_control(style='display: none;')
+                    label(for='ismaster', lg_language='_is_master_')
+                    input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
+                    br
+                label(for='tag', lg_language='_tag_')
                 - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
                 select#tag.form-control(name='tag')
                     each tag in tags
@@ -37,7 +40,7 @@ block content
                         else
                             option(value=tag, lg_language=tag)
                 br
-                label(for='team') Team
+                label(for='team', lg_language='_team_')
                 select#team.form-control(name='team')
                     if entry.team==='ohami_global_support'
                         option(value='ohami_global_support', selected) GCS Mail team
@@ -49,13 +52,13 @@ block content
                         input(id='contentid' + (i+1), type='hidden', name='contentid' + (i+1), value=(entry.contents[i].id))
                     else
                         b (NEW)
-                    label(for='content' + (i+1))= 'Content' + (i+1)
+                    label(for='content' + (i+1), lg_language='_content_')
                     textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
-            button.btn.btn-primary(type='submit') Update
+            button.btn.btn-primary(type='submit', lg_language='_submit_update_')
     else
-        h2 Could not update
+        h2(lg_language='_couldnt_update_')
         ul
             for error in errors
                 li!= error.msg
         hr
-        a(href="/entry") Back
+        a(href="/entry", lg_language='_back_')

@@ -1,24 +1,25 @@
 extends layout
 
 block content
-    a.admin_control(href='/scheduler/addholiday', style='display: none;') Add Holiday
+    a.admin_control(href='/scheduler/addholiday', style='display: none;', lg_language='_add_holiday_')
     | 
-    a.admin_control(href='/scheduler/addschedule', style='display: none;') Add Schedule
+    a.admin_control(href='/scheduler/addschedule', style='display: none;', lg_language='_add_schedule_')
     | 
-    a.admin_control(href='/scheduler/addstaff', style='display: none;') Add Staff
+    a.admin_control(href='/scheduler/addstaff', style='display: none;', lg_language='_add_staff_')
     | 
-    a.admin_control(href='/scheduler/removestaff', style='display: none;') Remove Staff
+    a.admin_control(href='/scheduler/removestaff', style='display: none;', lg_language='_remove_staff_')
     hr
     - const today = new Date()
     - const weekdays = ['_su_', '_m_', '_tu_', '_w_', '_th_', '_f_', '_sa_']
-    h3= 'Today is ' + today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate()
-    h3 Team members
+    h3(lg_language='_team_members_')
     ul
         each s in data.staff
             li
                 = s.name
                 ul
-                    li Days off: 
+                    li
+                        span(lg_language='_days_off_')
+                        | 
                         span(lg_language=weekdays[s.dayoff1])
                         | , 
                         span(lg_language=weekdays[s.dayoff2])
@@ -44,7 +45,7 @@ block content
     select#show_weeks
         each weeks in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
             option(value=weeks)= weeks + " weeks"
-    button(onclick='SetupScheduler()') Show Schedule
+    button(onclick='SetupScheduler()', lg_language='_show_schedule_')
     br
     table#schedule
     div#data.hidden= JSON.stringify(data)

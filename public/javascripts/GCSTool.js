@@ -50,6 +50,7 @@ function Loaded() {
     dom_uid.value = my_settings.userid;
     if (!(my_settings.userid === 'NewUser')) {
       dom_uid.readOnly = true;
+      document.getElementById('update_user_id_button').style.display = 'none';
     }
   }
   dom_uid = document.getElementById('creator');
@@ -107,7 +108,14 @@ function ShowReminders() {
   }
 
   // Show the reminders
-  let reminder_html = '<tr><th>Time</th><th>Message</th><th>Action</th></tr>';
+  let reminder_html =
+    '<tr><th>' +
+    GetHTMLElement('_time_') +
+    '</th><th>' +
+    GetHTMLElement('_message_') +
+    '</th><th>' +
+    GetHTMLElement('_action_') +
+    '</th></tr>';
   for (let ri = 0; ri < my_settings.reminders.length; ri++) {
     reminder_html +=
       '<tr><td>' +
@@ -116,10 +124,14 @@ function ShowReminders() {
       my_settings.reminders[ri].message +
       '</td><td><button onclick="RemoveReminder(' +
       ri +
-      ')">Delete</button></td></tr>';
+      ')">' +
+      GetHTMLElement('_delete_') +
+      '</button></td></tr>';
   }
   reminder_html +=
-    '<tr><td><input id="reminder_time" type="text", placeholder="12:00"></td><td><input id="reminder_message" type="text" placeholder="Message"></td><td><button onclick="AddReminder()">Add New</button></td></tr>';
+    '<tr><td><input id="reminder_time" type="text", placeholder="12:00"></td><td><input id="reminder_message" type="text" placeholder="Message"></td><td><button onclick="AddReminder()">' +
+    GetHTMLElement('_addnew_') +
+    '</button></td></tr>';
   document.getElementById('reminders').innerHTML = reminder_html;
 }
 

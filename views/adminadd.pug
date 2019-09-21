@@ -1,10 +1,10 @@
 extends layout
 
 block content
-    h1 Add Admin Staff
+    h1(lg_language='_add_admin_staff_')
     form(action='/adminadd', method='post')
         div.form-group
             input#creator(type='hidden', name='creator')
-            label(for='userid') User ID
+            label(for='userid', lg_language='_user_id_')
             input#userid.form-control(type='text' name='userid' required='true')
-        button.btn.btn-primary(type='submit') Submit
+        button.btn.btn-primary(type='submit', lg_language='_submit_')

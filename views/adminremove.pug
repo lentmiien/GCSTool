@@ -1,12 +1,12 @@
 extends layout
 
 block content
-    h1 Add Admin Staff
+    h1(lg_language='_remove_admin_staff_')
     form(action='/adminremove', method='post')
         div.form-group
             input#creator(type='hidden', name='creator')
-            label(for='userid') User ID
+            label(for='userid', lg_language='_user_id_')
             select#userid.form-control(name='userid')
                 each a in request.admin
                     option(value=a.id)= a.userid
-        button.btn.btn-primary(type='submit') Submit
+        button.btn.btn-primary(type='submit', lg_language='_submit_')

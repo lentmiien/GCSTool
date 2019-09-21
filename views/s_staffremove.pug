@@ -1,12 +1,12 @@
 extends layout
 
 block content
-    h1 Remove Staff
+    h1(lg_language='_remove_staff_')
     form(action='/scheduler/removestaff', method='post')
         div.form-group
             input#creator(type='hidden', name='creator')
-            label(for='staff') Staff
+            label(for='staff', lg_language='_staff_')
             select#staff.form-control(name='staff')
                 each s in staff
                     option(value=s.id)= s.name
-        button.btn.btn-primary(type='submit') Submit
+        button.btn.btn-primary(type='submit', lg_language='_submit_delete_')

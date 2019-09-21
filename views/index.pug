@@ -1,17 +1,17 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}. You can find the latest updated content below, and at the bottom you can specify your personal settings.
+  h1(lg_language='_gcs_tool_')
+  p(lg_language='_welcome_gcs_tool_')
 
   hr
-  h3 News
-  i *Updated within last 30 days
+  h3(lg_language='_news_')
+  i(lg_language='_news_update_')
   each entry in entries
     div(class='entry ' + entry.category)
       button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
-      i.label= entry.category
-      i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;')= entry.ismaster ? 'Master' : 'Private'
+      i.label(lg_language='_' + entry.category + '_')
+      i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;' lg_language=entry.ismaster ? '_master_' : '_private_')
       br
       div(id='entry' + entry.id, style='display:none;')
         each content in entry.contents
@@ -20,20 +20,21 @@ block content
           else
             textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
           hr
-        i= 'Created by ' + entry.creator + '.'
+        i(lg_language='_created_')
+        i= entry.creator
 
   hr
-  h3 Settings
+  h3(lg_language='_settings_')
   input#user_id(type='text')
-  button#update_user_id_button(onclick='UpdateUserID()') Update User ID
-  i *Can not be changed after set.
+  button#update_user_id_button(onclick='UpdateUserID()', lg_language='_update_uid_')
+  i(lg_language='_set_once_')
   br
   select#cmode(name="colormode")
-    option(value='Style_normal.css') Normal
-    option(value='Style_dark.css') Dark
-  button(onclick='UpdateColorMode()') Update Color Mode
-  i *Updates at the next page you open.
+    option(value='Style_normal.css', lg_language='_normal_')
+    option(value='Style_dark.css', lg_language='_dark_')
+  button(onclick='UpdateColorMode()', lg_language='_update_color_')
+  i(lg_language='_update_on_next_')
   br
-  h3 Reminders
-  i *Shows a popup message at the given time
+  h3(lg_language='_reminders_')
+  i(lg_language='_show_popup_')
   table#reminders

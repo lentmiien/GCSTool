@@ -1,28 +1,28 @@
 extends layout
 
 block content
-    h1 Add Staff
+    h1(lg_language='_add_staff_')
     form(action='/scheduler/addstaff', method='post')
         div.form-group
             input#creator(type='hidden', name='creator')
-            label(for='name') Name
+            label(for='name', lg_language='_name_')
             input#name.form-control(type='text' name='name' required='true')
-            label(for='dayoff1') Dayoff 1
+            label(for='dayoff1', lg_language='_day_off_')
             select#dayoff1.form-control(name='dayoff1')
-                option(value=0) Sunday
-                option(value=1) Monday
-                option(value=2) Tuesday
-                option(value=3) Wednesday
-                option(value=4) Thursday
-                option(value=5) Friday
-                option(value=6) Saturday
-            label(for='dayoff2') Dayoff 2
+                option(value=0, lg_language='_su_')
+                option(value=1, lg_language='_m_')
+                option(value=2, lg_language='_tu_')
+                option(value=3, lg_language='_w_')
+                option(value=4, lg_language='_th_')
+                option(value=5, lg_language='_f_')
+                option(value=6, lg_language='_sa_')
+            label(for='dayoff2', lg_language='_day_off_')
             select#dayoff2.form-control(name='dayoff2')
-                option(value=0) Sunday
-                option(value=1) Monday
-                option(value=2) Tuesday
-                option(value=3) Wednesday
-                option(value=4) Thursday
-                option(value=5) Friday
-                option(value=6) Saturday
-        button.btn.btn-primary(type='submit') Submit
+                option(value=0, lg_language='_su_')
+                option(value=1, lg_language='_m_')
+                option(value=2, lg_language='_tu_')
+                option(value=3, lg_language='_w_')
+                option(value=4, lg_language='_th_')
+                option(value=5, lg_language='_f_')
+                option(value=6, lg_language='_sa_')
+        button.btn.btn-primary(type='submit', lg_language='_submit_add_')

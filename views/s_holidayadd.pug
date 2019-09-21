@@ -1,10 +1,10 @@
 extends layout
 
 block content
-    h1 Add Holiday
+    h1(lg_language='_add_holiday_')
     form(action='/scheduler/addholiday', method='post')
         div.form-group
             input#creator(type='hidden', name='creator')
-            label(for='date') Date
-            input#date.form-control(type='date' name='date' required='true' value='2019-07-11')
-        button.btn.btn-primary(type='submit') Submit
+            label(for='date', lg_language='_date_')
+            input#date.form-control(type='date' name='date' required='true')
+        button.btn.btn-primary(type='submit', lg_language='_submit_add_')

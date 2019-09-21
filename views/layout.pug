@@ -1,7 +1,7 @@
 doctype html
 html(lang='en')
   head
-    title= title
+    title GCS Support Tool
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
@@ -19,13 +19,13 @@ html(lang='en')
           block topbar
             ul(class='topbar-nav')
               li 
-                a(href='/') Top/Settings
+                a(href='/', lg_language='_top_settings_')
               li 
                 a(href='/entry', lg_language='_content_')
               li 
                 a(href='/scheduler', lg_language='_scheduler_')
               li.admin_control(style='display: none;')
-                a(href='/admin') Admin
+                a(href='/admin', lg_language='_admin_')
       hr
       div(class='row')
         div(class='col-sm-12')

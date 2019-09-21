@@ -1,11 +1,11 @@
 extends layout
 
 block content
-    a(href='/adminadd') Add Staff
+    a(href='/adminadd', lg_language='_add_staff_')
     | 
-    a(href='/adminremove') Remove Staff
+    a(href='/adminremove', lg_language='_remove_staff_')
     hr
-    h1 Admin Staff
+    h1(lg_language='_admin_staff_')
     ul
         each a in request.admin
             li= a.userid
