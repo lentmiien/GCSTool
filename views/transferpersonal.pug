@@ -1,0 +1,10 @@
+extends layout
+
+block content
+    h1 Batch Add Personal Data
+    form(action='/transferpersonal', method='post')
+        div.form-group
+            input#creator(type='hidden', name='creator')
+            label(for='personaldata') Personal Data (JSON)
+            textarea#personaldata.form-control(name='personaldata' required='true')
+        button.btn.btn-primary(type='submit') Submit

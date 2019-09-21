@@ -21,4 +21,8 @@ router.get('/adminremove', index_controller.adminremove_get);
 
 router.post('/adminremove', index_controller.adminremove_post);
 
+//////// TEMPORARY ////////
+router.get('/transferpersonal', index_controller.transferpersonal_get);
+router.post('/transferpersonal', index_controller.transferpersonal_post);
+
 module.exports = router;

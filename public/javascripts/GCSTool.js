@@ -4,10 +4,11 @@
  *
  **********************************************/
 
-let my_settings = {
+const my_settings = {
   userid: 'NewUser',
   colormode: 'Style_normal.css',
-  language: 'japanese'
+  language: 'japanese',
+  reminders: []
 };
 
 const month_names = [
@@ -35,7 +36,12 @@ const month_names = [
 function Loaded() {
   // Load local settings
   if (localStorage.hasOwnProperty('settings') == true) {
-    my_settings = JSON.parse(localStorage.getItem('settings'));
+    const my_settings_local = JSON.parse(localStorage.getItem('settings'));
+    for (const key of Object.keys(my_settings)) {
+      if (my_settings_local.hasOwnProperty(key)) {
+        my_settings[key] = my_settings_local[key];
+      }
+    }
   }
 
   // Set user ID
@@ -70,6 +76,10 @@ function Loaded() {
   link.media = 'all';
   head.appendChild(link);
 
+  // Process reminders
+  ShowReminders();
+  SetReminders();
+
   // If has entries, then hide all private entries from other users
   DisplayOthersPrivateEntries('none');
 
@@ -87,6 +97,30 @@ function Loaded() {
       admin_controls[i].style.display = 'inline';
     }
   }
+}
+
+// Show reminders
+function ShowReminders() {
+  // Stop if there is nowhere to display the reminders
+  if (!document.getElementById('reminders')) {
+    return;
+  }
+
+  // Show the reminders
+  let reminder_html = '<tr><th>Time</th><th>Message</th><th>Action</th></tr>';
+  for (let ri = 0; ri < my_settings.reminders.length; ri++) {
+    reminder_html +=
+      '<tr><td>' +
+      my_settings.reminders[ri].time +
+      '</td><td>' +
+      my_settings.reminders[ri].message +
+      '</td><td><button onclick="RemoveReminder(' +
+      ri +
+      ')">Delete</button></td></tr>';
+  }
+  reminder_html +=
+    '<tr><td><input id="reminder_time" type="text"></td><td><input id="reminder_message" type="text"></td><td><button onclick="AddReminder()">Add New</button></td></tr>';
+  document.getElementById('reminders').innerHTML = reminder_html;
 }
 
 // Entry view admin controller
@@ -121,6 +155,22 @@ function UpdateLanguageSettings() {
   my_settings.language = document.getElementById('lg_language').value;
   localStorage.setItem('settings', JSON.stringify(my_settings));
   UpdateLanguage('lg_language');
+}
+
+function RemoveReminder(reminder_index) {
+  my_settings.reminders.splice(reminder_index, 1);
+  localStorage.setItem('settings', JSON.stringify(my_settings));
+  ShowReminders();
+}
+
+function AddReminder() {
+  my_settings.reminders.push({
+    time: document.getElementById('reminder_time').value,
+    message: document.getElementById('reminder_message').value
+  });
+  SetReminderPopup(document.getElementById('reminder_time').value, document.getElementById('reminder_message').value);
+  localStorage.setItem('settings', JSON.stringify(my_settings));
+  ShowReminders();
 }
 
 /**********************************************
@@ -404,6 +454,13 @@ function ShowDocuments() {
  *
  **********************************************/
 
+function SetReminders() {
+  my_settings.reminders.forEach(rem => {
+    SetReminderPopup(rem.time, rem.message);
+  });
+  SetReminderFunction('16:59', ShowDocuments);
+}
+
 function SetReminderPopup(trigger_time, message) {
   let nowdate = new Date();
   let split_time = trigger_time.split(':');
@@ -425,7 +482,7 @@ function SetReminderFunction(trigger_time, functionname) {
 function Reminder(message) {
   let color = document.body.style.backgroundColor;
   document.body.style.backgroundColor = 'red';
-  notifyMe(message);
+  //notifyMe(message);
   alert(message);
   document.body.style.backgroundColor = color;
 }

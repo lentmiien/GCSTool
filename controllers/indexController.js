@@ -70,3 +70,32 @@ exports.adminremove_post = function(req, res) {
     });
   }
 };
+
+//////// TEMPORARY ////////
+exports.transferpersonal_get = function(req, res) {
+  res.render('transferpersonal', { request: req.body });
+};
+
+//////// TEMPORARY ////////
+exports.transferpersonal_post = function(req, res) {
+  // Save the incomming json data as personal data entries in database
+  const personal_data = JSON.parse(req.body.personaldata);
+
+  personal_data.Entries.forEach(d => {
+    const input_data = {
+      creator: req.body.creator,
+      category: d.type,
+      ismaster: 0,
+      tag: d.category,
+      team: d.team,
+      title: d.data.Title,
+      contents: []
+    };
+    for (let i = 0; i < d.data.Content.length; i++) {
+      input_data.contents.push({ data: d.data.Content[i] });
+    }
+    Entry.create(input_data, { include: Entry.Content });
+  });
+
+  res.render('s_added', { message: 'Personal data added to database!', request: req.body });
+};

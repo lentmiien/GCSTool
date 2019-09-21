@@ -24,11 +24,17 @@ block content
 
   hr
   h3 Settings
-  p User ID
   input#user_id(type='text')
-  button(onclick='UpdateUserID()') Update User ID
+  button#update_user_id_button(onclick='UpdateUserID()') Update User ID
+  i *Can not be changed after set.
   br
   select#cmode(name="colormode")
     option(value='Style_normal.css') Normal
     option(value='Style_dark.css') Dark
   button(onclick='UpdateColorMode()') Update Color Mode
+  i *Updates at the next page you open.
+  br
+  b Reminders
+  table#reminders
+  br
+  i *Shows a popup message at the given time
