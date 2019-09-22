@@ -26,6 +26,13 @@ html(lang='en')
                 a(href='/scheduler', lg_language='_scheduler_')
               li.admin_control(style='display: none;')
                 a(href='/admin', lg_language='_admin_')
+              li
+                input#track(type='text' placeholder='Tracking number')
+                button(onclick='myGetDocument(1)') L
+                button(onclick='myGetDocument(2)') I
+                button(onclick='myGetDocument(0)') L+I
+      hr
+      #debug
       hr
       div(class='row')
         div(class='col-sm-12')

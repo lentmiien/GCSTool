@@ -8,7 +8,12 @@ const my_settings = {
   userid: 'NewUser',
   colormode: 'Style_normal.css',
   language: 'japanese',
-  reminders: []
+  reminders: [],
+  documents: {
+    label: [],
+    invoice: [],
+    both: []
+  }
 };
 
 const month_names = [
@@ -412,51 +417,53 @@ function CDate(date1, date2) {
 
 // Add shipping label/invoice to ask for
 function myGetDocument(type) {
-  let input = document.getElementById('all_inputfield').value;
+  let input = document.getElementById('track').value;
   if (input.length == 0) {
     return;
   }
   if (type == 0) {
-    if (document.getElementById('var_labinv').innerHTML.length > 0) {
-      document.getElementById('var_labinv').innerHTML += '<br>';
-    }
-    document.getElementById('var_labinv').innerHTML += input;
+    my_settings.documents.both.push(input);
   } else if (type == 1) {
-    if (document.getElementById('var_label').innerHTML.length > 0) {
-      document.getElementById('var_label').innerHTML += '<br>';
-    }
-    document.getElementById('var_label').innerHTML += input;
+    my_settings.documents.label.push(input);
   } else {
-    if (document.getElementById('var_invoice').innerHTML.length > 0) {
-      document.getElementById('var_invoice').innerHTML += '<br>';
-    }
-    document.getElementById('var_invoice').innerHTML += input;
+    my_settings.documents.invoice.push(input);
   }
-  document.getElementById('all_inputfield').value = '';
+  document.getElementById('track').value = '';
+  localStorage.setItem('settings', JSON.stringify(my_settings));
 }
 function ShowDocuments() {
-  if (
-    document.getElementById('var_label').innerHTML.length > 0 ||
-    document.getElementById('var_invoice').innerHTML.length > 0 ||
-    document.getElementById('var_labinv').innerHTML.length > 0
-  ) {
-    let op = '<div>お疲れ様です。<br><br>';
-    if (document.getElementById('var_labinv').innerHTML.length > 0) {
-      op += '伝票画像+インボイス<br>' + document.getElementById('var_labinv').innerHTML + '<br><br>';
+  if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
+    let message = '<div>お疲れ様です。<br><br>';
+    if (my_settings.documents.both.length > 0) {
+      message += '伝票画像+インボイス<br>';
+      while (my_settings.documents.both.length > 0) {
+        message += my_settings.documents.both.pop() + '<br>';
+      }
+      message += '<br>';
     }
-    if (document.getElementById('var_label').innerHTML.length > 0) {
-      op += '伝票画像<br>' + document.getElementById('var_label').innerHTML + '<br><br>';
+    if (my_settings.documents.label.length > 0) {
+      message += '伝票画像<br>';
+      while (my_settings.documents.label.length > 0) {
+        message += my_settings.documents.label.pop() + '<br>';
+      }
+      message += '<br>';
     }
-    if (document.getElementById('var_invoice').innerHTML.length > 0) {
-      op += 'インボイス<br>' + document.getElementById('var_invoice').innerHTML + '<br><br>';
+    if (my_settings.documents.invoice.length > 0) {
+      message += 'インボイス<br>';
+      while (my_settings.documents.invoice.length > 0) {
+        message += my_settings.documents.invoice.pop() + '<br>';
+      }
+      message += '<br>';
     }
-    op += 'よろしくお願いします。<div>';
+    message += 'よろしくお願いします。<div>';
 
-    op += '<button onclick="Debug(\'\')">Done</button>';
+    message += '<button onclick="Debug(\'\')">Done</button>';
 
-    document.getElementById('debug').innerHTML = op;
+    Debug(message);
 
-    notifyMe('Request for shipping documents.\n発送書類を依頼してください。');
+    localStorage.setItem('settings', JSON.stringify(my_settings));
+
+    alert('Request for shipping documents.\n発送書類を依頼してください。');
   }
 }
 
