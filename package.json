@@ -16,9 +16,12 @@
     "morgan": "~1.9.1",
     "mysql2": "^1.7.0",
     "pug": "^2.0.4",
-    "sequelize": "^5.18.1"
+    "sequelize": "^5.18.1",
+    "shipit-npm": "^0.2.0"
   },
   "devDependencies": {
-    "nodemon": "^1.19.2"
+    "nodemon": "^1.19.2",
+    "shipit-cli": "^5.1.0",
+    "shipit-deploy": "^5.1.0"
   }
 }
