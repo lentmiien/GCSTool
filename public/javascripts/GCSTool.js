@@ -150,8 +150,8 @@ function AdminCheckBox() {
 function DisplayOthersPrivateEntries(property) {
   let entries = document.getElementsByClassName('entry');
   for (let i = 0; i < entries.length; i++) {
-    if (entries[i].innerHTML.indexOf('>Private<') >= 0) {
-      if (entries[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1) {
+    if (entries[i].innerHTML.indexOf('lg_language="_private_"') >= 0) {
+      if (entries[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) {
         entries[i].style.display = property;
       }
     }
@@ -364,7 +364,7 @@ function Filter() {
   const s_tag = document.getElementById('s_tag').value;
   for (let i = 0; i < e.length; i++) {
     if (
-      !(e[i].innerHTML.indexOf('>Private<') >= 0 && e[i].innerHTML.indexOf('Created by ' + my_settings.userid + '.') == -1) ||
+      !(e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 && e[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) ||
       document.getElementById('admin').checked == true
     ) {
       if (e[i].innerHTML.toLocaleLowerCase().indexOf(s_string) >= 0 && e[i].innerHTML.indexOf(s_tag) >= 0) {
