@@ -26,7 +26,6 @@ module.exports = shipit => {
   shipit.on('deployed', () => {
     // const processName = 'gcstool';
     // const env = shipit.environment;
-
     // let cmd = `
     //     cd ${shipit.releasePath} &&
     //     (
@@ -34,8 +33,7 @@ module.exports = shipit => {
     //         NODE_ENV=${env} pm2 start server.js --name ${processName}
     //     )
     // `;
-
-    shipit.remote(`cd ${shipit.releasePath} && npm start`);
+    //shipit.remote(`cd ${shipit.releasePath} && npm start`);
   });
 };
 
