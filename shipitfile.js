@@ -14,6 +14,10 @@ module.exports = shipit => {
     }
   });
 
+  // Copy process.env file
+  shipit.task('copyConfig', async () => {
+    await shipit.copyToRemote('process.env', '/home/deploy/process.env');
+  });
   /*
   // Copy config file example
   shipit.task('copyConfig', async () => {

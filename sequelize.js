@@ -9,7 +9,8 @@ const ScheduleModel = require('./models/schedule');
 const AdminModel = require('./models/admin');
 
 // Connect to DB
-const sequelize = new Sequelize('gcstool', 'root', '', {
+const sequelize = new Sequelize('gcstool', process.env.DB_USER, process.env.DB_PASS, {
+  host: process.env.DB_HOST,
   dialect: 'mysql'
 });
 
