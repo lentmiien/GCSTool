@@ -30,10 +30,7 @@ module.exports = shipit => {
     let cmd = '';
     cmd += `cd ${shipit.releasePath} && `;
     cmd += 'npm install --production && ';
-    cmd += `(
-        pm2 restart ${processName} || 
-        NODE_ENV=${env} pm2 start ./bin/www --name ${processName}
-    )`;
+    cmd += `(pm2 restart ${processName} || NODE_ENV=${env} pm2 start ./bin/www --name ${processName})`;
 
     shipit.remote(cmd);
     // shipit.remote(`cd ${shipit.releasePath} && npm start`);
