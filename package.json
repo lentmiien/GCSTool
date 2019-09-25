@@ -18,7 +18,8 @@
     "mysql2": "^1.7.0",
     "pug": "^2.0.4",
     "sequelize": "^5.18.1",
-    "shipit-npm": "^0.2.0"
+    "shipit-npm": "^0.2.0",
+    "shipit-shared": "^4.4.2"
   },
   "devDependencies": {
     "nodemon": "^1.19.2",

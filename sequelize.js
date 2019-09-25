@@ -9,7 +9,7 @@ const ScheduleModel = require('./models/schedule');
 const AdminModel = require('./models/admin');
 
 // Connect to DB
-const sequelize = new Sequelize('gcstool', process.env.DB_USER, process.env.DB_PASS, {
+const sequelize = new Sequelize('gcs', process.env.DB_USER, process.env.DB_PASS, {
   host: process.env.DB_HOST,
   dialect: 'mysql'
 });
@@ -82,7 +82,7 @@ sequelize.sync().then(() => {
         };
         Holiday.create(input_data);
       });
-      Admin.create({ userid: Lennart });
+      Admin.create({ userid: 'Lennart' });
     }
   });
   //////////////////////////////////////////////////////////////////////////
