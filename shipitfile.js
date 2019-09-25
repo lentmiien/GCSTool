@@ -24,16 +24,18 @@ module.exports = shipit => {
   });
 
   shipit.on('deployed', () => {
-    // const processName = 'gcstool';
-    // const env = shipit.environment;
-    // let cmd = `
-    //     cd ${shipit.releasePath} &&
-    //     (
-    //         pm2 restart ${processName} ||
-    //         NODE_ENV=${env} pm2 start server.js --name ${processName}
-    //     )
-    // `;
-    shipit.remote(`cd ${shipit.releasePath} && npm start`);
+    const processName = 'gcstool';
+    const env = shipit.environment;
+    let cmd = `
+        cd ${shipit.releasePath} && npm install --production && 
+        (
+            pm2 restart ${processName} ||
+            NODE_ENV=${env} pm2 start server.js --name ${processName}
+        )
+    `;
+
+    shipit.remote(cmd);
+    // shipit.remote(`cd ${shipit.releasePath} && npm start`);
   });
 };
 
