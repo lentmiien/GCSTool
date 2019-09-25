@@ -16,7 +16,7 @@ module.exports = shipit => {
 
   // Copy process.env file
   shipit.task('copyConfig', async () => {
-    await shipit.copyToRemote('/.env', '/home/deploy/test/.env');
+    await shipit.copyToRemote('.env', '/home/deploy/test/.env');
   });
   /*
   // Copy config file example
