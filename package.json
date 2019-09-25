@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "pm2 delete www",
+    "start": "npm ./bin/www",
     "devstart": "nodemon ./bin/www"
   },
   "dependencies": {
