@@ -6,8 +6,8 @@ module.exports = shipit => {
 
   shipit.initConfig({
     default: {
-      deployTo: '/var/apps/super-project',
-      repositoryUrl: 'https://github.com/user/super-project.git'
+      deployTo: '/home/deploy/test',
+      repositoryUrl: 'https://github.com/lentmiien/GCSTool.git'
     },
     staging: {
       servers: 'onyx'
