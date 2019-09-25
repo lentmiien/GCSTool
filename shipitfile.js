@@ -34,7 +34,7 @@ module.exports = shipit => {
     //     )
     // `;
     //shipit.remote(`cd ${shipit.releasePath} && npm start`);
-    shipit.remote('pm2 delete www');
+    shipit.remote(`cd ${shipit.releasePath} && pm2 delete www`);
   });
 };
 
