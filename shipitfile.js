@@ -1,3 +1,8 @@
+/********
+ * About ".env" file, with the current setup this file needs
+ * to be updated manually in the shared folder on the server.
+ */
+
 // shipitfile.js
 module.exports = shipit => {
   // Load shipit-deploy tasks
@@ -17,14 +22,6 @@ module.exports = shipit => {
       servers: 'onyx'
     }
   });
-
-  // shipit.task('copyConfig', async () => {
-  //   await shipit.copyToRemote('.env', '/home/deploy/test/.env');
-  // });
-
-  // shipit.on('updated', function() {
-  //   shipit.start('copyConfig');
-  // });
 };
 
 // Deploy with
