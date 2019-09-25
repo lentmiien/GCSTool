@@ -30,7 +30,7 @@ module.exports = shipit => {
         cd ${shipit.releasePath} && npm install --production && 
         (
             pm2 restart ${processName} ||
-            NODE_ENV=${env} pm2 start server.js --name ${processName}
+            NODE_ENV=${env} pm2 start ./bin/www --name ${processName}
         )
     `;
 
