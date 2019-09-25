@@ -22,6 +22,21 @@ module.exports = shipit => {
       servers: 'onyx'
     }
   });
+
+  shipit.on('deployed', () => {
+    const processName = 'gcstool';
+    const env = shipit.environment;
+
+    let cmd = `
+        cd ${shipit.releasePath} && 
+        (
+            pm2 restart ${processName} ||
+            NODE_ENV=${env} pm2 start server.js --name ${processName}
+        )
+    `;
+
+    shipit.remote(cmd);
+  });
 };
 
 // Deploy with
