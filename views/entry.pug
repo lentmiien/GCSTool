@@ -28,6 +28,7 @@ block content
             span(lg_language='_other_user_data_')
             | 
         button#filter_key(onclick='Filter()', lg_language='_apply_filter_')
+        button#clear_key(onclick='Clear()', lg_language='_clear_filter_')
     hr
     each entry in entries
         div(class='entry ' + entry.category)

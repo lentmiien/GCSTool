@@ -318,6 +318,13 @@ window.onkeydown = function(e) {
       Filter();
     }
   }
+
+  // Clear when Escape is pressed
+  if (e.keyCode == 13) {
+    if (document.getElementById('clear_key')) {
+      Clear();
+    }
+  }
 };
 
 /**********************************************
@@ -356,6 +363,14 @@ function auto_grow(element) {
  *             FILTER FUNCTIONS
  *
  **********************************************/
+function Clear() {
+  document.getElementById('s_box').value = '';
+  document.getElementById('s_tag').value = '_';
+  document.getElementById('s_template').checked = true;
+  document.getElementById('s_manual').checked = true;
+  document.getElementById('s_ccontact').checked = true;
+  Filter();
+}
 
 function Filter() {
   const e = document.getElementsByClassName('entry');

@@ -201,6 +201,11 @@ var json_language = {
     swedish: 'Tillämpa Filter',
     japanese: 'フィルタ適用'
   },
+  _clear_filter_: {
+    english: 'Clear',
+    swedish: 'Rensa',
+    japanese: 'クレア'
+  },
   _other_user_data_: {
     english: ' Show Other Users Data',
     swedish: ' Visa andra användares data',
