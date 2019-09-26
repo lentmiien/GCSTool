@@ -320,7 +320,7 @@ window.onkeydown = function(e) {
   }
 
   // Clear when Escape is pressed
-  if (e.keyCode == 13) {
+  if (e.keyCode == 27) {
     if (document.getElementById('clear_key')) {
       Clear();
     }
