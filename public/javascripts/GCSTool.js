@@ -312,12 +312,11 @@ function SetupScheduler() {
 
 // Capture Ctrl+F
 window.onkeydown = function(e) {
-  // Ctrl + Q  [Continue previous search]
-  if (e.keyCode == 81 && e.ctrlKey) {
-  }
-
-  // Ctrl + Space  [New empty search]
-  if (e.keyCode == 32 && e.ctrlKey) {
+  // When enter is pressed
+  if (e.keyCode == 13) {
+    if (document.getElementById('filter_key')) {
+      Filter();
+    }
   }
 };
 
