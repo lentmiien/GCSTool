@@ -4,7 +4,6 @@ block content
     h1(lg_language='_add_holiday_')
     form(action='/scheduler/addholiday', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
             label(for='date', lg_language='_date_')
             input#date.form-control(type='date' name='date' required='true')
         button.btn.btn-primary(type='submit', lg_language='_submit_add_')

@@ -10,9 +10,6 @@ html(lang='en')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
   body(onload='Loaded()')
-    if !(request.admin===undefined)
-      each a in request.admin
-        span.admin(style='display: none;')= a.userid
     div(class='container-fluid')
       div(class='row')
         div(class='col-sm-12')
@@ -24,8 +21,9 @@ html(lang='en')
                 a(href='/entry', lg_language='_content_')
               li 
                 a(href='/scheduler', lg_language='_scheduler_')
-              li.admin_control(style='display: none;')
-                a(href='/admin', lg_language='_admin_')
+              if request.role === 'admin'
+                li
+                  a(href='/admin', lg_language='_admin_')
               li
                 input#track(type='text' placeholder='Tracking number')
                 button(onclick='myGetDocument(1)') L

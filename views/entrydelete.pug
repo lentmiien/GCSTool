@@ -7,7 +7,6 @@ block content
         span= entry.title
         span(lg_language='_confirm_delete_2_')
         form(action='/entry/' + entry.id + '/delete', method="post")
-            input#creator(type='hidden', name='creator')
             button.btn.btn-primary(type='submit', lg_language='_submit_delete_')
     else
         h2(lg_language='_couldnt_delete_')

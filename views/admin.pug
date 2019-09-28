@@ -5,7 +5,8 @@ block content
     | 
     a(href='/adminremove', lg_language='_remove_staff_')
     hr
-    h1(lg_language='_admin_staff_')
+    h1(lg_language='_users_')
     ul
-        each a in request.admin
-            li= a.userid
+        each u in users
+            li= u.userid
+                i= '(' + u.role + ')'

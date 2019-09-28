@@ -9,7 +9,6 @@ block content
     h1(lg_language='_new_entry_')
     form(action='/entry/create', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
             label(for='title', lg_language='_title_')
             input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=(undefined===request.title ? '' : request.title))
             br
@@ -33,10 +32,11 @@ block content
                     else
                         option(value='ccontact', lg_language='_ccontact_')
             br
-            div.admin_control(style='display: none;')
-                label(for='ismaster', lg_language='_is_master_')
-                input#ismaster.form-control(type='checkbox', name='ismaster', checked=(undefined===request.ismaster ? false : true))
-                br
+            if request.role === 'admin'
+                div
+                    label(for='ismaster', lg_language='_is_master_')
+                    input#ismaster.form-control(type='checkbox', name='ismaster', checked=(undefined===request.ismaster ? false : true))
+                    br
             label(for='tag', lg_language='_tag_')
             - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
             select#tag.form-control(name='tag')
@@ -53,12 +53,12 @@ block content
             label(for='team', lg_language='_team_')
             select#team.form-control(name='team')
                 if undefined===request.team
-                    option(value='ohami_global_support') GCS Mail team
+                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
                 else
-                    if request.team==='ohami_global_support'
-                        option(value='ohami_global_support', selected) GCS Mail team
+                    if request.team==='ohami_gcs_mail'
+                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
                     else
-                        option(value='ohami_global_support') GCS Mail team
+                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
         div.form-group
             label(for='content1', lg_language='_content_')
             textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===request.content1 ? '' : request.content1)

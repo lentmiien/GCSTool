@@ -4,9 +4,8 @@ block content
     h1(lg_language='_remove_admin_staff_')
     form(action='/adminremove', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
-            label(for='userid', lg_language='_user_id_')
-            select#userid.form-control(name='userid')
-                each a in request.admin
+            label(for='userindex', lg_language='_user_id_')
+            select#userindex.form-control(name='userindex')
+                each a in users
                     option(value=a.id)= a.userid
         button.btn.btn-primary(type='submit', lg_language='_submit_')

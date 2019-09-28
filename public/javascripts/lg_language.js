@@ -4,6 +4,11 @@ var json_language = {
     swedish: 'GCS Assist Verktyg',
     japanese: 'GCS支援ツール'
   },
+  ohami_gcs_mail: {
+    english: 'GCS Mail Team',
+    swedish: 'GCS Email Laget',
+    japanese: 'GCSメールチーム'
+  },
   _welcome_gcs_tool_: {
     english:
       'Welcome to GCS Support Tool. You can find the latest updated content below, and at the bottom you can specify your personal settings.',
@@ -151,20 +156,20 @@ var json_language = {
     swedish: 'Ta Bort Personal',
     japanese: 'スタッフ削除'
   },
-  _admin_staff_: {
-    english: 'Admin Staff',
-    swedish: 'Admin Personal',
-    japanese: 'アドミンスタッフ'
+  _users_: {
+    english: 'User Staff',
+    swedish: 'Användare Personal',
+    japanese: 'ユーザースタッフ'
   },
   _add_admin_staff_: {
-    english: 'Add Admin Staff',
-    swedish: 'Lägg till Admin Personal',
-    japanese: 'アドミンスタッフ追加'
+    english: 'Add User Staff',
+    swedish: 'Lägg till Användare Personal',
+    japanese: 'ユーザースタッフ追加'
   },
   _remove_admin_staff_: {
-    english: 'Remove Admin Staff',
-    swedish: 'Ta Bort Admin Personal',
-    japanese: 'アドミンスタッフ削除'
+    english: 'Remove User Staff',
+    swedish: 'Ta Bort Användare Personal',
+    japanese: 'ユーザースタッフ削除'
   },
   _user_id_: {
     english: 'User ID',
@@ -250,6 +255,16 @@ var json_language = {
     english: 'Team',
     swedish: 'Lag',
     japanese: 'チーム'
+  },
+  _role_: {
+    english: 'Role',
+    swedish: 'Roll',
+    japanese: '役目'
+  },
+  _user_: {
+    english: 'User',
+    swedish: 'Användare',
+    japanese: 'ユーザー'
   },
   _content_: {
     english: 'Content',

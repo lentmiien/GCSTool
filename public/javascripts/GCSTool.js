@@ -58,10 +58,6 @@ function Loaded() {
       document.getElementById('update_user_id_button').style.display = 'none';
     }
   }
-  dom_uid = document.getElementById('creator');
-  if (dom_uid) {
-    dom_uid.value = my_settings.userid;
-  }
 
   // Set interface language
   document.getElementById('lg_language').value = my_settings.language;
@@ -89,20 +85,8 @@ function Loaded() {
   // If has entries, then hide all private entries from other users
   DisplayOthersPrivateEntries('none');
 
-  // Setup admin_control
-  const admins = document.getElementsByClassName('admin');
-  const admin_controls = document.getElementsByClassName('admin_control');
-  let is_admin = false;
-  for (let i = 0; i < admins.length; i++) {
-    if (my_settings.userid === admins[i].innerHTML) {
-      is_admin = true;
-    }
-  }
-  if (is_admin == true) {
-    for (let i = 0; i < admin_controls.length; i++) {
-      admin_controls[i].style.display = 'inline';
-    }
-  }
+  // Set Cookies
+  document.cookie = 'userid=' + my_settings.userid + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
 }
 
 // Show reminders

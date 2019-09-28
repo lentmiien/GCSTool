@@ -10,7 +10,7 @@ var schedulerRouter = require('./routes/scheduler');
 
 var app = express();
 
-const { Entry, Content, Staff, Holiday, Schedule } = require('./sequelize');
+const {} = require('./sequelize');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

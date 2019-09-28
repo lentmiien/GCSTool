@@ -27,10 +27,11 @@ block content
                     else
                         option(value='ccontact', lg_language='_ccontact_')
                 br
-                div.admin_control(style='display: none;')
-                    label(for='ismaster', lg_language='_is_master_')
-                    input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
-                    br
+                if request.role === 'admin'
+                    div
+                        label(for='ismaster', lg_language='_is_master_')
+                        input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
+                        br
                 label(for='tag', lg_language='_tag_')
                 - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
                 select#tag.form-control(name='tag')
@@ -42,10 +43,10 @@ block content
                 br
                 label(for='team', lg_language='_team_')
                 select#team.form-control(name='team')
-                    if entry.team==='ohami_global_support'
-                        option(value='ohami_global_support', selected) GCS Mail team
+                    if entry.team==='ohami_gcs_mail'
+                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
                     else
-                        option(value='ohami_global_support') GCS Mail team
+                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
             div.form-group
                 each i in [0, 1, 2, 3, 4]
                     if !(undefined===entry.contents[i])

@@ -4,7 +4,6 @@ block content
     h1(lg_language='_remove_staff_')
     form(action='/scheduler/removestaff', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
             label(for='staff', lg_language='_staff_')
             select#staff.form-control(name='staff')
                 each s in staff

@@ -4,7 +4,6 @@ block content
     h1(lg_language='_add_staff_')
     form(action='/scheduler/addstaff', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
             label(for='name', lg_language='_name_')
             input#name.form-control(type='text' name='name' required='true')
             label(for='dayoff1', lg_language='_day_off_')

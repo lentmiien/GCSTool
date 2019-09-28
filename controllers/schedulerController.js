@@ -34,12 +34,12 @@ exports.add_holiday_post = function(req, res) {
         date: req.body.date
       };
 
-      if (req.body.isadmin == false) {
-        res.render('s_added', { message: 'Only admin users can add holidays.', request: req.body });
-      } else {
+      if (req.body.role === 'admin') {
         Holiday.create(input_data).then(() => {
           res.render('s_added', { message: 'Holiday added!', request: req.body });
         });
+      } else {
+        res.render('s_added', { message: 'Only admin users can add holidays.', request: req.body });
       }
     }
   });
@@ -54,9 +54,7 @@ exports.add_schedule_get = function(req, res) {
 
 // Handle add schedule create on POST.
 exports.add_schedule_post = function(req, res) {
-  if (req.body.isadmin == false) {
-    res.render('s_added', { message: 'Only admin users can add schedules.', request: req.body });
-  } else {
+  if (req.body.role === 'admin') {
     Schedule.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
       if (s.length == 0) {
         // Add new schedule
@@ -70,6 +68,8 @@ exports.add_schedule_post = function(req, res) {
         });
       }
     });
+  } else {
+    res.render('s_added', { message: 'Only admin users can add schedules.', request: req.body });
   }
 };
 
@@ -80,9 +80,7 @@ exports.add_staff_get = function(req, res) {
 
 // Handle add staff create on POST.
 exports.add_staff_post = function(req, res) {
-  if (req.body.isadmin == false) {
-    res.render('s_added', { message: 'Only admin users can add staff.', request: req.body });
-  } else {
+  if (req.body.role === 'admin') {
     const input_data = {
       name: req.body.name,
       dayoff1: req.body.dayoff1,
@@ -91,6 +89,8 @@ exports.add_staff_post = function(req, res) {
     Staff.create(input_data).then(() => {
       res.render('s_added', { message: 'Staff added!', request: req.body });
     });
+  } else {
+    res.render('s_added', { message: 'Only admin users can add staff.', request: req.body });
   }
 };
 
@@ -103,13 +103,13 @@ exports.remove_staff_get = function(req, res) {
 
 // Handle remove staff create on POST.
 exports.remove_staff_post = function(req, res) {
-  if (req.body.isadmin == false) {
-    res.render('s_added', { message: 'Only admin users can remove staff.', request: req.body });
-  } else {
+  if (req.body.role === 'admin') {
     Staff.destroy({ where: { id: req.body.staff } }).then(() => {
       Schedule.destroy({ where: { staffId: req.body.staff } }).then(() => {
         res.render('s_added', { message: 'Staff removed!', request: req.body });
       });
     });
+  } else {
+    res.render('s_added', { message: 'Only admin users can remove staff.', request: req.body });
   }
 };

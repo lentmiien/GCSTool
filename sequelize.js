@@ -6,7 +6,7 @@ const ContentModel = require('./models/content');
 const StaffModel = require('./models/staff');
 const HolidayModel = require('./models/holiday');
 const ScheduleModel = require('./models/schedule');
-const AdminModel = require('./models/admin');
+const UserModel = require('./models/user');
 
 // Connect to DB
 const sequelize = new Sequelize('gcs', process.env.DB_USER, process.env.DB_PASS, {
@@ -20,7 +20,7 @@ const Content = ContentModel(sequelize, Sequelize);
 const Staff = StaffModel(sequelize, Sequelize);
 const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
-const Admin = AdminModel(sequelize, Sequelize);
+const User = UserModel(sequelize, Sequelize);
 
 const Op = Sequelize.Op;
 
@@ -44,11 +44,11 @@ sequelize.sync().then(() => {
   //     // entries
   //     obj.Entries.forEach(d => {
   //       const input_data = {
-  //         creator: 'NewUser',
+  //         creator: 'Imported',
   //         category: d.type,
   //         ismaster: 1,
   //         tag: d.category,
-  //         team: d.team,
+  //         team: 'ohami_gcs_mail',
   //         title: d.data.Title,
   //         contents: []
   //       };
@@ -82,7 +82,8 @@ sequelize.sync().then(() => {
   //       };
   //       Holiday.create(input_data);
   //     });
-  //     Admin.create({ userid: 'Lennart' });
+  //     // users
+  //     User.create({ userid: 'Lennart', team: 'ohami_gcs_mail', role: 'admin' });
   //   }
   // });
   //////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,6 @@ module.exports = {
   Staff,
   Holiday,
   Schedule,
-  Admin,
+  User,
   Op
 };

@@ -23,10 +23,11 @@ block content
             each tag in tags
                 option(value=tag, lg_language=tag)
         | 
-        span.admin_control(style='display: none;')
-            input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
-            span(lg_language='_other_user_data_')
-            | 
+        if request.role === 'admin'
+            span
+                input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
+                span(lg_language='_other_user_data_')
+                | 
         button#filter_key(onclick='Filter()', lg_language='_apply_filter_')
         button#clear_key(onclick='Clear()', lg_language='_clear_filter_')
     hr

@@ -1,14 +1,15 @@
 extends layout
 
 block content
-    a.admin_control(href='/scheduler/addholiday', style='display: none;', lg_language='_add_holiday_')
-    | 
-    a.admin_control(href='/scheduler/addschedule', style='display: none;', lg_language='_add_schedule_')
-    | 
-    a.admin_control(href='/scheduler/addstaff', style='display: none;', lg_language='_add_staff_')
-    | 
-    a.admin_control(href='/scheduler/removestaff', style='display: none;', lg_language='_remove_staff_')
-    hr
+    if request.role === 'admin'
+        a(href='/scheduler/addholiday', lg_language='_add_holiday_')
+        | 
+        a(href='/scheduler/addschedule', lg_language='_add_schedule_')
+        | 
+        a(href='/scheduler/addstaff', lg_language='_add_staff_')
+        | 
+        a(href='/scheduler/removestaff', lg_language='_remove_staff_')
+        hr
     - const today = new Date()
     - const weekdays = ['_su_', '_m_', '_tu_', '_w_', '_th_', '_f_', '_sa_']
     h3(lg_language='_team_members_')

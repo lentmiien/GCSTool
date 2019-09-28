@@ -4,7 +4,6 @@ block content
     h1(lg_language='_add_schedule_')
     form(action='/scheduler/addschedule', method='post')
         div.form-group
-            input#creator(type='hidden', name='creator')
             label(for='date', lg_language='_date_')
             input#date.form-control(type='date' name='date' required='true')
             label(for='staff', lg_language='_staff_')
