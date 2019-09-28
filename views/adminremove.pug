@@ -5,7 +5,8 @@ block content
     form(action='/adminremove', method='post')
         div.form-group
             label(for='userindex', lg_language='_user_id_')
-            select#userindex.form-control(name='userindex')
+            select#userindex.form-control(name='userindex', required='true')
                 each a in users
-                    option(value=a.id)= a.userid
+                    if a.id != 1
+                        option(value=a.id)= a.userid
         button.btn.btn-primary(type='submit', lg_language='_submit_')

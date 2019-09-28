@@ -4,19 +4,29 @@ const { Staff, Holiday, Schedule } = require('../sequelize');
 
 // Display all Entries
 exports.view = function(req, res) {
-  async.parallel(
-    {
-      staff: function(callback) {
-        Staff.findAll({ include: [{ model: Schedule }] }).then(staff => callback(null, staff));
+  if (req.body.role === 'guest') {
+    res.render('scheduler', {
+      data: {
+        staff: [{ name: 'sample staff', dayoff1: 0, dayoff2: 6, schedules: [] }],
+        holidays: []
       },
-      holidays: function(callback) {
-        Holiday.findAll().then(holidays => callback(null, holidays));
+      request: req.body
+    });
+  } else {
+    async.parallel(
+      {
+        staff: function(callback) {
+          Staff.findAll({ include: [{ model: Schedule }] }).then(staff => callback(null, staff));
+        },
+        holidays: function(callback) {
+          Holiday.findAll().then(holidays => callback(null, holidays));
+        }
+      },
+      function(err, results) {
+        res.render('scheduler', { data: results, request: req.body });
       }
-    },
-    function(err, results) {
-      res.render('scheduler', { data: results, request: req.body });
-    }
-  );
+    );
+  }
 };
 
 // Display add holiday form on GET
