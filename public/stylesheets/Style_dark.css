@@ -111,8 +111,8 @@ button {
 
 /* Default settings for input areas */
 textarea {
-  resize: none;
-  overflow: hidden;
+  /* resize: none;
+  overflow: hidden; */
   background-color: rgb(39, 39, 0);
   color: rgb(230, 227, 255);
 }

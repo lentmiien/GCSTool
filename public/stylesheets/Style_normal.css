@@ -102,8 +102,8 @@ td {
 
 /* Default settings for input areas */
 textarea {
-  resize: none;
-  overflow: hidden;
+  /* resize: none;
+  overflow: hidden; */
   background-color: #ffffdd;
 }
 input {
