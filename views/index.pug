@@ -8,8 +8,19 @@ block content
   h3(lg_language='_news_')
   i(lg_language='_news_update_')
   each entry in entries
+    - const cDate = entry.createdAt
+    - const uDate = entry.updatedAt
+    - const today = new Date()
+    - const withinOneWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate()-7)
+    - const wow_dateval = withinOneWeek.getFullYear() * 10000 + (withinOneWeek.getMonth()+1) * 100 + withinOneWeek.getDate()
+    - const cd_dateval = cDate.getFullYear() * 10000 + (cDate.getMonth()+1) * 100 + cDate.getDate()
+    - const ud_dateval = uDate.getFullYear() * 10000 + (uDate.getMonth()+1) * 100 + uDate.getDate()
     div(class='entry ' + entry.category)
       button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
+        if cd_dateval > wow_dateval
+          b(style='color:yellow;')  ★★ NEW ★★
+        else if ud_dateval > wow_dateval
+          b(style='color:orange;')  ★ UPDATED ★
       i.label(lg_language='_' + entry.category + '_')
       i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;' lg_language=entry.ismaster ? '_master_' : '_private_')
       br
