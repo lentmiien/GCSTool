@@ -36,3 +36,7 @@ a {
   background: rgb(59, 59, 59);
   margin-left: 3px;
 }
+
+textarea {
+  width: 100%;
+}
