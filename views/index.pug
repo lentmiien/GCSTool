@@ -18,9 +18,9 @@ block content
     div(class='entry ' + entry.category)
       button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
         if cd_dateval > wow_dateval
-          b(style='color:yellow;')  ★★ NEW ★★
+          b.update-status  ★★ NEW ★★
         else if ud_dateval > wow_dateval
-          b(style='color:orange;')  ★ UPDATED ★
+          b.update-status  ★ UPDATED ★
       i.label(lg_language='_' + entry.category + '_')
       i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;' lg_language=entry.ismaster ? '_master_' : '_private_')
       br

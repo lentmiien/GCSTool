@@ -28,3 +28,11 @@ a {
   margin-top: 1px;
   margin-bottom: 2px;
 }
+
+.update-status {
+  border: 1px dotted black;
+  border-radius: 3px;
+  color: rgb(255, 200, 47);
+  background: rgb(59, 59, 59);
+  margin-left: 3px;
+}
