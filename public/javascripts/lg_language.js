@@ -22,9 +22,9 @@ var json_language = {
     japanese: '＊＊　ニュース　＊＊'
   },
   _news_update_: {
-    english: '*Updated within last month',
-    swedish: '*Updaterad inom senaste månaden',
-    japanese: '＊最近の1ヶ月以内更新された'
+    english: '*Updated within last month (NEW = Created within last 7 days, UPDATED = Updated within last 7 days)',
+    swedish: '*Updaterad inom senaste månaden (NEW = Skapade de senaste 7 dagarna, UPDATED = Updaterad de senaste 7 dagarna)',
+    japanese: '＊最近の1ヶ月以内更新された（NEW＝1週間以内新規作成された、UPDATED＝1週間以内更新された）'
   },
   _template_: {
     english: 'Template',
