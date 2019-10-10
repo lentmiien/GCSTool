@@ -347,6 +347,20 @@ function auto_grow(element) {
  *             FILTER FUNCTIONS
  *
  **********************************************/
+
+function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
+  if (document.getElementById('s_box')) {
+    document.getElementById('s_box').value = q_string;
+    document.getElementById('s_tag').value = q_tag;
+    document.getElementById('s_template').checked = q_template == 'true' ? true : false;
+    document.getElementById('s_manual').checked = q_manual == 'true' ? true : false;
+    document.getElementById('s_ccontact').checked = q_ccontact == 'true' ? true : false;
+    Filter();
+  } else {
+    alert('Only works on "Content" page');
+  }
+}
+
 function Clear() {
   document.getElementById('s_box').value = '';
   document.getElementById('s_tag').value = '_';
