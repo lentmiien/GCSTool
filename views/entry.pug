@@ -31,6 +31,7 @@ block content
         button#filter_key(onclick='Filter()', lg_language='_apply_filter_')
         button#clear_key(onclick='Clear()', lg_language='_clear_filter_')
     hr
+    #back
     each entry in entries
         div(class='entry ' + entry.category)
             button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title

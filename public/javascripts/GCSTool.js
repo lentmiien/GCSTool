@@ -350,15 +350,38 @@ function auto_grow(element) {
 
 function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
   if (document.getElementById('s_box')) {
+    const back = document.getElementById('back');
+    const old_data =
+      '<div id="backdata" class="hidden">' +
+      document.getElementById('s_box').value +
+      '|' +
+      document.getElementById('s_tag').value +
+      '|' +
+      document.getElementById('s_template').checked +
+      '|' +
+      document.getElementById('s_manual').checked +
+      '|' +
+      document.getElementById('s_ccontact').checked +
+      '</div><button onclick="SetFilterBack()">BACK</button><hr>';
     document.getElementById('s_box').value = q_string;
     document.getElementById('s_tag').value = q_tag;
     document.getElementById('s_template').checked = q_template == 'true' ? true : false;
     document.getElementById('s_manual').checked = q_manual == 'true' ? true : false;
     document.getElementById('s_ccontact').checked = q_ccontact == 'true' ? true : false;
     Filter();
+    back.innerHTML = old_data;
   } else {
     alert('Only works on "Content" page');
   }
+}
+function SetFilterBack() {
+  const back = document.getElementById('backdata').innerHTML.split('|');
+  document.getElementById('s_box').value = back[0];
+  document.getElementById('s_tag').value = back[1];
+  document.getElementById('s_template').checked = back[2] == 'true' ? true : false;
+  document.getElementById('s_manual').checked = back[3] == 'true' ? true : false;
+  document.getElementById('s_ccontact').checked = back[4] == 'true' ? true : false;
+  Filter();
 }
 
 function Clear() {
@@ -371,6 +394,7 @@ function Clear() {
 }
 
 function Filter() {
+  document.getElementById('back').innerHTML = '';
   const e = document.getElementsByClassName('entry');
   const s_string = document.getElementById('s_box').value.toLocaleLowerCase();
   const s_tag = document.getElementById('s_tag').value;
