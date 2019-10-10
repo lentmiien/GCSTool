@@ -8,6 +8,31 @@ block content
     span.frame
         span(lg_language='_input_')
         input#s_box(name='search', type='text')
+        span.tooltip TIP
+            span.tooltiptext
+                h4 Filter Options
+                b(style='color:red;') word#1
+                | +
+                b(style='color:green;') word#2
+                |  = Must contain both "
+                b(style='color:red;') word#1
+                | " and "
+                b(style='color:green;') word#2
+                | "
+                br
+                b(style='color:red;') word#1 word#2
+                |  = Must contain "
+                b(style='color:red;') word#1 word#2
+                | " exactly as written
+                br
+                b(style='color:red;') word#1 word#2
+                | +
+                b(style='color:green;') word#3
+                |  = Must contain both "
+                b(style='color:red;') word#1 word#2
+                | " and "
+                b(style='color:green;') word#3
+                | "
         | 
         input#s_template(name='search', type='checkbox', checked)
         span(lg_language='_templates_')
