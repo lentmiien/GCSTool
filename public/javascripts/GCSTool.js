@@ -377,7 +377,7 @@ function Filter() {
   for (let i = 0; i < e.length; i++) {
     if (
       !(e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 && e[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) ||
-      document.getElementById('admin').checked == true
+      (document.getElementById('admin') && document.getElementById('admin').checked == true)
     ) {
       // string1+string2+string3 => Must include all 3 strings to be true
       let query_words = [];
