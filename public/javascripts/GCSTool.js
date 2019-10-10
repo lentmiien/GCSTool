@@ -379,7 +379,22 @@ function Filter() {
       !(e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 && e[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) ||
       document.getElementById('admin').checked == true
     ) {
-      if (e[i].innerHTML.toLocaleLowerCase().indexOf(s_string) >= 0 && e[i].innerHTML.indexOf(s_tag) >= 0) {
+      // string1+string2+string3 => Must include all 3 strings to be true
+      let query_words = [];
+      if (s_string.indexOf('+') >= 0) {
+        query_words = s_string.toLocaleLowerCase().split('+');
+      } else {
+        query_words.push(s_string.toLocaleLowerCase());
+      }
+      const button_title = e[i].getElementsByTagName('BUTTON')[0].innerHTML.toLocaleLowerCase();
+      const content_body = e[i].getElementsByTagName('DIV')[0].innerHTML.toLocaleLowerCase();
+      let found = true;
+      query_words.forEach(qw => {
+        if (!(button_title.indexOf(qw) >= 0 || content_body.indexOf(qw) >= 0)) {
+          found = false;
+        }
+      });
+      if (found && e[i].innerHTML.indexOf(s_tag) >= 0) {
         if (
           (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||
           (e[i].className.indexOf('manual') >= 0 && document.getElementById('s_manual').checked == true) ||
