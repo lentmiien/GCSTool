@@ -62,34 +62,7 @@ block content
         div.form-group
             label(for='content1', lg_language='_content_')
             span.tooltip TIP
-                span.tooltiptextright
-                    h4 Template and Company Contact is text formated
-                    | Any text you write will be formated exactly the same way when used.
-                    h4 Manual is HTML formated
-                    | *Some common HTML tags
-                    br
-                    b= '<br>'
-                    span : New Line
-                    br
-                    b= '<b>Bold Text</b>'
-                    br
-                    b= '<i>Italic Text</i>'
-                    br
-                    b= '<u>Underline Text</u>'
-                    br
-                    b= '<h1>Large Title</h1>'
-                    br
-                    | (Large) h1 - h2 - h3 - h4 - h5 (Small)
-                    br
-                    b= '<h5>Small Title</h5>'
-                    br
-                    b= '<ol><li>Number List#1</li><li>Number List#2</li></ol>'
-                    br
-                    b= '<ul><li>Dot List</li><li>Dot List</li></ul>'
-                    br
-                    | Link Button (Filter word, Tag, is_Template, is_Manual, is_CompanyContact)
-                    br
-                    b= '<button onclick="SetFilter(\'cancel\', \'_\', \'true\', \'true\', \'true\')">Button Text</button>'
+                span.tooltiptextright(lg_language='_tooltip_enter_data_')
             textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===request.content1 ? '' : request.content1)
             label(for='content2', lg_language='_content_')
             textarea#content2.form-control(name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)

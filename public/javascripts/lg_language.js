@@ -585,6 +585,22 @@ var json_language = {
     english: 'Add New',
     swedish: 'Lägg Till',
     japanese: '追加'
+  },
+  _tooltip_filter_: {
+    english:
+      '<h4>Filter Options</h4><b style="color:red;">word#1</b>+<b style="color:green;">word#2</b> = Must contain both "<b style="color:red;">word#1</b>" and "<b style="color:green;">word#2</b>"<br><b style="color:red;">word#1 word#2</b> = Must contain "<b style="color:red;">word#1 word#2</b>" exactly as written<br><b style="color:red;">word#1 word#2</b>+<b style="color:green;">word#3</b> = Must contain both "<b style="color:red;">word#1 word#2</b>" and "<b style="color:green;">word#3</b>"',
+    swedish:
+      '<h4>Filtrera Alternativ</h4><b style="color:red;">ord#1</b>+<b style="color:green;">ord#2</b> = Måste innehålla både "<b style="color:red;">ord#1</b>" och "<b style="color:green;">ord#2</b>"<br><b style="color:red;">ord#1 ord#2</b> = Måste innehålla "<b style="color:red;">ord#1 ord#2</b>" precis som skrivet<br><b style="color:red;">ord#1 ord#2</b>+<b style="color:green;">ord#3</b> = Måste innehålla både "<b style="color:red;">ord#1 ord#2</b>" och "<b style="color:green;">ord#3</b>"',
+    japanese:
+      '<h4>フィルターオプション</h4><b style="color:red;">言葉#1</b>+<b style="color:green;">言葉#2</b> = こちらは必ず「<b style="color:red;">言葉#1</b>」と「<b style="color:green;">言葉#2</b>」を含める<br><b style="color:red;">言葉#1 言葉#2</b> = こちらは必ず「<b style="color:red;">言葉#1 言葉#2</b>」をそのままに含める<br><b style="color:red;">言葉#1 言葉#2</b>+<b style="color:green;">言葉#3</b> = こちらは必ず「<b style="color:red;">言葉#1 言葉#2</b>」と「<b style="color:green;">言葉#3</b>」を含める'
+  },
+  _tooltip_enter_data_: {
+    english:
+      "<h4>Template and Company Contact is text formated</h4>Any text you write will be formated exactly the same way when used.<h4>Manual is HTML formated</h4>*Some common HTML tags<br><b>&lt;br&gt;</b><span>: New Line</span><br><b>&lt;b&gt;Bold Text&lt;/b&gt;</b><br><b>&lt;i&gt;Italic Text&lt;/i&gt;</b><br><b>&lt;u&gt;Underline Text&lt;/u&gt;</b><br><b>&lt;h1&gt;Large Title&lt;/h1&gt;</b><br>(Large) h1 - h2 - h3 - h4 - h5 (Small)<br><b>&lt;h5&gt;Small Title&lt;/h5&gt;</b><br><b>&lt;ol&gt;&lt;li&gt;Number List#1&lt;/li&gt;&lt;li&gt;Number List#2&lt;/li&gt;&lt;/ol&gt;</b><br><b>&lt;ul&gt;&lt;li&gt;Dot List&lt;/li&gt;&lt;li&gt;Dot List&lt;/li&gt;&lt;/ul&gt;</b><br>Link Button (Filter word, Tag, is_Template, is_Manual, is_CompanyContact)<br><b>&lt;button onclick=\"SetFilter('cancel', '_', 'true', 'true', 'true')\"&gt;Button Text&lt;/button&gt;</b>",
+    swedish:
+      "<h4>Mallar och Företags Kontakt är text formaterade</h4>All text kommer att sparas och visas exact som du skriver in texten.<h4>Manualer är HTML formaterade</h4>*Några vanliga HTML taggar<br><b>&lt;br&gt;</b><span>: Ny Rad</span><br><b>&lt;b&gt;Fet Text&lt;/b&gt;</b><br><b>&lt;i&gt;Cursive Text&lt;/i&gt;</b><br><b>&lt;u&gt;Understruken Text&lt;/u&gt;</b><br><b>&lt;h1&gt;Stor Title&lt;/h1&gt;</b><br>(Stor) h1 - h2 - h3 - h4 - h5 (Liten)<br><b>&lt;h5&gt;Liten Title&lt;/h5&gt;</b><br><b>&lt;ol&gt;&lt;li&gt;Numrerad Lista#1&lt;/li&gt;&lt;li&gt;Numrerad Lista#2&lt;/li&gt;&lt;/ol&gt;</b><br><b>&lt;ul&gt;&lt;li&gt;Punkt Lista&lt;/li&gt;&lt;li&gt;Punkt Lista&lt;/li&gt;&lt;/ul&gt;</b><br>Länk Knapp (Filter ord, Tagg, är_Mall, är_Manual, är_FöretagsKontakt)<br><b>&lt;button onclick=\"SetFilter('cancel', '_', 'true', 'true', 'true')\"&gt;Knapp Text&lt;/button&gt;</b>",
+    japanese:
+      "<h4>テンプレート・会社連絡はテキストフォーマット</h4>入力したままに保存したり、表示したりする。<h4>マニュアルはHTMLフォーマット</h4>＊一部の一般的なHTMLタグ<br><b>&lt;br&gt;</b><span>：　改行</span><br><b>&lt;b&gt;ボルド&lt;/b&gt;</b><br><b>&lt;i&gt;イタリック&lt;/i&gt;</b><br><b>&lt;u&gt;下線&lt;/u&gt;</b><br><b>&lt;h1&gt;タイトル（大）&lt;/h1&gt;</b><br>（大） h1 - h2 - h3 - h4 - h5 （小）<br><b>&lt;h5&gt;タイトル（小）&lt;/h5&gt;</b><br><b>&lt;ol&gt;&lt;li&gt;番号リスト#1&lt;/li&gt;&lt;li&gt;番号リスト#2&lt;/li&gt;&lt;/ol&gt;</b><br><b>&lt;ul&gt;&lt;li&gt;ドットリスト&lt;/li&gt;&lt;li&gt;ドットリスト&lt;/li&gt;&lt;/ul&gt;</b><br>リンクボタン (フィルター言葉, タグ, テンプレートです, マニュアルです, 会社連絡です)<br><b>&lt;button onclick=\"SetFilter('cancel', '_', 'true', 'true', 'true')\"&gt;ボタンテキスト&lt;/button&gt;</b>"
   }
   /*,
   __: {
