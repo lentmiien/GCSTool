@@ -85,6 +85,7 @@ exports.adminremove_post = function(req, res) {
 
 //////// TEMPORARY: Transfer data from old tool ////////
 exports.transferpersonal_get = function(req, res) {
+  console.log(req.body);
   res.render('transferpersonal', { request: req.body });
 };
 
@@ -106,8 +107,9 @@ exports.transferpersonal_post = function(req, res) {
     for (let i = 0; i < d.data.Content.length; i++) {
       input_data.contents.push({ data: d.data.Content[i] });
     }
+    console.log(input_data);
     Entry.create(input_data, { include: Entry.Content });
   });
 
-  res.render('s_added', { message: 'Personal data added to database!', request: req.body });
+  res.render('s_added', { request: req.body, message: 'Personal data added to database!' });
 };
