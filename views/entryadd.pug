@@ -61,6 +61,8 @@ block content
                         option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
         div.form-group
             label(for='content1', lg_language='_content_')
+            span.tooltip TIP
+                span.tooltiptextright(lg_language='_tooltip_enter_data_')
             textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===request.content1 ? '' : request.content1)
             label(for='content2', lg_language='_content_')
             textarea#content2.form-control(name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)

@@ -168,8 +168,9 @@ td {
   display: inline-block;
   border: 2px solid rgb(75, 55, 255);
   border-radius: 100%;
-  width: 20px;
-  height: 20px;
+  opacity: 1;
+  /* width: 20px;
+  height: 20px; */
 }
 
 .tooltip .tooltiptext {
@@ -187,10 +188,32 @@ td {
   z-index: 1;
   top: 100%;
   left: 50%;
-  margin-left: -250px;
+  margin-left: -150px;
 }
 
 .tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip .tooltiptextright {
+  visibility: hidden;
+  width: 500px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  font-size: 12px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 50%;
+  /* margin-left: -250px; */
+}
+
+.tooltip:hover .tooltiptextright {
   visibility: visible;
 }
 
