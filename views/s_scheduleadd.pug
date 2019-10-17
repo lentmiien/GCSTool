@@ -6,6 +6,9 @@ block content
         div.form-group
             label(for='date', lg_language='_date_')
             input#date.form-control(type='date' name='date' required='true')
+            label(for='dates', lg_language='_dates_')
+            button(type='button', onclick="AddDate()", lg_language='_add_date_')
+            textarea#dates.form-control(name='dates', readonly)
             label(for='staff', lg_language='_staff_')
             select#staff.form-control(name='staff')
                 each s in staff

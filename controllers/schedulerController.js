@@ -65,19 +65,35 @@ exports.add_schedule_get = function(req, res) {
 // Handle add schedule create on POST.
 exports.add_schedule_post = function(req, res) {
   if (req.body.role === 'admin') {
-    Schedule.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
-      if (s.length == 0) {
-        // Add new schedule
-        Schedule.create({ date: req.body.date, work: req.body.work, staffId: req.body.staff }).then(() => {
-          res.render('s_added', { message: 'Schedule added!', request: req.body });
+    if (req.body.dates.length > 0) {
+      const date_array = req.body.dates.split(';');
+      date_array.forEach(element => {
+        Schedule.findAll({ where: { date: element, staffId: req.body.staff } }).then(s => {
+          if (s.length == 0) {
+            // Add new schedule
+            Schedule.create({ date: element, work: req.body.work, staffId: req.body.staff });
+          } else {
+            // Update existing schedule
+            Schedule.update({ work: req.body.work }, { where: { id: s[0].id } });
+          }
         });
-      } else {
-        // Update existing schedule
-        Schedule.update({ work: req.body.work }, { where: { id: s[0].id } }).then(() => {
-          res.render('s_added', { message: 'Schedule updated!', request: req.body });
-        });
-      }
-    });
+      });
+      res.render('s_added', { message: 'Schedule updated!', request: req.body });
+    } else {
+      Schedule.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
+        if (s.length == 0) {
+          // Add new schedule
+          Schedule.create({ date: req.body.date, work: req.body.work, staffId: req.body.staff }).then(() => {
+            res.render('s_added', { message: 'Schedule added!', request: req.body });
+          });
+        } else {
+          // Update existing schedule
+          Schedule.update({ work: req.body.work }, { where: { id: s[0].id } }).then(() => {
+            res.render('s_added', { message: 'Schedule updated!', request: req.body });
+          });
+        }
+      });
+    }
   } else {
     res.render('s_added', { message: 'Only admin users can add schedules.', request: req.body });
   }

@@ -341,6 +341,16 @@ var json_language = {
     swedish: 'Datum',
     japanese: '日付'
   },
+  _dates_: {
+    english: 'Dates',
+    swedish: 'Datum',
+    japanese: '日付'
+  },
+  _add_date_: {
+    english: 'Add Date',
+    swedish: 'Lägg till Datum',
+    japanese: '日付追加'
+  },
   _add_schedule_: {
     english: 'Add Schedule',
     swedish: 'Lägg Till Schema',

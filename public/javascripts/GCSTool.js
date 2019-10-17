@@ -455,6 +455,16 @@ function DisplayEntry(uid) {
  *
  **********************************************/
 
+function AddDate() {
+  const newDate = document.getElementById('date').value;
+  const datesField = document.getElementById('dates');
+  if (datesField.value.length > 0) {
+    datesField.value += ';' + newDate;
+  } else {
+    datesField.value = newDate;
+  }
+}
+
 // Return: -1 (date1 is first), 0 (same date), 1 (date 2 is first)
 function CDate(date1, date2) {
   if (date1 < date2) {
