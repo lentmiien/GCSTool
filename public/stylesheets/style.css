@@ -5,6 +5,8 @@ body {
 
 a {
   color: #00b7ff;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .topbar-nav li {
