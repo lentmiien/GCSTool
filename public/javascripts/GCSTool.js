@@ -479,9 +479,31 @@ function CDate(date1, date2) {
 // Add shipping label/invoice to ask for
 function myGetDocument(type) {
   let input = document.getElementById('track').value;
+  // Show current data if input field is empty
   if (input.length == 0) {
+    PeekDocuments(10);
     return;
   }
+  // If same entry already exists remove old entry
+  for (let i = 0; i < my_settings.documents.both.length; i++) {
+    if (input === my_settings.documents.both[i]) {
+      my_settings.documents.both.splice(i, 1);
+      // i--; // Would normally need to step back one step, but as each entry is unique, not necessary in this case
+    }
+  }
+  for (let i = 0; i < my_settings.documents.label.length; i++) {
+    if (input === my_settings.documents.label[i]) {
+      my_settings.documents.label.splice(i, 1);
+      // i--; // Would normally need to step back one step, but as each entry is unique, not necessary in this case
+    }
+  }
+  for (let i = 0; i < my_settings.documents.invoice.length; i++) {
+    if (input === my_settings.documents.invoice[i]) {
+      my_settings.documents.invoice.splice(i, 1);
+      // i--; // Would normally need to step back one step, but as each entry is unique, not necessary in this case
+    }
+  }
+  // Add data
   if (type == 0) {
     my_settings.documents.both.push(input);
   } else if (type == 1) {
@@ -491,6 +513,7 @@ function myGetDocument(type) {
   }
   document.getElementById('track').value = '';
   localStorage.setItem('settings', JSON.stringify(my_settings));
+  PeekDocuments(3);
 }
 function ShowDocuments() {
   if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
@@ -525,6 +548,40 @@ function ShowDocuments() {
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
     alert('Request for shipping documents.\n発送書類を依頼してください。');
+  }
+}
+function PeekDocuments(seconds) {
+  if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
+    let message = '<div>お疲れ様です。<br><br>';
+    if (my_settings.documents.both.length > 0) {
+      message += '伝票画像+インボイス<br>';
+      for (let i = 0; i < my_settings.documents.both.length; i++) {
+        message += my_settings.documents.both[i] + '<br>';
+      }
+      message += '<br>';
+    }
+    if (my_settings.documents.label.length > 0) {
+      message += '伝票画像<br>';
+      for (let i = 0; i < my_settings.documents.label.length; i++) {
+        message += my_settings.documents.label[i] + '<br>';
+      }
+      message += '<br>';
+    }
+    if (my_settings.documents.invoice.length > 0) {
+      message += 'インボイス<br>';
+      for (let i = 0; i < my_settings.documents.invoice.length; i++) {
+        message += my_settings.documents.invoice[i] + '<br>';
+      }
+      message += '<br>';
+    }
+    message += 'よろしくお願いします。<div>';
+
+    message += '<i style="color:red;">*Autohide ' + seconds + ' seconds<br>※' + seconds + '秒後自動隠す</i>';
+
+    Debug(message);
+    setTimeout(function() {
+      Debug('');
+    }, seconds * 1000);
   }
 }
 
