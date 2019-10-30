@@ -11,16 +11,16 @@ block content
         span.tooltip TIP
             span.tooltiptext(lg_language='_tooltip_filter_')
         | 
-        input#s_template(name='search', type='checkbox', checked)
+        input#s_template(name='search', type='checkbox', checked, onclick='UpdateFilter()')
         span(lg_language='_templates_')
         | 
-        input#s_manual(name='search', type='checkbox', checked)
+        input#s_manual(name='search', type='checkbox', checked, onclick='UpdateFilter()')
         span(lg_language='_manuals_')
         | 
-        input#s_ccontact(name='search', type='checkbox', checked)
+        input#s_ccontact(name='search', type='checkbox', checked, onclick='UpdateFilter()')
         span(lg_language='_ccontact_')
         | 
-        select#s_tag(name='search')
+        select#s_tag(name='search', onchange='UpdateFilter()')
             option(value='_', lg_language='_all_')
             each tag in tags
                 option(value=tag, lg_language=tag)

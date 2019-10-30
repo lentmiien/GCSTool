@@ -348,6 +348,10 @@ function auto_grow(element) {
  *
  **********************************************/
 
+function UpdateFilter() {
+  Filter();
+}
+
 function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
   if (document.getElementById('s_box')) {
     const back = document.getElementById('back');
