@@ -26,9 +26,9 @@ html(lang='en')
                   a(href='/admin', lg_language='_admin_')
               li
                 input#track(type='text' placeholder='Tracking number')
-                button(onclick='myGetDocument(1)') L
-                button(onclick='myGetDocument(2)') I
-                button(onclick='myGetDocument(0)') L+I
+                button(onclick='myGetDocument(1)' title='Label/ラベル') L
+                button(onclick='myGetDocument(2)' title='Invoice/インボイス') I
+                button(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
       hr
       #debug
       hr
