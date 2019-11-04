@@ -10,6 +10,14 @@ Besides the PUG(HTML)/CSS/JavaScript files, the tool additionally loads personal
 - `json_personal` is loaded from the browsers local storage
 - `tool data` is loaded from MySQL database
 
+## Database structure
+- `content`: The actual content data, linked to entries
+- `entry`: The entries of data used by the tool, the content data is stored in separate table
+- `holiday`: Stores holidays for scheduler
+- `schedule`: Stores schedule for staff members, linked to staff
+- `staff`: Staff members for scheduler, schedule data is stored in separate table
+- `user`: Users of the tool, only users registered in this table can access the data in the tool
+
 ## Handled data
 - Templates
 
