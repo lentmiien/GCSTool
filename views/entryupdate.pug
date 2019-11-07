@@ -54,6 +54,9 @@ block content
                     else
                         b (NEW)
                     label(for='content' + (i+1), lg_language='_content_')
+                    if (i == 0)
+                        span.tooltip TIP
+                            span.tooltiptextright(lg_language='_tooltip_enter_data_')
                     textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
             button.btn.btn-primary(type='submit', lg_language='_submit_update_')
     else

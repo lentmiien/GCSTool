@@ -1,6 +1,6 @@
 const async = require('async');
 // Require necessary database models
-const { Staff, Holiday, Schedule } = require('../sequelize');
+const { Staff, Holiday, Schedule, Schedule2 } = require('../sequelize');
 
 // Display all Entries
 exports.view = function(req, res) {
@@ -16,7 +16,7 @@ exports.view = function(req, res) {
     async.parallel(
       {
         staff: function(callback) {
-          Staff.findAll({ include: [{ model: Schedule }] }).then(staff => callback(null, staff));
+          Staff.findAll({ include: [{ model: Schedule2 }] }).then(staff => callback(null, staff));
         },
         holidays: function(callback) {
           Holiday.findAll().then(holidays => callback(null, holidays));
@@ -68,27 +68,27 @@ exports.add_schedule_post = function(req, res) {
     if (req.body.dates.length > 0) {
       const date_array = req.body.dates.split(';');
       date_array.forEach(element => {
-        Schedule.findAll({ where: { date: element, staffId: req.body.staff } }).then(s => {
+        Schedule2.findAll({ where: { date: element, staffId: req.body.staff } }).then(s => {
           if (s.length == 0) {
             // Add new schedule
-            Schedule.create({ date: element, work: req.body.work, staffId: req.body.staff });
+            Schedule2.create({ date: element, work: req.body.work, staffId: req.body.staff });
           } else {
             // Update existing schedule
-            Schedule.update({ work: req.body.work }, { where: { id: s[0].id } });
+            Schedule2.update({ work: req.body.work }, { where: { id: s[0].id } });
           }
         });
       });
       res.render('s_added', { message: 'Schedule updated!', request: req.body });
     } else {
-      Schedule.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
+      Schedule2.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then(s => {
         if (s.length == 0) {
           // Add new schedule
-          Schedule.create({ date: req.body.date, work: req.body.work, staffId: req.body.staff }).then(() => {
+          Schedule2.create({ date: req.body.date, work: req.body.work, staffId: req.body.staff }).then(() => {
             res.render('s_added', { message: 'Schedule added!', request: req.body });
           });
         } else {
           // Update existing schedule
-          Schedule.update({ work: req.body.work }, { where: { id: s[0].id } }).then(() => {
+          Schedule2.update({ work: req.body.work }, { where: { id: s[0].id } }).then(() => {
             res.render('s_added', { message: 'Schedule updated!', request: req.body });
           });
         }
@@ -131,7 +131,7 @@ exports.remove_staff_get = function(req, res) {
 exports.remove_staff_post = function(req, res) {
   if (req.body.role === 'admin') {
     Staff.destroy({ where: { id: req.body.staff } }).then(() => {
-      Schedule.destroy({ where: { staffId: req.body.staff } }).then(() => {
+      Schedule2.destroy({ where: { staffId: req.body.staff } }).then(() => {
         res.render('s_added', { message: 'Staff removed!', request: req.body });
       });
     });

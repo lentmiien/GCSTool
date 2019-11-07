@@ -6,6 +6,7 @@ const ContentModel = require('./models/content');
 const StaffModel = require('./models/staff');
 const HolidayModel = require('./models/holiday');
 const ScheduleModel = require('./models/schedule');
+const Schedule2Model = require('./models/schedule2');
 const UserModel = require('./models/user');
 
 // Connect to DB
@@ -20,6 +21,7 @@ const Content = ContentModel(sequelize, Sequelize);
 const Staff = StaffModel(sequelize, Sequelize);
 const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
+const Schedule2 = Schedule2Model(sequelize, Sequelize);
 const User = UserModel(sequelize, Sequelize);
 
 const Op = Sequelize.Op;
@@ -27,6 +29,7 @@ const Op = Sequelize.Op;
 // Create table relations
 Entry.Content = Entry.hasMany(Content);
 Staff.Schedule = Staff.hasMany(Schedule);
+Staff.Schedule2 = Staff.hasMany(Schedule2);
 
 // Create all necessary tables
 sequelize.sync().then(() => {
@@ -98,6 +101,7 @@ module.exports = {
   Staff,
   Holiday,
   Schedule,
+  Schedule2,
   User,
   Op
 };

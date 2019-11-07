@@ -244,25 +244,33 @@ function SetupScheduler() {
       output += '<td class="' + month_names[td.getMonth()] + '" ' + isholiday + '>' + datestring + '<br><hr>';
       for (let sm = 0; sm < data.staff.length; sm++) {
         let s = data.staff[sm];
-        let isWork = 'green';
+        let isWork = 'background-color:green;';
         if (td.getDay() == s.dayoff1 || td.getDay() == s.dayoff2) {
-          isWork = 'red';
+          isWork = 'background-color:red;';
         }
         if (isholiday.length > 0) {
-          isWork = 'red';
+          isWork = 'background-color:red;';
         }
-        for (let i = 0; i < s.schedules.length; i++) {
-          let date_split = s.schedules[i].date.split('-');
+        for (let i = 0; i < s.schedule2s.length; i++) {
+          let date_split = s.schedule2s[i].date.split('-');
           let dayoff = {
             year: parseInt(date_split[0]),
             month: parseInt(date_split[1]),
             date: parseInt(date_split[2])
           };
           if (td.getFullYear() == dayoff.year && td.getMonth() + 1 == dayoff.month && td.getDate() == dayoff.date) {
-            if (s.schedules[i].work == true) {
-              isWork = 'green';
+            if (s.schedule2s[i].work === 'work') {
+              isWork = 'background-color:green;';
+            } else if (s.schedule2s[i].work === '2hoff_m') {
+              isWork = 'background: linear-gradient(to right, red 15%, green 35%);';
+            } else if (s.schedule2s[i].work === '2hoff_e') {
+              isWork = 'background: linear-gradient(to right, green 65%, red 85%);';
+            } else if (s.schedule2s[i].work === 'halfoff_m') {
+              isWork = 'background: linear-gradient(to right, red 40%, green 60%);';
+            } else if (s.schedule2s[i].work === 'halfoff_e') {
+              isWork = 'background: linear-gradient(to right, green 40%, red 60%);';
             } else {
-              isWork = 'red';
+              isWork = 'background-color:red;';
             }
           }
         }
@@ -275,9 +283,9 @@ function SetupScheduler() {
           td.getDate() +
           "','" +
           sm +
-          '\')" style="width:100%;background-color:' +
+          '\')" style="width:100%;' +
           isWork +
-          ';">' +
+          '">' +
           s.name +
           '</div>';
       }

@@ -15,6 +15,10 @@ block content
                     option(value=s.id)= s.name
             label(for='work', lg_language='_work_')
             select#work.form-control(name='work')
-                option(value=0, lg_language='_day_off_')
-                option(value=1, lg_language='_work_')
+                option(value='work', lg_language='_work_')
+                option(value='2hoff_m') 2h off in morning
+                option(value='2hoff_e') 2h off in evening
+                option(value='halfoff_m') half day off in morning
+                option(value='halfoff_e') half day off in evening
+                option(value='off', lg_language='_day_off_')
         button.btn.btn-primary(type='submit', lg_language='_submit_add_')
