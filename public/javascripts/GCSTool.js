@@ -350,6 +350,13 @@ function auto_grow(element) {
   element.style.height = element.scrollHeight + 5 + 'px';
 }
 
+function ResizeAll() {
+  const text_areas = document.getElementsByTagName('textarea');
+  for (let i = 0; i < text_areas.length; i++) {
+    auto_grow(text_areas[i]);
+  }
+}
+
 /**********************************************
  *
  *             FILTER FUNCTIONS

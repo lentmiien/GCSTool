@@ -48,6 +48,8 @@ block content
                     else
                         option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
             div.form-group
+                a(onclick="ResizeAll()") Re-size all
+                br
                 each i in [0, 1, 2, 3, 4]
                     if !(undefined===entry.contents[i])
                         input(id='contentid' + (i+1), type='hidden', name='contentid' + (i+1), value=(entry.contents[i].id))

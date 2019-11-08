@@ -366,6 +366,26 @@ var json_language = {
     swedish: 'Arbete',
     japanese: '仕事'
   },
+  _2off_6work_: {
+    english: 'Start 2hrs late',
+    swedish: 'Börjar 2 timmar sent',
+    japanese: '午前2時間休'
+  },
+  _6work_2off_: {
+    english: 'Home 2hrs early',
+    swedish: 'Slutar 2 timmar tidigt',
+    japanese: '午後2時間休'
+  },
+  _4off_4work_: {
+    english: 'Morning off',
+    swedish: 'Ledig morgon',
+    japanese: '午前半休'
+  },
+  _4work_4off_: {
+    english: 'Afternoon off',
+    swedish: 'Ledig eftermiddag',
+    japanese: '午後半休'
+  },
   _day_off_: {
     english: 'Day Off',
     swedish: 'Ledig',
