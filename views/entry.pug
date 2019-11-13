@@ -50,5 +50,7 @@ block content
                 i(lg_language='_created_')
                 i= entry.creator
                 br
-                a.entry_control(href='./entry/' + entry.id + '/update', lg_language='_edit_data_')
-                a.entry_control(href='./entry/' + entry.id + '/delete', lg_language='_delete_data_')
+                if request.role === 'admin'
+                    a.entry_control(href='./entry/' + entry.id + '/update', lg_language='_edit_data_')
+                    a.entry_control(href='./entry/' + entry.id + '/delete', lg_language='_delete_data_')
+                a.entry_control(href='./entry/' + entry.id + '/createcopy', lg_language='_submit_create_copy_')
