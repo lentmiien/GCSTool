@@ -315,6 +315,7 @@ window.onkeydown = function(e) {
   if (e.keyCode == 27) {
     if (document.getElementById('clear_key')) {
       Clear();
+      document.getElementById('s_box').focus();
     }
   }
 };
