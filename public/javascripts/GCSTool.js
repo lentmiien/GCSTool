@@ -98,29 +98,31 @@ function ShowReminders() {
 
   // Show the reminders
   let reminder_html =
-    '<tr><th>' +
+    '<thead><tr><th>' +
     GetHTMLElement('_time_') +
     '</th><th>' +
     GetHTMLElement('_message_') +
     '</th><th>' +
     GetHTMLElement('_action_') +
-    '</th></tr>';
+    '</th></tr></thead>';
+  reminder_html += '<tbody>';
   for (let ri = 0; ri < my_settings.reminders.length; ri++) {
     reminder_html +=
       '<tr><td>' +
       my_settings.reminders[ri].time +
       '</td><td>' +
       my_settings.reminders[ri].message +
-      '</td><td><button onclick="RemoveReminder(' +
+      '</td><td><button class="btn btn-outline-danger" onclick="RemoveReminder(' +
       ri +
       ')">' +
       GetHTMLElement('_delete_') +
       '</button></td></tr>';
   }
   reminder_html +=
-    '<tr><td><input id="reminder_time" type="text", placeholder="12:00"></td><td><input id="reminder_message" type="text" placeholder="Message"></td><td><button onclick="AddReminder()">' +
+    '<tr><td><input class="form-control mr-sm-2" id="reminder_time" type="text", placeholder="12:00"></td><td><input  class="form-control mr-sm-2" id="reminder_message" type="text" placeholder="Message"></td><td><button class="btn btn-outline-success" onclick="AddReminder()">' +
     GetHTMLElement('_addnew_') +
     '</button></td></tr>';
+  reminder_html += '</tbody>';
   document.getElementById('reminders').innerHTML = reminder_html;
 }
 

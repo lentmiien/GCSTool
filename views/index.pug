@@ -36,16 +36,17 @@ block content
 
   hr
   h3(lg_language='_settings_')
-  input#user_id(type='text')
-  button#update_user_id_button(onclick='UpdateUserID()', lg_language='_update_uid_')
+  input#user_id.form-control(type='text')
+  button#update_user_id_button.btn.btn-outline-info(onclick='UpdateUserID()', lg_language='_update_uid_')
   i(lg_language='_set_once_')
   br
-  select#cmode(name="colormode")
+  br
+  select#cmode.form-control(name="colormode")
     option(value='Style_normal.css', lg_language='_normal_')
     option(value='Style_dark.css', lg_language='_dark_')
-  button(onclick='UpdateColorMode()', lg_language='_update_color_')
+  button.btn.btn-outline-info(onclick='UpdateColorMode()', lg_language='_update_color_')
   i(lg_language='_update_on_next_')
-  br
+  hr
   h3(lg_language='_reminders_')
   i(lg_language='_show_popup_')
-  table#reminders
+  table#reminders.table.table-dark
