@@ -27,24 +27,28 @@ html(lang='en')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
-      hr
+
       #debug
       hr
+
       div(class='row')
         div(class='col-sm-12')
           block content
       hr
-      div(class='row')
-        div(class='col-sm-12')
-          block bottombar
-            ul(class='topbar-nav')
-              li 
-                a(href='/about', lg_language='_about_')
-              li 
-                select#lg_language(onchange='UpdateLanguageSettings()')
-                  option(value='japanese') 日本語
-                  option(value='english') English
-                  option(value='swedish') Svenska
+
+      nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+        span.navbar-brand(style="color:grey;") Created by Lennart
+        button.navbar-toggler(type="button", data-toggle="collapse", data-target="#navbarContentBottom", aria-controls="navbarSupportedContent", aria-expanded="false", aria-label="Toggle navigation")
+          span.navbar-toggler-icon
+        #navbarContentBottom.collapse.navbar-collapse
+          ul.navbar-nav.mr-auto
+            li.nav-item
+              a.nav-link(href='/about', lg_language='_about_')
+          span.form-inline.my-2.my-lg-0
+            select#lg_language.form-control.form-control.mr-sm-2(onchange='UpdateLanguageSettings()')
+              option(value='japanese') 日本語
+              option(value='english') English
+              option(value='swedish') Svenska
     script(src='/javascripts/lg_language.js')
     script(src='/javascripts/GCSTool.js')
     script(src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous")
