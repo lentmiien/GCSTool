@@ -3,24 +3,6 @@ body {
   font: 14px 'Lucida Grande', Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00b7ff;
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
-.topbar-nav li {
-  display: inline;
-  padding: 5px;
-  border-radius: 25%;
-  margin-right: 15px;
-  background-color: rgb(244, 245, 255);
-}
-
-.topbar-nav a {
-  padding: 10px;
-}
-
 .entry_control {
   padding: 2px;
   border: 1px solid black;
