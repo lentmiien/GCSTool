@@ -539,7 +539,7 @@ function myGetDocument(type) {
 }
 function ShowDocuments() {
   if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
-    let message = '<div>お疲れ様です。<br><br>';
+    let message = '<div class="alert alert-info" role="alert">お疲れ様です。<br><br>';
     if (my_settings.documents.both.length > 0) {
       message += '伝票画像+インボイス<br>';
       while (my_settings.documents.both.length > 0) {
@@ -574,7 +574,10 @@ function ShowDocuments() {
 }
 function PeekDocuments(seconds) {
   if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
-    let message = '<div>お疲れ様です。<br><br>';
+    let message = '<div class="alert alert-info alert-dismissible fade show" role="alert">お疲れ様です。';
+    message +=
+      '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+    message += '<br><br>';
     if (my_settings.documents.both.length > 0) {
       message += '伝票画像+インボイス<br>';
       for (let i = 0; i < my_settings.documents.both.length; i++) {
