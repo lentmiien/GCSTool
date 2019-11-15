@@ -13,6 +13,11 @@ router.get('/about', index_controller.about);
 
 router.get('/admin', index_controller.admin_get);
 
+router.post('/adduser', index_controller.adduser);
+
+router.get('/removeuser/:userid', index_controller.removeuser);
+
+///// To be replaced by above 2 routes /////
 router.get('/adminadd', index_controller.adminadd_get);
 
 router.post('/adminadd', index_controller.adminadd_post);

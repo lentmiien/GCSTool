@@ -53,6 +53,30 @@ exports.admin_get = function(req, res) {
   }
 };
 
+exports.adduser = (req, res) => {
+  if (req.body.role === 'admin') {
+    User.create({ userid: req.body.newuserid, team: req.body.newteam, role: req.body.newrole }).then(() => {
+      res.redirect('/admin');
+    });
+  } else {
+    res.render('s_added', { message: 'Only admin staff can add users...', request: req.body });
+  }
+};
+
+exports.removeuser = (req, res) => {
+  if (req.body.role === 'admin') {
+    if (req.params.userid == 1) {
+      res.redirect('/admin');
+    } else {
+      User.destroy({ where: { id: req.params.userid } }).then(() => {
+        res.redirect('/admin');
+      });
+    }
+  } else {
+    res.render('s_added', { message: 'Only admin staff can remove users...', request: req.body });
+  }
+};
+
 exports.adminadd_get = function(req, res) {
   res.render('adminadd', { request: req.body });
 };

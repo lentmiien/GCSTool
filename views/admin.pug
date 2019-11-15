@@ -1,12 +1,42 @@
 extends layout
 
 block content
-    a(href='/adminadd', lg_language='_add_staff_')
-    | 
-    a(href='/adminremove', lg_language='_remove_staff_')
-    hr
     h1(lg_language='_users_')
-    ul
-        each u in users
-            li= u.userid
-                i= '(' + u.role + ')'
+    table.table.table-dark
+        thead
+            tr
+                th User ID
+                th Team
+                th Role
+                th Action
+        tbody
+            each u in users
+                tr
+                    td= u.userid
+                    td= u.team
+                    td= u.role
+                    td
+                        if u.userid != "Lennart"
+                            a.btn.btn-outline-danger(href="/removeuser/"+u.id) Remove
+            form(action="/adduser", method="post")
+                tr
+                    td
+                        .input-group
+                            .input-group-prepend
+                                span.input-group-text User ID
+                            input#newuserid.form-control(type="text", name="newuserid")
+                    td
+                        .input-group
+                            .input-group-prepend
+                                span.input-group-text Team
+                            select#newteam.form-control(name='newteam')
+                                option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
+                    td
+                        .input-group
+                            .input-group-prepend
+                                span.input-group-text Role
+                            select#newrole.form-control(name="newrole")
+                                option(value="user") User
+                                option(value="admin") Admin
+                    td
+                        button.btn.btn-outline-success(type="submit") Add user
