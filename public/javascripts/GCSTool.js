@@ -547,20 +547,21 @@ function ShowDocuments() {
       }
       message += '<br>';
     }
-    if (my_settings.documents.label.length > 0) {
-      message += '伝票画像<br>';
-      while (my_settings.documents.label.length > 0) {
-        message += my_settings.documents.label.pop() + '<br>';
-      }
-      message +=
-        '★JP調査依頼に為に、上記の荷物に対して、発送サポートシステム上での　【送料】　と　【重量】　の情報提供をお願いできますでしょうか。<br>';
-      message += '<br>';
-    }
     if (my_settings.documents.invoice.length > 0) {
       message += 'インボイス<br>';
       while (my_settings.documents.invoice.length > 0) {
         message += my_settings.documents.invoice.pop() + '<br>';
       }
+      message += '<br>';
+    }
+    if (my_settings.documents.label.length > 0) {
+      let number_of_labels = my_settings.documents.label.length;
+      message += '伝票画像<br>';
+      while (my_settings.documents.label.length > 0) {
+        message += my_settings.documents.label.pop() + '<br>';
+      }
+      message +=
+        '★JP調査の為に、上記の' + number_of_labels + '件、発送サポートシステム上での【送料】と【重量】の情報提供をお願いします。<br>';
       message += '<br>';
     }
     message += 'よろしくお願いします。<div>';
@@ -581,26 +582,27 @@ function PeekDocuments(seconds) {
       '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
     message += '<br><br>';
     if (my_settings.documents.both.length > 0) {
-      message += '■伝票画像+インボイス<br>';
+      message += '伝票画像+インボイス<br>';
       for (let i = 0; i < my_settings.documents.both.length; i++) {
         message += my_settings.documents.both[i] + '<br>';
       }
       message += '<br>';
     }
+    if (my_settings.documents.invoice.length > 0) {
+      message += 'インボイス<br>';
+      for (let i = 0; i < my_settings.documents.invoice.length; i++) {
+        message += my_settings.documents.invoice[i] + '<br>';
+      }
+      message += '<br>';
+    }
     if (my_settings.documents.label.length > 0) {
-      message += '■伝票画像<br>';
+      let number_of_labels = my_settings.documents.label.length;
+      message += '伝票画像<br>';
       for (let i = 0; i < my_settings.documents.label.length; i++) {
         message += my_settings.documents.label[i] + '<br>';
       }
       message +=
-        '★JP調査依頼に為に、上記の荷物に対して、発送サポートシステム上での　【送料】　と　【重量】　の情報提供をお願いできますでしょうか。<br>';
-      message += '<br>';
-    }
-    if (my_settings.documents.invoice.length > 0) {
-      message += '■インボイス<br>';
-      for (let i = 0; i < my_settings.documents.invoice.length; i++) {
-        message += my_settings.documents.invoice[i] + '<br>';
-      }
+        '★JP調査の為に、上記の' + number_of_labels + '件、発送サポートシステム上での【送料】と【重量】の情報提供をお願いします。<br>';
       message += '<br>';
     }
     message += 'よろしくお願いします。<div>';
