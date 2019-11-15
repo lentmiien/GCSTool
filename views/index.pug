@@ -36,17 +36,25 @@ block content
 
   hr
   h3(lg_language='_settings_')
-  input#user_id.form-control(type='text')
-  button#update_user_id_button.btn.btn-outline-info(onclick='UpdateUserID()', lg_language='_update_uid_')
+  .input-group
+    .input-group-prepend
+      span.input-group-text(lg_language="_user_id_")
+    input#user_id.form-control(type='text')
+    .input-group-append
+      button#update_user_id_button.btn.btn-outline-info(onclick='UpdateUserID()', lg_language='_update_uid_')
   i(lg_language='_set_once_')
   br
   br
-  select#cmode.form-control(name="colormode")
-    option(value='Style_normal.css', lg_language='_normal_')
-    option(value='Style_dark.css', lg_language='_dark_')
-  button.btn.btn-outline-info(onclick='UpdateColorMode()', lg_language='_update_color_')
+  .input-group
+    .input-group-prepend
+      span.input-group-text(lg_language="_color_mode_")
+    select#cmode.form-control(name="colormode")
+      option(value='Style_normal.css', lg_language='_normal_')
+      option(value='Style_dark.css', lg_language='_dark_')
+    .input-group-append
+      button.btn.btn-outline-info(onclick='UpdateColorMode()', lg_language='_update_color_')
   i(lg_language='_update_on_next_')
   hr
   h3(lg_language='_reminders_')
-  i(lg_language='_show_popup_')
   table#reminders.table.table-dark
+  i(lg_language='_show_popup_')
