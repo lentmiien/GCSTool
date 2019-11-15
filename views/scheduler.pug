@@ -2,25 +2,27 @@ extends layout
 
 block content
     if request.role === 'admin'
-        a(href='/scheduler/addholiday', lg_language='_add_holiday_')
+        a.btn.btn-link(href='/scheduler/addholiday', lg_language='_add_holiday_')
         | 
-        a(href='/scheduler/addschedule', lg_language='_add_schedule_')
+        a.btn.btn-link(href='/scheduler/addschedule', lg_language='_add_schedule_')
         | 
-        a(href='/scheduler/addstaff', lg_language='_add_staff_')
+        a.btn.btn-link(href='/scheduler/addstaff', lg_language='_add_staff_')
         | 
-        a(href='/scheduler/removestaff', lg_language='_remove_staff_')
+        a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
         hr
     - const today = new Date()
     - const weekdays = ['_su_', '_m_', '_tu_', '_w_', '_th_', '_f_', '_sa_']
     h3(lg_language='_team_members_')
-    ul
-        each s in data.staff
-            li
-                = s.name
-                ul
-                    li
-                        span(lg_language='_days_off_')
-                        | 
+    table.table.table-dark
+        thead
+            tr
+                th Name
+                th(lg_language='_days_off_')
+        tbody
+            each s in data.staff
+                tr
+                    td= s.name
+                    td
                         span(lg_language=weekdays[s.dayoff1])
                         | , 
                         span(lg_language=weekdays[s.dayoff2])
@@ -48,5 +50,5 @@ block content
             option(value=weeks)= weeks + " weeks"
     button(onclick='SetupScheduler()', lg_language='_show_schedule_')
     br
-    table#schedule
+    table#schedule.table.table-dark
     div#data.hidden= JSON.stringify(data)

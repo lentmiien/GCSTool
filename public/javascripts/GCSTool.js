@@ -187,7 +187,7 @@ function SetupScheduler() {
   let dom_scheduler = document.getElementById('schedule');
   let data = JSON.parse(document.getElementById('data').innerHTML);
   dom_scheduler.innerHTML =
-    '<tr><th style="background-color:rgb(141, 71, 71);" >' +
+    '<thead><tr><th style="background-color:rgb(141, 71, 71);" >' +
     GetHTMLElement('_su_') +
     '</th><th>' +
     GetHTMLElement('_m_') +
@@ -201,7 +201,7 @@ function SetupScheduler() {
     GetHTMLElement('_f_') +
     '</th><th>' +
     GetHTMLElement('_sa_') +
-    '</th></tr>';
+    '</th></tr></thead><tbody>';
   let today = new Date();
   let output = '';
   let checkDate = new Date(
@@ -295,7 +295,7 @@ function SetupScheduler() {
     }
     output += '</tr>';
   }
-  dom_scheduler.innerHTML += output;
+  dom_scheduler.innerHTML += output + '</tbody>';
 }
 
 /**********************************************

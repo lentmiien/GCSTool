@@ -412,9 +412,9 @@ var json_language = {
     japanese: '定休日'
   },
   _days_off_: {
-    english: 'Days Off:',
-    swedish: 'Lediga Dagar:',
-    japanese: '定休日：'
+    english: 'Days Off',
+    swedish: 'Lediga Dagar',
+    japanese: '定休日'
   },
   _team_members_: {
     english: 'Team Members',

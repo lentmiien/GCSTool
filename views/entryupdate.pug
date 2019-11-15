@@ -3,9 +3,10 @@ extends layout
 block content
     if errors===undefined
         h2(lg_language='_update_entry_')
-        span(lg_language='_update_entry_1_')
-        span= entry.title
-        span(lg_language='_update_entry_2_')
+        .alert.alert-info(role="alert")
+            span(lg_language='_update_entry_1_')
+            span= entry.title
+            span(lg_language='_update_entry_2_')
         form(action='/entry/' + entry.id + '/update', method="post")
             div.form-group
                 input#creator(type='hidden', name='creator')
@@ -48,7 +49,7 @@ block content
                     else
                         option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
             div.form-group
-                a(onclick="ResizeAll()") Re-size all
+                a.btn.btn-dark(onclick="ResizeAll()") Re-size all
                 br
                 each i in [0, 1, 2, 3, 4]
                     if !(undefined===entry.contents[i])
