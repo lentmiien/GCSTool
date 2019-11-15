@@ -12,7 +12,8 @@ const my_settings = {
   documents: {
     label: [],
     invoice: [],
-    both: []
+    both: [],
+    jplabel: []
   }
 };
 
@@ -46,6 +47,9 @@ function Loaded() {
       if (my_settings_local.hasOwnProperty(key)) {
         my_settings[key] = my_settings_local[key];
       }
+    }
+    if (!my_settings.documents.jplabel) {
+      my_settings.documents['jplabel'] = [];
     }
   }
 
@@ -525,32 +529,45 @@ function myGetDocument(type) {
       // i--; // Would normally need to step back one step, but as each entry is unique, not necessary in this case
     }
   }
+  for (let i = 0; i < my_settings.documents.jplabel.length; i++) {
+    if (input === my_settings.documents.jplabel[i]) {
+      my_settings.documents.jplabel.splice(i, 1);
+      // i--; // Would normally need to step back one step, but as each entry is unique, not necessary in this case
+    }
+  }
   // Add data
   if (type == 0) {
     my_settings.documents.both.push(input);
   } else if (type == 1) {
     my_settings.documents.label.push(input);
-  } else {
+  } else if (type == 2) {
     my_settings.documents.invoice.push(input);
+  } else {
+    my_settings.documents.jplabel.push(input);
   }
   document.getElementById('track').value = '';
   localStorage.setItem('settings', JSON.stringify(my_settings));
   PeekDocuments(3);
 }
 function ShowDocuments() {
-  if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
+  if (
+    my_settings.documents.both.length > 0 ||
+    my_settings.documents.label.length > 0 ||
+    my_settings.documents.invoice.length > 0 ||
+    my_settings.documents.jplabel.length > 0
+  ) {
     let message = '<div class="alert alert-info" role="alert">お疲れ様です。<br><br>';
-    if (my_settings.documents.both.length > 0) {
-      message += '伝票画像+インボイス<br>';
-      while (my_settings.documents.both.length > 0) {
-        message += my_settings.documents.both.pop() + '<br>';
+    if (my_settings.documents.jplabel.length > 0) {
+      message += '伝票画像　＋　発送サポートシステム上での【送料】と【重量】<br>';
+      while (my_settings.documents.jplabel.length > 0) {
+        message += my_settings.documents.jplabel.pop() + '<br>';
       }
       message += '<br>';
     }
-    if (my_settings.documents.invoice.length > 0) {
-      message += 'インボイス<br>';
-      while (my_settings.documents.invoice.length > 0) {
-        message += my_settings.documents.invoice.pop() + '<br>';
+    if (my_settings.documents.both.length > 0) {
+      message += '伝票画像　＋　インボイス<br>';
+      while (my_settings.documents.both.length > 0) {
+        message += my_settings.documents.both.pop() + '<br>';
       }
       message += '<br>';
     }
@@ -560,8 +577,13 @@ function ShowDocuments() {
       while (my_settings.documents.label.length > 0) {
         message += my_settings.documents.label.pop() + '<br>';
       }
-      message +=
-        '★JP調査の為に、上記の' + number_of_labels + '件、発送サポートシステム上での【送料】と【重量】の情報提供をお願いします。<br>';
+      message += '<br>';
+    }
+    if (my_settings.documents.invoice.length > 0) {
+      message += 'インボイス<br>';
+      while (my_settings.documents.invoice.length > 0) {
+        message += my_settings.documents.invoice.pop() + '<br>';
+      }
       message += '<br>';
     }
     message += 'よろしくお願いします。<div>';
@@ -576,22 +598,27 @@ function ShowDocuments() {
   }
 }
 function PeekDocuments(seconds) {
-  if (my_settings.documents.both.length > 0 || my_settings.documents.label.length > 0 || my_settings.documents.invoice.length > 0) {
+  if (
+    my_settings.documents.both.length > 0 ||
+    my_settings.documents.label.length > 0 ||
+    my_settings.documents.invoice.length > 0 ||
+    my_settings.documents.jplabel.length > 0
+  ) {
     let message = '<div class="alert alert-info alert-dismissible fade show" role="alert">お疲れ様です。';
     message +=
       '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
     message += '<br><br>';
-    if (my_settings.documents.both.length > 0) {
-      message += '伝票画像+インボイス<br>';
-      for (let i = 0; i < my_settings.documents.both.length; i++) {
-        message += my_settings.documents.both[i] + '<br>';
+    if (my_settings.documents.jplabel.length > 0) {
+      message += '伝票画像　＋　発送サポートシステム上での【送料】と【重量】<br>';
+      for (let i = 0; i < my_settings.documents.jplabel.length; i++) {
+        message += my_settings.documents.jplabel[i] + '<br>';
       }
       message += '<br>';
     }
-    if (my_settings.documents.invoice.length > 0) {
-      message += 'インボイス<br>';
-      for (let i = 0; i < my_settings.documents.invoice.length; i++) {
-        message += my_settings.documents.invoice[i] + '<br>';
+    if (my_settings.documents.both.length > 0) {
+      message += '伝票画像　＋　インボイス<br>';
+      for (let i = 0; i < my_settings.documents.both.length; i++) {
+        message += my_settings.documents.both[i] + '<br>';
       }
       message += '<br>';
     }
@@ -601,8 +628,13 @@ function PeekDocuments(seconds) {
       for (let i = 0; i < my_settings.documents.label.length; i++) {
         message += my_settings.documents.label[i] + '<br>';
       }
-      message +=
-        '★JP調査の為に、上記の' + number_of_labels + '件、発送サポートシステム上での【送料】と【重量】の情報提供をお願いします。<br>';
+      message += '<br>';
+    }
+    if (my_settings.documents.invoice.length > 0) {
+      message += 'インボイス<br>';
+      for (let i = 0; i < my_settings.documents.invoice.length; i++) {
+        message += my_settings.documents.invoice[i] + '<br>';
+      }
       message += '<br>';
     }
     message += 'よろしくお願いします。<div>';
