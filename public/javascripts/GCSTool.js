@@ -650,6 +650,33 @@ function PeekDocuments(seconds) {
 
 /**********************************************
  *
+ *               Phone schedule
+ *
+ **********************************************/
+
+Date.prototype.getWeekNumber = function() {
+  var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
+  var dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+};
+const d = new Date();
+const day = d.getDay();
+if (day == 2 || day == 4) {
+  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Jammie & Victoria</i>';
+} else if (day == 3 || day == 5) {
+  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Katie & Schoppmann</i>';
+} else if (day == 1 && d.getWeekNumber() % 2 == 1) {
+  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Jammie & Victoria</i>';
+} else if (day == 1) {
+  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Katie & Schoppmann</i>';
+} else {
+  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: closed</i>';
+}
+
+/**********************************************
+ *
  *                 Reminders
  *
  **********************************************/
