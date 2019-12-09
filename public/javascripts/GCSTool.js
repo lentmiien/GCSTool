@@ -214,11 +214,11 @@ function SetupScheduler() {
     parseInt(document.getElementById('date_select').value)
   );
   let show_weeks = parseInt(document.getElementById('show_weeks').value);
-  d = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate() - checkDate.getDay());
+  const beginning_week = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate() - checkDate.getDay());
   let draw_month = -1;
   for (let wks = 0; wks < show_weeks; wks++) {
     output += '<tr><td colspan="7"><h2>';
-    let dtest = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + 6);
+    let dtest = new Date(beginning_week.getFullYear(), beginning_week.getMonth(), beginning_week.getDate() + wks * 7 + 6);
     if (dtest.getMonth() != draw_month) {
       draw_month = dtest.getMonth();
       output += GetHTMLElement('_' + month_names[draw_month].slice(0, 3) + '_');
@@ -226,7 +226,7 @@ function SetupScheduler() {
     output += '</h2></td></tr>';
     output += '<tr>';
     for (let wd = 0; wd < 7; wd++) {
-      let td = new Date(d.getFullYear(), d.getMonth(), d.getDate() + wks * 7 + wd);
+      let td = new Date(beginning_week.getFullYear(), beginning_week.getMonth(), beginning_week.getDate() + wks * 7 + wd);
       let isholiday = '';
       if (td.getDay() == 0) {
         isholiday = ' style="background-color:rgb(141, 71, 71);"';
