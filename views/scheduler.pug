@@ -21,7 +21,9 @@ block content
         tbody
             each s in data.staff
                 tr
-                    td= s.name
+                    td
+                        - const next_month = new Date(today.getFullYear(), today.getMonth()+1, 1)
+                        a(href="/schedule/"+s.name+"_" + next_month.getFullYear() + ".html")= s.name
                     td
                         span(lg_language=weekdays[s.dayoff1])
                         | , 
