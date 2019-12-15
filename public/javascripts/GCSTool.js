@@ -306,19 +306,151 @@ function SetupScheduler() {
 
 function DrawGraphSchedule() {
   const svg = document.getElementById('graph_schedule');
-  const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  square.setAttribute('x', '100');
-  square.setAttribute('y', '100');
-  square.setAttribute('width', '100');
-  square.setAttribute('height', '100');
-  square.setAttribute('fill', 'red');
-  square.setAttribute('stroke', 'blue');
 
-  console.log(svg);
-  console.log(square);
+  /* DEBUG */
+  const names = ['Lennart', 'Schoppmann'];
+  const schedule = [
+    [
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, false],
+      [true, true, true, true],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [false, false, false, false],
+      [false, false, false, false]
+    ],
+    [
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [true, true, true, true],
+      [false, false, false, false],
+      [false, false, false, false],
+      [false, false, false, false],
+      [false, false, false, false]
+    ]
+  ];
 
-  svg.appendChild(square);
-  //<rect x="1390.5" y="970.5" width="49" height="49" fill="white" stroke="black" />
+  let date = new Date();
+  date = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const numDays = date.getDate();
+  date = new Date(date.getFullYear(), date.getMonth(), 1);
+  let dayCnt = date.getDay();
+  for (let i = 0; i < numDays; i++) {
+    const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+    const xPos = 100 * (dayCnt % 7);
+    const yPos = 100 * Math.floor(dayCnt / 7);
+
+    square.setAttribute('x', xPos.toString());
+    square.setAttribute('y', yPos.toString());
+    square.setAttribute('width', '100');
+    square.setAttribute('height', '100');
+    square.setAttribute('fill', dayCnt % 7 == 0 ? 'red' : 'white');
+    square.setAttribute('stroke', 'black');
+
+    label.setAttribute('x', (xPos + 50).toString());
+    label.setAttribute('y', (yPos + 60).toString());
+    label.setAttribute('fill', '#DDDDDD');
+    label.setAttribute('font-weight', 'bold');
+    label.setAttribute('dominant-baseline', 'middle');
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '90');
+    label.innerHTML = i + 1;
+
+    svg.appendChild(square);
+    svg.appendChild(label);
+
+    for (let j = 0; j < schedule.length; j++) {
+      const staff = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const work1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const work2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const work3 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const work4 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      work1.setAttribute('cx', (xPos + 12.5).toString());
+      work1.setAttribute('cy', (yPos + 7.5 + j * 15).toString());
+      work1.setAttribute('r', '7.5');
+      work1.setAttribute('fill', schedule[j][i][0] ? '#99FF99' : '#FF9999');
+      work2.setAttribute('cx', (xPos + 12.5 + 25).toString());
+      work2.setAttribute('cy', (yPos + 7.5 + j * 15).toString());
+      work2.setAttribute('r', '7.5');
+      work2.setAttribute('fill', schedule[j][i][1] ? '#99FF99' : '#FF9999');
+      work3.setAttribute('cx', (xPos + 12.5 + 50).toString());
+      work3.setAttribute('cy', (yPos + 7.5 + j * 15).toString());
+      work3.setAttribute('r', '7.5');
+      work3.setAttribute('fill', schedule[j][i][2] ? '#99FF99' : '#FF9999');
+      work4.setAttribute('cx', (xPos + 12.5 + 75).toString());
+      work4.setAttribute('cy', (yPos + 7.5 + j * 15).toString());
+      work4.setAttribute('r', '7.5');
+      work4.setAttribute('fill', schedule[j][i][3] ? '#99FF99' : '#FF9999');
+      work4.setAttribute('onclick', 'document.getElementById("' + names[j] + i + '").innerHTML = "TEST"');
+
+      staff.setAttribute('id', names[j] + i);
+      staff.setAttribute('x', (xPos + 5).toString());
+      staff.setAttribute('y', (yPos + 12 + j * 15).toString());
+      staff.setAttribute('fill', 'black');
+      staff.setAttribute('font-weight', 'bold');
+      staff.setAttribute('font-size', '12');
+      if (schedule[j][i][0] || schedule[j][i][1] || schedule[j][i][2] || schedule[j][i][3]) {
+        staff.innerHTML = names[j];
+        svg.appendChild(work1);
+        svg.appendChild(work2);
+        svg.appendChild(work3);
+        svg.appendChild(work4);
+        svg.appendChild(staff);
+      }
+    }
+
+    dayCnt++;
+  }
 }
 
 /**********************************************
