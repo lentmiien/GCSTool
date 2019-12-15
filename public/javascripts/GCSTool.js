@@ -305,14 +305,17 @@ function SetupScheduler() {
 }
 
 function DrawGraphSchedule() {
-  const svg = getElementById('graph_schedule');
-  const square = document.createElement('rect');
+  const svg = document.getElementById('graph_schedule');
+  const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   square.setAttribute('x', '100');
   square.setAttribute('y', '100');
   square.setAttribute('width', '100');
   square.setAttribute('height', '100');
   square.setAttribute('fill', 'red');
   square.setAttribute('stroke', 'blue');
+
+  console.log(svg);
+  console.log(square);
 
   svg.appendChild(square);
   //<rect x="1390.5" y="970.5" width="49" height="49" fill="white" stroke="black" />
@@ -679,19 +682,26 @@ Date.prototype.getWeekNumber = function() {
   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 };
-const d = new Date();
-const day = d.getDay();
-if (day == 2 || day == 4) {
-  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Jammie & Victoria</i>';
-} else if (day == 3 || day == 5) {
-  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Katie & Schoppmann</i>';
-} else if (day == 1 && d.getWeekNumber() % 2 == 1) {
-  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Jammie & Victoria</i>';
-} else if (day == 1) {
-  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: Katie & Schoppmann</i>';
-} else {
-  document.getElementById('debug').innerHTML = '<i>Zendesk Talk: closed</i>';
+function UpdateStatusBar() {
+  const d = new Date();
+  const day = d.getDay();
+  const hour = d.getHours();
+  const isOpen = hour >= 10 && hour < 17 ? '<b style="color:green;">●</b>' : '<b style="color:red;">●</b>';
+  if (day == 2 || day == 4) {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Jammie & Victoria</i>';
+  } else if (day == 3 || day == 5) {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Katie & Schoppmann</i>';
+  } else if (day == 1 && d.getWeekNumber() % 2 == 1) {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Jammie & Victoria</i>';
+  } else if (day == 1) {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Katie & Schoppmann</i>';
+  } else {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: <b style="color:red;">●</b> closed</i>';
+  }
+
+  setTimeout(UpdateStatusBar, 10000);
 }
+UpdateStatusBar();
 
 /**********************************************
  *
