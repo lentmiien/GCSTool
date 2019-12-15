@@ -300,6 +300,22 @@ function SetupScheduler() {
     output += '</tr>';
   }
   dom_scheduler.innerHTML += output + '</tbody>';
+
+  DrawGraphSchedule();
+}
+
+function DrawGraphSchedule() {
+  const svg = getElementById('graph_schedule');
+  const square = document.createElement('rect');
+  square.setAttribute('x', '100');
+  square.setAttribute('y', '100');
+  square.setAttribute('width', '100');
+  square.setAttribute('height', '100');
+  square.setAttribute('fill', 'red');
+  square.setAttribute('stroke', 'blue');
+
+  svg.appendChild(square);
+  //<rect x="1390.5" y="970.5" width="49" height="49" fill="white" stroke="black" />
 }
 
 /**********************************************
@@ -594,6 +610,8 @@ function ShowDocuments() {
 
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
+    document.getElementById('alertsound_4').play();
+
     alert('Request for shipping documents.\n発送書類を依頼してください。');
   }
 }
@@ -710,6 +728,7 @@ function Reminder(message) {
   let color = document.body.style.backgroundColor;
   document.body.style.backgroundColor = 'red';
   //notifyMe(message);
+  document.getElementById('alertsound_4').play();
   alert(message);
   document.body.style.backgroundColor = color;
 }
