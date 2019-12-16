@@ -818,7 +818,7 @@ function UpdateStatusBar() {
   const d = new Date();
   const day = d.getDay();
   const hour = d.getHours();
-  const isOpen = hour >= 10 && hour < 17 ? '<b style="color:green;">●</b>' : '<b style="color:red;">●</b>';
+  const isOpen = hour >= 12 && hour < 17 ? '<b style="color:#66FF66;">●</b>' : '<b style="color:#FF6666;">●</b>';
   if (day == 2 || day == 4) {
     document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Jammie & Victoria</i>';
   } else if (day == 3 || day == 5) {
