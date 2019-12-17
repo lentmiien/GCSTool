@@ -746,8 +746,6 @@ function ShowDocuments() {
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
     document.getElementById('alertsound_4').play();
-
-    alert('Request for shipping documents.\n発送書類を依頼してください。');
   }
 }
 function PeekDocuments(seconds) {
@@ -867,12 +865,12 @@ function SetReminderFunction(trigger_time, functionname) {
   }
 }
 function Reminder(message) {
-  let color = document.body.style.backgroundColor;
-  document.body.style.backgroundColor = 'red';
-  //notifyMe(message);
   document.getElementById('alertsound_4').play();
-  alert(message);
-  document.body.style.backgroundColor = color;
+  Debug(
+    '<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>' +
+      message +
+      '</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+  );
 }
 
 function Debug(message) {
