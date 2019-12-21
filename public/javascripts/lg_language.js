@@ -660,6 +660,7 @@ function UpdateLanguage(source) {
     var elmnt = z[i];
     var lval = elmnt.getAttribute('lg_language');
     if (lval) {
+      //elmnt.setAttribute('title', lval);
       elmnt.innerHTML = json_language[lval][language_id];
     }
   }

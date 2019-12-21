@@ -24,3 +24,35 @@ body {
 textarea {
   width: 100%;
 }
+
+/**/
+.lennart {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: rgba(255, 255, 0, 0.25);
+}
+.schoppmann {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: rgba(255, 0, 0, 0.25);
+}
+.victoria {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: rgba(255, 0, 255, 0.25);
+}
+.jammie {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: rgba(0, 0, 255, 0.25);
+}
+.katie {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: rgba(0, 255, 255, 0.25);
+}
