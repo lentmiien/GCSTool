@@ -19,6 +19,8 @@ html(lang='en')
               a.nav-link(href='/entry', lg_language='_content_')
             li.nav-item
               a.nav-link(href='/scheduler', lg_language='_scheduler_')
+            li.nav-item
+              a.nav-link(href='/meeting', lg_language_todo='_meeting_') Meeting
             if request.role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
