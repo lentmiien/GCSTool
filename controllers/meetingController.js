@@ -31,7 +31,7 @@ exports.meeting_landing = async (req, res) => {
   const d = new Date();
   const year = d.getFullYear();
   const month = d.getMonth() > 8 ? (d.getMonth() + 1) : '0' + (d.getMonth() + 1);
-  const date = d.getDate() > 9 ? d.getDate() : '0' + d.getMonth();
+  const date = d.getDate() > 9 ? d.getDate() : '0' + d.getDate();
   const today = year + '-' + month + '-' + date;
   
   // Comming from post new topic
