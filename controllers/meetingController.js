@@ -27,17 +27,32 @@ exports.meeting_landing = async (req, res) => {
   const info = await promisify(doc.getInfo)();
   const sheet = info.worksheets[0];
 
-  const rows = await promisify(sheet.getRows)({
-      orderby: 'lastupdated',
-      reverse: true
-  });
-
   // Get todays date
   const d = new Date();
   const year = d.getFullYear();
   const month = d.getMonth() > 8 ? (d.getMonth() + 1) : '0' + (d.getMonth() + 1);
   const date = d.getDate() > 9 ? d.getDate() : '0' + d.getMonth();
   const today = year + '-' + month + '-' + date;
+  
+  // Comming from post new topic
+  if(req.body.newtopic) {
+    // In data
+    const newcontent = {
+      topic: req.body.newtopic + '(' + d.getTime() + ')', // Adding time stamp to ensure that all topics has a uinquly itentifiable name
+      status: '新規',
+      details: req.body.newdetails,
+      lastupdated: today
+    };
+    newcontent[req.body.newedit_user] = req.body.newmycomment;
+
+    await promisify(sheet.addRow)(newcontent);
+  }
+
+  // Get rows AFTER adding new content above
+  const rows = await promisify(sheet.getRows)({
+      orderby: 'lastupdated',
+      reverse: true
+  });
 
   // Comming from edit details
   if(req.body.edittopic) {
@@ -49,28 +64,6 @@ exports.meeting_landing = async (req, res) => {
         r.save();
       }
     });
-  }
-
-  // Comming from post new topic
-  let newcontent = null;
-  if(req.body.newtopic) {
-    // Make sure that each topic has a unique name
-    rows.forEach(r => {
-      if(r.topic == req.body.newtopic) {
-        req.body.newtopic += '(' + d.getTime() + ')';
-      }
-    });
-
-    // In data
-    newcontent = {
-      topic: req.body.newtopic,
-      status: '新規',
-      details: req.body.newdetails,
-      lastupdated: today
-    };
-    newcontent[req.body.newedit_user] = req.body.newmycomment;
-
-    await promisify(sheet.addRow)(newcontent);
   }
 
   // Comming from update comment
@@ -85,6 +78,6 @@ exports.meeting_landing = async (req, res) => {
   }
 
   User.findAll().then(users => {
-    res.render('meeting', { rows, newcontent, users: users, request: req.body });
+    res.render('meeting', { rows, users: users, request: req.body });
   });
 };

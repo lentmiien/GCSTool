@@ -26,21 +26,6 @@ block content
           button.btn.btn-success.btn-lg.btn-block(type="submit") Post new topic
       - let cYear = "9999"
       - let cMonth = "99"
-      if newcontent != null
-        - let sDate = newcontent.lastupdated.split("-")
-        if !(cYear == sDate[0] && cMonth == sDate[1])
-          - cYear = sDate[0]
-          - cMonth = sDate[1]
-          h2= cYear + "年" + cMonth + "月"
-        .alert.alert-danger(role="alert")
-          h3= "■" + newcontent.topic
-          b= `Status: 新規`
-          i= ` (Updated: ${newcontent.lastupdated})`
-          pre= newcontent.details
-          hr
-          div(class="comment")
-            h4= request.userid
-            pre= newcontent[request.userid.toLowerCase()]
       each row in rows
         - let sDate = row.lastupdated.split("-")
         if !(cYear == sDate[0] && cMonth == sDate[1])
@@ -60,7 +45,7 @@ block content
           - classType = "alert-dark"
           - message = "<b>【中止】</b>"
         .alert(class=classType, role="alert")
-          h3!= "■" + message + row.topic
+          h3!= "■" + message + row.topic.split('(')[0]
           b= `Status: ${row.status}`
           i= ` (Updated: ${row.lastupdated})`
           pre= row.details
