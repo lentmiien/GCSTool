@@ -85,5 +85,5 @@ block content
                   form(action="/meeting", method="post")
                     input#topic(type="hidden", name="topic" value=row.topic)
                     input#edit_user(type="hidden", name="edit_user" value=request.userid.toLowerCase())
-                    textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user].length > 0 ? row[user] : ""
+                    textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user] : ""
                     button.btn.btn-warning.btn-lg.btn-block(type="submit") Update comment
