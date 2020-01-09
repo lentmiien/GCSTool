@@ -707,7 +707,7 @@ function ShowDocuments() {
     my_settings.documents.invoice.length > 0 ||
     my_settings.documents.jplabel.length > 0
   ) {
-    let message = '<div class="alert alert-info" role="alert">お疲れ様です。<br><br>';
+    let message = '<div class="alert alert-info alert-dismissible fade show" role="alert">お疲れ様です。<br><br>';
     if (my_settings.documents.jplabel.length > 0) {
       message += '伝票画像　＋　発送サポートシステム上での【送料】と【重量】<br>';
       while (my_settings.documents.jplabel.length > 0) {
@@ -739,9 +739,10 @@ function ShowDocuments() {
     }
     message += 'よろしくお願いします。<div>';
 
-    message += '<button onclick="Debug(\'\')">Done</button>';
+    message +=
+      '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
 
-    Debug(message);
+    document.getElementById('ask_labels').innerHTML = message;
 
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
