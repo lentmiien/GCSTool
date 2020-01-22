@@ -139,3 +139,30 @@ exports.remove_staff_post = function(req, res) {
     res.render('s_added', { message: 'Only admin users can remove staff.', request: req.body });
   }
 };
+
+// Display personal schedule
+exports.display_personal_schedule = function(req, res) {
+  const schedule = {
+    /*
+    '2020-0-1': 'holiday',
+    '2020-0-2': 'holiday',
+    '2020-0-3': 'holiday',
+    '2020-0-4': 'off',
+    '2020-0-5': 'off',
+    '2020-0-6': 'work',
+    '2020-0-7': 'work',
+    '2020-0-8': 'work',
+    '2020-0-9': 'work',
+    '2020-0-10': 'work'
+  */
+  };
+  Schedule2.findAll({ where: { staffId: 5 } }).then(schedule_data => {
+    schedule_data.forEach(entry => {
+      const date = entry.date.split('-');
+      if (parseInt(date[0]) == 2020) {
+        schedule[`${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`] = entry.work;
+      }
+    });
+    res.render('s_personal_schedule', { name: 'Lennart', schedule, request: req.body });
+  });
+};

@@ -401,6 +401,11 @@ var json_language = {
     swedish: 'Ledig',
     japanese: '休み'
   },
+  _holiday_: {
+    english: 'Holiday',
+    swedish: 'Semester',
+    japanese: '祝日'
+  },
   _name_: {
     english: 'Name',
     swedish: 'Namn',

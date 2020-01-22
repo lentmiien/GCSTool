@@ -33,4 +33,7 @@ router.get('/removestaff', scheduler_controller.remove_staff_get);
 // POST request for removing staff member from scheduler
 router.post('/removestaff', scheduler_controller.remove_staff_post);
 
+// GET personal schedule
+router.get('/personal_schedule', scheduler_controller.display_personal_schedule);
+
 module.exports = router;
