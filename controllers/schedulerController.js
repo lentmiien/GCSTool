@@ -185,3 +185,26 @@ exports.generate_personal_schedule = function(req, res) {
     res.render('s_added', { message: 'Only admin users can add schedules.', request: req.body });
   }
 };
+
+// Display mail team schedule
+exports.display_team_schedule = function(req, res) {
+  const schedule = {};
+  Schedule2.findAll().then(schedule_data => {
+    schedule_data.forEach(entry => {
+      const date = entry.date.split('-');
+      if (parseInt(date[0]) == 2020) {
+        const d_string = `${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`;
+        if (schedule[d_string] == undefined) {
+          schedule[d_string] = {};
+          schedule[d_string]['work'] = entry.work == 'off' || entry.work == 'holiday' ? 'closed' : 'open';
+          schedule[d_string]['staff'] = 0;
+        }
+        if (!(entry.work == 'off' || entry.work == 'holiday')) {
+          schedule[d_string]['work'] = 'open';
+          schedule[d_string]['staff']++;
+        }
+      }
+    });
+    res.render('s_team_schedule', { schedule, request: req.body });
+  });
+};

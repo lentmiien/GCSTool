@@ -30,6 +30,7 @@ block content
                         span(lg_language=weekdays[s.dayoff1])
                         | , 
                         span(lg_language=weekdays[s.dayoff2])
+    a(href="/scheduler/team_schedule") Team schedule
     hr
     select#year_select
         each year in [today.getFullYear()-1, today.getFullYear(), today.getFullYear()+1]

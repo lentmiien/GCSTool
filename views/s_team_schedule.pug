@@ -1,0 +1,42 @@
+extends layout
+
+block content
+  h1= `メールチームの年間スケジュール（2020年）`
+  svg(width="1200" height="1700" viewBox="0 0 1200 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
+    rect#background(width="1200" height="1700" fill="white")
+    - let year = 2020
+    - let month = 0
+    - let x_offset = month % 3
+    - let y_offset = Math.floor(month / 3)
+    - let week_offset = 1
+    text(x=`${x_offset * 400 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
+    - const days = ["日", "月", "火", "水", "木", "金", "土"]
+    - let i = 0
+      while i < 7
+        text(x=`${x_offset * 400 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
+        - i++
+    - let d = new Date(year, month, 1)
+    - let colormap = { "open":"rgb(120,255,120)","closed":"rgb(255,120,120)" }
+    while d.getFullYear() == year
+      if d.getMonth() != month
+        - month++
+        - x_offset = month % 3
+        - y_offset = Math.floor(month / 3)
+        - week_offset = 1
+        text(x=`${x_offset * 400 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
+        - i = 0
+        while i < 7
+          text(x=`${x_offset * 400 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
+          - i++
+      - let day = d.getDay()
+      - let ckey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      rect(x=`${x_offset * 400 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${colormap[schedule[ckey].work]}` stroke="black")
+      text(x=`${x_offset * 400 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 117.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
+      text(x=`${x_offset * 400 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 137.5}` dominant-baseline="middle" text-anchor="middle" fill="black" font-weight="bold")= schedule[ckey].staff
+      - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+      if d.getDay() == 0
+        - week_offset++
+    rect(x=`${100}` y=`${50}` width=`55` height=`55` fill=`rgb(120,255,120)` stroke="black")
+    text(x=`${160}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Open
+    rect(x=`${300}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,120)` stroke="black")
+    text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Closed
