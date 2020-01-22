@@ -403,8 +403,33 @@ var json_language = {
   },
   _holiday_: {
     english: 'Holiday',
-    swedish: 'Semester',
+    swedish: 'Helgdag',
     japanese: '祝日'
+  },
+  _2hoff_m_: {
+    english: '2hr off',
+    swedish: '2tim ledig',
+    japanese: '2時間休'
+  },
+  _2hoff_e_: {
+    english: '2hr off',
+    swedish: '2tim ledig',
+    japanese: '2時間休'
+  },
+  _halfoff_m_: {
+    english: 'Half off',
+    swedish: 'Halv ledig',
+    japanese: '半休'
+  },
+  _halfoff_e_: {
+    english: 'Half off',
+    swedish: 'Halv ledig',
+    japanese: '半休'
+  },
+  _off_: {
+    english: 'Day Off',
+    swedish: 'Ledig',
+    japanese: '休み'
   },
   _name_: {
     english: 'Name',

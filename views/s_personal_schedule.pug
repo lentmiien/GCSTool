@@ -3,19 +3,19 @@ extends layout
 block content
   h1= `年間スケジュール（2020年）`
   - let has_unknown_days = false
-  svg(width="1200" height="1700" viewBox="0 0 1200 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
-    rect#background(width="1200" height="1700" fill="white")
+  svg(width="1240" height="1700" viewBox="0 0 1240 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
+    rect#background(width="1240" height="1700" fill="white")
     - let year = 2020
     - let month = 0
     - let x_offset = month % 3
     - let y_offset = Math.floor(month / 3)
     - let week_offset = 1
     - let num_used_holidays = 0
-    text(x=`${x_offset * 400 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
+    text(x=`${x_offset * 420 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
     - const days = ["日", "月", "火", "水", "木", "金", "土"]
     - let i = 0
       while i < 7
-        text(x=`${x_offset * 400 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
+        text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
         - i++
     - let d = new Date(year, month, 1)
     - let colormap = { "work":"rgb(120,255,120)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)" }
@@ -25,10 +25,10 @@ block content
         - x_offset = month % 3
         - y_offset = Math.floor(month / 3)
         - week_offset = 1
-        text(x=`${x_offset * 400 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
+        text(x=`${x_offset * 420 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
         - i = 0
         while i < 7
-          text(x=`${x_offset * 400 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
+          text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
           - i++
       - let day = d.getDay()
       - let ckey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
@@ -36,8 +36,8 @@ block content
         - num_used_holidays++
       if schedule[ckey] == undefined
         - has_unknown_days = true
-      rect(x=`${x_offset * 400 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
-      text(x=`${x_offset * 400 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
+      rect(x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
+      text(x=`${x_offset * 420 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
       - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
       if d.getDay() == 0
         - week_offset++

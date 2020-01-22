@@ -9,52 +9,32 @@ block content
         a.btn.btn-link(href='/scheduler/addstaff', lg_language='_add_staff_')
         | 
         a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
-        | 
-        a.btn.btn-link(href='/scheduler/personal_schedule') TEST personal schedule
         hr
     - const today = new Date()
-    - const weekdays = ['_su_', '_m_', '_tu_', '_w_', '_th_', '_f_', '_sa_']
+    - const a_week = []
+    - let wcnt = 0
+    while wcnt < 7
+        - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+        - wcnt++
+        - a_week.push(`${wdate.getMonth() + 1}/${wdate.getDate()}`)
     h3(lg_language='_team_members_')
     table.table.table-dark
         thead
             tr
                 th Name
-                th(lg_language='_days_off_')
+                each wday in a_week
+                    th= wday
         tbody
             each s in data.staff
                 tr
                     td
-                        - const next_month = new Date(today.getFullYear(), today.getMonth()+1, 1)
                         a(href=`/scheduler/${s.id}/personal_schedule`)= s.name
-                    td
-                        span(lg_language=weekdays[s.dayoff1])
-                        | , 
-                        span(lg_language=weekdays[s.dayoff2])
+                    - wcnt = 0
+                    while wcnt < 7
+                        - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+                        - wcnt++
+                        - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
+                        each sdate in s.schedule2s
+                            if dstr == sdate.date
+                                td(lg_language='_' + sdate.work + '_')
     a(href="/scheduler/team_schedule") Team schedule
-    hr
-    select#year_select
-        each year in [today.getFullYear()-1, today.getFullYear(), today.getFullYear()+1]
-            if year == today.getFullYear()
-                option(value=year, selected)= year
-            else
-                option(value=year)= year
-    select#month_select
-        each month in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-            if month == (today.getMonth()+1)
-                option(value=(month-1), selected)= month
-            else
-                option(value=(month-1))= month
-    select#date_select
-        each date in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
-            if date == today.getDate()
-                option(value=date, selected)= date
-            else
-                option(value=date)= date
-    select#show_weeks
-        each weeks in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-            option(value=weeks)= weeks + " weeks"
-    button(onclick='SetupScheduler()', lg_language='_show_schedule_')
-    br
-    table#schedule.table.table-dark
-    svg#graph_schedule(width="700" height="600" viewBox="0 0 700 600" fill="none" xmlns="http://www.w3.org/2000/svg")
-    div#data.hidden= JSON.stringify(data)
