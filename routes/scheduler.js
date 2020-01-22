@@ -34,6 +34,8 @@ router.get('/removestaff', scheduler_controller.remove_staff_get);
 router.post('/removestaff', scheduler_controller.remove_staff_post);
 
 // GET personal schedule
-router.get('/personal_schedule', scheduler_controller.display_personal_schedule);
+router.get('/:id/personal_schedule', scheduler_controller.display_personal_schedule);
+// GET generate 1 year personal schedule
+router.get('/:id/generate_personal_schedule', scheduler_controller.generate_personal_schedule);
 
 module.exports = router;

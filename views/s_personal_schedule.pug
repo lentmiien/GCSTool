@@ -1,7 +1,8 @@
 extends layout
 
 block content
-  h1= `スケジュール ${name} (2020年)`
+  h1= `年間スケジュール（2020年）`
+  - let has_unknown_days = false
   svg(width="1200" height="1700" viewBox="0 0 1200 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
     rect#background(width="1200" height="1700" fill="white")
     - let year = 2020
@@ -33,6 +34,8 @@ block content
       - let ckey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
       if schedule[ckey] == "holiday"
         - num_used_holidays++
+      if schedule[ckey] == undefined
+        - has_unknown_days = true
       rect(x=`${x_offset * 400 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
       text(x=`${x_offset * 400 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
       - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
@@ -46,3 +49,5 @@ block content
     text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Day off
     rect(x=`${700}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,120)` stroke="black")
     text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Holiday (${num_used_holidays} of 22 used)`
+  if has_unknown_days == true
+    a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule`) Generate 1 year schedule
