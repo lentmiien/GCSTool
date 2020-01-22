@@ -10,7 +10,8 @@ block content
         | 
         a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
         hr
-    - const today = new Date()
+    - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
+    div.hidden= today.toUTCString()
     - const a_week = []
     - let wcnt = 0
     while wcnt < 7
