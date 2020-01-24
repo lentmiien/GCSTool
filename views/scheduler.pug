@@ -37,5 +37,10 @@ block content
                         - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
                         each sdate in s.schedule2s
                             if dstr == sdate.date
-                                td(lg_language='_' + sdate.work + '_')
+                                - let w_style = "rgb(220, 255, 100)"
+                                if sdate.work == "off" || sdate.work == "holiday"
+                                    - w_style = "rgb(150, 70, 70)"
+                                if sdate.work == "work"
+                                    - w_style = "rgb(100, 255, 100)"
+                                td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
     a(href="/scheduler/team_schedule") Team schedule
