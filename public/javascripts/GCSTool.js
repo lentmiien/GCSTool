@@ -91,6 +91,11 @@ function Loaded() {
 
   // Set Cookies
   document.cookie = 'userid=' + my_settings.userid + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
+
+  // Make a search if search input field has content *can have content sent through GET parameters
+  if (document.getElementById('s_box').value.length > 0) {
+    Filter();
+  }
 }
 
 // Show reminders
