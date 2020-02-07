@@ -9,6 +9,10 @@ pre {
   color: rgb(252, 255, 214);
 }
 
+.alert pre {
+  color: rgb(0, 0, 0);
+}
+
 /* Dictionary settings */
 div.entry {
   border-style: solid;
