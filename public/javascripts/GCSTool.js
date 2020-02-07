@@ -752,6 +752,8 @@ function ShowDocuments() {
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
     document.getElementById('alertsound_4').play();
+
+    alert('Request documents!');
   }
 }
 function PeekDocuments(seconds) {
