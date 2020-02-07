@@ -877,6 +877,7 @@ function Reminder(message) {
       message +
       '</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
   );
+  alert('Check reminders!');
 }
 
 function Debug(message) {
