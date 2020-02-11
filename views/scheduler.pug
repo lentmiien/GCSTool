@@ -42,5 +42,7 @@ block content
                                     - w_style = "rgb(150, 70, 70)"
                                 if sdate.work == "work"
                                     - w_style = "rgb(100, 255, 100)"
+                                if sdate.work == "vacation"
+                                    - w_style = "rgb(255, 120, 255)"
                                 td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
     a(href="/scheduler/team_schedule") Team schedule
