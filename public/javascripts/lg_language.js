@@ -406,6 +406,11 @@ var json_language = {
     swedish: 'Helgdag',
     japanese: '祝日'
   },
+  _vacation_: {
+    english: 'Vacation',
+    swedish: 'Semester',
+    japanese: '休暇'
+  },
   _2hoff_m_: {
     english: '2hr off',
     swedish: '2tim ledig',
