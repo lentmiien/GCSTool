@@ -553,7 +553,7 @@ function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
     Filter();
     back.innerHTML = old_data;
   } else {
-    alert('Only works on "Content" page');
+    open(`/entry?search=${q_string}`, '_self');
   }
 }
 function SetFilterBack() {
