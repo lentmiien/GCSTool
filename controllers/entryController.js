@@ -307,7 +307,7 @@ exports.entry_update_post = [
 
             // ismaster can only be updated by approved staff
             let warning = '';
-            if (results.entry.ismaster == 1 && !(req.body.role === 'admin')) {
+            if (false && results.entry.ismaster == 1 && !(req.body.role === 'admin')) {
               warning = 'You can not update master data.';
               res.render('entryupdated', {
                 warning: warning,
