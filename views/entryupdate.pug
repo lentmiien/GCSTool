@@ -3,65 +3,66 @@ extends layout
 block content
     if errors===undefined
         h2(lg_language='_update_entry_')
-        .alert.alert-info(role="alert")
+        .alert(class=`${entry.ismaster==1 ? "alert-danger" : "alert-dark"}`, role="alert")
             span(lg_language='_update_entry_1_')
             span= entry.title
             span(lg_language='_update_entry_2_')
-        form(action='/entry/' + entry.id + '/update', method="post")
-            div.form-group
-                input#creator(type='hidden', name='creator')
-                label(for='title', lg_language='_title_')
-                input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=entry.title)
-                br
-                label(for='category', lg_language='_category_')
-                select#category.form-control(name='category')
-                    if entry.category==='template'
-                        option(value='template', lg_language='_template_', selected)
-                    else
-                        option(value='template', lg_language='_template_')
-                    if entry.category==='manual'
-                        option(value='manual', lg_language='_manual_', selected)
-                    else
-                        option(value='manual', lg_language='_manual_')
-                    if entry.category==='ccontact'
-                        option(value='ccontact', lg_language='_ccontact_', selected)
-                    else
-                        option(value='ccontact', lg_language='_ccontact_')
-                br
-                //- if request.role === 'admin'
-                div
-                    label(for='ismaster', lg_language='_is_master_')
-                    input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
+            hr
+            form(action='/entry/' + entry.id + '/update', method="post")
+                div.form-group
+                    input#creator(type='hidden', name='creator')
+                    label(for='title', lg_language='_title_')
+                    input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=entry.title)
                     br
-                label(for='tag', lg_language='_tag_')
-                - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
-                select#tag.form-control(name='tag')
-                    each tag in tags
-                        if entry.tag===tag
-                            option(value=tag, lg_language=tag, selected)
+                    label(for='category', lg_language='_category_')
+                    select#category.form-control(name='category')
+                        if entry.category==='template'
+                            option(value='template', lg_language='_template_', selected)
                         else
-                            option(value=tag, lg_language=tag)
-                br
-                label(for='team', lg_language='_team_')
-                select#team.form-control(name='team')
-                    if entry.team==='ohami_gcs_mail'
-                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
-                    else
-                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
-            div.form-group
-                a.btn.btn-dark(onclick="ResizeAll()") Re-size all
-                br
-                each i in [0, 1, 2, 3, 4]
-                    if !(undefined===entry.contents[i])
-                        input(id='contentid' + (i+1), type='hidden', name='contentid' + (i+1), value=(entry.contents[i].id))
-                    else
-                        b (NEW)
-                    label(for='content' + (i+1), lg_language='_content_')
-                    if (i == 0)
-                        span.tooltip TIP
-                            span.tooltiptextright(lg_language='_tooltip_enter_data_')
-                    textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
-            button.btn.btn-primary(type='submit', lg_language='_submit_update_')
+                            option(value='template', lg_language='_template_')
+                        if entry.category==='manual'
+                            option(value='manual', lg_language='_manual_', selected)
+                        else
+                            option(value='manual', lg_language='_manual_')
+                        if entry.category==='ccontact'
+                            option(value='ccontact', lg_language='_ccontact_', selected)
+                        else
+                            option(value='ccontact', lg_language='_ccontact_')
+                    br
+                    //- if request.role === 'admin'
+                    div
+                        label(for='ismaster', lg_language='_is_master_')
+                        input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
+                        br
+                    label(for='tag', lg_language='_tag_')
+                    - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+                    select#tag.form-control(name='tag')
+                        each tag in tags
+                            if entry.tag===tag
+                                option(value=tag, lg_language=tag, selected)
+                            else
+                                option(value=tag, lg_language=tag)
+                    br
+                    label(for='team', lg_language='_team_')
+                    select#team.form-control(name='team')
+                        if entry.team==='ohami_gcs_mail'
+                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
+                        else
+                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
+                div.form-group
+                    a.btn.btn-dark(onclick="ResizeAll()") Re-size all
+                    br
+                    each i in [0, 1, 2, 3, 4]
+                        if !(undefined===entry.contents[i])
+                            input(id='contentid' + (i+1), type='hidden', name='contentid' + (i+1), value=(entry.contents[i].id))
+                        else
+                            b (NEW)
+                        label(for='content' + (i+1), lg_language='_content_')
+                        if (i == 0)
+                            span.tooltip TIP
+                                span.tooltiptextright(lg_language='_tooltip_enter_data_')
+                        textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
+                button.btn.btn-primary(type='submit', lg_language='_submit_update_')
     else
         h2(lg_language='_couldnt_update_')
         ul
