@@ -63,3 +63,15 @@ textarea {
   padding: 5px;
   background-color: rgba(255, 0, 0, 0.25);
 }
+
+.new-content {
+  background-color: rgba(255, 200, 47, 0.25);
+}
+.new-content:before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3fb83b;
+  display: inline-block;
+}

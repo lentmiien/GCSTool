@@ -196,10 +196,10 @@ exports.display_team_schedule = function(req, res) {
         const d_string = `${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`;
         if (schedule[d_string] == undefined) {
           schedule[d_string] = {};
-          schedule[d_string]['work'] = entry.work == 'off' || entry.work == 'holiday' ? 'closed' : 'open';
+          schedule[d_string]['work'] = entry.work == 'off' || entry.work == 'holiday' || entry.work == 'vacation' ? 'closed' : 'open';
           schedule[d_string]['staff'] = 0;
         }
-        if (!(entry.work == 'off' || entry.work == 'holiday')) {
+        if (!(entry.work == 'off' || entry.work == 'holiday' || entry.work == 'vacation')) {
           schedule[d_string]['work'] = 'open';
           schedule[d_string]['staff']++;
         }

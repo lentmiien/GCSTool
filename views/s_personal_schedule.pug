@@ -11,6 +11,8 @@ block content
     - let y_offset = Math.floor(month / 3)
     - let week_offset = 1
     - let num_used_holidays = 0
+    - let num_days_off = 0
+    - let num_vacation = 0
     text(x=`${x_offset * 420 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
     - const days = ["日", "月", "火", "水", "木", "金", "土"]
     - let i = 0
@@ -18,7 +20,7 @@ block content
         text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
         - i++
     - let d = new Date(year, month, 1)
-    - let colormap = { "work":"rgb(120,255,120)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)" }
+    - let colormap = { "work":"rgb(120,255,120)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)","vacation":"rgb(255,120,255)" }
     while d.getFullYear() == year
       if d.getMonth() != month
         - month++
@@ -32,8 +34,12 @@ block content
           - i++
       - let day = d.getDay()
       - let ckey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      if schedule[ckey] == "off"
+        - num_days_off++
       if schedule[ckey] == "holiday"
         - num_used_holidays++
+      if schedule[ckey] == "vacation"
+        - num_vacation++
       if schedule[ckey] == undefined
         - has_unknown_days = true
       rect(x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
@@ -46,8 +52,10 @@ block content
     rect(x=`${300}` y=`${50}` width=`55` height=`55` fill=`rgb(255,255,120)` stroke="black")
     text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Work (not full day)
     rect(x=`${500}` y=`${50}` width=`55` height=`55` fill=`rgb(120,120,255)` stroke="black")
-    text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Day off
+    text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Day off (${num_days_off} of 104)`
     rect(x=`${700}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,120)` stroke="black")
-    text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Holiday (${num_used_holidays} of 22 used)`
+    text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Holiday (${num_used_holidays} of 22)`
+    rect(x=`${900}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,255)` stroke="black")
+    text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Vacation (${num_vacation})`
   if has_unknown_days == true
     a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule`) Generate 1 year schedule

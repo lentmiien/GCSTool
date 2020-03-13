@@ -91,6 +91,11 @@ function Loaded() {
 
   // Set Cookies
   document.cookie = 'userid=' + my_settings.userid + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
+
+  // Make a search if search input field has content *can have content sent through GET parameters
+  if (document.getElementById('s_box') && document.getElementById('s_box').value.length > 0) {
+    Filter();
+  }
 }
 
 // Show reminders
@@ -548,7 +553,7 @@ function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
     Filter();
     back.innerHTML = old_data;
   } else {
-    alert('Only works on "Content" page');
+    open(`/entry?search=${q_string}`, '_self');
   }
 }
 function SetFilterBack() {
@@ -747,6 +752,8 @@ function ShowDocuments() {
     localStorage.setItem('settings', JSON.stringify(my_settings));
 
     document.getElementById('alertsound_4').play();
+
+    alert('Request documents!');
   }
 }
 function PeekDocuments(seconds) {
@@ -872,6 +879,7 @@ function Reminder(message) {
       message +
       '</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
   );
+  alert('Check reminders!');
 }
 
 function Debug(message) {
