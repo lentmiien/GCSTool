@@ -31,7 +31,7 @@ exports.index = function(req, res) {
     where: {
       team: req.body['team'],
       updatedAt: {
-        [Op.gt]: d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
+        [Op.gt]: d
       }
     }
   }).then(updated_within_last_month => {
