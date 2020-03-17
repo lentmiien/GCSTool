@@ -8,4 +8,6 @@ var controller = require('../controllers/meetingController');
 router.get('/', controller.meeting_landing);
 router.post('/', controller.meeting_landing);
 
+router.get('/new/:timestamp', controller.new);
+
 module.exports = router;

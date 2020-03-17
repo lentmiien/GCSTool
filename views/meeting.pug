@@ -26,15 +26,15 @@ block content
                 | comment
             textarea#newmycomment.form-control(name="newmycomment", cols="30", rows="3", placeholder="Your comment")
           button.btn.btn-success.btn-lg.btn-block(type="submit") Post new topic
-      - let cYear = "9999"
-      - let cMonth = "99"
+      - let cYear = 9999
+      - let cMonth = 99
       - let cnt = 0
       each row in rows
         - cnt++
-        - let sDate = row.lastupdated.split("-")
-        if !(cYear == sDate[0] && cMonth == sDate[1])
-          - cYear = sDate[0]
-          - cMonth = sDate[1]
+        - let sDate = new Date(parseInt(row.lastupdated))
+        if !(cYear == sDate.getFullYear() && cMonth == sDate.getMonth()+1)
+          - cYear = sDate.getFullYear()
+          - cMonth = sDate.getMonth()+1
           h2= cYear + "年" + cMonth + "月"
         - let classType = "alert-primary"
         - let message = ""
@@ -51,7 +51,7 @@ block content
         .alert(class=classType, role="alert")
           h3!= "■" + message + row.topic.split('(')[0]
           b= `Status: ${row.status}`
-          i= ` (Updated: ${row.lastupdated})`
+          i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
           pre= row.details
           p
             button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
@@ -87,3 +87,4 @@ block content
                     input#edit_user(type="hidden", name="edit_user" value=request.userid.toLowerCase())
                     textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
                     button.btn.btn-warning.btn-lg.btn-block(type="submit") Update comment
+  script(src="/javascripts/open_meeting.js")

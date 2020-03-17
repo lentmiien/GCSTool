@@ -460,6 +460,45 @@ function DrawGraphSchedule() {
 
 /**********************************************
  *
+ *                 Meeting
+ *
+ **********************************************/
+
+async function CheckNewMeeting() {
+  const badge = document.getElementById('m_count');
+
+  // Only run if the required HTML element exists
+  if (badge) {
+    // Get last accessed timestamp
+    let timestamp = 0;
+    if (localStorage.hasOwnProperty('meeting') == true) {
+      const data = JSON.parse(localStorage.getItem('meeting'));
+      timestamp = data.last_accessed;
+    }
+
+    // Access fetch route
+    const response = await fetch(`/meeting/new/${timestamp}`, {
+      method: 'GET',
+      cache: 'no-cache',
+      headers: {
+        Accept: 'application/json'
+      }
+    });
+    const data = await response.json();
+
+    // Update text
+    if (data.new > 0) {
+      badge.innerText = data.new;
+    }
+
+    // Refresh every minute
+    setTimeout(CheckNewMeeting, 60000);
+  }
+}
+CheckNewMeeting();
+
+/**********************************************
+ *
  *                 KEYBOARD
  *
  **********************************************/

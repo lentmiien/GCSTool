@@ -136,6 +136,11 @@ var json_language = {
     swedish: 'Schemaläggare',
     japanese: 'スケジューラ'
   },
+  _meeting_: {
+    english: 'Meeting',
+    swedish: 'Möte',
+    japanese: 'ミーティング'
+  },
   _admin_: {
     english: 'Admin',
     swedish: 'Admin',

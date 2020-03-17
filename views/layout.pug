@@ -20,7 +20,9 @@ html(lang='en')
             li.nav-item
               a.nav-link(href='/scheduler', lg_language='_scheduler_')
             li.nav-item
-              a.nav-link(href='/meeting', lg_language_todo='_meeting_') Meeting
+              a.nav-link(href='/meeting')
+                span(lg_language='_meeting_')
+                span#m_count.badge.badge-warning.ml-1
             if request.role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')

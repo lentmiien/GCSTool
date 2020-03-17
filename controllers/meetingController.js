@@ -28,10 +28,6 @@ exports.meeting_landing = async (req, res) => {
 
   // Get todays date
   const d = new Date();
-  const year = d.getFullYear();
-  const month = d.getMonth() > 8 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1);
-  const date = d.getDate() > 9 ? d.getDate() : '0' + d.getDate();
-  const today = year + '-' + month + '-' + date;
 
   // Comming from post new topic
   if (req.body.newtopic) {
@@ -40,7 +36,7 @@ exports.meeting_landing = async (req, res) => {
       topic: req.body.newtopic + '(' + d.getTime() + ')', // Adding time stamp to ensure that all topics has a uinquly itentifiable name
       status: '新規',
       details: req.body.newdetails,
-      lastupdated: today
+      lastupdated: Date.now()
     };
     newcontent[req.body.newedit_user] = req.body.newmycomment;
 
@@ -65,7 +61,7 @@ exports.meeting_landing = async (req, res) => {
       if (r.topic == req.body.edittopic) {
         r.status = req.body.editwho + req.body.editstatus;
         r.details = req.body.editdetails;
-        r.lastupdated = today;
+        r.lastupdated = Date.now();
         r.save();
       }
     });
@@ -76,7 +72,7 @@ exports.meeting_landing = async (req, res) => {
     rows.forEach(r => {
       if (r.topic == req.body.topic) {
         r[req.body.edit_user] = req.body.mycomment;
-        r.lastupdated = today;
+        r.lastupdated = Date.now();
         r.save();
       }
     });
@@ -85,4 +81,26 @@ exports.meeting_landing = async (req, res) => {
   User.findAll().then(users => {
     res.render('meeting', { rows, users: users, request: req.body });
   });
+};
+
+exports.new = async (req, res) => {
+  if (req.body.role == 'guest') {
+    return res.redirect('/');
+  }
+
+  // Get timestamp from link address req.params.timestamp
+  const timestamp = req.params.timestamp;
+
+  // Check which entries that are newer than provided timestamp
+  const doc = new GoogleSpreadsheet(process.env.GSHEET_DOC_ID);
+  await doc.useServiceAccountAuth(creds);
+  await doc.loadInfo();
+  const sheet = doc.sheetsByIndex[0];
+
+  const rows = (await sheet.getRows()).filter(row => row.lastupdated > timestamp);
+
+  let new_entried = rows.length;
+
+  // Return the number of updates to the user
+  res.json({ new: new_entried });
 };
