@@ -1,7 +1,6 @@
 const async = require('async');
 
 const { body, validationResult } = require('express-validator');
-const { sanitizeBody } = require('express-validator');
 
 // Require necessary database models
 const { Entry, Content } = require('../sequelize');
@@ -88,9 +87,6 @@ exports.entry_create_post = [
     .isLength({ min: 1 })
     .trim()
     .withMessage('Content 1 is needed.'),
-
-  // Sanitize fields
-  sanitizeBody('title').escape(),
 
   (req, res) => {
     // Extract the validation errors from a request.
@@ -258,9 +254,6 @@ exports.entry_update_post = [
     .isLength({ min: 1 })
     .trim()
     .withMessage('A title is needed.'),
-
-  // Sanitize fields
-  sanitizeBody('title').escape(),
 
   (req, res) => {
     // Extract the validation errors from a request.
