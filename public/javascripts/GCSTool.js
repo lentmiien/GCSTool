@@ -467,14 +467,19 @@ function DrawGraphSchedule() {
 async function CheckNewMeeting() {
   const badge = document.getElementById('m_count');
 
+  console.log('1');
+
   // Only run if the required HTML element exists
   if (badge) {
+    console.log('2');
     // Get last accessed timestamp
     let timestamp = 0;
     if (localStorage.hasOwnProperty('meeting') == true) {
       const data = JSON.parse(localStorage.getItem('meeting'));
       timestamp = data.last_accessed;
     }
+
+    console.log('3');
 
     // Access fetch route
     const response = await fetch(`/meeting/new/${timestamp}`, {
@@ -484,7 +489,10 @@ async function CheckNewMeeting() {
         Accept: 'application/json'
       }
     });
+    console.log('4');
     const data = await response.json();
+
+    console.log(data);
 
     // Update text
     if (data.new > 0) {
