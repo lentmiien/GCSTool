@@ -100,6 +100,7 @@ exports.adminremove_get = function(req, res) {
 exports.adminremove_post = function(req, res) {
   if (req.body.role === 'admin') {
     User.destroy({ where: { id: req.body.userindex } }).then(() => {
+      // TODO: Destroy data by this user [Issue #21]
       res.render('s_added', { message: 'User removed.', request: req.body });
     });
   } else {
