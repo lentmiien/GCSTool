@@ -38,6 +38,7 @@ block content
           h2= cYear + "年" + cMonth + "月"
         - let classType = "alert-primary"
         - let message = ""
+        - let hide = false
         if row.status.indexOf('新規') >= 0
           - classType = "alert-danger"
         if row.status.indexOf('対応中') >= 0
@@ -45,46 +46,51 @@ block content
         if row.status.indexOf('完了') >= 0
           - classType = "alert-success"
           - message = "<b>【完了】</b>"
+          - hide = true
         if row.status.indexOf('中止') >= 0
           - classType = "alert-dark"
           - message = "<b>【中止】</b>"
+          - hide = true
         .alert(class=classType, role="alert")
           h3!= "■" + message + row.topic.split('(')[0]
-          b= `Status: ${row.status}`
-          i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
-          pre= row.details
-          p
-            button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
-          .collapse(id="edit_form"+cnt)
-            form(action="/meeting", method="post")
-              input#edittopic(type="hidden", name="edittopic" value=row.topic)
-              .input-group
-                .input-group-prepend
-                  .input-group-text Status
-                input#editwho.form-control(type="text", name="editwho")
-                .input-group-append
-                  select#editstatus.form-control(name="editstatus")
-                    option(value="新規") 新規
-                    option(value="対応中") 対応中
-                    option(value="待ち") 待ち
-                    option(value="完了") 完了
-                    option(value="中止") 中止
-              .input-group
-                .input-group-prepend
-                  .input-group-text Details
-                textarea#editdetails.form-control(name="editdetails", cols="30", rows="3")= row.details
-              button.btn.btn-warning.btn-lg.btn-block(type="submit") Update
-          hr
-          each user in users
-            if row[user.userid.toLowerCase()].length > 0 || user.userid == request.userid
-              div(class="comment")
-                h4= user.userid
-                if row[user.userid.toLowerCase()].length > 0
-                  pre= row[user.userid.toLowerCase()]
-                if user.userid == request.userid
-                  form(action="/meeting", method="post")
-                    input#topic(type="hidden", name="topic" value=row.topic)
-                    input#edit_user(type="hidden", name="edit_user" value=request.userid.toLowerCase())
-                    textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
-                    button.btn.btn-warning.btn-lg.btn-block(type="submit") Update comment
+            if hide
+              button.btn.btn-primary.ml-3(type="button", data-toggle="collapse" data-target=`#collapseExample${cnt}` aria-expanded="false" aria-controls=`collapseExample${cnt}`) Show
+          div.collapse(id=`collapseExample${cnt}`, class=`${hide ? "" : "show"}`)
+            b= `Status: ${row.status}`
+            i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
+            pre= row.details
+            p
+              button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
+            .collapse(id="edit_form"+cnt)
+              form(action="/meeting", method="post")
+                input#edittopic(type="hidden", name="edittopic" value=row.topic)
+                .input-group
+                  .input-group-prepend
+                    .input-group-text Status
+                  input#editwho.form-control(type="text", name="editwho")
+                  .input-group-append
+                    select#editstatus.form-control(name="editstatus")
+                      option(value="新規") 新規
+                      option(value="対応中") 対応中
+                      option(value="待ち") 待ち
+                      option(value="完了") 完了
+                      option(value="中止") 中止
+                .input-group
+                  .input-group-prepend
+                    .input-group-text Details
+                  textarea#editdetails.form-control(name="editdetails", cols="30", rows="3")= row.details
+                button.btn.btn-warning.btn-lg.btn-block(type="submit") Update
+            hr
+            each user in users
+              if row[user.userid.toLowerCase()].length > 0 || user.userid == request.userid
+                div(class="comment")
+                  h4= user.userid
+                  if row[user.userid.toLowerCase()].length > 0
+                    pre= row[user.userid.toLowerCase()]
+                  if user.userid == request.userid
+                    form(action="/meeting", method="post")
+                      input#topic(type="hidden", name="topic" value=row.topic)
+                      input#edit_user(type="hidden", name="edit_user" value=request.userid.toLowerCase())
+                      textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
+                      button.btn.btn-warning.btn-lg.btn-block(type="submit") Update comment
   script(src="/javascripts/open_meeting.js")
