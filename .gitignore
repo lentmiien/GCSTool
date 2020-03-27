@@ -3,3 +3,4 @@ Master.json
 node_modules/
 .env
 client_secret.json
+Commands.txt
