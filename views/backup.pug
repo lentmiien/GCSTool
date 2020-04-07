@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  h1 Data in database
+  textarea#data.form-control(name="data", cols="30", rows="10")= data
+  h1 Restore to database
+  div
+    b.bg-dark.text-danger Can NOT be undone!
+  form(action="/entry/restore", method="post")
+    textarea#restore.form-control(name="restore", cols="30", rows="10")
+    button.btn.btn-danger(type="submit") Restore

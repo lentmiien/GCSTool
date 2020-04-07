@@ -6,10 +6,10 @@ const { body, validationResult } = require('express-validator');
 const { Entry, Content } = require('../sequelize');
 
 // Display all Entries
-exports.entry_list = function(req, res) {
+exports.entry_list = function (req, res) {
   async.parallel(
     {
-      entry: function(callback) {
+      entry: function (callback) {
         Entry.findAll({
           include: [{ model: Content }],
           where: { team: req.body.team },
@@ -17,12 +17,12 @@ exports.entry_list = function(req, res) {
             ['tag', 'ASC'],
             ['category', 'DESC'],
             ['ismaster', 'DESC'],
-            ['updatedAt', 'DESC']
-          ]
-        }).then(entry => callback(null, entry));
-      }
+            ['updatedAt', 'DESC'],
+          ],
+        }).then((entry) => callback(null, entry));
+      },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         return next(err);
       }
@@ -39,22 +39,22 @@ exports.entry_list = function(req, res) {
 };
 
 // Display Entry create form on GET
-exports.entry_create_get = function(req, res) {
+exports.entry_create_get = function (req, res) {
   res.render('entryadd', { request: req.body });
 };
 
 // Copy entry
-exports.entry_createcopy_get = function(req, res) {
+exports.entry_createcopy_get = function (req, res) {
   async.parallel(
     {
-      entry: function(callback) {
+      entry: function (callback) {
         Entry.findAll({
           where: { id: req.params.id },
-          include: [{ model: Content }]
-        }).then(entry => callback(null, entry[0]));
-      }
+          include: [{ model: Content }],
+        }).then((entry) => callback(null, entry[0]));
+      },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         return next(err);
       }
@@ -79,14 +79,8 @@ exports.entry_createcopy_get = function(req, res) {
 // Handle Entry create on POST.
 exports.entry_create_post = [
   // Validation fields
-  body('title')
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage('A title is needed.'),
-  body('content1')
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage('Content 1 is needed.'),
+  body('title').isLength({ min: 1 }).trim().withMessage('A title is needed.'),
+  body('content1').isLength({ min: 1 }).trim().withMessage('Content 1 is needed.'),
 
   (req, res) => {
     // Extract the validation errors from a request.
@@ -100,7 +94,7 @@ exports.entry_create_post = [
       if (req.body.role === 'guest') {
         res.render('entryadded', {
           warning: 'Non-registered users can not add data...',
-          request: req.body
+          request: req.body,
         });
       } else {
         // Add data to database
@@ -111,7 +105,7 @@ exports.entry_create_post = [
           tag: req.body.tag,
           team: req.body.team,
           title: req.body.title,
-          contents: []
+          contents: [],
         };
 
         input_data.contents.push({ data: req.body.content1 });
@@ -135,26 +129,26 @@ exports.entry_create_post = [
           warning = 'You can not add master data, added as personal data instead.';
         }
 
-        Entry.create(input_data, { include: Entry.Content }).then(d => res.render('entryadded', { warning: warning, request: req.body }));
+        Entry.create(input_data, { include: Entry.Content }).then((d) => res.render('entryadded', { warning: warning, request: req.body }));
       }
     }
-  }
+  },
 ];
 
 // Display Entry delete form on GET.
-exports.entry_delete_get = function(req, res) {
+exports.entry_delete_get = function (req, res) {
   //res.send('NOT IMPLEMENTED: Entry delete GET');
 
   async.parallel(
     {
-      entry: function(callback) {
+      entry: function (callback) {
         Entry.findAll({
           where: { id: req.params.id },
-          include: [{ model: Content }]
-        }).then(entry => callback(null, entry[0]));
-      }
+          include: [{ model: Content }],
+        }).then((entry) => callback(null, entry[0]));
+      },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         return next(err);
       }
@@ -173,14 +167,14 @@ exports.entry_delete_post = (req, res) => {
   // Load data to be deleted from database
   async.parallel(
     {
-      entry: function(callback) {
+      entry: function (callback) {
         Entry.findAll({
           where: { id: req.params.id },
-          include: [{ model: Content }]
-        }).then(entry => callback(null, entry[0]));
-      }
+          include: [{ model: Content }],
+        }).then((entry) => callback(null, entry[0]));
+      },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         return next(err);
       }
@@ -193,7 +187,7 @@ exports.entry_delete_post = (req, res) => {
       if (req.body.role === 'guest') {
         res.render('entrydeleted', {
           warning: 'Non-registered users can not remove data...',
-          request: req.body
+          request: req.body,
         });
       } else {
         // Successful, so continue.
@@ -204,13 +198,13 @@ exports.entry_delete_post = (req, res) => {
           res.render('entrydeleted', { warning: warning, request: req.body });
         } else {
           // Delete data from database
-          Content.destroy({ where: { entryId: req.params.id } }).then(d => {
+          Content.destroy({ where: { entryId: req.params.id } }).then((d) => {
             Entry.destroy({
-              where: { id: req.params.id }
-            }).then(d =>
+              where: { id: req.params.id },
+            }).then((d) =>
               res.render('entrydeleted', {
                 warning: warning,
-                request: req.body
+                request: req.body,
               })
             );
           });
@@ -221,19 +215,19 @@ exports.entry_delete_post = (req, res) => {
 };
 
 // Display Entry update form on GET.
-exports.entry_update_get = function(req, res) {
+exports.entry_update_get = function (req, res) {
   //res.send('NOT IMPLEMENTED: Entry update GET');
 
   async.parallel(
     {
-      entry: function(callback) {
+      entry: function (callback) {
         Entry.findAll({
           where: { id: req.params.id },
-          include: [{ model: Content }]
-        }).then(entry => callback(null, entry[0]));
-      }
+          include: [{ model: Content }],
+        }).then((entry) => callback(null, entry[0]));
+      },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         return next(err);
       }
@@ -250,10 +244,7 @@ exports.entry_update_get = function(req, res) {
 // Handle Entry update on POST.
 exports.entry_update_post = [
   // Validation fields
-  body('title')
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage('A title is needed.'),
+  body('title').isLength({ min: 1 }).trim().withMessage('A title is needed.'),
 
   (req, res) => {
     // Extract the validation errors from a request.
@@ -265,14 +256,14 @@ exports.entry_update_post = [
     } else {
       async.parallel(
         {
-          entry: function(callback) {
+          entry: function (callback) {
             Entry.findAll({
               where: { id: req.params.id },
-              include: [{ model: Content }]
-            }).then(entry => callback(null, entry[0]));
-          }
+              include: [{ model: Content }],
+            }).then((entry) => callback(null, entry[0]));
+          },
         },
-        function(err, results) {
+        function (err, results) {
           if (err) {
             return next(err);
           }
@@ -285,7 +276,7 @@ exports.entry_update_post = [
           if (req.body.role === 'guest') {
             res.render('entryupdated', {
               warning: 'Non-registered users can not update data...',
-              request: req.body
+              request: req.body,
             });
           } else {
             // Successful, so continue.
@@ -295,7 +286,7 @@ exports.entry_update_post = [
               ismaster: req.body.ismaster ? 1 : 0,
               tag: req.body.tag,
               team: req.body.team,
-              title: req.body.title
+              title: req.body.title,
             };
 
             // ismaster can only be updated by approved staff
@@ -304,124 +295,134 @@ exports.entry_update_post = [
               warning = 'You can not update master data.';
               res.render('entryupdated', {
                 warning: warning,
-                request: req.body
+                request: req.body,
               });
             } else {
               // Update database data
               Entry.update(update_data, {
-                where: { id: req.params.id }
-              }).then(d =>
+                where: { id: req.params.id },
+              }).then((d) =>
                 async.parallel(
                   {
-                    content1: function(callback) {
+                    content1: function (callback) {
                       if (req.body.contentid1 != undefined) {
                         if (req.body.content1.length > 0) {
-                          Content.update({ data: req.body.content1 }, { where: { id: req.body.contentid1 } }).then(r => callback(null, r));
+                          Content.update({ data: req.body.content1 }, { where: { id: req.body.contentid1 } }).then((r) =>
+                            callback(null, r)
+                          );
                         } else {
                           Content.destroy({
-                            where: { id: req.body.contentid1 }
-                          }).then(r => callback(null, r));
+                            where: { id: req.body.contentid1 },
+                          }).then((r) => callback(null, r));
                         }
                       } else {
                         if (req.body.content1.length > 0) {
                           Content.create({
                             data: req.body.content1,
-                            entryId: req.params.id
-                          }).then(r => callback(null, r));
+                            entryId: req.params.id,
+                          }).then((r) => callback(null, r));
                         } else {
                           callback(null, null);
                         }
                       }
                     },
-                    content2: function(callback) {
+                    content2: function (callback) {
                       if (req.body.contentid2 != undefined) {
                         if (req.body.content2.length > 0) {
-                          Content.update({ data: req.body.content2 }, { where: { id: req.body.contentid2 } }).then(r => callback(null, r));
+                          Content.update({ data: req.body.content2 }, { where: { id: req.body.contentid2 } }).then((r) =>
+                            callback(null, r)
+                          );
                         } else {
                           Content.destroy({
-                            where: { id: req.body.contentid2 }
-                          }).then(r => callback(null, r));
+                            where: { id: req.body.contentid2 },
+                          }).then((r) => callback(null, r));
                         }
                       } else {
                         if (req.body.content2.length > 0) {
                           Content.create({
                             data: req.body.content2,
-                            entryId: req.params.id
-                          }).then(r => callback(null, r));
+                            entryId: req.params.id,
+                          }).then((r) => callback(null, r));
                         } else {
                           callback(null, null);
                         }
                       }
                     },
-                    content3: function(callback) {
+                    content3: function (callback) {
                       if (req.body.contentid3 != undefined) {
                         if (req.body.content3.length > 0) {
-                          Content.update({ data: req.body.content3 }, { where: { id: req.body.contentid3 } }).then(r => callback(null, r));
+                          Content.update({ data: req.body.content3 }, { where: { id: req.body.contentid3 } }).then((r) =>
+                            callback(null, r)
+                          );
                         } else {
                           Content.destroy({
-                            where: { id: req.body.contentid3 }
-                          }).then(r => callback(null, r));
+                            where: { id: req.body.contentid3 },
+                          }).then((r) => callback(null, r));
                         }
                       } else {
                         if (req.body.content3.length > 0) {
                           Content.create({
                             data: req.body.content3,
-                            entryId: req.params.id
-                          }).then(r => callback(null, r));
+                            entryId: req.params.id,
+                          }).then((r) => callback(null, r));
                         } else {
                           callback(null, null);
                         }
                       }
                     },
-                    content4: function(callback) {
+                    content4: function (callback) {
                       if (req.body.contentid4 != undefined) {
                         if (req.body.content4.length > 0) {
-                          Content.update({ data: req.body.content4 }, { where: { id: req.body.contentid4 } }).then(r => callback(null, r));
+                          Content.update({ data: req.body.content4 }, { where: { id: req.body.contentid4 } }).then((r) =>
+                            callback(null, r)
+                          );
                         } else {
                           Content.destroy({
-                            where: { id: req.body.contentid4 }
-                          }).then(r => callback(null, r));
+                            where: { id: req.body.contentid4 },
+                          }).then((r) => callback(null, r));
                         }
                       } else {
                         if (req.body.content4.length > 0) {
                           Content.create({
                             data: req.body.content4,
-                            entryId: req.params.id
-                          }).then(r => callback(null, r));
+                            entryId: req.params.id,
+                          }).then((r) => callback(null, r));
                         } else {
                           callback(null, null);
                         }
                       }
                     },
-                    content5: function(callback) {
+                    content5: function (callback) {
                       if (req.body.contentid5 != undefined) {
                         if (req.body.content5.length > 0) {
-                          Content.update({ data: req.body.content5 }, { where: { id: req.body.contentid5 } }).then(r => callback(null, r));
+                          Content.update({ data: req.body.content5 }, { where: { id: req.body.contentid5 } }).then((r) =>
+                            callback(null, r)
+                          );
                         } else {
                           Content.destroy({
-                            where: { id: req.body.contentid5 }
-                          }).then(r => callback(null, r));
+                            where: { id: req.body.contentid5 },
+                          }).then((r) => callback(null, r));
                         }
                       } else {
                         if (req.body.content5.length > 0) {
                           Content.create({
                             data: req.body.content5,
-                            entryId: req.params.id
-                          }).then(r => callback(null, r));
+                            entryId: req.params.id,
+                          }).then((r) => callback(null, r));
                         } else {
                           callback(null, null);
                         }
                       }
-                    }
+                    },
                   },
-                  function(err, results) {
+                  function (err, results) {
                     if (err) {
                       return next(err);
                     }
                     // Successful, so render.
                     res.render('entryupdated', {
                       warning: warning,
-                      request: req.body
+                      request: req.body,
                     });
                   }
                 )
@@ -431,5 +432,68 @@ exports.entry_update_post = [
         }
       );
     }
-  }
+  },
 ];
+
+// Backup
+exports.backup = function (req, res) {
+  async.parallel(
+    {
+      entry: function (callback) {
+        Entry.findAll({
+          include: [{ model: Content }],
+          where: { team: req.params.team },
+          order: [
+            ['tag', 'ASC'],
+            ['category', 'DESC'],
+            ['ismaster', 'DESC'],
+            ['updatedAt', 'DESC'],
+          ],
+        }).then((entry) => callback(null, entry));
+      },
+    },
+    function (err, results) {
+      if (err) {
+        return next(err);
+      }
+
+      // Successful, so render.
+      res.render('backup', { data: JSON.stringify(results.entry), request: req.body });
+    }
+  );
+};
+
+// Handle Entry create on POST.
+exports.restore =  (req, res) => {
+  // Aquire form data #restore (JSON format) and parse to JSON
+  const data = await JSON.parse(req.body.restore);
+  
+  // Only admin are allowed to add date
+  if (req.body.role === 'admin') {
+    // Prepare data to add to database
+    const input_data = [];
+    data.forEach(d => {
+      const index = input_data.length;
+      input_data.push({
+        creator: d.creator,
+        category: d.category,
+        ismaster: d.ismaster,
+        tag: d.tag,
+        team: d.team,
+        title: d.title,
+        contents: [],
+      });
+      for (let i = 0; i < d.contents.length; i++) {
+        input_data[index].contents.push({
+          data: d.contents[i].data
+        });
+      }
+    });
+
+    // Bulk add all data to database
+    Entry.bulkCreate(input_data, { include: Entry.Content });
+  }
+
+  // Redirect to start page
+  res.redirect('/');
+};
