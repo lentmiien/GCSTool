@@ -464,15 +464,15 @@ exports.backup = function (req, res) {
 };
 
 // Handle Entry create on POST.
-exports.restore =  (req, res) => {
+exports.restore = async (req, res) => {
   // Aquire form data #restore (JSON format) and parse to JSON
   const data = await JSON.parse(req.body.restore);
-  
+
   // Only admin are allowed to add date
   if (req.body.role === 'admin') {
     // Prepare data to add to database
     const input_data = [];
-    data.forEach(d => {
+    data.forEach((d) => {
       const index = input_data.length;
       input_data.push({
         creator: d.creator,
@@ -485,7 +485,7 @@ exports.restore =  (req, res) => {
       });
       for (let i = 0; i < d.contents.length; i++) {
         input_data[index].contents.push({
-          data: d.contents[i].data
+          data: d.contents[i].data,
         });
       }
     });

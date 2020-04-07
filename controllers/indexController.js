@@ -101,7 +101,51 @@ exports.adminremove_post = function(req, res) {
   if (req.body.role === 'admin') {
     User.destroy({ where: { id: req.body.userindex } }).then(() => {
       // TODO: Destroy data by this user [Issue #21]
+      // Load data to be deleted from database
       res.render('s_added', { message: 'User removed.', request: req.body });
+      // async.parallel(
+      //   {
+      //     entry: function (callback) {
+      //       Entry.findAll({
+      //         where: { id: req.params.id },
+      //         include: [{ model: Content }]
+      //       }).then(entry => callback(null, entry[0]));
+      //     }
+      //   },
+      //   function (err, results) {
+      //     if (err) {
+      //       return next(err);
+      //     }
+      //     if (results.entry == null) {
+      //       // No results.
+      //       res.redirect('/entry');
+      //     }
+      //     // Guest users can not remove data
+      //     if (req.body.role === 'guest') {
+      //       res.render('entrydeleted', {
+      //         warning: 'Non-registered users can not remove data...',
+      //         request: req.body
+      //       });
+      //     } else {
+      //       // Successful, so continue.
+      //       // ismaster can only be deleted by approved staff
+      //       let warning = '';
+      //       if (results.entry.ismaster == 1 && !(req.body.role === 'admin')) {
+      //         warning = 'You can not delete master data.';
+      //         res.render('entrydeleted', { warning: warning, request: req.body });
+      //       } else {
+      //         // Delete data from database
+      //         Content.destroy({ where: { entryId: req.params.id } }).then(d => {
+      //           Entry.destroy({
+      //             where: { id: req.params.id }
+      //           }).then(d =>
+      //             res.render('s_added', { message: 'User removed.', request: req.body })
+      //           );
+      //         });
+      //       }
+      //     }
+      //   }
+      // );
     });
   } else {
     res.render('s_added', { message: 'Only admin staff can remove users...', request: req.body });
