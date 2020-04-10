@@ -5,6 +5,8 @@ const { Entry, Content, User, Op } = require('../sequelize');
 
 // Load admin data
 exports.all = function (req, res, next) {
+  res.locals.role = req.user != undefined ? req.user.role : 'guest';
+
   req.body['userid'] = 'guest';
   req.body['team'] = 'guest';
   req.body['role'] = 'guest';

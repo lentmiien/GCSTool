@@ -3,6 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+
+const pp = require('./passport_init');
 
 var indexRouter = require('./routes/index');
 var entryRouter = require('./routes/entry');
@@ -22,11 +25,20 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 8640000000 } }));
+app.use(pp.passport.initialize());
+app.use(pp.passport.session());
 
-app.use('/', indexRouter);
-app.use('/entry', entryRouter);
-app.use('/scheduler', schedulerRouter);
-app.use('/meeting', meetingRouter);
+app.use('/login', requireNotAuthenticated, pp.router);
+app.use('/', requireAuthenticated, indexRouter);
+app.use('/entry', requireAuthenticated, entryRouter);
+app.use('/scheduler', requireAuthenticated, schedulerRouter);
+app.use('/meeting', requireAuthenticated, meetingRouter);
+
+app.post('/logout', (req, res) => {
+  req.logOut();
+  res.redirect('/');
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -43,5 +55,19 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', { request: req.body });
 });
+
+// Autenthication checks
+function requireAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
+function requireNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+  next();
+}
 
 module.exports = app;

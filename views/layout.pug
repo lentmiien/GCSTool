@@ -23,9 +23,12 @@ html(lang='en')
               a.nav-link(href='/meeting')
                 span(lg_language='_meeting_')
                 span#m_count.badge.badge-warning.ml-1
-            if request.role === 'admin'
+            if role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
+            if role == "guest"
+              li.nav-item
+                a.nav-link(href="/login") Login
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP

@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 Login
+      form(action="/login", method="post")
+        .form-group
+          label(for="username") Username
+          input#username.form-control(type="text", name="username", placeholder="Enter username")
+        .form-group
+          label(for="password") Password
+          input#password.form-control(type="password", name="password", placeholder="Enter password")
+        button.btn.btn-outline-primary(type="submit") Login
