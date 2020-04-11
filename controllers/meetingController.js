@@ -13,11 +13,11 @@ const creds = {
   auth_uri: process.env.GSHEET_AUTH_URI,
   token_uri: process.env.GSHEET_TOKEN_URI,
   auth_provider_x509_cert_url: process.env.GSHEET_AUTH_PROVIDER_X509_CERT_URL,
-  client_x509_cert_url: process.env.GSHEET_CLIENT_X509_CERT_URL
+  client_x509_cert_url: process.env.GSHEET_CLIENT_X509_CERT_URL,
 };
 
 exports.meeting_landing = async (req, res) => {
-  if (req.body.role == 'guest') {
+  if (req.user.role == 'guest') {
     return res.redirect('/');
   }
 
@@ -36,7 +36,7 @@ exports.meeting_landing = async (req, res) => {
       topic: req.body.newtopic + '(' + d.getTime() + ')', // Adding time stamp to ensure that all topics has a uinquly itentifiable name
       status: '新規',
       details: req.body.newdetails,
-      lastupdated: Date.now()
+      lastupdated: Date.now(),
     };
     newcontent[req.body.newedit_user] = req.body.newmycomment;
 
@@ -57,7 +57,7 @@ exports.meeting_landing = async (req, res) => {
 
   // Comming from edit details
   if (req.body.edittopic) {
-    rows.forEach(r => {
+    rows.forEach((r) => {
       if (r.topic == req.body.edittopic) {
         r.status = req.body.editwho + req.body.editstatus;
         r.details = req.body.editdetails;
@@ -69,7 +69,7 @@ exports.meeting_landing = async (req, res) => {
 
   // Comming from update comment
   if (req.body.topic) {
-    rows.forEach(r => {
+    rows.forEach((r) => {
       if (r.topic == req.body.topic) {
         r[req.body.edit_user] = req.body.mycomment;
         r.lastupdated = Date.now();
@@ -78,13 +78,13 @@ exports.meeting_landing = async (req, res) => {
     });
   }
 
-  User.findAll().then(users => {
-    res.render('meeting', { rows, users: users, request: req.body });
+  User.findAll().then((users) => {
+    res.render('meeting', { rows, users: users, request: req.user });
   });
 };
 
 exports.new = async (req, res) => {
-  if (req.body.role == 'guest') {
+  if (req.user.role == 'guest') {
     return res.redirect('/');
   }
 
@@ -97,7 +97,7 @@ exports.new = async (req, res) => {
   await doc.loadInfo();
   const sheet = doc.sheetsByIndex[0];
 
-  const rows = (await sheet.getRows()).filter(row => row.lastupdated > timestamp);
+  const rows = (await sheet.getRows()).filter((row) => row.lastupdated > timestamp);
 
   let new_entried = rows.length;
 

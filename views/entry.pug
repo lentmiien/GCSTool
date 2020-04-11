@@ -25,7 +25,7 @@ block content
             each tag in tags
                 option(value=tag, lg_language=tag)
         | 
-        if request.role === 'admin'
+        if role === 'admin'
             span
                 input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
                 span(lg_language='_other_user_data_')
@@ -51,6 +51,6 @@ block content
                 i= entry.creator
                 br
                 a.entry_control(href='./entry/' + entry.id + '/update', lg_language='_edit_data_')
-                if request.role === 'admin' || entry.ismaster == false
+                if role === 'admin' || entry.ismaster == false
                     a.entry_control(href='./entry/' + entry.id + '/delete', lg_language='_delete_data_')
                 a.entry_control(href='./entry/' + entry.id + '/createcopy', lg_language='_submit_create_copy_')

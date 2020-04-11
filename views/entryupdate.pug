@@ -29,7 +29,7 @@ block content
                         else
                             option(value='ccontact', lg_language='_ccontact_')
                     br
-                    //- if request.role === 'admin'
+                    //- if role === 'admin'
                     div
                         label(for='ismaster', lg_language='_is_master_')
                         input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))

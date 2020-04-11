@@ -12,7 +12,7 @@ exports.entry_list = function (req, res) {
       entry: function (callback) {
         Entry.findAll({
           include: [{ model: Content }],
-          where: { team: req.body.team },
+          where: { team: req.user.team },
           order: [
             ['tag', 'ASC'],
             ['category', 'DESC'],
@@ -33,14 +33,14 @@ exports.entry_list = function (req, res) {
       }
 
       // Successful, so render.
-      res.render('entry', { entries: results.entry, request: req.body, search });
+      res.render('entry', { entries: results.entry });
     }
   );
 };
 
 // Display Entry create form on GET
 exports.entry_create_get = function (req, res) {
-  res.render('entryadd', { request: req.body });
+  res.render('entryadd', { request: {} });
 };
 
 // Copy entry
@@ -69,9 +69,8 @@ exports.entry_createcopy_get = function (req, res) {
       for (let ci = 0; ci < results.entry.dataValues['contents'].length; ci++) {
         req.body['content' + (ci + 1)] = results.entry.dataValues['contents'][ci].dataValues.data;
       }
-      console.log(req.body);
       // Successful, so render.
-      res.render('entryadd', { request: req.body });
+      res.render('entryadd', { request: {} });
     }
   );
 };
@@ -91,15 +90,12 @@ exports.entry_create_post = [
       return;
     } else {
       // Guest users can not add data
-      if (req.body.role === 'guest') {
-        res.render('entryadded', {
-          warning: 'Non-registered users can not add data...',
-          request: req.body,
-        });
+      if (req.user.role === 'guest') {
+        res.render('entryadded', { warning: 'Non-registered users can not add data...' });
       } else {
         // Add data to database
         const input_data = {
-          creator: req.body.userid,
+          creator: req.user.userid,
           category: req.body.category,
           ismaster: req.body.ismaster ? 1 : 0,
           tag: req.body.tag,
@@ -124,12 +120,14 @@ exports.entry_create_post = [
 
         // ismaster can only be added by approved staff
         let warning = '';
-        if (input_data.ismaster == 1 && !(req.body.role === 'admin')) {
+        if (input_data.ismaster == 1 && !(req.user.role === 'admin')) {
           input_data.ismaster = 0;
           warning = 'You can not add master data, added as personal data instead.';
         }
 
-        Entry.create(input_data, { include: Entry.Content }).then((d) => res.render('entryadded', { warning: warning, request: req.body }));
+        Entry.create(input_data, { include: Entry.Content }).then((d) => {
+          res.render('entryadded', { warning: warning });
+        });
       }
     }
   },
@@ -157,7 +155,7 @@ exports.entry_delete_get = function (req, res) {
         res.redirect('/entry');
       }
       // Successful, so render.
-      res.render('entrydelete', { entry: results.entry, request: req.body });
+      res.render('entrydelete', { entry: results.entry });
     }
   );
 };
@@ -184,29 +182,21 @@ exports.entry_delete_post = (req, res) => {
       }
 
       // Guest users can not remove data
-      if (req.body.role === 'guest') {
-        res.render('entrydeleted', {
-          warning: 'Non-registered users can not remove data...',
-          request: req.body,
-        });
+      if (req.user.role === 'guest') {
+        res.render('entrydeleted', { warning: 'Non-registered users can not remove data...' });
       } else {
         // Successful, so continue.
         // ismaster can only be deleted by approved staff
         let warning = '';
-        if (results.entry.ismaster == 1 && !(req.body.role === 'admin')) {
+        if (results.entry.ismaster == 1 && !(req.user.role === 'admin')) {
           warning = 'You can not delete master data.';
-          res.render('entrydeleted', { warning: warning, request: req.body });
+          res.render('entrydeleted', { warning: warning });
         } else {
           // Delete data from database
           Content.destroy({ where: { entryId: req.params.id } }).then((d) => {
             Entry.destroy({
               where: { id: req.params.id },
-            }).then((d) =>
-              res.render('entrydeleted', {
-                warning: warning,
-                request: req.body,
-              })
-            );
+            }).then((d) => res.render('entrydeleted', { warning: warning }));
           });
         }
       }
@@ -236,7 +226,7 @@ exports.entry_update_get = function (req, res) {
         res.redirect('/entry');
       }
       // Successful, so render.
-      res.render('entryupdate', { entry: results.entry, request: req.body });
+      res.render('entryupdate', { entry: results.entry });
     }
   );
 };
@@ -251,7 +241,7 @@ exports.entry_update_post = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('entryupdate', { errors: errors.array(), request: req.body });
+      res.render('entryupdate', { errors: errors.array() });
       return;
     } else {
       async.parallel(
@@ -273,11 +263,8 @@ exports.entry_update_post = [
           }
 
           // Guest users can not update data
-          if (req.body.role === 'guest') {
-            res.render('entryupdated', {
-              warning: 'Non-registered users can not update data...',
-              request: req.body,
-            });
+          if (req.user.role === 'guest') {
+            res.render('entryupdated', { warning: 'Non-registered users can not update data...' });
           } else {
             // Successful, so continue.
             // ismaster can only be updated by approved staff
@@ -291,12 +278,9 @@ exports.entry_update_post = [
 
             // ismaster can only be updated by approved staff
             let warning = '';
-            if (false && results.entry.ismaster == 1 && !(req.body.role === 'admin')) {
+            if (false && results.entry.ismaster == 1 && !(req.user.role === 'admin')) {
               warning = 'You can not update master data.';
-              res.render('entryupdated', {
-                warning: warning,
-                request: req.body,
-              });
+              res.render('entryupdated', { warning: warning });
             } else {
               // Update database data
               Entry.update(update_data, {
@@ -420,10 +404,7 @@ exports.entry_update_post = [
                       return next(err);
                     }
                     // Successful, so render.
-                    res.render('entryupdated', {
-                      warning: warning,
-                      request: req.body,
-                    });
+                    res.render('entryupdated', { warning: warning });
                   }
                 )
               );
@@ -458,7 +439,7 @@ exports.backup = function (req, res) {
       }
 
       // Successful, so render.
-      res.render('backup', { data: JSON.stringify(results.entry), request: req.body });
+      res.render('backup', { data: JSON.stringify(results.entry) });
     }
   );
 };
@@ -469,7 +450,7 @@ exports.restore = async (req, res) => {
   const data = await JSON.parse(req.body.restore);
 
   // Only admin are allowed to add date
-  if (req.body.role === 'admin') {
+  if (req.user.role === 'admin') {
     // Prepare data to add to database
     const input_data = [];
     data.forEach((d) => {

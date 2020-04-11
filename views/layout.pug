@@ -26,16 +26,19 @@ html(lang='en')
             if role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
-            if role == "guest"
-              li.nav-item
-                a.nav-link(href="/login") Login
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
-      #status_bar.alert.alert-dark(style="padding:0px;")
+      #status_bar.alert.alert-dark(style="padding:0px;margin-bottom:0px;")
+      .alert.alert-dark(style="padding:0px;margin-top:0px;")
+        span You are logged in as 
+          b#u_name= name
+          |  (
+          b#u_role= role
+          | )
 
       #debug
       #ask_labels

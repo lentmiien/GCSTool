@@ -22,8 +22,11 @@ passport.use(
         if (await bcrypt.compare(password, u[0].password)) {
           return done(null, u[0]);
         } else {
-          const hashed_password = await bcrypt.hash(password, 10);
-          console.log(hashed_password);
+          if (u[0].password.length == 0) {
+            const hashed_password = await bcrypt.hash(password, 10);
+            User.update({ password: hashed_password }, { where: { userid: username } });
+            return done(null, u[0]);
+          }
           return done(null, false);
         }
       } catch (e) {
@@ -43,7 +46,7 @@ passport.deserializeUser((id, done) => {
   });
 });
 
-router.get('/', (req, res) => res.render('login', { role: 'guest' }));
+router.get('/', (req, res) => res.render('login', {}));
 router.post('/', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login' }));
 
 // Export modules that are required elsewhere

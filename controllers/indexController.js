@@ -5,23 +5,14 @@ const { Entry, Content, User, Op } = require('../sequelize');
 
 // Load admin data
 exports.all = function (req, res, next) {
-  res.locals.role = req.user != undefined ? req.user.role : 'guest';
-
-  req.body['userid'] = 'guest';
-  req.body['team'] = 'guest';
-  req.body['role'] = 'guest';
-  if (!(req.cookies.userid === undefined)) {
-    User.findAll({ where: { userid: req.cookies.userid } }).then((users) => {
-      if (users.length > 0) {
-        req.body['userid'] = users[0].userid;
-        req.body['team'] = users[0].team;
-        req.body['role'] = users[0].role;
-      }
-      next();
-    });
+  if (req.user == undefined) {
+    res.locals.role = 'guest';
+    res.locals.name = 'Guest';
   } else {
-    next();
+    res.locals.role = req.user.role;
+    res.locals.name = req.user.userid;
   }
+  next();
 };
 
 exports.index = function (req, res) {
@@ -31,42 +22,43 @@ exports.index = function (req, res) {
     include: [{ model: Content }],
     order: [['updatedAt', 'DESC']],
     where: {
-      team: req.body['team'],
+      //team: req.user['team'],
       updatedAt: {
         [Op.gt]: d,
       },
     },
   }).then((updated_within_last_month) => {
-    res.render('index', { request: req.body, entries: updated_within_last_month });
+    const filtered = updated_within_last_month.filter((data) => data.ismaster == true || data.creator == req.user.userid);
+    res.render('index', { entries: filtered });
   });
 };
 
 exports.about = function (req, res) {
-  res.render('about', { request: req.body });
+  res.render('about', {});
 };
 
 exports.admin_get = function (req, res) {
-  if (req.body.role === 'guest') {
-    res.render('admin', { users: [], request: req.body });
+  if (req.user.role === 'guest') {
+    res.render('admin', { users: [] });
   } else {
     User.findAll().then((users) => {
-      res.render('admin', { users: users, request: req.body });
+      res.render('admin', { users: users });
     });
   }
 };
 
 exports.adduser = (req, res) => {
-  if (req.body.role === 'admin') {
+  if (req.user.role === 'admin') {
     User.create({ userid: req.body.newuserid, team: req.body.newteam, role: req.body.newrole }).then(() => {
       res.redirect('/admin');
     });
   } else {
-    res.render('s_added', { message: 'Only admin staff can add users...', request: req.body });
+    res.render('s_added', { message: 'Only admin staff can add users...' });
   }
 };
 
 exports.removeuser = (req, res) => {
-  if (req.body.role === 'admin') {
+  if (req.user.role === 'admin') {
     if (req.params.userid == 1) {
       res.redirect('/admin');
     } else {
@@ -95,88 +87,6 @@ exports.removeuser = (req, res) => {
       });
     }
   } else {
-    res.render('s_added', { message: 'Only admin staff can remove users...', request: req.body });
+    res.render('s_added', { message: 'Only admin staff can remove users...' });
   }
-};
-
-exports.adminadd_get = function (req, res) {
-  res.render('adminadd', { request: req.body });
-};
-
-exports.adminadd_post = function (req, res) {
-  if (req.body.role === 'admin') {
-    User.create({ userid: req.body.newuserid, team: req.body.newteam, role: req.body.newrole }).then(() => {
-      res.render('s_added', { message: req.body.newuserid + ' added!', request: req.body });
-    });
-  } else {
-    res.render('s_added', { message: 'Only admin staff can add users...', request: req.body });
-  }
-};
-
-exports.adminremove_get = function (req, res) {
-  User.findAll().then((users) => {
-    res.render('adminremove', { users: users, request: req.body });
-  });
-};
-
-exports.adminremove_post = function (req, res) {
-  if (req.body.role === 'admin') {
-    // Destroy data by this user [Issue #21]
-    User.findAll({ where: { id: req.body.userindex } }).then((user) => {
-      console.log(user);
-      Entry.findAll({
-        where: {
-          creator: user[0].userid,
-          ismaster: false,
-        },
-        include: [{ model: Content }],
-      }).then((data) => {
-        console.log(data);
-        data.forEach((d) => {
-          Content.destroy({ where: { entryId: d.id } }).then((d) => {
-            Entry.destroy({
-              where: { id: d.id },
-            });
-          });
-        });
-      });
-      // Destroy user
-      User.destroy({ where: { id: req.body.userindex } }).then(() => {
-        res.render('s_added', { message: 'User removed.', request: req.body });
-      });
-    });
-  } else {
-    res.render('s_added', { message: 'Only admin staff can remove users...', request: req.body });
-  }
-};
-
-//////// TEMPORARY: Transfer data from old tool ////////
-exports.transferpersonal_get = function (req, res) {
-  console.log(req.body);
-  res.render('transferpersonal', { request: req.body });
-};
-
-//////// TEMPORARY: Transfer data from old tool ////////
-exports.transferpersonal_post = function (req, res) {
-  // Save the incomming json data as personal data entries in database
-  const personal_data = JSON.parse(req.body.personaldata);
-
-  personal_data.Entries.forEach((d) => {
-    const input_data = {
-      creator: req.body.userid,
-      category: d.type,
-      ismaster: 0,
-      tag: d.category,
-      team: req.body.team,
-      title: d.data.Title,
-      contents: [],
-    };
-    for (let i = 0; i < d.data.Content.length; i++) {
-      input_data.contents.push({ data: d.data.Content[i] });
-    }
-    console.log(input_data);
-    Entry.create(input_data, { include: Entry.Content });
-  });
-
-  res.render('s_added', { request: req.body, message: 'Personal data added to database!' });
 };

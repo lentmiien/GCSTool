@@ -13,8 +13,8 @@ const my_settings = {
     label: [],
     invoice: [],
     both: [],
-    jplabel: []
-  }
+    jplabel: [],
+  },
 };
 
 const month_names = [
@@ -29,7 +29,7 @@ const month_names = [
   'september',
   'october',
   'november',
-  'december'
+  'december',
 ];
 
 /**********************************************
@@ -56,8 +56,8 @@ function Loaded() {
   // Set user ID
   let dom_uid = document.getElementById('user_id');
   if (dom_uid) {
-    dom_uid.value = my_settings.userid;
-    if (!(my_settings.userid === 'NewUser')) {
+    dom_uid.value = document.getElementById('u_name').innerHTML;
+    if (!(dom_uid.value === 'NewUser')) {
       dom_uid.readOnly = true;
       document.getElementById('update_user_id_button').style.display = 'none';
     }
@@ -90,7 +90,7 @@ function Loaded() {
   DisplayOthersPrivateEntries('none');
 
   // Set Cookies
-  document.cookie = 'userid=' + my_settings.userid + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
+  document.cookie = 'userid=' + document.getElementById('u_name').innerHTML + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
 
   // Make a search if search input field has content *can have content sent through GET parameters
   if (document.getElementById('s_box') && document.getElementById('s_box').value.length > 0) {
@@ -146,7 +146,7 @@ function DisplayOthersPrivateEntries(property) {
   let entries = document.getElementsByClassName('entry');
   for (let i = 0; i < entries.length; i++) {
     if (entries[i].innerHTML.indexOf('lg_language="_private_"') >= 0) {
-      if (entries[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) {
+      if (entries[i].innerHTML.indexOf('</i><i>' + document.getElementById('u_name').innerHTML + '</i>') == -1) {
         entries[i].style.display = property;
       }
     }
@@ -178,7 +178,7 @@ function RemoveReminder(reminder_index) {
 function AddReminder() {
   my_settings.reminders.push({
     time: document.getElementById('reminder_time').value,
-    message: document.getElementById('reminder_message').value
+    message: document.getElementById('reminder_message').value,
   });
   SetReminderPopup(document.getElementById('reminder_time').value, document.getElementById('reminder_message').value);
   localStorage.setItem('settings', JSON.stringify(my_settings));
@@ -214,8 +214,8 @@ async function CheckNewMeeting() {
       method: 'GET',
       cache: 'no-cache',
       headers: {
-        Accept: 'application/json'
-      }
+        Accept: 'application/json',
+      },
     });
     const data = await response.json();
 
@@ -237,7 +237,7 @@ CheckNewMeeting();
  **********************************************/
 
 // Capture Ctrl+F
-window.onkeydown = function(e) {
+window.onkeydown = function (e) {
   // When enter is pressed
   if (e.keyCode == 13) {
     if (document.getElementById('filter_key')) {
@@ -354,7 +354,10 @@ function Filter() {
   const s_tag = document.getElementById('s_tag').value;
   for (let i = 0; i < e.length; i++) {
     if (
-      !(e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 && e[i].innerHTML.indexOf('</i><i>' + my_settings.userid + '</i>') == -1) ||
+      !(
+        e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 &&
+        e[i].innerHTML.indexOf('</i><i>' + document.getElementById('u_name').innerHTML + '</i>') == -1
+      ) ||
       (document.getElementById('admin') && document.getElementById('admin').checked == true)
     ) {
       // string1+string2+string3 => Must include all 3 strings to be true
@@ -367,7 +370,7 @@ function Filter() {
       const button_title = e[i].getElementsByTagName('BUTTON')[0].innerHTML.toLocaleLowerCase();
       const content_body = e[i].getElementsByTagName('DIV')[0].innerHTML.toLocaleLowerCase();
       let found = true;
-      query_words.forEach(qw => {
+      query_words.forEach((qw) => {
         if (!(button_title.indexOf(qw) >= 0 || content_body.indexOf(qw) >= 0)) {
           found = false;
         }
@@ -573,7 +576,7 @@ function PeekDocuments(seconds) {
     message += '<i style="color:red;">*Autohide ' + seconds + ' seconds<br>※' + seconds + '秒後自動隠す</i>';
 
     Debug(message);
-    setTimeout(function() {
+    setTimeout(function () {
       Debug('');
     }, seconds * 1000);
   }
@@ -585,7 +588,7 @@ function PeekDocuments(seconds) {
  *
  **********************************************/
 
-Date.prototype.getWeekNumber = function() {
+Date.prototype.getWeekNumber = function () {
   var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
   var dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
@@ -620,7 +623,7 @@ UpdateStatusBar();
  **********************************************/
 
 function SetReminders() {
-  my_settings.reminders.forEach(rem => {
+  my_settings.reminders.forEach((rem) => {
     SetReminderPopup(rem.time, rem.message);
   });
   SetReminderFunction('16:59', ShowDocuments);
