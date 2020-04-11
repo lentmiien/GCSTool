@@ -61,12 +61,16 @@ function requireAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
+  res.locals.role = 'guest';
+  res.locals.name = 'Guest';
   res.redirect('/login');
 }
 function requireNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return res.redirect('/');
   }
+  res.locals.role = 'guest';
+  res.locals.name = 'Guest';
   next();
 }
 
