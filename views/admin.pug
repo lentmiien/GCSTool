@@ -6,6 +6,7 @@ block content
         thead
             tr
                 th User ID
+                th Password
                 th Team
                 th Role
                 th Action
@@ -13,6 +14,11 @@ block content
             each u in users
                 tr
                     td= u.userid
+                    td
+                        if u.password.length > 0
+                            button.btn.btn-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
+                        else
+                            b NOT SET
                     td= u.team
                     td= u.role
                     td
@@ -40,3 +46,4 @@ block content
                                 option(value="admin") Admin
                     td
                         button.btn.btn-outline-success(type="submit") Add user
+    script(src="/javascripts/ResetPassword.js")

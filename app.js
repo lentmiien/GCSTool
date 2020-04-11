@@ -35,7 +35,7 @@ app.use('/entry', requireAuthenticated, entryRouter);
 app.use('/scheduler', requireAuthenticated, schedulerRouter);
 app.use('/meeting', requireAuthenticated, meetingRouter);
 
-app.post('/logout', (req, res) => {
+app.get('/logout', (req, res) => {
   req.logOut();
   res.redirect('/');
 });

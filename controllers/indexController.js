@@ -44,12 +44,21 @@ exports.admin_get = function (req, res) {
 
 exports.adduser = (req, res) => {
   if (req.user.role === 'admin') {
-    User.create({ userid: req.body.newuserid, team: req.body.newteam, role: req.body.newrole }).then(() => {
+    User.create({ userid: req.body.newuserid, password: '', team: req.body.newteam, role: req.body.newrole }).then(() => {
       res.redirect('/admin');
     });
   } else {
     res.render('s_added', { message: 'Only admin staff can add users...' });
   }
+};
+
+exports.reset_password = (req, res) => {
+  const id_to_reset = parseInt(req.params.id);
+  if (req.user.role === 'admin' && id_to_reset > 1) {
+    User.update({ password: '' }, { where: { id: id_to_reset } });
+    return res.json({ status: 'OK' });
+  }
+  return res.json({ status: 'FAILED' });
 };
 
 exports.removeuser = (req, res) => {

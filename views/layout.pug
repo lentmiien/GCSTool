@@ -38,7 +38,9 @@ html(lang='en')
           b#u_name= name
           |  (
           b#u_role= role
-          | )
+          | ) 
+          if name != 'Guest'
+            a(href="/logout") Logout
 
       #debug
       #ask_labels
