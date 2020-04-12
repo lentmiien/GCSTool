@@ -70,7 +70,7 @@ exports.entry_createcopy_get = function (req, res) {
         req.body['content' + (ci + 1)] = results.entry.dataValues['contents'][ci].dataValues.data;
       }
       // Successful, so render.
-      res.render('entryadd', { request: {} });
+      res.render('entryadd', { request: req.body });
     }
   );
 };

@@ -16,6 +16,8 @@ router.get('/admin', index_controller.admin_get);
 router.post('/adduser', index_controller.adduser);
 
 router.get('/reset_password/:id', index_controller.reset_password);
+router.get('/make_admin/:id', index_controller.make_admin);
+router.get('/make_user/:id', index_controller.make_user);
 
 router.get('/removeuser/:userid', index_controller.removeuser);
 

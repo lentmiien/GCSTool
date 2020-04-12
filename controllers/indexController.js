@@ -61,6 +61,24 @@ exports.reset_password = (req, res) => {
   return res.json({ status: 'FAILED' });
 };
 
+exports.make_admin = (req, res) => {
+  const id_to_change = parseInt(req.params.id);
+  if (req.user.role === 'admin' && id_to_change > 1) {
+    User.update({ role: 'admin' }, { where: { id: id_to_change } });
+    return res.json({ status: 'OK' });
+  }
+  return res.json({ status: 'FAILED' });
+};
+
+exports.make_user = (req, res) => {
+  const id_to_change = parseInt(req.params.id);
+  if (req.user.role === 'admin' && id_to_change > 1) {
+    User.update({ role: 'user' }, { where: { id: id_to_change } });
+    return res.json({ status: 'OK' });
+  }
+  return res.json({ status: 'FAILED' });
+};
+
 exports.removeuser = (req, res) => {
   if (req.user.role === 'admin') {
     if (req.params.userid == 1) {
@@ -68,7 +86,6 @@ exports.removeuser = (req, res) => {
     } else {
       // Destroy data by this user [Issue #21]
       User.findAll({ where: { id: req.params.userid } }).then((user) => {
-        console.log(user);
         Entry.findAll({
           where: {
             creator: user[0].userid,

@@ -15,15 +15,24 @@ block content
                 tr
                     td= u.userid
                     td
-                        if u.password.length > 0
-                            button.btn.btn-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
+                        if u.userid == 'Lennart'
+                            i LOCKED
+                        else if u.password.length > 0
+                            button.btn.btn-outline-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
                         else
                             b NOT SET
                     td= u.team
-                    td= u.role
+                    td
+                        b= `${u.role} `
+                        if u.role == 'user'
+                            button.btn.btn-outline-warning(onclick=`MakeAdmin(${u.id}, this)`) → admin
+                        else if u.userid != 'Lennart'
+                            button.btn.btn-outline-warning(onclick=`MakeUser(${u.id}, this)`) → user
                     td
                         if u.userid != "Lennart"
                             a.btn.btn-outline-danger(href="/removeuser/"+u.id) Remove
+                        else
+                            i.text-danger *Deletes user private data aswell
             form(action="/adduser", method="post")
                 tr
                     td
@@ -31,6 +40,7 @@ block content
                             .input-group-prepend
                                 span.input-group-text User ID
                             input#newuserid.form-control(type="text", name="newuserid")
+                    td NOT SET
                     td
                         .input-group
                             .input-group-prepend
@@ -46,4 +56,4 @@ block content
                                 option(value="admin") Admin
                     td
                         button.btn.btn-outline-success(type="submit") Add user
-    script(src="/javascripts/ResetPassword.js")
+    script(src="/javascripts/admin_controller.js")
