@@ -1,3 +1,4 @@
+SESSION_SECRET=xxxxx
 DB_HOST=**Database host address**
 DB_USER=**Database user name**
 DB_PASS=**Database password**
