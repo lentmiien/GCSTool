@@ -17,7 +17,7 @@ block content
                     td
                         if u.userid == 'Lennart'
                             i LOCKED
-                        else if u.password.length > 0
+                        else if u.password != null && u.password.length > 0
                             button.btn.btn-outline-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
                         else
                             b NOT SET
