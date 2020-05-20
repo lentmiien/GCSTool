@@ -19,7 +19,9 @@ passport.use(
         return done(null, false);
       }
       try {
-        if (await bcrypt.compare(password, u[0].password)) {
+        console.log(password);
+        console.log(u[0].password);
+        if (await bcrypt.compare(password, u[0].password ? u[0].password : '')) {
           return done(null, u[0]);
         } else {
           if (u[0].password.length == 0) {
