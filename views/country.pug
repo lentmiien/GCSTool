@@ -1,0 +1,68 @@
+extends layout
+
+block content
+  h3 Search box
+  input#search.form-control(type="text", name="search", onkeyup="ChangeSearch()")
+  div#auto
+  .card.text-white.bg-dark
+    .card-header
+      h3#country
+      p#tracking
+    #output.card-body
+      #link
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th(span="col")
+            th(span="col", title="Available/delay: Selectable and possible to ship\nSuspended: Selectable, shipped when possible\nOther: Non-usable") Status
+            th(span="col") Average last 2 weeks
+              br
+              | (compared to all time average)
+            th(span="col", title="Shipping date of last shipped order that has been delivered") Last successfully
+              br
+              | shipped
+        tbody
+          tr
+            td(span="row") EMS
+            td#ems_available
+            td#ems_average
+            td#ems_lastshipped
+          tr
+            td(span="row") ASP*
+            td#airsp_available
+            td#airsp_average
+            td#airsp_lastshipped
+          tr
+            td(span="row") SAL Reg.*
+            td#salspr_available
+            td#salspr_average
+            td#salspr_lastshipped
+          tr
+            td(span="row") SAL Unreg.**
+            td#salspu_available
+            td#salspu_average ---
+            td#salspu_lastshipped ---
+          tr
+            td(span="row") SAL Parcel*
+            td#salp_available
+            td#salp_average
+            td#salp_lastshipped
+          tr
+            td(span="row") DHL
+            td#dhl_available
+            td#dhl_average
+            td#dhl_lastshipped
+          tr
+            td(span="row") Air Parcel*
+            td#airp_available
+            td#airp_average
+            td#airp_lastshipped
+      b(style="color:red;") *ASP and SAL Reg are combined, SAL Parcel and Air Parcel are combined, as separate data is unavailable.
+      br
+      b(style="color:red;") **SAL Unreg: no tracking data available.
+      br
+      b(style="color:red;") IMPORTANT: If all shipping methods show up as "Available", then I have not yet updated the available shipping methods, so refer to what is shown in FM instead!
+  pre.hidden= JSON.stringify(countries, null, 2)
+  pre.hidden= JSON.stringify(trackings, null, 2)
+  
+  script(src="/javascripts/search.js")

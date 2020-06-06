@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= `${country} (${country_code})`
+  #graph_area
+  #graphdata.hidden= JSON.stringify(graphdata, null, 2)
+
+  script(src="https://d3js.org/d3.v5.min.js")
+  script(src="/javascripts/d3_controller.js")
