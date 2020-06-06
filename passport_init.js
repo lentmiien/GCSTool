@@ -19,10 +19,11 @@ passport.use(
         return done(null, false);
       }
       try {
-        if (await bcrypt.compare(password, u[0].password)) {
+        const usepsw = u[0].password ? u[0].password : '';
+        if (await bcrypt.compare(password, usepsw)) {
           return done(null, u[0]);
         } else {
-          if (u[0].password.length == 0) {
+          if (usepsw.length == 0) {
             const hashed_password = await bcrypt.hash(password, 10);
             User.update({ password: hashed_password }, { where: { userid: username } });
             return done(null, u[0]);
