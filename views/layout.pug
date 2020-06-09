@@ -24,7 +24,7 @@ html(lang='en')
                 span(lg_language='_meeting_')
                 span#m_count.badge.badge-warning.ml-1
             li.nav-item
-              a.nav-link(href='/country') Country
+              a.nav-link(href='/country', lg_language='_ship_status_')
             if role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
@@ -42,7 +42,7 @@ html(lang='en')
           b#u_role= role
           | ) 
           if name != 'Guest'
-            a(href="/logout") Logout
+            a(href="/logout", lg_language='_logout_')
 
       #debug
       #ask_labels

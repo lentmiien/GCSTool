@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h3 Search box
+  h3(lg_language='_search_box_')
   input#search.form-control(type="text", name="search", onkeyup="ChangeSearch()")
   div#auto
   .card.text-white.bg-dark
@@ -57,11 +57,9 @@ block content
             td#airp_available
             td#airp_average
             td#airp_lastshipped
-      b(style="color:red;") *ASP and SAL Reg are combined, SAL Parcel and Air Parcel are combined, as separate data is unavailable.
+      b(style="color:red;", lg_language="_ship_details_1_")
       br
-      b(style="color:red;") **SAL Unreg: no tracking data available.
-      br
-      b(style="color:red;") IMPORTANT: If all shipping methods show up as "Available", then I have not yet updated the available shipping methods, so refer to what is shown in FM instead!
+      b(style="color:red;", lg_language="_ship_details_2_")
   pre.hidden= JSON.stringify(countries, null, 2)
   pre.hidden= JSON.stringify(trackings, null, 2)
   
