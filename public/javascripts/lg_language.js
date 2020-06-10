@@ -376,6 +376,11 @@ var json_language = {
     swedish: '**SAL Unreg: spårnings data inte tillgänglig',
     japanese: '**SAL Unregは追跡情報が無い。',
   },
+  _ship_details_3_: {
+    english: '△: may not be very accurate, due to little data available.',
+    swedish: '△: är inte särskilt exakt, på grund av lite tillgängliga data.',
+    japanese: '△：データが少ない、あまり正確情報ではない可能性が高い',
+  },
   _add_holiday_: {
     english: 'Add Holiday',
     swedish: 'Lägg till helgdag',
