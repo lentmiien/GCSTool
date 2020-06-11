@@ -1,8 +1,12 @@
 const fs = require('fs');
 const { degrees, PDFDocument, rgb, StandardFonts, appendBezierCurve } = require('pdf-lib');
 
+exports.page = (req, res) => {
+  res.render('documents');
+};
+
 exports.get_pdf = async function (req, res) {
-  fs.readFile('./data/test.pdf', async function (err, existingPdfBytes) {
+  fs.readFile('./data/DHL_return_request.pdf', async function (err, existingPdfBytes) {
     // Load a PDFDocument from the existing PDF bytes
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
@@ -16,12 +20,21 @@ exports.get_pdf = async function (req, res) {
     // Get the width and height of the first page
     const { width, height } = firstPage.getSize();
 
-    // Draw a string of text diagonally across the first page
+    // Add date
     const d = new Date();
     firstPage.drawText(`${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`, {
-      x: width * 0.75,
-      y: height - 75,
-      size: 20,
+      x: 140,
+      y: height - 91,
+      size: 12,
+      font: helveticaFont,
+      color: rgb(0, 0, 0),
+    });
+
+    // Add tracking number
+    firstPage.drawText(`${req.query.tracking}`, {
+      x: 230,
+      y: height - 211,
+      size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
     });
@@ -32,7 +45,7 @@ exports.get_pdf = async function (req, res) {
 
     // Send pdf to user
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="Document_${Date.now()}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${req.query.tracking}_return_request.pdf"`);
     res.send(pdfBuffer);
   });
 };

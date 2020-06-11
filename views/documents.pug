@@ -1,0 +1,9 @@
+extends layout
+
+block content
+    h1 Generate documents
+    h3 DHL return request
+    form.form(action="/api/get_pdf", method="get")
+      label(for="tracking") Tracking number
+      input#tracking.form-control(type="text", name="tracking")
+      button.btn.btn-primary(type="submit") Generate
