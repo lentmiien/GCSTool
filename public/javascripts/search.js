@@ -115,7 +115,9 @@ function ChangeSearch() {
     if (i < output.length) {
       // Show auto-complete term
       document.getElementById('auto').innerHTML += `
-            <button class="btn btn-link" onclick="FillIn('${output[i].country_name}')">${output[i].country_name} {${i + 1}}</button>
+            <button class="btn btn-link" onclick="FillIn('${output[i].country_name}')" style="color:#ffffff;">${output[i].country_name} {${
+        i + 1
+      }}</button>
             `;
 
       // If at active entry, display data
