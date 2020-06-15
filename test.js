@@ -1,11 +1,8 @@
+require('dotenv').config();
 const fs = require('fs');
 const { degrees, PDFDocument, rgb, StandardFonts, appendBezierCurve } = require('pdf-lib');
 
-exports.page = (req, res) => {
-  res.render('documents');
-};
-
-exports.get_pdf = async function (req, res) {
+async function Test(req, res) {
   fs.readFile('./data/DHL_return_request_template.pdf', async function (err, existingPdfBytes) {
     // Load a PDFDocument from the existing PDF bytes
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -97,9 +94,12 @@ exports.get_pdf = async function (req, res) {
     const pdfBytes = await pdfDoc.save();
     const pdfBuffer = Buffer.from(pdfBytes.buffer, 'binary');
 
-    // Send pdf to user
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${req.query.tracking}_return_request.pdf"`);
-    res.send(pdfBuffer);
+    // Save file
+    fs.writeFile('test_append.pdf', pdfBytes, function (err) {
+        if (err) throw err;
+        console.log('Appended and Saved!');
+    });
   });
 };
+
+Test({query:{tracking:"1223008990"}}, null);
