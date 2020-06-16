@@ -1,6 +1,15 @@
 const database = JSON.parse(document.getElementsByTagName('pre')[0].innerText);
 const database_tracking = JSON.parse(document.getElementsByTagName('pre')[1].innerText);
 
+const graph_icon = `
+<svg width="20" height="15">
+  <line x1="0" y1="15" x2="5" y2="7" style="stroke:rgb(100,100,200);stroke-width:2" />
+  <line x1="5" y1="7" x2="10" y2="12" style="stroke:rgb(100,100,200);stroke-width:2" />
+  <line x1="10" y1="12" x2="15" y2="11" style="stroke:rgb(100,100,200);stroke-width:2" />
+  <line x1="15" y1="11" x2="20" y2="0" style="stroke:rgb(100,100,200);stroke-width:2" />
+</svg>
+`;
+
 // Constants
 const delay_trigger = 1.5; // If shipping time is 50% (or more) longer then usual, then consider as delayed
 const statuses = [
@@ -124,7 +133,7 @@ function ChangeSearch() {
       if (i + 1 == index) {
         document.getElementById(
           'link'
-        ).innerHTML = `<a class="btn btn-link" href="/country/countrygraph/${output[i].country_code}">Show graphs</a>`;
+        ).innerHTML = `<a class="btn btn-link" href="/country/countrygraph/${output[i].country_code}" style="color:rgb(100,100,200);">${graph_icon}Show graphs</a>`;
         const format = {
           ems: Available(output[i].ems_available, output[i].ems_averagetime, output[i].ems_totalaveragetime),
           airsp: Available(output[i].airsp_available, output[i].airsp_averagetime, output[i].airsp_totalaveragetime),
