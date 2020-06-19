@@ -181,3 +181,15 @@ td {
 .admin_control {
   background-color: #ffd993;
 }
+
+.document {
+  background-color: #ffffff;
+  color: black;
+  border: 3px double black;
+  border-radius: 20px;
+  padding: 10px;
+}
+
+.warning {
+  color: rgb(255, 151, 103);
+}
