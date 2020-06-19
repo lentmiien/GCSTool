@@ -3,7 +3,7 @@ const fs = require('fs');
 const { degrees, PDFDocument, rgb, StandardFonts, appendBezierCurve } = require('pdf-lib');
 
 async function Test(req, res) {
-  fs.readFile('./data/DHL_return_request_template.pdf', async function (err, existingPdfBytes) {
+  fs.readFile('./data/DHL_tax_template.pdf', async function (err, existingPdfBytes) {
     // Load a PDFDocument from the existing PDF bytes
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
@@ -20,8 +20,8 @@ async function Test(req, res) {
     // Add date
     const d = new Date();
     firstPage.drawText(`${d.getFullYear()} / ${d.getMonth() + 1} / ${d.getDate()}`, {
-      x: 135,
-      y: height - 92,
+      x: 145,
+      y: height - 181,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -30,7 +30,7 @@ async function Test(req, res) {
     // Add tracking number
     firstPage.drawText(`${req.query.tracking}`, {
       x: 230,
-      y: height - 211,
+      y: height - 300,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -39,7 +39,7 @@ async function Test(req, res) {
     // Add account number
     firstPage.drawText(`${process.env.COMPANY_DHL_ACCOUNT}`, {
       x: 233,
-      y: height - 229,
+      y: height - 317,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -47,8 +47,8 @@ async function Test(req, res) {
 
     // Add company name
     firstPage.drawText(`${process.env.COMPANY_COMPANY}`, {
-      x: 250,
-      y: height - 464,
+      x: 260,
+      y: height - 343,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -56,8 +56,8 @@ async function Test(req, res) {
 
     // Add company contact person
     firstPage.drawText(`${process.env.COMPANY_CONTACT}`, {
-      x: 215,
-      y: height - 487,
+      x: 200,
+      y: height - 366,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -65,8 +65,8 @@ async function Test(req, res) {
 
     // Add company phone number
     firstPage.drawText(`${process.env.COMPANY_PHONE}`, {
-      x: 215,
-      y: height - 512,
+      x: 200,
+      y: height - 390,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -74,8 +74,8 @@ async function Test(req, res) {
 
     // Add company email
     firstPage.drawText(`${process.env.COMPANY_EMAIL}`, {
-      x: 215,
-      y: height - 535,
+      x: 200,
+      y: height - 414,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -83,8 +83,8 @@ async function Test(req, res) {
 
     // Add company address
     firstPage.drawText(`${process.env.COMPANY_ADDRESS}`, {
-      x: 190,
-      y: height - 559,
+      x: 150,
+      y: height - 460,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
@@ -96,10 +96,10 @@ async function Test(req, res) {
 
     // Save file
     fs.writeFile('test_append.pdf', pdfBytes, function (err) {
-        if (err) throw err;
-        console.log('Appended and Saved!');
+      if (err) throw err;
+      console.log('Appended and Saved!');
     });
   });
-};
+}
 
-Test({query:{tracking:"1223021553"}}, null);
+Test({ query: { tracking: '1223021553' } }, null);
