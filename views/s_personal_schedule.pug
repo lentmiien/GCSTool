@@ -20,7 +20,7 @@ block content
         text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
         - i++
     - let d = new Date(year, month, 1)
-    - let colormap = { "work":"rgb(120,255,120)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)","vacation":"rgb(255,120,255)" }
+    - let colormap = { "work":"rgb(120,255,120)", "telwork":"rgb(180,255,180)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)","vacation":"rgb(255,120,255)" }
     while d.getFullYear() == year
       if d.getMonth() != month
         - month++
@@ -47,7 +47,8 @@ block content
       - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
       if d.getDay() == 0
         - week_offset++
-    rect(x=`${100}` y=`${50}` width=`55` height=`55` fill=`rgb(120,255,120)` stroke="black")
+    rect(x=`${100}` y=`${50}` width=`55` height=`27` fill=`rgb(120,255,120)` stroke="black")
+    rect(x=`${100}` y=`${77}` width=`55` height=`28` fill=`rgb(180,255,180)` stroke="black")
     text(x=`${160}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Work
     rect(x=`${300}` y=`${50}` width=`55` height=`55` fill=`rgb(255,255,120)` stroke="black")
     text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Work (not full day)

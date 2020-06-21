@@ -416,6 +416,11 @@ var json_language = {
     swedish: 'Arbete',
     japanese: '仕事',
   },
+  _telwork_: {
+    english: 'Telework',
+    swedish: 'Telearbete',
+    japanese: 'テレワーク',
+  },
   _2off_6work_: {
     english: 'Start 2hrs late',
     swedish: 'Börjar 2 timmar sent',

@@ -2,8 +2,18 @@ extends layout
 
 block content
     h1 Generate documents
-    h3 DHL return request
-    form.form(action="/api/get_pdf", method="get")
-      label(for="tracking") Tracking number
-      input#tracking.form-control(type="text", name="tracking")
-      button.btn.btn-primary(type="submit") Generate
+    div.document
+      h3 DHL return request
+      p Used for requesting DHL to return a shipped package.
+      form.form(action="/api/get_pdf_dhlreturn", method="get")
+        label(for="tracking") Tracking number
+        input#r_tracking.form-control(type="text", name="r_tracking")
+        button.btn.btn-primary(type="submit") Generate
+    div.document
+      h3 DHL tax
+      p Used for our store to pay for the import tax in the customers country. 
+        u.warning *we usualy never do this, so need prior approval from Yokoyama
+      form.form(action="/api/get_pdf_dhltax", method="get")
+        label(for="tracking") Tracking number
+        input#t_tracking.form-control(type="text", name="t_tracking")
+        button.btn.btn-primary(type="submit") Generate
