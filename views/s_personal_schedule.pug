@@ -42,7 +42,7 @@ block content
         - num_vacation++
       if schedule[ckey] == undefined
         - has_unknown_days = true
-      rect(x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
+      rect(id=`day_${year}_${month+1}_${d.getDate()}`, x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black", onclick=`ClickOnDate(2020,${month+1},${d.getDate()},"${schedule[ckey]}",${id})`)
       text(x=`${x_offset * 420 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
       - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
       if d.getDay() == 0
@@ -60,3 +60,4 @@ block content
     text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Vacation (${num_vacation})`
   if has_unknown_days == true
     a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule`) Generate 1 year schedule
+  script(src="/javascripts/editschedule.js")

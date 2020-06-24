@@ -40,4 +40,7 @@ router.get('/:id/generate_personal_schedule', scheduler_controller.generate_pers
 // GET team schedule
 router.get('/team_schedule', scheduler_controller.display_team_schedule);
 
+// Update schedule (fetch)
+router.post('/update', scheduler_controller.update_schedule);
+
 module.exports = router;

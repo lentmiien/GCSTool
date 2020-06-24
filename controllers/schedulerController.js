@@ -207,3 +207,30 @@ exports.display_team_schedule = function (req, res) {
     res.render('s_team_schedule', { schedule });
   });
 };
+
+exports.update_schedule = (req, res) => {
+  // input: req.body  (POST request data -> date[2020-01-01], status[work], staff[5])
+  // output: res.json({year, month, date, status, staff_id})  (If you are not allowed to change, then return original values)
+
+  // If you are an admin user, then you can update anyones schedule
+  // If you are a user, then you can only update your own schedule
+
+  if (req.user.role === 'admin') {
+    Schedule2.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then((s) => {
+      if (s.length == 0) {
+        // Add new schedule
+        Schedule2.create({ date: req.body.date, work: req.body.status, staffId: req.body.staff }).then(() => {
+          res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
+        });
+      } else {
+        // Update existing schedule
+        Schedule2.update({ work: req.body.status }, { where: { id: s[0].id } }).then(() => {
+          res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
+        });
+      }
+    });
+  } else {
+    // TODO: implement
+    res.json({ date: 0, status: 0, staff: 0 });
+  }
+};
