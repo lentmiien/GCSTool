@@ -148,5 +148,14 @@ textarea {
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: rgb(73, 173, 73);
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.popup-center {
+  width: 50%;
+  margin: 25%;
+  border: 5px double white;
+  background-color: black;
+  padding: 8px;
+  border-radius: 15px;
 }

@@ -8,7 +8,9 @@ function ClickOnDate(year, month, date, status, staff_id) {
   popup = document.createElement('div');
   popup.className = 'popup';
   popup.innerHTML = `
-  <h3>${status}</h3>
+  <div class="popup-center">
+  <h3>Set schedule for ${year}-${month}-${date}</h3>
+  <p>Old status: ${status}</p>
   <select id="popup_status" class="form-control" onchange="ChangeStatus()">
     <option value=''></option>
     <option value='work'>Work</option>
@@ -22,6 +24,7 @@ function ClickOnDate(year, month, date, status, staff_id) {
     <option value='vacation'>Vacation</option>
   </select><br>
   <button class="btn btn-primary" onclick="Cancel()">Cancel</button>
+  </div>
   `;
   document.body.appendChild(popup);
 
