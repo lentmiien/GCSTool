@@ -2,10 +2,6 @@ extends layout
 
 block content
     if role === 'admin'
-        a.btn.btn-link(href='/scheduler/addholiday', lg_language='_add_holiday_')
-        | 
-        a.btn.btn-link(href='/scheduler/addschedule', lg_language='_add_schedule_')
-        | 
         a.btn.btn-link(href='/scheduler/addstaff', lg_language='_add_staff_')
         | 
         a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
