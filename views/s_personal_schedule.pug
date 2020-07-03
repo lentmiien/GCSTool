@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1= `年間スケジュール（2020年）`
+  h1= `年間スケジュール（2020年） ${name}`
   - let has_unknown_days = false
   svg(width="1240" height="1700" viewBox="0 0 1240 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
     rect#background(width="1240" height="1700" fill="white")

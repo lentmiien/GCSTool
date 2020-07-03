@@ -140,7 +140,8 @@ exports.remove_staff_post = function (req, res) {
 };
 
 // Display personal schedule
-exports.display_personal_schedule = function (req, res) {
+exports.display_personal_schedule = async function (req, res) {
+  const staff_name = await Staff.findOne({ where: { id: req.params.id } });
   const schedule = {};
   Schedule2.findAll({ where: { staffId: req.params.id } }).then((schedule_data) => {
     schedule_data.forEach((entry) => {
@@ -149,7 +150,7 @@ exports.display_personal_schedule = function (req, res) {
         schedule[`${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`] = entry.work;
       }
     });
-    res.render('s_personal_schedule', { id: req.params.id, schedule });
+    res.render('s_personal_schedule', { id: req.params.id, schedule, name: staff_name.name });
   });
 };
 

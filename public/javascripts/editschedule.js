@@ -19,9 +19,9 @@ function ClickOnDate(year, month, date, status, staff_id) {
     <option value='2hoff_e'>2h off in evening</option>
     <option value='halfoff_m'>Morning off</option>
     <option value='halfoff_e'>Evening off</option>
-    <option value='off'>Day off</option>
-    <option value='holiday'>Holiday</option>
-    <option value='vacation'>Vacation</option>
+    <option value='off'>Day off (Your weekly days off)</option>
+    <option value='holiday'>Holiday (National holiday or your adjusted holidays)</option>
+    <option value='vacation'>Vacation (All other types of days off)</option>
   </select><br>
   <button class="btn btn-primary" onclick="Cancel()">Cancel</button>
   </div>
