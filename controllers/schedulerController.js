@@ -231,7 +231,24 @@ exports.update_schedule = (req, res) => {
       }
     });
   } else {
-    // TODO: implement
-    res.json({ date: 0, status: 0, staff: 0 });
+    Staff.findAll({ where: { id: req.body.staff } }).then((this_staff) => {
+      if (this_staff[0].name == req.user.userid) {
+        Schedule2.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then((s) => {
+          if (s.length == 0) {
+            // Add new schedule
+            Schedule2.create({ date: req.body.date, work: req.body.status, staffId: req.body.staff }).then(() => {
+              res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
+            });
+          } else {
+            // Update existing schedule
+            Schedule2.update({ work: req.body.status }, { where: { id: s[0].id } }).then(() => {
+              res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
+            });
+          }
+        });
+      } else {
+        res.json({ date: 0, status: 0, staff: 0 });
+      }
+    });
   }
 };

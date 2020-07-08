@@ -61,8 +61,12 @@ function ChangeStatus() {
     method: 'POST',
     body: JSON.stringify({ date: g_date_str, status: document.getElementById('popup_status').value, staff: g_staff }),
   }).then((res) => {
-    // 3. Update schedule when receiving a response
-    document.getElementById(`day_${g_year}_${g_month}_${g_date}`).style.fill = colormap[document.getElementById('popup_status').value];
+    res.json().then((json) => {
+      if (json.status != 0) {
+        // 3. Update schedule when receiving a response
+        document.getElementById(`day_${g_year}_${g_month}_${g_date}`).style.fill = colormap[json.status];
+      }
+    });
     // 4. Hide popup
     document.body.removeChild(popup);
   });
