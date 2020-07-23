@@ -25,7 +25,7 @@ block content
             each s in data.staff
                 tr
                     td
-                        a(href=`/scheduler/${s.id}/personal_schedule`)= s.name
+                        a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
                     - wcnt = 0
                     while wcnt < 7
                         - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)

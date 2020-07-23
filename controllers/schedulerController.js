@@ -146,11 +146,11 @@ exports.display_personal_schedule = async function (req, res) {
   Schedule2.findAll({ where: { staffId: req.params.id } }).then((schedule_data) => {
     schedule_data.forEach((entry) => {
       const date = entry.date.split('-');
-      if (parseInt(date[0]) == 2020) {
+      if (parseInt(date[0]) == parseInt(req.query.year)) {
         schedule[`${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`] = entry.work;
       }
     });
-    res.render('s_personal_schedule', { id: req.params.id, schedule, name: staff_name.name });
+    res.render('s_personal_schedule', { id: req.params.id, schedule, name: staff_name.name, show_year: req.query.year });
   });
 };
 
