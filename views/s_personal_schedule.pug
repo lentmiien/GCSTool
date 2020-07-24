@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1(style="position: sticky;top: 0;background-color:black;")= `年間スケジュール（${show_year}年） ${name}`
+  h1(style="position: sticky;top: 0;background-color:black;")= `年間スケジュール（${show_year}年） ${schedule_name}`
   - const iyear = (new Date()).getFullYear()
   a.btn.btn-link(href=`/scheduler/${id}/personal_schedule?year=${iyear - 1}`)= `${iyear - 1}年`
   a.btn.btn-link(href=`/scheduler/${id}/personal_schedule?year=${iyear}`)= `${iyear}年`
@@ -63,6 +63,6 @@ block content
     text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Holiday (${num_used_holidays} of 22)`
     rect(x=`${900}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,255)` stroke="black")
     text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Vacation (${num_vacation})`
-  if has_unknown_days == true
+  if has_unknown_days == true && role === 'admin'
     a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule`) Generate 1 year schedule
   script(src="/javascripts/editschedule.js")

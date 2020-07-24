@@ -150,7 +150,7 @@ exports.display_personal_schedule = async function (req, res) {
         schedule[`${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`] = entry.work;
       }
     });
-    res.render('s_personal_schedule', { id: req.params.id, schedule, name: staff_name.name, show_year: req.query.year });
+    res.render('s_personal_schedule', { id: req.params.id, schedule, schedule_name: staff_name.name, show_year: req.query.year });
   });
 };
 
