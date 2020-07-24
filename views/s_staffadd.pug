@@ -6,22 +6,39 @@ block content
         div.form-group
             label(for='name', lg_language='_name_')
             input#name.form-control(type='text' name='name' required='true')
-            label(for='dayoff1', lg_language='_day_off_')
-            select#dayoff1.form-control(name='dayoff1')
-                option(value=0, lg_language='_su_')
-                option(value=1, lg_language='_m_')
-                option(value=2, lg_language='_tu_')
-                option(value=3, lg_language='_w_')
-                option(value=4, lg_language='_th_')
-                option(value=5, lg_language='_f_')
-                option(value=6, lg_language='_sa_')
-            label(for='dayoff2', lg_language='_day_off_')
-            select#dayoff2.form-control(name='dayoff2')
-                option(value=0, lg_language='_su_')
-                option(value=1, lg_language='_m_')
-                option(value=2, lg_language='_tu_')
-                option(value=3, lg_language='_w_')
-                option(value=4, lg_language='_th_')
-                option(value=5, lg_language='_f_')
-                option(value=6, lg_language='_sa_')
+            label(for='getu') Monday
+            select#getu.form-control(name='getu')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='ka') Tuesday
+            select#ka.form-control(name='ka')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='sui') Wednesday
+            select#sui.form-control(name='sui')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='moku') Thursday
+            select#moku.form-control(name='moku')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='kin') Friday
+            select#kin.form-control(name='kin')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='do') Saturday
+            select#do.form-control(name='do')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
+            label(for='nichi') Sunday
+            select#nichi.form-control(name='nichi')
+                option(value='work') Work
+                option(value='telwork') Telework
+                option(value='off') Day off
         button.btn.btn-primary(type='submit', lg_language='_submit_add_')

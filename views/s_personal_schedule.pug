@@ -64,5 +64,5 @@ block content
     rect(x=`${900}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,255)` stroke="black")
     text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Vacation (${num_vacation})`
   if has_unknown_days == true && role === 'admin'
-    a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule`) Generate 1 year schedule
+    a.btn.btn-warning(href=`/scheduler/${id}/generate_personal_schedule?year=${year}`) Generate 1 year schedule
   script(src="/javascripts/editschedule.js")

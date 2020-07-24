@@ -108,8 +108,13 @@ exports.add_staff_post = function (req, res) {
   if (req.user.role === 'admin') {
     const input_data = {
       name: req.body.name,
-      dayoff1: req.body.dayoff1,
-      dayoff2: req.body.dayoff2,
+      day0: req.body.nichi,
+      day1: req.body.getu,
+      day2: req.body.ka,
+      day3: req.body.sui,
+      day4: req.body.moku,
+      day5: req.body.kin,
+      day6: req.body.do,
     };
     Staff.create(input_data).then(() => {
       res.render('s_added', { message: 'Staff added!' });
@@ -156,17 +161,15 @@ exports.display_personal_schedule = async function (req, res) {
 
 // Generate 1 year schedule
 exports.generate_personal_schedule = function (req, res) {
+  let target_year = parseInt(req.query.year);
   if (req.user.role === 'admin') {
     Staff.findAll({ where: { id: req.params.id } }).then((staff) => {
-      let d = new Date(2020, 0, 1);
-      while (d.getFullYear() == 2020) {
+      let d = new Date(target_year, 0, 1);
+      while (d.getFullYear() == target_year) {
         const element = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)}-${
           d.getDate() > 9 ? d.getDate() : '0' + d.getDate()
         }`;
-        let work = 'work';
-        if (d.getDay() == staff[0].dayoff1 || d.getDay() == staff[0].dayoff2) {
-          work = 'off';
-        }
+        let work = staff[0][`day${d.getDay()}`];
         Schedule2.findAll({ where: { date: element, staffId: req.params.id } }).then((s) => {
           if (s.length == 0) {
             // Add new schedule
