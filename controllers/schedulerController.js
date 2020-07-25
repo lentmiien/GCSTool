@@ -124,6 +124,43 @@ exports.add_staff_post = function (req, res) {
   }
 };
 
+// Display add staff form on GET
+exports.edit_staff_get = function (req, res) {
+  if (req.query.id) {
+    // Do stuff
+    Staff.findAll({ where: { id: req.query.id } }).then((staff) => {
+      if (staff.length > 0) {
+        res.render('s_staffedit', { staff: staff[0] });
+      } else {
+        res.redirect('/scheduler/addstaff');
+      }
+    });
+  } else {
+    res.redirect('/scheduler/addstaff');
+  }
+};
+
+// Handle add staff create on POST.
+exports.edit_staff_post = function (req, res) {
+  if (req.user.role === 'admin') {
+    const input_data = {
+      name: req.body.name,
+      day0: req.body.nichi,
+      day1: req.body.getu,
+      day2: req.body.ka,
+      day3: req.body.sui,
+      day4: req.body.moku,
+      day5: req.body.kin,
+      day6: req.body.do,
+    };
+    Staff.update(input_data, { where: { id: req.query.id } }).then(() => {
+      res.render('s_added', { message: 'Staff edited!' });
+    });
+  } else {
+    res.render('s_added', { message: 'Only admin users can edit staff.' });
+  }
+};
+
 // Display remove staff form on GET
 exports.remove_staff_get = function (req, res) {
   Staff.findAll().then((staff) => {
@@ -175,8 +212,10 @@ exports.generate_personal_schedule = function (req, res) {
             // Add new schedule
             Schedule2.create({ date: element, work: work, staffId: req.params.id });
           } else {
-            // Update existing schedule
-            Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            // Update existing schedule, only if work, telwork or off
+            if (s[0].work == 'work' || s[0].work == 'telwork' || s[0].work == 'off') {
+              Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            }
           }
         });
 

@@ -27,6 +27,12 @@ router.get('/addstaff', scheduler_controller.add_staff_get);
 // POST request for adding staff member to scheduler
 router.post('/addstaff', scheduler_controller.add_staff_post);
 
+// GET request for editing staff member to scheduler
+router.get('/editstaff', scheduler_controller.edit_staff_get);
+
+// POST request for editing staff member to scheduler
+router.post('/editstaff', scheduler_controller.edit_staff_post);
+
 // GET request for removing staff member from scheduler
 router.get('/removestaff', scheduler_controller.remove_staff_get);
 

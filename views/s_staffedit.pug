@@ -1,0 +1,123 @@
+extends layout
+
+block content
+    h1= `Edit staff: ${staff.name}`
+    form(action=`/scheduler/editstaff?id=${staff.id}`, method='post')
+        div.form-group
+            label(for='name', lg_language='_name_')
+            input#name.form-control(type='text' name='name' required='true' value=staff.name)
+            br
+            table.table.table-dark
+              thead
+                tr
+                  th(span='col') Sunday
+                  th(span='col') Monday
+                  th(span='col') Tuesday
+                  th(span='col') Wednesday
+                  th(span='col') Thursday
+                  th(span='col') Friday
+                  th(span='col') Saturday
+              tbody
+                tr
+                  td
+                    select#nichi.form-control(name='nichi')
+                        if staff.day0 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day0 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day0 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#getu.form-control(name='getu')
+                        if staff.day1 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day1 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day1 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#ka.form-control(name='ka')
+                        if staff.day2 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day2 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day2 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sui.form-control(name='sui')
+                        if staff.day3 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day3 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day3 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#moku.form-control(name='moku')
+                        if staff.day4 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day4 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day4 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#kin.form-control(name='kin')
+                        if staff.day5 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day5 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day5 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#do.form-control(name='do')
+                        if staff.day6 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day6 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day6 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+        button.btn.btn-primary(type='submit') Edit
+    hr
+    h1= `Apply schedule for: ${staff.name}`
+    p To come... Form (show schedule, show input for start/end date)
