@@ -120,4 +120,124 @@ block content
         button.btn.btn-primary(type='submit') Edit
     hr
     h1= `Apply schedule for: ${staff.name}`
-    p To come... Form (show schedule, show input for start/end date)
+    form(action=`/scheduler/generateschedule?id=${staff.id}`, method='post')
+        div.form-group
+            p Schedule to apply
+            table.table.table-dark
+              thead
+                tr
+                  th(span='col') Sunday
+                  th(span='col') Monday
+                  th(span='col') Tuesday
+                  th(span='col') Wednesday
+                  th(span='col') Thursday
+                  th(span='col') Friday
+                  th(span='col') Saturday
+              tbody
+                tr
+                  td
+                    select#sch0.form-control(name='sch0')
+                        if staff.day0 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day0 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day0 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch1.form-control(name='sch1')
+                        if staff.day1 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day1 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day1 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch2.form-control(name='sch2')
+                        if staff.day2 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day2 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day2 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch3.form-control(name='sch3')
+                        if staff.day3 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day3 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day3 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch4.form-control(name='sch4')
+                        if staff.day4 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day4 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day4 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch5.form-control(name='sch5')
+                        if staff.day5 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day5 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day5 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+                  td
+                    select#sch6.form-control(name='sch6')
+                        if staff.day6 == 'work'
+                          option(value='work' selected) Work
+                        else
+                          option(value='work') Work
+                        if staff.day6 == 'telwork'
+                          option(value='telwork' selected) Telework
+                        else
+                          option(value='telwork') Telework
+                        if staff.day6 == 'off'
+                          option(value='off' selected) Day off
+                        else
+                          option(value='off') Day off
+            p Period to apply schedule
+            .input-group.mb-3
+              .input-group-prepend
+                input#startdate.form-control(type="date", name="startdate", required)
+              span.input-group-text ---
+              .input-group-append
+                input#enddate.form-control(type="date", name="enddate", required)
+        button.btn.btn-primary(type='submit') Apply

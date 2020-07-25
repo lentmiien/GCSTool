@@ -161,6 +161,49 @@ exports.edit_staff_post = function (req, res) {
   }
 };
 
+// Generate schedule
+exports.generate_schedule = function (req, res) {
+  // Aquire input
+  const update_id = req.query.id;
+  const days = [req.body.sch0, req.body.sch1, req.body.sch2, req.body.sch3, req.body.sch4, req.body.sch5, req.body.sch6];
+  const startdate = req.body.startdate;
+  const enddate = req.body.enddate;
+
+  // Process input
+  if (req.user.role === 'admin') {
+    Staff.findAll({ where: { id: update_id } }).then((staff) => {
+      let s_date = startdate.split('-');
+      let e_date = enddate.split('-');
+      let d = new Date(parseInt(s_date[0]), parseInt(s_date[1]) - 1, parseInt(s_date[2]));
+      let ed = new Date(parseInt(e_date[0]), parseInt(e_date[1]) - 1, parseInt(e_date[2]));
+      while (d.getTime() <= ed.getTime()) {
+        const element = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)}-${
+          d.getDate() > 9 ? d.getDate() : '0' + d.getDate()
+        }`;
+        let work = days[d.getDay()];
+        Schedule2.findAll({ where: { date: element, staffId: update_id } }).then((s) => {
+          if (s.length == 0) {
+            // Add new schedule
+            Schedule2.create({ date: element, work: work, staffId: update_id });
+          } else {
+            // Update existing schedule, only if work, telwork or off
+            if (s[0].work == 'work' || s[0].work == 'telwork' || s[0].work == 'off') {
+              Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            } else if (!(s[0].work == 'holiday' || s[0].work == 'vacation') && work == 'off') {
+              Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            }
+          }
+        });
+
+        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+      }
+    });
+    res.render('s_added', { message: 'Schedule updated!' });
+  } else {
+    res.render('s_added', { message: 'Only admin users can batch update schedules.' });
+  }
+};
+
 // Display remove staff form on GET
 exports.remove_staff_get = function (req, res) {
   Staff.findAll().then((staff) => {

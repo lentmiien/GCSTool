@@ -33,6 +33,9 @@ router.get('/editstaff', scheduler_controller.edit_staff_get);
 // POST request for editing staff member to scheduler
 router.post('/editstaff', scheduler_controller.edit_staff_post);
 
+// POST request for generating schedule
+router.post('/generateschedule', scheduler_controller.generate_schedule);
+
 // GET request for removing staff member from scheduler
 router.get('/removestaff', scheduler_controller.remove_staff_get);
 

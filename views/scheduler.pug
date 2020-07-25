@@ -26,9 +26,10 @@ block content
                 tr
                     td
                         a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
-                        span (
-                            a(href=`/scheduler/editstaff?id=${s.id}`) Edit
-                            | )
+                        if role === 'admin'
+                            span (
+                                a(href=`/scheduler/editstaff?id=${s.id}`) Edit
+                                | )
                     - wcnt = 0
                     while wcnt < 7
                         - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
