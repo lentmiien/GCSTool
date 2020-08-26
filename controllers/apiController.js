@@ -14,7 +14,7 @@ exports.get_pdf_dhlreturn = async function (req, res) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     // Embed sign image
-    const pngImageBytes = await fs.readFile('./data/yokoyama.png');
+    const pngImageBytes = fs.readFileSync('./data/yokoyama.png');
     const pngImage = await pdfDoc.embedPng(pngImageBytes);
     const pngDims = pngImage.scale(0.25);
 
@@ -105,7 +105,7 @@ exports.get_pdf_dhlreturn = async function (req, res) {
     // Add "Yokoyama sign"
     firstPage.drawImage(pngImage, {
       x: 190,
-      y: height - 658,
+      y: height - 670,
       width: pngDims.width,
       height: pngDims.height,
     });
