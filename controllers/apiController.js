@@ -98,10 +98,6 @@ exports.get_pdf_dhlreturn = async function (req, res) {
       color: rgb(0, 0, 0),
     });
 
-    // 76  -> 535
-    // 108 -> 559
-    // 32     24
-    // 257 -> 670  (-12)
     // Add "Yokoyama sign"
     firstPage.drawImage(pngImage, {
       x: 190,
@@ -128,6 +124,11 @@ exports.get_pdf_dhltax = async function (req, res) {
 
     // Embed the Helvetica font
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // Embed sign image
+    const pngImageBytes = fs.readFileSync('./data/yokoyama.png');
+    const pngImage = await pdfDoc.embedPng(pngImageBytes);
+    const pngDims = pngImage.scale(0.25);
 
     // Get the first page of the document
     const pages = pdfDoc.getPages();
@@ -207,6 +208,14 @@ exports.get_pdf_dhltax = async function (req, res) {
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
+    });
+
+    // Add "Yokoyama sign"
+    firstPage.drawImage(pngImage, {
+      x: 190,
+      y: height - 535,
+      width: pngDims.width,
+      height: pngDims.height,
     });
 
     // Serialize the PDFDocument to bytes (a Uint8Array)
