@@ -12,5 +12,6 @@ module.exports = (sequelize, type) => {
     delivereddate: type.BIGINT,
     delivered: type.BOOLEAN,
     data: type.TEXT,
+    grouplabel: type.INTEGER,
   });
 };
