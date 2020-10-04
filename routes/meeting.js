@@ -10,4 +10,6 @@ router.post('/', controller.meeting_landing);
 
 router.get('/new/:timestamp', controller.new);
 
+router.post('/addfeedback', controller.addfeedback);
+
 module.exports = router;

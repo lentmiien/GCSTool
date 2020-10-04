@@ -104,3 +104,31 @@ exports.new = async (req, res) => {
   // Return the number of updates to the user
   res.json({ new: new_entried });
 };
+
+exports.addfeedback = async (req, res) => {
+  if (req.user.role == 'guest') {
+    return res.redirect('/');
+  }
+
+  // Get timestamp from link address req.params.timestamp
+  const timestamp = req.params.timestamp;
+
+  // Check which entries that are newer than provided timestamp
+  const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+  await doc.useServiceAccountAuth(creds);
+  await doc.loadInfo();
+  const sheet = doc.sheetsByIndex[0];
+
+  // In data
+  const newcontent = {
+    date: (new Date()).toLocaleDateString(),
+    happiness: req.body.happiness,
+    type: req.body.type,
+    bug: req.body.bug,
+    comment: req.body.comment,
+  };
+  await sheet.addRow(newcontent);
+
+  // Return the number of updates to the user
+  res.json({ status: 'OK' });
+};
