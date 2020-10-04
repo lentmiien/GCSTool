@@ -45,13 +45,14 @@ html(lang='en')
             a(href="/logout", lg_language='_logout_')
       #feedback.alert.alert-dark(style="padding:3px;margin-top:0px;")
         div.form-inline
-          .form-group Renewal feedback
-          .form-group
+          .form-group.mr-1 Renewal feedback
+          .form-group.mr-1
             select#happiness.form-control(name="happiness")
               option(value="happy") Happy
               option(value="neutral" selected) Neutral
               option(value="nothappy") Not happy
-          .form-group
+              option(value="shipfirst") Fix shipping instead (not happy)
+          .form-group.mr-1
             select#type.form-control(name="type")
               option(value="overall" selected) Overall
               option(value="design") Design
@@ -59,11 +60,11 @@ html(lang='en')
               option(value="easyuse") Easy to use
               option(value="confusing") Confusing
               option(value="other") Other
-          .form-group
+          .form-group.mr-1
             label
               input#bug(type="checkbox", name="bug")
               | Is a bug
-          .form-group
+          .form-group.mr-1
             textarea#comment.form-control(name="comment", cols="30", rows="1")
           button.btn.btn-primary(onclick="RegisterFeedback()") Submit
 
