@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 Feedback
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th(span="col") Date
+            th(span="col") Happiness
+            th(span="col") Type
+            th(span="col") Bug
+            th(span="col") Comment
+            th(span="col") Ticket
+        tbody
+          each fb in feedbacks
+            tr
+              td= (new Date(parseInt(fb.date))).toLocaleDateString()
+              td= fb.happiness
+              td= fb.type
+              td= fb.bug
+              td= fb.comment
+              td
+                a(href=`https://ohami.zendesk.com/agent/tickets/${fb.ticket}`, target="_blank")= fb.ticket
+      #graph_data= JSON.stringify(feedbacks)
+      #graph_area
+  script(src="https://d3js.org/d3.v5.min.js")
+  script(src="/javascripts/feedback_controller.js")

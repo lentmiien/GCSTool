@@ -4,6 +4,7 @@ function RegisterFeedback() {
   const type = document.getElementById('type');
   const bug = document.getElementById('bug');
   const comment = document.getElementById('comment');
+  const ticket = document.getElementById('ticket');
 
   if (comment.value.length == 0) {
     alert('Please add a comment');
@@ -23,12 +24,14 @@ function RegisterFeedback() {
       type: type.value,
       bug: bug.checked,
       comment: comment.value,
+      ticket: ticket.value,
     }),
   }).then((res) => {
     happiness.value = 'neutral';
     type.value = 'overall';
     bug.checked = false;
     comment.value = '';
+    ticket.value = '';
     document.getElementById('feedbackbutton').disabled = false;
   });
 }

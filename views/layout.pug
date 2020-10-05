@@ -28,6 +28,8 @@ html(lang='en')
             if role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
+              li.nav-item
+                a.nav-link(href='/meeting/feedback') Feedback
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
@@ -65,7 +67,9 @@ html(lang='en')
               input#bug(type="checkbox", name="bug")
               | Is a bug
           .form-group.mr-1
-            textarea#comment.form-control(name="comment", cols="30", rows="1")
+            input#comment.form-control(type="text", name="comment", placeholder="Comment (required)")
+          .form-group.mr-1
+            input#ticket.form-control(type="number", name="ticket", placeholder="Zendesk ticket")
           button#feedbackbutton.btn.btn-primary(onclick="RegisterFeedback()") Submit
 
       #debug

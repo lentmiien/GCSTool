@@ -121,14 +121,45 @@ exports.addfeedback = async (req, res) => {
 
   // In data
   const newcontent = {
-    date: (new Date()).toLocaleDateString(),
+    date: Date.now(),
     happiness: req.body.happiness,
     type: req.body.type,
     bug: req.body.bug,
     comment: req.body.comment,
+    ticket: req.body.ticket,
   };
   await sheet.addRow(newcontent);
 
   // Return the number of updates to the user
   res.json({ status: 'OK' });
+};
+
+exports.showfeedback = async (req, res) => {
+  if (req.user.role == 'guest') {
+    return res.redirect('/');
+  }
+
+  // Get timestamp from link address req.params.timestamp
+  const timestamp = req.params.timestamp;
+
+  // Check which entries that are newer than provided timestamp
+  const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+  await doc.useServiceAccountAuth(creds);
+  await doc.loadInfo();
+  const sheet = doc.sheetsByIndex[0];
+
+  const rows_raw = await sheet.getRows();
+  const rows = rows_raw.map((x) => {
+    return {
+      date: x.date,
+      happiness: x.happiness,
+      type: x.type,
+      bug: x.bug,
+      comment: x.comment,
+      ticket: x.ticket,
+    };
+  });
+
+  // Return the number of updates to the user
+  res.render('feedback', { feedbacks: rows.reverse() });
 };
