@@ -10,20 +10,20 @@ function ClickOnDate(year, month, date, status, staff_id) {
   popup.innerHTML = `
   <div class="popup-center">
   <h3>Set schedule for ${year}-${month}-${date}</h3>
-  <p>Old status: ${status}</p>
+  <p>Old status: ${GetData('_' + status + '_')}</p>
   <select id="popup_status" class="form-control" onchange="ChangeStatus()">
     <option value=''></option>
-    <option value='work'>Work</option>
-    <option value='telwork'>Telework</option>
-    <option value='2hoff_m'>2h off in morning</option>
-    <option value='2hoff_e'>2h off in evening</option>
-    <option value='halfoff_m'>Morning off</option>
-    <option value='halfoff_e'>Evening off</option>
-    <option value='off'>Day off (Your weekly days off)</option>
-    <option value='holiday'>Holiday (National holiday or your adjusted holidays)</option>
-    <option value='vacation'>Vacation (All other types of days off)</option>
+    <option value='work' lg_language='_work_'>${GetData('_work_')}</option>
+    <option value='telwork' lg_language='_telwork_'>${GetData('_telwork_')}</option>
+    <option value='2hoff_m' lg_language='_2off_6work_'>${GetData('_2off_6work_')}</option>
+    <option value='2hoff_e' lg_language='_6work_2off_'>${GetData('_6work_2off_')}</option>
+    <option value='halfoff_m' lg_language='_4off_4work_'>${GetData('_4off_4work_')}</option>
+    <option value='halfoff_e' lg_language='_4work_4off_'>${GetData('_4work_4off_')}</option>
+    <option value='off' lg_language='_day_off_'>${GetData('_day_off_')}</option>
+    <option value='holiday' lg_language='_holiday_'>${GetData('_holiday_')}</option>
+    <option value='vacation' lg_language='_vacation_'>${GetData('_vacation_')}</option>
   </select><br>
-  <button class="btn btn-primary" onclick="Cancel()">Cancel</button>
+  <button class="btn btn-primary" onclick="Cancel()" lg_language='_cancel_'>${GetData('_cancel_')}</button>
   </div>
   `;
   document.body.appendChild(popup);

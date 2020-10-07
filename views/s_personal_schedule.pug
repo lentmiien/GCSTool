@@ -54,13 +54,13 @@ block content
         - week_offset++
     rect(x=`${100}` y=`${50}` width=`55` height=`27` fill=`rgb(120,255,120)` stroke="black")
     rect(x=`${100}` y=`${77}` width=`55` height=`28` fill=`rgb(180,255,180)` stroke="black")
-    text(x=`${160}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Work
+    text(x=`${160}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black" lg_language='_work_')
     rect(x=`${300}` y=`${50}` width=`55` height=`55` fill=`rgb(255,255,120)` stroke="black")
-    text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black") Work (not full day)
+    text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black" lg_language='_work_nf_')
     rect(x=`${500}` y=`${50}` width=`55` height=`55` fill=`rgb(120,120,255)` stroke="black")
-    text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Day off (${num_days_off} of 104)`
+    text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `定休 (${num_days_off} of 104)`
     rect(x=`${700}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,120)` stroke="black")
-    text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Holiday (${num_used_holidays} of 22)`
+    text(x=`${760}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `祝日 (${num_used_holidays} of 22)`
     rect(x=`${900}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,255)` stroke="black")
-    text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `Vacation (${num_vacation})`
+    text(x=`${960}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `休暇 (${num_vacation})`
   script(src="/javascripts/editschedule.js")

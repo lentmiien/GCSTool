@@ -9,6 +9,21 @@ var json_language = {
     swedish: 'GCS Email Laget',
     japanese: 'GCSメールチーム',
   },
+  ohami_gcs_order: {
+    english: 'GCS Order Team',
+    swedish: 'GCS Order Laget',
+    japanese: 'GCS注文管理チーム',
+  },
+  ohami_gcs_korea: {
+    english: 'GCS Korea Team',
+    swedish: 'GCS Korea Laget',
+    japanese: 'GCS韓国チーム',
+  },
+  ohami_gcs_boss: {
+    english: 'GCS Boss',
+    swedish: 'GCS Chef',
+    japanese: 'GCS課長',
+  },
   _welcome_gcs_tool_: {
     english:
       'Welcome to GCS Support Tool. You can find the latest updated content below, and at the bottom you can specify your personal settings.',
@@ -416,6 +431,11 @@ var json_language = {
     swedish: 'Arbete',
     japanese: '仕事',
   },
+  _work_nf_: {
+    english: 'Work (not full day)',
+    swedish: 'Arbete (inte hela dagen)',
+    japanese: '仕事（丸一日ではない）',
+  },
   _telwork_: {
     english: 'Telework',
     swedish: 'Telearbete',
@@ -443,8 +463,8 @@ var json_language = {
   },
   _day_off_: {
     english: 'Day Off',
-    swedish: 'Ledig',
-    japanese: '休み',
+    swedish: 'Ledig dag',
+    japanese: '定休',
   },
   _holiday_: {
     english: 'Holiday',
@@ -705,6 +725,11 @@ var json_language = {
     english: 'Add New',
     swedish: 'Lägg Till',
     japanese: '追加',
+  },
+  _cancel_: {
+    english: 'Cancel',
+    swedish: 'Avbryt',
+    japanese: 'キャンセル',
   },
   _tooltip_filter_: {
     english:
