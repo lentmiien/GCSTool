@@ -21,7 +21,7 @@ block content
         tbody
             - const grouping = ['ohami_gcs_boss', 'ohami_gcs_mail', 'ohami_gcs_korea', 'ohami_gcs_order']
             each g in grouping
-                tr(style="height:10px;")
+                tr(style="height:10px;background-color:black;")
                 each s in data.staff
                     if g == s.team
                         tr
