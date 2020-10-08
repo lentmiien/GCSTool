@@ -25,6 +25,13 @@ exports.view = function (req, res) {
         },
       },
       function (err, results) {
+        results.users.forEach((u) => {
+          for (let i = 0; i < results.staff.length; i++) {
+            if (u.userid == results.staff[i].name) {
+              results.staff[i]['team'] = u.team;
+            }
+          }
+        });
         res.render('scheduler', { data: results });
       }
     );
@@ -53,7 +60,7 @@ exports.view2week = function (req, res) {
       },
       function (err, results) {
         results.users.forEach((u) => {
-          for(let i = 0; i < results.staff.length; i++) {
+          for (let i = 0; i < results.staff.length; i++) {
             if (u.userid == results.staff[i].name) {
               results.staff[i]['team'] = u.team;
             }
