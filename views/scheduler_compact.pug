@@ -19,33 +19,37 @@ block content
                     th
                         small= wday
         tbody
-            each s in data.staff
-                tr
-                    td
-                        a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
-                        if role === 'admin'
-                            span (
-                                a(href=`/scheduler/editstaff?id=${s.id}`) Edit
-                                | )
-                    - wcnt = 0
-                    while wcnt < 14
-                        - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
-                        - wcnt++
-                        - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
-                        each sdate in s.schedule2s
-                            if dstr == sdate.date
-                                - let w_style = "rgb(220, 255, 100)"
-                                - let w_symbol = "△"
-                                if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
-                                    - w_style = "rgb(150, 70, 70)"
-                                    - w_symbol = "×"
-                                if sdate.work == "work"
-                                    - w_style = "rgb(100, 255, 100)"
-                                    - w_symbol = "●"
-                                if sdate.work == "telwork"
-                                    - w_style = "rgb(100, 255, 100)"
-                                    - w_symbol = "〇"
-                                td(style=`color:${w_style};`)= w_symbol
+            - const grouping = ['ohami_gcs_boss', 'ohami_gcs_mail', 'ohami_gcs_korea', 'ohami_gcs_order']
+            each g in grouping
+                tr(style="height:10px;")
+                each s in data.staff
+                    if g == s.team
+                        tr
+                            td
+                                a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
+                                if role === 'admin'
+                                    span (
+                                        a(href=`/scheduler/editstaff?id=${s.id}`) Edit
+                                        | )
+                            - wcnt = 0
+                            while wcnt < 14
+                                - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+                                - wcnt++
+                                - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
+                                each sdate in s.schedule2s
+                                    if dstr == sdate.date
+                                        - let w_style = "rgb(220, 255, 100)"
+                                        - let w_symbol = "△"
+                                        if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
+                                            - w_style = "rgb(150, 70, 70)"
+                                            - w_symbol = "×"
+                                        if sdate.work == "work"
+                                            - w_style = "rgb(100, 255, 100)"
+                                            - w_symbol = "●"
+                                        if sdate.work == "telwork"
+                                            - w_style = "rgb(100, 255, 100)"
+                                            - w_symbol = "〇"
+                                        td(style=`color:${w_style};`)= w_symbol
     .legend
         span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") ●　出社
         span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") 〇　テレワーク

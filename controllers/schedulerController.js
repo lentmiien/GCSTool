@@ -1,6 +1,6 @@
 const async = require('async');
 // Require necessary database models
-const { Staff, Holiday, Schedule2 } = require('../sequelize');
+const { User, Staff, Holiday, Schedule2 } = require('../sequelize');
 
 // Display all Entries
 exports.view = function (req, res) {
@@ -19,6 +19,9 @@ exports.view = function (req, res) {
         },
         holidays: function (callback) {
           Holiday.findAll().then((holidays) => callback(null, holidays));
+        },
+        users: function (callback) {
+          User.findAll().then((users) => callback(null, users));
         },
       },
       function (err, results) {
@@ -44,8 +47,18 @@ exports.view2week = function (req, res) {
         holidays: function (callback) {
           Holiday.findAll().then((holidays) => callback(null, holidays));
         },
+        users: function (callback) {
+          User.findAll().then((users) => callback(null, users));
+        },
       },
       function (err, results) {
+        results.users.forEach((u) => {
+          for(let i = 0; i < results.staff.length; i++) {
+            if (u.userid == results.staff[i].name) {
+              results.staff[i]['team'] = u.team;
+            }
+          }
+        });
         res.render('scheduler_compact', { data: results });
       }
     );
