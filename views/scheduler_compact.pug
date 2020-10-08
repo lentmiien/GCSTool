@@ -36,7 +36,7 @@ block content
                             if dstr == sdate.date
                                 - let w_style = "rgb(220, 255, 100)"
                                 - let w_symbol = "△"
-                                if sdate.work == "off" || sdate.work == "holiday"
+                                if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
                                     - w_style = "rgb(150, 70, 70)"
                                     - w_symbol = "×"
                                 if sdate.work == "work"
@@ -45,9 +45,6 @@ block content
                                 if sdate.work == "telwork"
                                     - w_style = "rgb(100, 255, 100)"
                                     - w_symbol = "〇"
-                                if sdate.work == "vacation"
-                                    - w_style = "rgb(255, 120, 255)"
-                                    - w_symbol = "×"
                                 td(style=`color:${w_style};`)= w_symbol
     .legend
         span(style="color:rgb(100, 255, 100);margin-right:20px;") ●　出社
