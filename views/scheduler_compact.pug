@@ -1,17 +1,12 @@
 extends layout
 
 block content
-    if role === 'admin'
-        a.btn.btn-link(href='/scheduler/addstaff', lg_language='_add_staff_')
-        | 
-        a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
-        hr
     - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
     div.hidden= today.toUTCString()
     - const a_week = []
     - let wcnt = 0
     - const wdays = ['日', '月', '火', '水', '木', '金', '土']
-    while wcnt < 7
+    while wcnt < 14
         - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
         - wcnt++
         - a_week.push(`${wdate.getMonth() + 1}/${wdate.getDate()}(${wdays[wdate.getDay()]})`)
@@ -21,7 +16,8 @@ block content
             tr
                 th Name
                 each wday in a_week
-                    th= wday
+                    th
+                        small= wday
         tbody
             each s in data.staff
                 tr
@@ -32,18 +28,30 @@ block content
                                 a(href=`/scheduler/editstaff?id=${s.id}`) Edit
                                 | )
                     - wcnt = 0
-                    while wcnt < 7
+                    while wcnt < 14
                         - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
                         - wcnt++
                         - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
                         each sdate in s.schedule2s
                             if dstr == sdate.date
                                 - let w_style = "rgb(220, 255, 100)"
+                                - let w_symbol = "△"
                                 if sdate.work == "off" || sdate.work == "holiday"
                                     - w_style = "rgb(150, 70, 70)"
-                                if sdate.work == "work" || sdate.work == "telwork"
+                                    - w_symbol = "×"
+                                if sdate.work == "work"
                                     - w_style = "rgb(100, 255, 100)"
+                                    - w_symbol = "●"
+                                if sdate.work == "telwork"
+                                    - w_style = "rgb(100, 255, 100)"
+                                    - w_symbol = "〇"
                                 if sdate.work == "vacation"
                                     - w_style = "rgb(255, 120, 255)"
-                                td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
-    a(href="/scheduler/compact") 2 week schedule
+                                    - w_symbol = "×"
+                                td(style=`color:${w_style};`)= w_symbol
+    .legend
+        span(style="color:rgb(100, 255, 100);margin-right:20px;") ●　出社
+        span(style="color:rgb(100, 255, 100);margin-right:20px;") 〇　テレワーク
+        span(style="color:rgb(220, 255, 100);margin-right:20px;") △　2時間・半日休み
+        span(style="color:rgb(150, 70, 70);") ×　休み
+    a(href="/scheduler") Back

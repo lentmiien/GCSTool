@@ -27,6 +27,30 @@ exports.view = function (req, res) {
     );
   }
 };
+exports.view2week = function (req, res) {
+  if (req.user.role === 'guest') {
+    res.render('scheduler', {
+      data: {
+        staff: [{ name: 'sample staff', dayoff1: 0, dayoff2: 6, schedules: [] }],
+        holidays: [],
+      },
+    });
+  } else {
+    async.parallel(
+      {
+        staff: function (callback) {
+          Staff.findAll({ include: [{ model: Schedule2 }] }).then((staff) => callback(null, staff));
+        },
+        holidays: function (callback) {
+          Holiday.findAll().then((holidays) => callback(null, holidays));
+        },
+      },
+      function (err, results) {
+        res.render('scheduler_compact', { data: results });
+      }
+    );
+  }
+};
 
 // Display add holiday form on GET
 exports.add_holiday_get = function (req, res) {
