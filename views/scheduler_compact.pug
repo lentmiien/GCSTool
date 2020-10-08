@@ -11,7 +11,7 @@ block content
         - wcnt++
         - a_week.push(`${wdate.getMonth() + 1}/${wdate.getDate()}(${wdays[wdate.getDay()]})`)
     h3(lg_language='_team_members_')
-    table.table.table-dark
+    table.table.table-dark.table-striped
         thead
             tr
                 th Name
@@ -47,8 +47,8 @@ block content
                                     - w_symbol = "〇"
                                 td(style=`color:${w_style};`)= w_symbol
     .legend
-        span(style="color:rgb(100, 255, 100);margin-right:20px;") ●　出社
-        span(style="color:rgb(100, 255, 100);margin-right:20px;") 〇　テレワーク
-        span(style="color:rgb(220, 255, 100);margin-right:20px;") △　2時間・半日休み
-        span(style="color:rgb(150, 70, 70);") ×　休み
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") ●　出社
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") 〇　テレワーク
+        span(style="color:rgb(220, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") △　2時間・半日休み
+        span(style="color:rgb(150, 70, 70);border:1px solid grey;padding:2px;") ×　休み
     a(href="/scheduler") Back
