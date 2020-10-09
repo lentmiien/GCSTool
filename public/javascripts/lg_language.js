@@ -24,6 +24,11 @@ var json_language = {
     swedish: 'GCS Chef',
     japanese: 'GCS課長',
   },
+  _2_week_schedule_: {
+    english: '2 weeks schedule',
+    swedish: '2 veckors schema',
+    japanese: '2週間スケジュール',
+  },
   _welcome_gcs_tool_: {
     english:
       'Welcome to GCS Support Tool. You can find the latest updated content below, and at the bottom you can specify your personal settings.',
@@ -360,6 +365,26 @@ var json_language = {
     english: 'Back',
     swedish: 'Tillbaka',
     japanese: '戻る',
+  },
+  _l_work_: {
+    english: '●　Company',
+    swedish: '●　Företag',
+    japanese: '●　会社',
+  },
+  _l_tele_: {
+    english: '〇　Home',
+    swedish: '〇　Hemma',
+    japanese: '〇　在宅',
+  },
+  _l_half_: {
+    english: '△　2hr/half day off',
+    swedish: '△　2tim/halv dag ledig',
+    japanese: '△　2時間・半日休み',
+  },
+  _l_off_: {
+    english: '×　Day off',
+    swedish: '×　Ledig',
+    japanese: '×　休み',
   },
   _update_entry_: {
     english: 'Update Entry',

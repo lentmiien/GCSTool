@@ -30,10 +30,6 @@ block content
                         tr
                             td
                                 a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
-                                if role === 'admin'
-                                    span (
-                                        a(href=`/scheduler/editstaff?id=${s.id}`) Edit
-                                        | )
                             - wcnt = 0
                             while wcnt < 14
                                 - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
@@ -54,8 +50,8 @@ block content
                                             - w_symbol = "〇"
                                         td(style=`color:${w_style};`)= w_symbol
     .legend
-        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") ●　出社
-        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") 〇　テレワーク
-        span(style="color:rgb(220, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;") △　2時間・半日休み
-        span(style="color:rgb(150, 70, 70);border:1px solid grey;padding:2px;") ×　休み
-    a(href="/scheduler") Back
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_work_")
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_tele_")
+        span(style="color:rgb(220, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_half_")
+        span(style="color:rgb(150, 70, 70);border:1px solid grey;padding:2px;" lg_language="_l_off_")
+    a.btn.btn-link(href="/scheduler", lg_language="_back_")

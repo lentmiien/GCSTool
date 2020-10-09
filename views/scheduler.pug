@@ -10,18 +10,21 @@ block content
     div.hidden= today.toUTCString()
     - const a_week = []
     - let wcnt = 0
-    - const wdays = ['日', '月', '火', '水', '木', '金', '土']
+    - const wdays = ['_s_su_', '_s_m_', '_s_tu_', '_s_w_', '_s_th_', '_s_f_', '_s_sa_']
     while wcnt < 7
         - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
         - wcnt++
-        - a_week.push(`${wdate.getMonth() + 1}/${wdate.getDate()}(${wdays[wdate.getDay()]})`)
+        - a_week.push({date: `${wdate.getMonth() + 1}/${wdate.getDate()}`, day: wdays[wdate.getDay()]})
     h3(lg_language='_team_members_')
     table.table.table-dark.table-striped
         thead
             tr
-                th Name
+                th(lg_language="_name_")
                 each wday in a_week
-                    th= wday
+                    th
+                        small= wday.date + "("
+                            span(lg_language=wday.day)
+                            | )
         tbody
             - const grouping = ['ohami_gcs_boss', 'ohami_gcs_mail', 'ohami_gcs_korea', 'ohami_gcs_order']
             each g in grouping
@@ -51,4 +54,4 @@ block content
                                         if sdate.work == "vacation"
                                             - w_style = "rgb(255, 120, 255)"
                                         td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
-    a(href="/scheduler/compact") 2 week schedule
+    a(href="/scheduler/compact", lg_language="_2_week_schedule_")
