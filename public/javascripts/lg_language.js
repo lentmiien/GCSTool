@@ -621,6 +621,41 @@ var json_language = {
     swedish: 'Söndag',
     japanese: '日曜日',
   },
+  _s_m_: {
+    english: 'M',
+    swedish: 'M',
+    japanese: '月',
+  },
+  _s_tu_: {
+    english: 'Tu',
+    swedish: 'Ti',
+    japanese: '火',
+  },
+  _s_w_: {
+    english: 'W',
+    swedish: 'O',
+    japanese: '水',
+  },
+  _s_th_: {
+    english: 'Th',
+    swedish: 'To',
+    japanese: '木',
+  },
+  _s_f_: {
+    english: 'F',
+    swedish: 'F',
+    japanese: '金',
+  },
+  _s_sa_: {
+    english: 'Sa',
+    swedish: 'L',
+    japanese: '土',
+  },
+  _s_su_: {
+    english: 'Su',
+    swedish: 'S',
+    japanese: '日',
+  },
   _all_: {
     english: 'All',
     swedish: 'Alla',
