@@ -3,11 +3,56 @@ const async = require('async');
 // Require necessary database models
 const { Entry, Content, User, Op } = require('../sequelize');
 
+const timekeeper = [];
+
 // Load admin data
 exports.all = function (req, res, next) {
   res.locals.role = req.user.role;
   res.locals.name = req.user.userid;
+
+  // Time keeper
+  if (req.user.userid) {
+    const d = new Date(Date.now());
+    let exist = false;
+    const dstr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    timekeeper.forEach((entry) => {
+      if (entry.datestr === dstr) {
+        exist = true;
+        if (entry[req.user.userid]) {
+          entry[req.user.userid].last = d.getTime();
+        } else {
+          entry[req.user.userid] = {
+            first: d.getTime(),
+            last: d.getTime(),
+          };
+        }
+      }
+    });
+    if (!exist) {
+      // Create new
+      const input = { datestr: dstr };
+      input[req.user.userid] = {
+        first: d.getTime(),
+        last: d.getTime(),
+      };
+      timekeeper.push(input);
+
+      // Remove old entries
+      if (timekeeper.length > 31) {
+        timekeeper.shift();
+      }
+    }
+  }
+
   next();
+};
+
+exports.view_timekeeper = (req, res) => {
+  if (req.user.role === 'admin') {
+    res.render('timekeeper', { timekeeper });
+  } else {
+    res.redirect('/');
+  }
 };
 
 exports.index = function (req, res) {

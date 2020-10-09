@@ -9,6 +9,8 @@ router.all('*', index_controller.all);
 /* GET home page. */
 router.get('/', index_controller.index);
 
+router.get('/timekeeper', index_controller.view_timekeeper);
+
 router.get('/about', index_controller.about);
 
 router.get('/admin', index_controller.admin_get);

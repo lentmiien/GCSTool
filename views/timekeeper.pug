@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  h1 Timekeeper
+  table.table.table-dark.table-striped
+    thead
+      tr
+        th(span="col") Name
+        th(span="col") Start
+        th(span="col") End
+    tbody
+      each tk in timekeeper
+        tr
+          td(colspan="3", style="background-color:black;")= tk.datestr
+        - const keys = Object.keys(tk)
+        each key in keys
+          if key != "datestr"
+            tr
+              td= key
+              td= new Date(tk[key].first)
+              td= new Date(tk[key].last)
