@@ -127,6 +127,8 @@ exports.addfeedback = async (req, res) => {
     bug: req.body.bug,
     comment: req.body.comment,
     ticket: req.body.ticket,
+    reported_by: req.user.userid,
+    issue: 0,
   };
   await sheet.addRow(newcontent);
 
@@ -146,10 +148,11 @@ exports.showfeedback = async (req, res) => {
   const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
   await doc.useServiceAccountAuth(creds);
   await doc.loadInfo();
-  const sheet = doc.sheetsByIndex[0];
 
-  const rows_raw = await sheet.getRows();
-  const rows = rows_raw.map((x) => {
+  // Incidents
+  const incident = doc.sheetsByIndex[0];
+  const incident_raw = await incident.getRows();
+  const incident_rows = incident_raw.map((x) => {
     return {
       date: x.date,
       happiness: x.happiness,
@@ -157,9 +160,23 @@ exports.showfeedback = async (req, res) => {
       bug: x.bug,
       comment: x.comment,
       ticket: x.ticket,
+      reported_by: x.reported_by,
+      issue: x.issue,
+    };
+  });
+
+  // Issues
+  const issue = doc.sheetsByIndex[1];
+  const issue_raw = await issue.getRows();
+  const issue_rows = issue_raw.map((x) => {
+    return {
+      issue_id: x.issue_id,
+      issue: x.issue,
+      comment: x.comment,
+      solved: x.solved,
     };
   });
 
   // Return the number of updates to the user
-  res.render('feedback', { feedbacks: rows.reverse() });
+  res.render('feedback', { feedbacks: incident_rows.reverse(), issues: issue_rows });
 };

@@ -13,6 +13,8 @@ block content
             th(span="col") Bug
             th(span="col") Comment
             th(span="col") Ticket
+            th(span="col") Reported by
+            th(span="col") Issue
         tbody
           each fb in feedbacks
             tr
@@ -23,7 +25,10 @@ block content
               td= fb.comment
               td
                 a(href=`https://ohami.zendesk.com/agent/tickets/${fb.ticket}`, target="_blank")= fb.ticket
-      #graph_data= JSON.stringify(feedbacks)
+              td= fb.reported_by
+              td= fb.issue
+      pre#graph_data= JSON.stringify(feedbacks, null, 2)
       #graph_area
+      pre#issues= JSON.stringify(issues, null, 2)
   script(src="https://d3js.org/d3.v5.min.js")
   script(src="/javascripts/feedback_controller.js")
