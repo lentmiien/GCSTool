@@ -17,5 +17,10 @@ block content
           if key != "datestr"
             tr
               td= key
-              td= new Date(tk[key].first)
-              td= new Date(tk[key].last)
+              td.timestamp= tk[key].first
+              td.timestamp= tk[key].last
+  script.
+    const timestamps = document.getElementsByClassName("timestamp");
+    for(let i = 0; i < timestamps.length; i++) {
+      timestamps[i].innerText = new Date(parseInt(timestamps[i].innerText));
+    }

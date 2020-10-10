@@ -12,18 +12,18 @@ exports.all = function (req, res, next) {
 
   // Time keeper
   if (req.user.userid) {
-    const d = new Date(Date.now());
+    const d = new Date(Date.now() + (1000 * 60 * 60 * 9)); // +9 hours for Japanese time
     let exist = false;
-    const dstr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const dstr = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
     timekeeper.forEach((entry) => {
       if (entry.datestr === dstr) {
         exist = true;
         if (entry[req.user.userid]) {
-          entry[req.user.userid].last = d.getTime();
+          entry[req.user.userid].last = Date.now();
         } else {
           entry[req.user.userid] = {
-            first: d.getTime(),
-            last: d.getTime(),
+            first: Date.now(),
+            last: Date.now(),
           };
         }
       }
@@ -32,8 +32,8 @@ exports.all = function (req, res, next) {
       // Create new
       const input = { datestr: dstr };
       input[req.user.userid] = {
-        first: d.getTime(),
-        last: d.getTime(),
+        first: Date.now(),
+        last: Date.now(),
       };
       timekeeper.push(input);
 
@@ -49,6 +49,15 @@ exports.all = function (req, res, next) {
 
 exports.view_timekeeper = (req, res) => {
   if (req.user.role === 'admin') {
+    timekeeper.sort((a, b) => {
+      if (a.datestr < b.datestr) {
+        return 1;
+      } else if (a.datestr > b.datestr) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
     res.render('timekeeper', { timekeeper });
   } else {
     res.redirect('/');
