@@ -73,9 +73,9 @@ block content
                         option(value=issue.issue_id)= issue.issue
               else
                 td(title=fb.issue_comment)= fb.issue == 0 ? '*Reviewing' : fb.issue
-      pre#incidents= JSON.stringify(incidents, null, 2)
+      div#incidents.hidden= JSON.stringify(incidents)
       #incidents_graph_area
-      pre#issues= JSON.stringify(issues, null, 2)
+      div#issues.hidden= JSON.stringify(issues)
       #issues_graph_area
   script(src="https://d3js.org/d3.v5.min.js")
   script(src="/javascripts/feedback_controller.js")
