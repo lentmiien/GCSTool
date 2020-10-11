@@ -1,5 +1,7 @@
-const data = JSON.parse(document.getElementById('graph_data').innerText);
-const rect = document.getElementById('graph_area').getBoundingClientRect();
+const incidents_data = JSON.parse(document.getElementById('incidents').innerText);
+const incidents_rect = document.getElementById('incidents_graph_area').getBoundingClientRect();
+const issues_data = JSON.parse(document.getElementById('issues').innerText);
+const issues_rect = document.getElementById('issues_graph_area').getBoundingClientRect();
 
 // Draw area values
 const margin = {

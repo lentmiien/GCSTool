@@ -28,8 +28,8 @@ html(lang='en')
             if role === 'admin'
               li.nav-item
                 a.nav-link(href='/admin', lg_language='_admin_')
-              li.nav-item
-                a.nav-link(href='/meeting/feedback') Feedback
+            li.nav-item
+              a.nav-link(href='/meeting/feedback') Feedback
             if role === 'admin' || name === 'Yokoyama'
               li.nav-item
                 a.nav-link(href='/timekeeper') Timekeeper★試し
@@ -50,25 +50,29 @@ html(lang='en')
             a(href="/logout", lg_language='_logout_')
       #feedback.alert.alert-dark(style="padding:3px;margin-top:0px;")
         div.form-inline
-          .form-group.mr-1 Renewal feedback
+          .form-group.mr-1 Incident / Feedback
           .form-group.mr-1
             select#happiness.form-control(name="happiness")
-              option(value="happy") Happy
+              option(value="positive") Positive
               option(value="neutral" selected) Neutral
-              option(value="nothappy") Not happy
-              option(value="shipfirst") Fix shipping instead (not happy)
+              option(value="negative") Negative
           .form-group.mr-1
             select#type.form-control(name="type")
-              option(value="overall" selected) Overall
-              option(value="design") Design
-              option(value="functionality") Functionality
-              option(value="easyuse") Easy to use
-              option(value="confusing") Confusing
-              option(value="other") Other
+              optgroup(label="Event")
+                option(value="general" selected) General
+                option(value="renewal20201006") Renewal(2020-10-06)
+                option(value="covid19") COVID-19
+              optgroup(label="Feedback")
+                option(value="shopfeedback") Shop
+                option(value="websitefeedback") Website
+                option(value="supportfeedback") Support
+                option(value="shippingfeedback") Shipping
+              optgroup(label="Claim")
+                option(value="dispute") Dispute
           .form-group.mr-1
             label
               input#bug(type="checkbox", name="bug")
-              | Is a bug
+              | Potential bug?
           .form-group.mr-1
             input#comment.form-control(type="text", name="comment", placeholder="Comment (required)")
           .form-group.mr-1

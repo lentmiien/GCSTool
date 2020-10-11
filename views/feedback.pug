@@ -3,7 +3,43 @@ extends layout
 block content
   .row
     .col
-      h1 Feedback
+      h1 Issues
+      - let old_issue_count = 0
+      - const one_year_ago = Date.now() - (1000*60*60*24*365)
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th(span="col") Last occured
+            th(span="col") Issue
+            th(span="col") Comment
+            th(span="col") Count (last 90 days)
+            th(span="col") Count (all)
+            th(span="col") Solved
+            if role == 'admin'
+              th(span="col")
+        tbody
+          each issue in issues
+            if issue.last_occured > one_year_ago
+              tr
+                td= (new Date(parseInt(issue.last_occured))).toDateString()
+                td= issue.issue
+                td= issue.comment
+                td= issue.count90
+                td= issue.countall
+                td(class=`issue_solved_${issue.solved}`)= issue.solved
+                if role == 'admin'
+                  td
+                    a.btn.btn-primary(href=`/meeting/editissue/${issue.issue_id}`) Edit
+            else
+              - old_issue_count++
+          if role == 'admin'
+            tr
+              td(colspan="7")
+                a.btn.btn-success(href=`/meeting/editissue/0`) New issue
+          tr
+            td(colspan="7")= `${old_issue_count} old issues, older than 1 year`
+      hr
+      h1 Incidents / Feedback (Last 90 days)
       table.table.table-dark.table-striped
         thead
           tr
@@ -16,7 +52,7 @@ block content
             th(span="col") Reported by
             th(span="col") Issue
         tbody
-          each fb in feedbacks
+          each fb in incidents
             tr
               td= (new Date(parseInt(fb.date))).toLocaleDateString()
               td= fb.happiness
@@ -26,9 +62,20 @@ block content
               td
                 a(href=`https://ohami.zendesk.com/agent/tickets/${fb.ticket}`, target="_blank")= fb.ticket
               td= fb.reported_by
-              td= fb.issue
-      pre#graph_data= JSON.stringify(feedbacks, null, 2)
-      #graph_area
+              if role == 'admin'
+                td
+                  select.form-control(id=fb.date, onchange=`UpdateIssue("${fb.date}")`, class=`${fb.issue == 0 ? "needcheck" : ""}`)
+                    option(value="0") *Reviewing
+                    each issue in issues
+                      if fb.issue === issue.issue
+                        option(value=issue.issue_id, selected)= issue.issue
+                      else
+                        option(value=issue.issue_id)= issue.issue
+              else
+                td(title=fb.issue_comment)= fb.issue == 0 ? '*Reviewing' : fb.issue
+      pre#incidents= JSON.stringify(incidents, null, 2)
+      #incidents_graph_area
       pre#issues= JSON.stringify(issues, null, 2)
+      #issues_graph_area
   script(src="https://d3js.org/d3.v5.min.js")
   script(src="/javascripts/feedback_controller.js")

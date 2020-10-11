@@ -28,10 +28,26 @@ function RegisterFeedback() {
     }),
   }).then((res) => {
     happiness.value = 'neutral';
-    type.value = 'overall';
+    type.value = 'general';
     bug.checked = false;
     comment.value = '';
     ticket.value = '';
     document.getElementById('feedbackbutton').disabled = false;
   });
+}
+
+function UpdateIssue(incident_id) {
+  const issue_id = document.getElementById(incident_id).value;
+
+  fetch('/meeting/editfeedback', {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: JSON.stringify({
+      incident_id,
+      issue_id,
+    }),
+  })
 }

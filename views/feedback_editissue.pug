@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 Issue
+      form(action="/meeting/editissue", method="post")
+        .form-group
+          label(for="issue_id") ID#
+          input#issue_id.form-control(type="text", name="issue_id", value=issues[0].issue_id, readonly)
+        .form-group
+          label(for="issue") Issue
+          input#issue.form-control(type="text", name="issue", value=issues[0].issue, required, placeholder="Issue title (Required)")
+        .form-group
+          label(for="comment") Comment
+          input#comment.form-control(type="text", name="comment", value=issues[0].comment, required, placeholder="Comment (Required)")
+        .form-group
+          label(for="solved") Solved status
+          select#solved(name="solved")
+            if issues[0].solved == "yes"
+              option(value="yes", selected) Yes
+            else
+              option(value="yes") Yes
+            if issues[0].solved == "maybe"
+              option(value="maybe", selected) Maybe
+            else
+              option(value="maybe") Maybe
+            if issues[0].solved == "no"
+              option(value="no", selected) No
+            else
+              option(value="no") No
+        button.btn.btn-outline-primary(type="submit") Save

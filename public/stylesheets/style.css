@@ -159,3 +159,17 @@ textarea {
   padding: 8px;
   border-radius: 15px;
 }
+
+.issue_solved_yes {
+  background-color: green;
+}
+.issue_solved_maybe {
+  background-color: orange;
+}
+.issue_solved_no {
+  background-color: red;
+}
+
+.needcheck {
+  background-color: red;
+}
