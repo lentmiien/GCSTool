@@ -13,7 +13,14 @@ block content
         tbody
             each u in users
                 tr
-                    td= u.userid
+                    td
+                        if u.userid == 'Lennart'
+                            i= u.userid
+                        else
+                            .input-group
+                                input.form-control(id=`name_${u.id}`, type="text", value=u.userid)
+                                .input-group-append
+                                    button.btn.btn-outline-warning(onclick=`UpdateName("${u.id}")`) Update
                     td
                         if u.userid == 'Lennart'
                             i LOCKED
@@ -21,7 +28,27 @@ block content
                             button.btn.btn-outline-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
                         else
                             b NOT SET
-                    td= u.team
+                    td
+                        if u.userid == 'Lennart'
+                            i(lg_language=u.team)
+                        else
+                            select.form-control(id=`team_${u.id}`, onchange=`UpdateTeam("${u.id}")`)
+                                if u.team == 'ohami_gcs_mail'
+                                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
+                                else
+                                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
+                                if u.team == 'ohami_gcs_order'
+                                    option(value='ohami_gcs_order', lg_language='ohami_gcs_order', selected)
+                                else
+                                    option(value='ohami_gcs_order', lg_language='ohami_gcs_order')
+                                if u.team == 'ohami_gcs_korea'
+                                    option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea', selected)
+                                else
+                                    option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea')
+                                if u.team == 'ohami_gcs_boss'
+                                    option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss', selected)
+                                else
+                                    option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss')
                     td
                         b= `${u.role} `
                         if u.role == 'user'

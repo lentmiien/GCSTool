@@ -106,10 +106,30 @@ exports.adduser = (req, res) => {
   }
 };
 
+exports.change_name = (req, res) => {
+  const id_to_change = parseInt(req.params.id);
+  const change_to_name = req.params.name;
+  if (req.user.role === 'admin' && id_to_change > 1) {
+    User.update({ userid: change_to_name }, { where: { id: id_to_change } });
+    return res.json({ status: 'OK' });
+  }
+  return res.json({ status: 'FAILED' });
+};
+
 exports.reset_password = (req, res) => {
   const id_to_reset = parseInt(req.params.id);
   if (req.user.role === 'admin' && id_to_reset > 1) {
     User.update({ password: '' }, { where: { id: id_to_reset } });
+    return res.json({ status: 'OK' });
+  }
+  return res.json({ status: 'FAILED' });
+};
+
+exports.change_team = (req, res) => {
+  const id_to_change = parseInt(req.params.id);
+  const change_to_team = req.params.team;
+  if (req.user.role === 'admin' && id_to_change > 1) {
+    User.update({ team: change_to_team }, { where: { id: id_to_change } });
     return res.json({ status: 'OK' });
   }
   return res.json({ status: 'FAILED' });

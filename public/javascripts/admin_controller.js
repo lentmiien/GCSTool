@@ -1,3 +1,17 @@
+async function UpdateName(id) {
+  const response = await fetch(`/change_name/${id}/${document.getElementById("name_" + id).value}`, {
+    method: 'get',
+    cache: 'no-cache',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  const data = await response.json();
+  if (data.status != 'OK') {
+    alert(data.status);
+  }
+}
+
 async function ResetPassword(id, btn) {
   const response = await fetch(`/reset_password/${id}`, {
     method: 'get',
@@ -10,6 +24,20 @@ async function ResetPassword(id, btn) {
   if (data.status === 'OK') {
     btn.parentElement.innerHTML = '<b>NOT SET</b>';
   } else {
+    alert(data.status);
+  }
+}
+
+async function UpdateTeam(id) {
+  const response = await fetch(`/change_team/${id}/${document.getElementById("team_" + id).value}`, {
+    method: 'get',
+    cache: 'no-cache',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  const data = await response.json();
+  if (data.status != 'OK') {
     alert(data.status);
   }
 }
