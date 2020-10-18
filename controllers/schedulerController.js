@@ -2,6 +2,9 @@ const async = require('async');
 // Require necessary database models
 const { User, Staff, Holiday, Schedule2 } = require('../sequelize');
 
+// Schedule change log
+const scheduler_change_log = [];
+
 // Display all Entries
 exports.view = function (req, res) {
   if (req.user.role === 'guest') {
@@ -348,11 +351,29 @@ exports.update_schedule = (req, res) => {
   if (req.user.role === 'admin') {
     Schedule2.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then((s) => {
       if (s.length == 0) {
+        // Log
+        scheduler_change_log.push({
+          change_staff_id: req.body.staff,
+          change_date: req.body.date,
+          change_from: '---',
+          change_to: req.body.status,
+          updated_by: req.user.userid,
+          updated_date: Date.now(),
+        });
         // Add new schedule
         Schedule2.create({ date: req.body.date, work: req.body.status, staffId: req.body.staff }).then(() => {
           res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
         });
       } else {
+        // Log
+        scheduler_change_log.push({
+          change_staff_id: req.body.staff,
+          change_date: req.body.date,
+          change_from: s[0].work,
+          change_to: req.body.status,
+          updated_by: req.user.userid,
+          updated_date: Date.now(),
+        });
         // Update existing schedule
         Schedule2.update({ work: req.body.status }, { where: { id: s[0].id } }).then(() => {
           res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
@@ -364,11 +385,29 @@ exports.update_schedule = (req, res) => {
       if (this_staff[0].name == req.user.userid) {
         Schedule2.findAll({ where: { date: req.body.date, staffId: req.body.staff } }).then((s) => {
           if (s.length == 0) {
+            // Log
+            scheduler_change_log.push({
+              change_staff_id: req.body.staff,
+              change_date: req.body.date,
+              change_from: '---',
+              change_to: req.body.status,
+              updated_by: req.user.userid,
+              updated_date: Date.now(),
+            });
             // Add new schedule
             Schedule2.create({ date: req.body.date, work: req.body.status, staffId: req.body.staff }).then(() => {
               res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
             });
           } else {
+            // Log
+            scheduler_change_log.push({
+              change_staff_id: req.body.staff,
+              change_date: req.body.date,
+              change_from: s[0].work,
+              change_to: req.body.status,
+              updated_by: req.user.userid,
+              updated_date: Date.now(),
+            });
             // Update existing schedule
             Schedule2.update({ work: req.body.status }, { where: { id: s[0].id } }).then(() => {
               res.json({ date: req.body.date, status: req.body.status, staff: req.body.staff });
@@ -380,4 +419,14 @@ exports.update_schedule = (req, res) => {
       }
     });
   }
+};
+
+exports.view_changelog = (req, res) => {
+  Staff.findAll().then((staff) => {
+    const staff_id = {};
+    staff.forEach(s => {
+      staff_id[s.id] = s.name;
+    });
+    res.render('scheduler_change_log', { log: scheduler_change_log, staff_id });
+  });
 };

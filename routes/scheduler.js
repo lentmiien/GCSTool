@@ -53,4 +53,7 @@ router.get('/team_schedule', scheduler_controller.display_team_schedule);
 // Update schedule (fetch)
 router.post('/update', scheduler_controller.update_schedule);
 
+// Update log
+router.get('/updatelog', scheduler_controller.view_changelog);
+
 module.exports = router;
