@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= `Analyze schedule ${year}`
+  - const days = ['日', '月', '火', '水', '木', '金', '土']
+  table.table.table-dark.table-striped
+    thead
+      tr
+        th(span="col") Date
+        each team in teams
+          th(span="col")= `${team} (kanri)`
+    tbody
+      each date_data in data
+        tr
+          td= `${date_data.date}(${days[date_data.day]})`
+          each team in teams
+            td= `${date_data[team].staff} (${date_data[team].kanri})`

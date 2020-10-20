@@ -56,4 +56,7 @@ router.post('/update', scheduler_controller.update_schedule);
 // Update log
 router.get('/updatelog', scheduler_controller.view_changelog);
 
+// Analyze
+router.get('/analyze', scheduler_controller.analyze_schedule);
+
 module.exports = router;
