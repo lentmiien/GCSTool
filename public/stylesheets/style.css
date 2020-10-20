@@ -173,3 +173,13 @@ textarea {
 .needcheck {
   background-color: red;
 }
+
+.staff_warning {
+  background-color: orange;
+}
+.staff_error {
+  background-color: orangered;
+}
+.staff_off {
+  background-color: palegreen;
+}

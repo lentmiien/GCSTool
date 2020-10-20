@@ -3,6 +3,8 @@ extends layout
 block content
   h1= `Analyze schedule ${year}`
   - const days = ['日', '月', '火', '水', '木', '金', '土']
+  - const teamerror = {ohami_gcs_mail:1, ohami_gcs_order:0, ohami_gcs_korea:0, ohami_gcs_boss:-1}
+  - const teamwarning = {ohami_gcs_mail:2, ohami_gcs_order:1, ohami_gcs_korea:1, ohami_gcs_boss:0}
   table.table.table-dark.table-striped
     thead
       tr
@@ -14,4 +16,4 @@ block content
         tr
           td= `${date_data.date}(${days[date_data.day]})`
           each team in teams
-            td= `${date_data[team].staff} (${date_data[team].kanri})`
+            td(class=`${date_data.day == 0 ? "staff_off" : teamerror[team] >= date_data[team].staff ? "staff_error" : teamwarning >= date_data[team].staff ? "staff_warning" : ""}`)= `${date_data[team].staff} (${date_data[team].kanri})`
