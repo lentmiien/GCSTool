@@ -183,3 +183,9 @@ textarea {
 .staff_off {
   background-color: palegreen;
 }
+
+.stickyheader {
+  position: sticky;
+  top: 0;
+  background-color: #888888"
+}

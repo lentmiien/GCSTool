@@ -6,7 +6,7 @@ block content
   - const teamerror = {ohami_gcs_mail:1, ohami_gcs_order:0, ohami_gcs_korea:0, ohami_gcs_boss:-1}
   - const teamwarning = {ohami_gcs_mail:2, ohami_gcs_order:1, ohami_gcs_korea:1, ohami_gcs_boss:-1}
   table.table.table-dark.table-striped
-    thead
+    thead.stickyheader
       tr
         th(span="col") Date
         each team in teams
@@ -14,6 +14,6 @@ block content
     tbody
       each date_data in data
         tr
-          td= `${date_data.date}(${days[date_data.day]})`
+          td(class=`${date_data.day == 0 ? "staff_off" : ""}`)= `${date_data.date}(${days[date_data.day]})`
           each team in teams
             td(class=`${date_data.day == 0 ? "staff_off" : teamerror[team] >= date_data[team].staff ? "staff_error" : teamwarning[team]  >= date_data[team].staff ? "staff_warning" : ""}`)= `${date_data[team].staff} (${date_data[team].kanri})`
