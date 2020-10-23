@@ -77,7 +77,34 @@ exports.view2week = function (req, res) {
 
 // Display add holiday form on GET
 exports.add_holiday_get = function (req, res) {
-  res.render('s_holidayadd', {});
+  Holiday.findAll().then((holidays) => {
+    const d = new Date();
+    const show_holidays = {};
+    show_holidays[d.getFullYear()] = [];
+    show_holidays[d.getFullYear() + 1] = [];
+
+    // Acquire holidays
+    holidays.forEach(h => {
+      const this_year = h.date.split('-')[0];
+      if (show_holidays[this_year]) {
+        show_holidays[this_year].push(h.date);
+      }
+    });
+
+    // Sort acquired holidays
+    show_holidays[d.getFullYear()].sort((a, b) => {
+      if (a < b) return -1;
+      else if (a > b) return 1;
+      else return 0;
+    });
+    show_holidays[d.getFullYear() + 1].sort((a, b) => {
+      if (a < b) return -1;
+      else if (a > b) return 1;
+      else return 0;
+    });
+
+    res.render('s_holidayadd', {holidays: show_holidays});
+  });
 };
 
 // Handle add holiday create on POST.
@@ -485,7 +512,13 @@ exports.analyze_schedule = function (req, res) {
             });
           });
         }
-        res.render('analyze_schedule', { data: schedule, teams, year: req.query.year });
+        const holidays = [];
+        results.holidays.forEach(h => {
+          if (h.date.split('-')[0] == req.query.year) {
+            holidays.push(h.date);
+          }
+        });
+        res.render('analyze_schedule', { data: schedule, teams, year: req.query.year, holidays });
       }
     );
   } else {

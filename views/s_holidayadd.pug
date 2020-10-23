@@ -7,3 +7,17 @@ block content
             label(for='date', lg_language='_date_')
             input#date.form-control(type='date' name='date' required='true')
         button.btn.btn-primary(type='submit', lg_language='_submit_add_')
+    h2 Currently registered holidays
+    - const years = Object.keys(holidays)
+    table.table.table-dark.table-striped
+        thead
+            tr
+                each year in years
+                    th(span="col")= year
+        tbody
+            - let i = 0
+            while holidays[years[0]][i] || holidays[years[1]][i]
+                tr
+                    each year in years
+                        th(span="col")= holidays[year][i] ? holidays[year][i] : '---'
+                - i++
