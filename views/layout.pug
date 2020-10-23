@@ -36,8 +36,9 @@ html(lang='en')
                 .dropdown-menu(aria-labelledby="navbarDropdownTest")
                   a.dropdown-item(href='/timekeeper') Timekeeper
                   a.dropdown-item(href='/scheduler/updatelog') Scheduler update log
-                  a.dropdown-item(href='/scheduler/analyze?year=2020') Analyze schedule 2020
-                  a.dropdown-item(href='/scheduler/analyze?year=2021') Analyze schedule 2021
+                  - const d = new Date()
+                  a.dropdown-item(href=`/scheduler/analyze?year=${d.getFullYear()}`)= `Analyze schedule ${d.getFullYear()}`
+                  a.dropdown-item(href=`/scheduler/analyze?year=${d.getFullYear()+1}`)= `Analyze schedule ${d.getFullYear()+1}`
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
