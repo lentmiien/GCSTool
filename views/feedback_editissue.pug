@@ -30,3 +30,28 @@ block content
             else
               option(value="no") No
         button.btn.btn-outline-primary(type="submit") Save
+  .row.mt-2
+    .col
+      table.table.table-dark
+        thead
+          tr
+            th(span="col") Type
+            th(span="col") Code
+            th(span="col") Example
+        tbody
+          tr
+            td A fact (class="f_fact") is displayed like
+            td= '<u class="f_fact">A fact</u>'
+            td
+              u.f_fact A fact
+          tr
+            td A fact box (class="f_box") is displayed like
+            td= '<i class="f_box">A fact box</i>'
+            td
+              i.f_box A fact box
+          tr
+            td A fact box with bold text (class="f_box") is displayed like
+            td= '<i class="f_box">A fact box with <b>bold text</b></i>'
+            td
+              i.f_box A fact box with 
+                b bold text

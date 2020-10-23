@@ -23,7 +23,7 @@ block content
               tr
                 td= (new Date(parseInt(issue.last_occured))).toDateString()
                 td= issue.issue
-                td= issue.comment
+                td!= issue.comment
                 td= issue.count90
                 td= issue.countall
                 td(class=`issue_solved_${issue.solved}`)= issue.solved

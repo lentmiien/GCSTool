@@ -189,3 +189,20 @@ textarea {
   top: 0;
   background-color: #888888"
 }
+
+.f_fact {
+  color: rgb(0, 191, 255);
+}
+.f_box {
+  display: block;
+  color: rgb(0, 191, 255);
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid gold;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px;
+  border-radius: 15px;
+}
+.f_box b {
+  color: gold;
+}
