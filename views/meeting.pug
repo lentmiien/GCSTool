@@ -82,7 +82,7 @@ block content
                 button.btn.btn-warning.btn-lg.btn-block(type="submit") Update
             hr
             each user in users
-              if row[user.userid.toLowerCase()] && (row[user.userid.toLowerCase()].length > 0 || user.userid == request.userid)
+              if Object.keys(row).indexOf(user.userid.toLowerCase()) >= 0 && (row[user.userid.toLowerCase()].length > 0 || user.userid == request.userid)
                 div(class="comment")
                   h4= user.userid
                   if row[user.userid.toLowerCase()].length > 0

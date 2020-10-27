@@ -33,7 +33,7 @@ exports.entry_list = function (req, res) {
       }
 
       // Successful, so render.
-      res.render('entry', { entries: results.entry });
+      res.render('entry', { entries: results.entry, search });
     }
   );
 };

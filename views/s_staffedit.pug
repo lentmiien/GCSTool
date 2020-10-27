@@ -240,4 +240,17 @@ block content
               span.input-group-text ---
               .input-group-append
                 input#enddate.form-control(type="date", name="enddate", required)
+            p Edit settings
+            .form-check.form-check-inline
+              input#onlywork.form-check-input(type="radio", name="settings", value="onlywork", checked)
+              label.form-check-label(for="onlywork") Only update work/telework
+            .form-check.form-check-inline
+              input#onlyworkoff.form-check-input(type="radio", name="settings", value="onlyworkoff")
+              label.form-check-label(for="onlyworkoff") Update work/telework/days off
+            .form-check.form-check-inline
+              input#workoffholiday.form-check-input(type="radio", name="settings", value="workoffholiday")
+              label.form-check-label(for="workoffholiday") Update work/telework/days off/holidays
+            .form-check.form-check-inline
+              input#all.form-check-input(type="radio", name="settings", value="all")
+              label.form-check-label(for="all") Overwrite all
         button.btn.btn-primary(type='submit') Apply

@@ -242,6 +242,7 @@ exports.generate_schedule = function (req, res) {
   const days = [req.body.sch0, req.body.sch1, req.body.sch2, req.body.sch3, req.body.sch4, req.body.sch5, req.body.sch6];
   const startdate = req.body.startdate;
   const enddate = req.body.enddate;
+  const edit_settings = req.body.settings;//onlywork,onlyworkoff,workoffholiday,all
 
   // Process input
   if (req.user.role === 'admin') {
@@ -255,17 +256,27 @@ exports.generate_schedule = function (req, res) {
           d.getDate() > 9 ? d.getDate() : '0' + d.getDate()
         }`;
         let work = days[d.getDay()];
+        // TODO: Load holiday DB
+        // TODO: change work to "holiday" if settings "workoffholiday" or "all" and date is a holiday
         Schedule2.findAll({ where: { date: element, staffId: update_id } }).then((s) => {
           if (s.length == 0) {
             // Add new schedule
             Schedule2.create({ date: element, work: work, staffId: update_id });
           } else {
-            // Update existing schedule, only if work, telwork or off
-            if (s[0].work == 'work' || s[0].work == 'telwork' || s[0].work == 'off') {
+            if (s[0].work == 'work' || s[0].work == 'telwork') {
+              // work and telwork can be updated with all settings
               Schedule2.update({ work: work }, { where: { id: s[0].id } });
-            } else if (!(s[0].work == 'holiday' || s[0].work == 'vacation') && work == 'off') {
+            } else if (s[0].work == 'off' && edit_settings != "onlywork") {
+              // off can be modified by all settings, except for onlywork
+              Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            } else if (s[0].work == 'holiday' && (edit_settings == "workoffholiday" || edit_settings == "all")) {
+              // holiday can only be modified by workoffholiday or all settings
+              Schedule2.update({ work: work }, { where: { id: s[0].id } });
+            } else if (edit_settings == "all") {
+              // only all settings can modify the remaining statuses (like reset all)
               Schedule2.update({ work: work }, { where: { id: s[0].id } });
             }
+            // Cases not included above can NOT be modified, so ignore
           }
         });
 
