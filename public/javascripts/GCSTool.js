@@ -588,26 +588,29 @@ function PeekDocuments(seconds) {
  *
  **********************************************/
 
-Date.prototype.getWeekNumber = function () {
-  var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
-  var dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-};
+// Date.prototype.getWeekNumber = function () {
+//   var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
+//   var dayNum = d.getUTCDay() || 7;
+//   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+//   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+//   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+// };
 function UpdateStatusBar() {
   const d = new Date();
   const day = d.getDay();
   const hour = d.getHours();
   const isOpen = hour >= 12 && hour < 17 ? '<b style="color:#66FF66;">●</b>' : '<b style="color:#FF6666;">●</b>';
-  if (day == 2 || day == 4) {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Jammie & Victoria</i>';
-  } else if (day == 3 || day == 5) {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Katie & Schoppmann</i>';
-  } else if (day == 1 && d.getWeekNumber() % 2 == 1) {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Jammie & Victoria</i>';
-  } else if (day == 1) {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' Katie & Schoppmann</i>';
+  const staff = [
+    'CLOSED',
+    'Schoppmann & Jammie',
+    'Victoria & Lennart',
+    'Schoppmann & Victoria',
+    'Katie & Lennart',
+    'Katie & Jammie',
+    'CLOSED'
+  ];
+  if (day >= 1 && day <= 5) {
+    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' ' + staff[day] + '</i>';
   } else {
     document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: <b style="color:red;">●</b> closed</i>';
   }
