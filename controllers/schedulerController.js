@@ -119,7 +119,8 @@ exports.add_holiday_post = function (req, res) {
 
       if (req.user.role === 'admin') {
         Holiday.create(input_data).then(() => {
-          res.render('s_added', { message: 'Holiday added!' });
+          // res.render('s_added', { message: 'Holiday added!' });
+          res.redirect('/scheduler/addholiday');
         });
       } else {
         res.render('s_added', { message: 'Only admin users can add holidays.' });
@@ -246,7 +247,9 @@ exports.generate_schedule = function (req, res) {
 
   // Process input
   if (req.user.role === 'admin') {
-    Staff.findAll({ where: { id: update_id } }).then((staff) => {
+    Holiday.findAll().then((holidays) => {
+      const hol_list = [];
+      holidays.forEach(h => hol_list.push(h.date));
       let s_date = startdate.split('-');
       let e_date = enddate.split('-');
       let d = new Date(parseInt(s_date[0]), parseInt(s_date[1]) - 1, parseInt(s_date[2]));
@@ -256,13 +259,14 @@ exports.generate_schedule = function (req, res) {
           d.getDate() > 9 ? d.getDate() : '0' + d.getDate()
         }`;
         let work = days[d.getDay()];
-        // TODO: Load holiday DB
-        // TODO: change work to "holiday" if settings "workoffholiday" or "all" and date is a holiday
+        if (hol_list.indexOf(element) >= 0 && (edit_settings == "workoffholiday" || edit_settings == "all")) {
+          work = "holiday";
+        }
         Schedule2.findAll({ where: { date: element, staffId: update_id } }).then((s) => {
           if (s.length == 0) {
             // Add new schedule
             Schedule2.create({ date: element, work: work, staffId: update_id });
-          } else {
+          } else if (s[0].work != work) {
             if (s[0].work == 'work' || s[0].work == 'telwork') {
               // work and telwork can be updated with all settings
               Schedule2.update({ work: work }, { where: { id: s[0].id } });
