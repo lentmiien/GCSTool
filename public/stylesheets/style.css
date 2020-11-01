@@ -206,3 +206,31 @@ textarea {
 .f_box b {
   color: gold;
 }
+
+._work, ._telwork {
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 2px;
+  background-color: rgb(70, 150, 70);
+}
+
+._holiday, ._off {
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 2px;
+  background-color: rgb(150, 70, 70);
+}
+
+._vacation {
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 2px;
+  background-color: rgb(150, 80, 150);
+}
+
+._2hoff_m, ._2hoff_e, ._halfoff_m, ._halfoff_e {
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 2px;
+  background-color: rgb(140, 150, 70);
+}
