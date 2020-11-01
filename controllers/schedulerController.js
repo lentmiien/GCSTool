@@ -465,13 +465,47 @@ exports.update_schedule = (req, res) => {
 
 exports.view_changelog = (req, res) => {
   Staff.findAll().then((staff) => {
-    const staff_id = {};
+    const change_by_staff = {};
     staff.forEach(s => {
-      staff_id[s.id] = s.name;
+      change_by_staff[s.id] = {
+        name: s.name,
+        changes: [],
+      };
     });
-    res.render('scheduler_change_log', { log: scheduler_change_log, staff_id });
+    scheduler_change_log.forEach(log => {
+      change_by_staff[log.change_staff_id].changes.push({
+        date: log.change_date,
+        from: log.change_from,
+        to: log.change_to,
+        by: log.updated_by,
+        timestamp: log.updated_date,
+      });
+    });
+    const keys = Object.keys(change_by_staff);
+    keys.forEach(key => {
+      change_by_staff[key].changes.sort((a, b) => {
+        if (a.date < b.date) {
+          return -1;
+        } else if (a.date > b.date) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+    });
+    res.render('scheduler_change_log', { change_by_staff, keys });
   });
 };
+/*
+scheduler_change_log.push({
+  change_staff_id: req.body.staff,
+  change_date: req.body.date,
+  change_from: '---',
+  change_to: req.body.status,
+  updated_by: req.user.userid,
+  updated_date: Date.now(),
+});
+*/
 
 // Analyze for potential problems
 exports.analyze_schedule = function (req, res) {

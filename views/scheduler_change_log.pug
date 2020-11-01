@@ -12,9 +12,21 @@ block content
               th(span="col") Change
               th(span="col") Updated by
           tbody
-            each l in log
+            each key in keys
               tr
-                td= l.change_date
-                td= staff_id[l.change_staff_id]
-                td= `${l.change_from} >>> ${l.change_to}`
-                td= `${l.updated_by} (${(new Date(l.updated_date)).toLocaleDateString()})`
+                td(colspan="4", style="background-color:black;")= change_by_staff[key].name
+              - let dd = "0000-00-00"
+              each change in change_by_staff[key].changes
+                if dd == change.date
+                  tr
+                    td
+                    td
+                    td= `${change.from} >>> ${change.to}`
+                    td= `${change.by} (${(new Date(change.timestamp)).toLocaleDateString()})`
+                else
+                  - dd = change.date
+                  tr
+                    td= change.date
+                    td= change_by_staff[key].name
+                    td= `${change.from} >>> ${change.to}`
+                    td= `${change.by} (${(new Date(change.timestamp)).toLocaleDateString()})`
