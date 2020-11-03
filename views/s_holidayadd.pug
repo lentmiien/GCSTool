@@ -19,5 +19,10 @@ block content
             while holidays[years[0]][i] || holidays[years[1]][i]
                 tr
                     each year in years
-                        th(span="col")= holidays[year][i] ? holidays[year][i] : '---'
+                        if holidays[year][i]
+                            td= holidays[year][i].date
+                                button.btn.btn-outline-danger(onclick=`DeleteHoliday(${holidays[year][i].id}, this)`) X
+                        else
+                            td ---
                 - i++
+    script(src="/javascripts/holiday.js")

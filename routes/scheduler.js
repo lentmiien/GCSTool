@@ -16,6 +16,9 @@ router.get('/addholiday', scheduler_controller.add_holiday_get);
 // POST request for adding a national holiday to scheduler
 router.post('/addholiday', scheduler_controller.add_holiday_post);
 
+// POST delete holiday by id
+router.post('/deleteholiday', scheduler_controller.delete_holiday);
+
 // GET request for adding a day off or day to work for staff members in scheduler
 router.get('/addschedule', scheduler_controller.add_schedule_get);
 

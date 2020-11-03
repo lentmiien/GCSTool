@@ -87,19 +87,19 @@ exports.add_holiday_get = function (req, res) {
     holidays.forEach(h => {
       const this_year = h.date.split('-')[0];
       if (show_holidays[this_year]) {
-        show_holidays[this_year].push(h.date);
+        show_holidays[this_year].push({id: h.id, date: h.date});
       }
     });
 
     // Sort acquired holidays
     show_holidays[d.getFullYear()].sort((a, b) => {
-      if (a < b) return -1;
-      else if (a > b) return 1;
+      if (a.date < b.date) return -1;
+      else if (a.date > b.date) return 1;
       else return 0;
     });
     show_holidays[d.getFullYear() + 1].sort((a, b) => {
-      if (a < b) return -1;
-      else if (a > b) return 1;
+      if (a.date < b.date) return -1;
+      else if (a.date > b.date) return 1;
       else return 0;
     });
 
@@ -127,6 +127,12 @@ exports.add_holiday_post = function (req, res) {
       }
     }
   });
+};
+
+// Delete an holiday
+exports.delete_holiday = (req, res) => {
+  Holiday.destroy({where: {id: req.body.id}});
+  res.json({status: 'OK'});
 };
 
 // Display add schedule form on GET

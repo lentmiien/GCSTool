@@ -6,7 +6,7 @@ block content
         | 
         a.btn.btn-link(href='/scheduler/removestaff', lg_language='_remove_staff_')
         | 
-        a.btn.btn-link(href='/scheduler/addholiday', lg_language='_add_holiday_')
+        a.btn.btn-link(href='/scheduler/addholiday', lg_language='_manage_holiday_')
         hr
     - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
     div.hidden= today.toUTCString()

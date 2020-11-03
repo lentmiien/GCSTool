@@ -426,6 +426,11 @@ var json_language = {
     swedish: 'Lägg till helgdag',
     japanese: '祝日追加',
   },
+  _manage_holiday_: {
+    english: 'Manage Holidays',
+    swedish: 'Hantera helgdagar',
+    japanese: '祝日管理',
+  },
   _date_: {
     english: 'Date',
     swedish: 'Datum',
