@@ -234,3 +234,7 @@ textarea {
   padding: 2px;
   background-color: rgb(140, 150, 70);
 }
+
+svg {
+  background-color: white;
+}
