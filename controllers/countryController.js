@@ -31,7 +31,8 @@ exports.country = (req, res, next) => {
 
 exports.country_graphs = async (req, res) => {
   const countrylist = await Countrylist.findAll();
-  const trackings = await Tracking.findAll({ attributes: ['tracking', 'country', 'carrier', 'shippeddate', 'delivereddate'], where: { delivereddate: { [Op.gt]: 1 } } });
+  const one_year_ago = Date.now() - (1000*60*60*24*365);
+  const trackings = await Tracking.findAll({ attributes: ['tracking', 'country', 'carrier', 'shippeddate', 'delivereddate'], where: { delivereddate: { [Op.gt]: one_year_ago } } });
 
   // Show data for country code
   const dataforcc = req.params.countrycode;
