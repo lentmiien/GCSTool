@@ -30,7 +30,7 @@ exports.country = (req, res, next) => {
 
 exports.country_graphs = async (req, res) => {
   const countrylist = await Countrylist.findAll();
-  const trackings = await Tracking.findAll({ where: { delivereddate: { [Op.gt]: 1 } } });
+  const trackings = await Tracking.findAll({ attributes: ['tracking', 'country', 'carrier', 'shippeddate', 'delivereddate'], where: { delivereddate: { [Op.gt]: 1 } } });
 
   // Show data for country code
   const dataforcc = req.params.countrycode;
