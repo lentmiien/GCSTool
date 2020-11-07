@@ -58,3 +58,13 @@ block content
   h3(lg_language='_reminders_')
   table#reminders.table.table-dark
   i(lg_language='_show_popup_')
+
+  if jp
+    hr
+    div(class='row')
+      div(class='col-sm-12')
+        h2 Japan Post news
+        each entry in jp.rss.channel.item
+          div
+            a(href=entry.link, target="_blank")= entry.title
+            i= ` (${entry.pubDate})`
