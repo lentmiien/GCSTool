@@ -45,6 +45,12 @@ html(lang='en')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
+      - let d = new Date()
+      - let ms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      if jp && jp.rss.channel.item[0].pubDate.indexOf(`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`) >= 0
+        .alert.alert-primary(style="padding:0px;margin-bottom:0px;")
+          b JP NEWS! 
+          a(href=jp.rss.channel.item[0].link, target="_blank")= jp.rss.channel.item[0].title
       #status_bar.alert.alert-dark(style="padding:0px;margin-bottom:0px;")
       .alert.alert-dark(style="padding:0px;margin-top:0px;")
         span You are logged in as 
@@ -97,6 +103,16 @@ html(lang='en')
         div(class='col-sm-12')
           block content
       hr
+
+      if jp
+        div(class='row')
+          div(class='col-sm-12')
+            h2 Japan Post news
+            each entry in jp.rss.channel.item
+              div
+                a(href=entry.link, target="_blank")= entry.title
+                i= ` (${entry.pubDate})`
+        hr
 
       nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
         span.navbar-brand(style="color:grey;") Created by Lennart

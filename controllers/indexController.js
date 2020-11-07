@@ -1,14 +1,38 @@
 const async = require('async');
+const axios = require('axios');
+var parser = require('xml2json');
 
 // Require necessary database models
 const { Entry, Content, User, Op } = require('../sequelize');
 
 const timekeeper = [];
 
+const jpnews = {
+  lastupdated: 0,
+  data: {}
+};
+
 // Load admin data
 exports.all = function (req, res, next) {
   res.locals.role = req.user.role;
   res.locals.name = req.user.userid;
+
+  // Acquire JP news (at most once every 6 hours)
+  if (Date.now() - jpnews.lastupdated > (1000 * 60 * 60 * 6)) {
+    jpnews.lastupdated = Date.now();
+    axios.get('https://www.post.japanpost.jp/rss/int.xml')
+      .then(function (response) {
+        // handle success
+        jpnews.data['raw'] = response.data;
+        // xml to json
+        jpnews.data['json'] = JSON.parse(parser.toJson(response.data));
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      });
+  }
+  res.locals.jp = jpnews.data['json'];
 
   // Time keeper
   if (req.user.userid) {
