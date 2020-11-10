@@ -48,10 +48,10 @@ html(lang='en')
       - let d = new Date()
       - let dm1 = new Date(d.getFullYear(), d.getMonth(), d.getDate()-1)
       - let ms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      if jp && (jp[0].pubDate.indexOf(`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`) >= 0 || jp[0].pubDate.indexOf(`${dm1.getDate()} ${ms[dm1.getMonth()]} ${dm1.getFullYear()}`) >= 0)
+      if jp && (jp[0].pubDate[0].indexOf(`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`) >= 0 || jp[0].pubDate[0].indexOf(`${dm1.getDate()} ${ms[dm1.getMonth()]} ${dm1.getFullYear()}`) >= 0)
         .alert.alert-primary(style="padding:0px;margin-bottom:0px;")
           b JP NEWS! 
-          a(href=jp[0].link, target="_blank")= jp[0].title
+          a(href=jp[0].link[0], target="_blank")= jp[0].title[0]
       #status_bar.alert.alert-dark(style="padding:0px;margin-bottom:0px;")
       .alert.alert-dark(style="padding:0px;margin-top:0px;")
         span You are logged in as 

@@ -66,5 +66,5 @@ block content
         h2 Japan Post news
         each entry in jp
           div
-            a(href=entry.link, target="_blank")= entry.title
-            i= ` (${entry.pubDate})`
+            a(href=entry.link[0], target="_blank")= entry.title[0]
+            i= ` (${entry.pubDate[0]})`
