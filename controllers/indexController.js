@@ -1,6 +1,6 @@
 const async = require('async');
 const axios = require('axios');
-var parser = require('xml2json');
+var parseString = require('xml2js').parseString;
 
 // Require necessary database models
 const { Entry, Content, User, Op } = require('../sequelize');
@@ -25,7 +25,9 @@ exports.all = function (req, res, next) {
         // handle success
         jpnews.data['raw'] = response.data;
         // xml to json
-        jpnews.data['json'] = JSON.parse(parser.toJson(response.data));
+        parseString(response.data, (err, result) => {
+          jpnews.data['json'] = result.rss.channel[0].item;
+        });
       })
       .catch(function (error) {
         // handle error

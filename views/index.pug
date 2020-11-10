@@ -64,7 +64,7 @@ block content
     div(class='row')
       div(class='col-sm-12')
         h2 Japan Post news
-        each entry in jp.rss.channel.item
+        each entry in jp
           div
             a(href=entry.link, target="_blank")= entry.title
             i= ` (${entry.pubDate})`
