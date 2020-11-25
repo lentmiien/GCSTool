@@ -559,7 +559,7 @@ exports.analyze_schedule = function (req, res) {
           const index = schedule.length;
           schedule.push({date : dstr, day: d.getDay()});
           teams.forEach(team => {
-            schedule[index][team] = {staff: 0, kanri: 0};
+            schedule[index][team] = {staff: 0, kanri: 0, stafflist: ''};
           });
           results.staff.forEach(staff => {
             staff.schedule2s.forEach(schedule_day => {
@@ -571,6 +571,7 @@ exports.analyze_schedule = function (req, res) {
                   } else {
                     schedule[index][staff.team].staff++;
                   }
+                  schedule[index][staff.team].stafflist += staff.name + ',';
                 }
               }
             });
