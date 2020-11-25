@@ -490,6 +490,15 @@ exports.view_changelog = (req, res) => {
     const keys = Object.keys(change_by_staff);
     keys.forEach(key => {
       change_by_staff[key].changes.sort((a, b) => {
+        if (a.timestamp < b.timestamp) {
+          return -1;
+        } else if (a.timestamp > b.timestamp) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      change_by_staff[key].changes.sort((a, b) => {
         if (a.date < b.date) {
           return -1;
         } else if (a.date > b.date) {
