@@ -13,6 +13,7 @@ var schedulerRouter = require('./routes/scheduler');
 var meetingRouter = require('./routes/meeting');
 var countryRouter = require('./routes/country');
 var apiRouter = require('./routes/api');
+var binpackRouter = require('./routes/binpack');
 
 var app = express();
 
@@ -38,6 +39,7 @@ app.use('/scheduler', requireAuthenticated, schedulerRouter);
 app.use('/meeting', requireAuthenticated, meetingRouter);
 app.use('/country', requireAuthenticated, countryRouter);
 app.use('/api', requireAuthenticated, apiRouter);
+app.use('/binpack', requireAuthenticated, binpackRouter);
 
 app.get('/logout', (req, res) => {
   req.logOut();

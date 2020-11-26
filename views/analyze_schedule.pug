@@ -23,4 +23,6 @@ block content
         tr
           td(class=`${date_data.day == 0 || holidays.indexOf(date_data.date) >= 0 ? "staff_off" : ""}`)= `${date_data.date}(${days[date_data.day]})`
           each team in teams
-            td(class=`${date_data.day == 0 ? "staff_off" : teamerror[team] >= date_data[team].staff ? "staff_error" : teamwarning[team]  >= date_data[team].staff ? "staff_warning" : ""}`, title=date_data[team].stafflist)= `${date_data[team].staff} (${date_data[team].kanri})`
+            td(class=`${date_data.day == 0 ? "staff_off" : teamerror[team] >= date_data[team].staff ? "staff_error" : teamwarning[team]  >= date_data[team].staff ? "staff_warning" : ""}`)= `${date_data[team].staff} (${date_data[team].kanri})`
+              br
+              i(style="font-size:60%;")= `(${date_data[team].stafflist})`

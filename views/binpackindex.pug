@@ -1,0 +1,66 @@
+extends layout
+
+block content
+  h1 Binpacker
+  .row
+    .col
+      form(action="/binpack/pack", method="post")
+        label(for="selectbox") Select box
+        select.form-control(name="selectbox")
+          option(value="AA") AA
+          option(value="A") A
+          option(value="BM") BM
+          option(value="FM") FM
+          option(value="F3") F3
+          option(value="M1.5L") M1.5L
+          option(value="333") 333
+          option(value="B4") B4
+          option(value="999") 999
+          option(value="777") 777
+          option(value="222") 222
+          option(value="888") 888
+          option(value="Tapecho") Tapecho
+          option(value="L2") L2
+          option(value="B1") B1
+          option(value="X1") X1
+          option(value="B3") B3
+          option(value="Tapedai") Tapedai
+          option(value="X2") X2
+          option(value="X3") X3
+          option(value="X5") X5
+          option(value="X4") X4
+          option(value="81") 81
+        label(for="safety") Safety option
+        select.form-control(name="safety")
+          option(value="1") Unsafe (Fill up box as much as possible, less cushion material [0%])
+          option(value="0.9", selected) Safe (Ensure that there are some space around the items for cushion material [5%])
+          option(value="0.8") Very safe (Leave a lot of space for cushion material [10%])
+          option(value="0.6") Ridiculously safe (Leave too much space for cushion material [20%])
+        i *[xx%] is space reserved for cushion material on each side
+        br
+        label(for="provideitems") Provide items
+        textarea.form-control(name="provideitems", cols="30", rows="10", placeholder="ITEM-12345 .5kg 100×50×10 \n5\nITEM-23456 1.1kg 200×100×20 \n2\n")
+        button.btn.btn-success(type="submit") Pack the bin!
+    .col
+      form(action="/binpack/packboxes", method="post")
+        label(for="strategy") Select strategy
+        select.form-control(name="strategy")
+          option(value="fewest_number_of_boxes") Fit in fewest number of boxes
+          option(value="best_fillup_rate") Look for highest fit rate
+          option(value="smallest_wasted_space") Minimize wasted space (empty space)
+          option(value="anything_is_fine") Any box is fine as long as one or more item fits
+        label(for="selectbox") Select box pool
+        select.form-control(name="selectbox")
+          option(value="AA,A,BM,FM,F3,M1.5L,333,B4,999,777,222,888") Small Packet (except for H002 and CS)
+          option(value="AA,A,BM,FM,F3,M1.5L,333,B4,999,777,222,888,Tapecho,L2,B1,X1,B3,Tapedai,X2,X3,X5,X4,81") All boxes (except for H002 and CS)
+        label(for="safety") Safety option
+        select.form-control(name="safety")
+          option(value="1") Unsafe (Fill up box as much as possible, less cushion material [0%])
+          option(value="0.9", selected) Safe (Ensure that there are some space around the items for cushion material [5%])
+          option(value="0.8") Very safe (Leave a lot of space for cushion material [10%])
+          option(value="0.6") Ridiculously safe (Leave too much space for cushion material [20%])
+        i *[xx%] is space reserved for cushion material on each side
+        br
+        label(for="provideitems") Provide items
+        textarea.form-control(name="provideitems", cols="30", rows="10", placeholder="ITEM-12345 .5kg 100×50×10 \n5\nITEM-23456 1.1kg 200×100×20 \n2\n")
+        button.btn.btn-success(type="submit") Pack the bin!
