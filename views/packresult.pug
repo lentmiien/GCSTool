@@ -26,7 +26,10 @@ block content
           td= bin.name
           td= `${Math.round(0.1+bin.width/safety)} x ${Math.round(0.1+bin.height/safety)} x ${Math.round(0.1+bin.depth/safety)} mm`
           td= `${binVolume} mm^3`
-    div.renderoutput(id=`box_${boxNumber}`)
+    p
+      button.btn.btn-primary(type="button", data-toggle="collapse", data-target=`#collapse${boxNumber}`, aria-expanded="false", aria-controls=`collapse${boxNumber}`) Show/Hide box
+    div.collapse(id=`collapse${boxNumber}`)
+      div.renderoutput(id=`box_${boxNumber}`)
     div.hidden(class=`box_${boxNumber}`)= JSON.stringify(bin.items.map(i => {return {'pos': i.position, 'dim': i.getDimension()}}))
     div.hidden(class=`box_${boxNumber}_boxsize`)= JSON.stringify({ w: bin.width, h: bin.height, d: bin.depth })
     table.table.table-dark.table-striped
