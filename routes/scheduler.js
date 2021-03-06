@@ -9,6 +9,7 @@ var scheduler_controller = require('../controllers/schedulerController');
 // GET entry home page.
 router.get('/', scheduler_controller.view);
 router.get('/compact', scheduler_controller.view2week);
+router.get('/lastmonth', scheduler_controller.viewlastmonth);
 
 // GET request for adding a national holiday to scheduler
 router.get('/addholiday', scheduler_controller.add_holiday_get);

@@ -1,0 +1,89 @@
+extends layout
+
+block content
+    - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
+    - let idate = new Date(today.getFullYear(), today.getMonth()-1, 1)
+    - const m = idate.getMonth()
+    - const wdays = ['_s_su_', '_s_m_', '_s_tu_', '_s_w_', '_s_th_', '_s_f_', '_s_sa_']
+    table.table.table-dark.table-striped
+        thead 
+            tr 
+                th Date
+                each s in data.staff
+                    th= s.name 
+        tbody 
+            while idate.getMonth() === m
+                - const dstr = `${idate.getFullYear()}-${idate.getMonth() > 8 ? idate.getMonth() + 1 : '0' + (idate.getMonth() + 1)}-${idate.getDate() > 9 ? idate.getDate() : '0' + idate.getDate()}`
+                tr 
+                    td= `${m+1}月${idate.getDate()}日（`
+                        span(lg_language=wdays[idate.getDay()])
+                        | ）
+                    each s in data.staff
+                        each sdate in s.schedule2s
+                            if dstr == sdate.date
+                                - let w_style = "rgb(220, 255, 100)"
+                                - let w_symbol = "△"
+                                if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
+                                    - w_style = "rgb(150, 70, 70)"
+                                    - w_symbol = "×"
+                                if sdate.work == "work"
+                                    - w_style = "rgb(100, 255, 100)"
+                                    - w_symbol = "●"
+                                if sdate.work == "telwork"
+                                    - w_style = "rgb(100, 255, 100)"
+                                    - w_symbol = "〇"
+                                td(style=`color:${w_style};`)= w_symbol
+                - idate = new Date(idate.getFullYear(), idate.getMonth(), idate.getDate()+1)
+    //- div.hidden= today.toUTCString()
+    //- - const a_week = []
+    //- - let wcnt = 0
+    //- - const wdays = ['_s_su_', '_s_m_', '_s_tu_', '_s_w_', '_s_th_', '_s_f_', '_s_sa_']
+    //- while wcnt < 14
+    //-     - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+    //-     - wcnt++
+    //-     - a_week.push({date: `${wdate.getMonth() + 1}/${wdate.getDate()}`, day: wdays[wdate.getDay()]})
+    //- h3(lg_language='_team_members_')
+    //- table.table.table-dark.table-striped
+    //-     thead
+    //-         tr
+    //-             th(lg_language="_name_")
+    //-             each wday in a_week
+    //-                 th
+    //-                     small= wday.date + "("
+    //-                         span(lg_language=wday.day)
+    //-                         | )
+    //-     tbody
+    //-         - const grouping = ['ohami_gcs_boss', 'ohami_gcs_mail', 'ohami_gcs_korea', 'ohami_gcs_order']
+    //-         each g in grouping
+    //-             tr
+    //-                 td(colspan="15", style="height:10px;background-color:black;")
+    //-             each s in data.staff
+    //-                 if g == s.team
+    //-                     tr
+    //-                         td
+    //-                             a(href=`/scheduler/${s.id}/personal_schedule?year=${today.getFullYear()}`)= s.name
+    //-                         - wcnt = 0
+    //-                         while wcnt < 14
+    //-                             - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+    //-                             - wcnt++
+    //-                             - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
+    //-                             each sdate in s.schedule2s
+    //-                                 if dstr == sdate.date
+    //-                                     - let w_style = "rgb(220, 255, 100)"
+    //-                                     - let w_symbol = "△"
+    //-                                     if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
+    //-                                         - w_style = "rgb(150, 70, 70)"
+    //-                                         - w_symbol = "×"
+    //-                                     if sdate.work == "work"
+    //-                                         - w_style = "rgb(100, 255, 100)"
+    //-                                         - w_symbol = "●"
+    //-                                     if sdate.work == "telwork"
+    //-                                         - w_style = "rgb(100, 255, 100)"
+    //-                                         - w_symbol = "〇"
+    //-                                     td(style=`color:${w_style};`)= w_symbol
+    .legend
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_work_")
+        span(style="color:rgb(100, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_tele_")
+        span(style="color:rgb(220, 255, 100);margin-right:20px;border:1px solid grey;padding:2px;" lg_language="_l_half_")
+        span(style="color:rgb(150, 70, 70);border:1px solid grey;padding:2px;" lg_language="_l_off_")
+    a.btn.btn-link(href="/scheduler", lg_language="_back_")

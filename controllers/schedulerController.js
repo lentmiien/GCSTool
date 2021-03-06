@@ -74,6 +74,40 @@ exports.view2week = function (req, res) {
     );
   }
 };
+exports.viewlastmonth = function (req, res) {
+  if (req.user.role === 'guest') {
+    res.render('scheduler', {
+      data: {
+        staff: [{ name: 'sample staff', dayoff1: 0, dayoff2: 6, schedules: [] }],
+        holidays: [],
+      },
+    });
+  } else {
+    async.parallel(
+      {
+        staff: function (callback) {
+          Staff.findAll({ include: [{ model: Schedule2 }] }).then((staff) => callback(null, staff));
+        },
+        holidays: function (callback) {
+          Holiday.findAll().then((holidays) => callback(null, holidays));
+        },
+        users: function (callback) {
+          User.findAll().then((users) => callback(null, users));
+        },
+      },
+      function (err, results) {
+        results.users.forEach((u) => {
+          for (let i = 0; i < results.staff.length; i++) {
+            if (u.userid == results.staff[i].name) {
+              results.staff[i]['team'] = u.team;
+            }
+          }
+        });
+        res.render('scheduler_last_month', { data: results });
+      }
+    );
+  }
+};
 
 // Display add holiday form on GET
 exports.add_holiday_get = function (req, res) {
