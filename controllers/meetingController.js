@@ -106,30 +106,83 @@ exports.new = async (req, res) => {
   res.json({ new: new_entried });
 };
 
-exports.addfeedback = async (req, res) => {
+/* TODO: Add cache for feedback
+ * When adding, also add to cache, if cache is empty first fetch data from spreadsheet
+ * When fetchin, return cache, or aquire data from spreadsheet if no cache
+ */
+const incident_cache = [];
+const issue_cache = [];
+
+exports.addfeedback = (req, res) => {
   if (req.user.role == 'guest') {
     return res.redirect('/');
   }
 
-  // Check which entries that are newer than provided timestamp
+  // Access Spreadsheet
   const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-  await doc.useServiceAccountAuth(creds);
-  await doc.loadInfo();
-  const sheet = doc.sheetsByIndex[0];
+  doc.useServiceAccountAuth(creds).then(() => {
+    doc.loadInfo().then(() => {
+      const sheet = doc.sheetsByIndex[0];
+      const now_time_stamp = Date.now();
 
-  // In data
-  const newcontent = {
-    date: Date.now(),
-    happiness: req.body.happiness,
-    type: req.body.type,
-    bug: req.body.bug,
-    comment: req.body.comment,
-    ticket: req.body.ticket,
-    reported_by: req.user.userid,
-    issue: 0,
-    updated: Date.now(),
-  };
-  await sheet.addRow(newcontent);
+      // If cache is empty, load data to cache and add new entry
+      // else, just add new entry
+      if (incident_cache.length == 0) {
+        sheet.getRows().then(raw => {
+          raw.forEach(row => {
+            incident_cache.push({
+              date: row.date,
+              happiness: row.happiness,
+              type: row.type,
+              bug: row.bug,
+              comment: row.comment,
+              ticket: row.ticket,
+              reported_by: row.reported_by,
+              issue: row.issue,
+              updated: row.updated,
+            });
+          });
+          incident_cache.push({
+            date: now_time_stamp,
+            happiness: req.body.happiness,
+            type: req.body.type,
+            bug: req.body.bug,
+            comment: req.body.comment,
+            ticket: req.body.ticket,
+            reported_by: req.user.userid,
+            issue: 0,
+            updated: now_time_stamp,
+          });
+        });
+      } else {
+        incident_cache.push({
+          date: now_time_stamp,
+          happiness: req.body.happiness,
+          type: req.body.type,
+          bug: req.body.bug,
+          comment: req.body.comment,
+          ticket: req.body.ticket,
+          reported_by: req.user.userid,
+          issue: 0,
+          updated: now_time_stamp,
+        });
+      }
+
+      // In data
+      const newcontent = {
+        date: Date.now(),
+        happiness: req.body.happiness,
+        type: req.body.type,
+        bug: req.body.bug,
+        comment: req.body.comment,
+        ticket: req.body.ticket,
+        reported_by: req.user.userid,
+        issue: 0,
+        updated: Date.now(),
+      };
+      sheet.addRow(newcontent);
+    });
+  });
 
   // Return the number of updates to the user
   res.json({ status: 'OK' });
@@ -140,15 +193,47 @@ exports.showfeedback = async (req, res) => {
     return res.redirect('/');
   }
 
-  // Check which entries that are newer than provided timestamp
-  const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-  await doc.useServiceAccountAuth(creds);
-  await doc.loadInfo();
+  // Only need to access spreadsheet if no cache exists
+  if (incident_cache.length == 0 || issue_cache.length == 0) {
+    // Access spreadsheet
+    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+    await doc.useServiceAccountAuth(creds);
+    await doc.loadInfo();
+
+    if (incident_cache.length == 0) {
+      const incident = doc.sheetsByIndex[0];
+      const raw = await incident.getRows();
+      raw.forEach(row => {
+        incident_cache.push({
+          date: row.date,
+          happiness: row.happiness,
+          type: row.type,
+          bug: row.bug,
+          comment: row.comment,
+          ticket: row.ticket,
+          reported_by: row.reported_by,
+          issue: row.issue,
+          updated: row.updated,
+        });
+      });
+    }
+
+    if (issue_cache.length == 0) {
+      const issue = doc.sheetsByIndex[1];
+      const raw = await issue.getRows();
+      raw.forEach(row => {
+        issue_cache.push({
+          issue_id: row.issue_id,
+          issue: row.issue,
+          comment: row.comment,
+          solved: row.solved,
+        });
+      });
+    }
+  }
 
   // Incidents
-  const incident = doc.sheetsByIndex[0];
-  const incident_raw = await incident.getRows();
-  const incident_rows = incident_raw.map((x) => {
+  const incident_rows = incident_cache.map((x) => {
     return {
       date: x.date,
       happiness: x.happiness,
@@ -164,9 +249,7 @@ exports.showfeedback = async (req, res) => {
   });
 
   // Issues
-  const issue = doc.sheetsByIndex[1];
-  const issue_raw = await issue.getRows();
-  const issue_rows = issue_raw.map((x) => {
+  const issue_rows = issue_cache.map((x) => {
     return {
       last_occured: 0,
       issue_id: x.issue_id,
@@ -242,29 +325,34 @@ exports.editissue = async (req, res) => {
       solved: 'no'
     }] });
   } else {
-    // Check which entries that are newer than provided timestamp
-    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-    await doc.useServiceAccountAuth(creds);
-    await doc.loadInfo();
+    // Load spredsheet if no cache
+    if (issue_cache.length == 0) {
+      // Check which entries that are newer than provided timestamp
+      const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+      await doc.useServiceAccountAuth(creds);
+      await doc.loadInfo();
+
+      const issue = doc.sheetsByIndex[1];
+      const raw = await issue.getRows();
+      raw.forEach(row => {
+        issue_cache.push({
+          issue_id: row.issue_id,
+          issue: row.issue,
+          comment: row.comment,
+          solved: row.solved,
+        });
+      });
+    }
 
     // Issues
-    const issue = doc.sheetsByIndex[1];
-    const issue_raw = await issue.getRows();
-    const issue_rows = issue_raw.filter(f => f.issue_id == id).map((x) => {
-      return {
-        issue_id: x.issue_id,
-        issue: x.issue,
-        comment: x.comment,
-        solved: x.solved,
-      };
-    });
+    const issue_rows = issue_cache.filter(f => f.issue_id == id);
 
     // Return the number of updates to the user
     res.render('feedback_editissue', { issues: issue_rows });
   }
 };
 
-exports.editissue_post = async (req, res) => {
+exports.editissue_post = (req, res) => {
   if (req.user.role == 'guest') {
     return res.redirect('/');
   }
@@ -273,12 +361,7 @@ exports.editissue_post = async (req, res) => {
   const id = req.body.issue_id;
 
   if (id == '0') {
-    // Check which entries that are newer than provided timestamp
-    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-    await doc.useServiceAccountAuth(creds);
-    await doc.loadInfo();
-    const sheet = doc.sheetsByIndex[1];
-
+    // Add new entry to cache before accessing spredsheet
     // In data
     const newcontent = {
       issue_id: Date.now(),
@@ -286,29 +369,49 @@ exports.editissue_post = async (req, res) => {
       comment: req.body.comment,
       solved: req.body.solved,
     };
-    await sheet.addRow(newcontent);
-  } else {
-    // Check which entries that are newer than provided timestamp
-    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-    await doc.useServiceAccountAuth(creds);
-    await doc.loadInfo();
+    issue_cache.push(newcontent);
 
-    // Issues
-    const issue = doc.sheetsByIndex[1];
-    const issue_raw = await issue.getRows();
-    issue_raw.forEach(row_data => {
-      if (row_data.issue_id == id) {
-        row_data.issue = req.body.issue;
-        row_data.comment = req.body.comment;
-        row_data.solved = req.body.solved;
-        row_data.save();
+    // Access spreadsheet
+    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+    doc.useServiceAccountAuth(creds).then(() => {
+      doc.loadInfo().then(() => {
+        const sheet = doc.sheetsByIndex[1];
+        sheet.addRow(newcontent);
+      });
+    });
+  } else {
+    // Update entry to cache before accessing spredsheet
+    issue_cache.forEach(data => {
+      if (data.issue_id == id) {
+        data.issue = req.body.issue;
+        data.comment = req.body.comment;
+        data.solved = req.body.solved;
       }
+    });
+
+    // Access spreadsheet
+    const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
+    doc.useServiceAccountAuth(creds).then(() => {
+      doc.loadInfo().then(() => {
+        // Issues
+        const issue = doc.sheetsByIndex[1];
+        issue.getRows().then((issue_raw) => {
+          issue_raw.forEach(row_data => {
+            if (row_data.issue_id == id) {
+              row_data.issue = req.body.issue;
+              row_data.comment = req.body.comment;
+              row_data.solved = req.body.solved;
+              row_data.save();
+            }
+          });
+        });
+      });
     });
   }
   res.redirect('/meeting/feedback');
 };
 
-exports.editfeedback = async (req, res) => {
+exports.editfeedback = (req, res) => {
   if (req.user.role == 'guest') {
     return res.json({status:"failed"});
   }
@@ -316,20 +419,30 @@ exports.editfeedback = async (req, res) => {
   const incident_id = req.body.incident_id;
   const issue_id = req.body.issue_id;
 
+  // Update cache
+  incident_cache.forEach(data => {
+    if (data.date == incident_id) {
+      data.issue = issue_id;
+      data.updated = Date.now();
+    }
+  });
+
   // Check which entries that are newer than provided timestamp
   const doc = new GoogleSpreadsheet('19dqIEvq8V3A2GKklr9_z5q4r3FZzw7c126QwNX_9oxc');
-  await doc.useServiceAccountAuth(creds);
-  await doc.loadInfo();
-
-  // Incidents
-  const incident = doc.sheetsByIndex[0];
-  const incident_raw = await incident.getRows();
-  incident_raw.forEach(row_data => {
-    if (row_data.date == incident_id) {
-      row_data.issue = issue_id;
-      row_data.updated = Date.now();
-      row_data.save();
-    }
+  doc.useServiceAccountAuth(creds).then(() => {
+    doc.loadInfo().then(() => {
+      // Incidents
+      const incident = doc.sheetsByIndex[0];
+      incident.getRows().then(incident_raw => {
+        incident_raw.forEach(row_data => {
+          if (row_data.date == incident_id) {
+            row_data.issue = issue_id;
+            row_data.updated = Date.now();
+            row_data.save();
+          }
+        });
+      });
+    });
   });
 
   res.json({status:"ok"});
