@@ -238,3 +238,21 @@ textarea {
 svg {
   background-color: white;
 }
+
+#workschedule {
+  border: 1px solid grey;
+}
+.wsday {
+  margin: 2px;
+  border: 1px dashed white;
+  border-radius: 6px;
+}
+.ws_full {
+  background-color: rgb(0, 100, 0);
+}
+.ws_mix {
+  background-color: rgb(50, 50, 0);
+}
+.ws_off {
+  background-color: rgb(25, 0, 0);
+}

@@ -104,6 +104,15 @@ html(lang='en')
       audio#alertsound_4(src="/sounds/398346__henrocker01__wheep-wheep.mp3")
       hr
 
+      if workschedule
+        #workschedule.row
+          each day in workschedule.days 
+            .wsday.col(class=day.category)
+              b= day.date 
+              br
+              i= day.schedule
+        hr
+
       div(class='row')
         div(class='col-sm-12')
           block content

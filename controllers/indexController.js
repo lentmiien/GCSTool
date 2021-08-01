@@ -3,7 +3,7 @@ const axios = require('axios');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Op } = require('../sequelize');
+const { Entry, Content, User, Op, Staff, Schedule2 } = require('../sequelize');
 
 const timekeeper = [];
 
@@ -13,7 +13,7 @@ const jpnews = {
 };
 
 // Load admin data
-exports.all = function (req, res, next) {
+exports.all = async function (req, res, next) {
   res.locals.role = req.user.role;
   res.locals.name = req.user.userid;
 
@@ -68,6 +68,31 @@ exports.all = function (req, res, next) {
         timekeeper.shift();
       }
     }
+  }
+
+  // Load workschedule
+  res.locals.workschedule = { days: [] };
+  const schedule = await Staff.findAll({ include: [{ model: Schedule2 }], where: { name: req.user.userid } });
+  let today = new Date();
+  today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() + 9);// Add 9 hours for Japanese time
+  for(let i = 0; i < 7; i++) {
+    const mm = today.getMonth() > 8 ? (today.getMonth()+1).toString() : '0' + (today.getMonth()+1);
+    const dd = today.getDate() > 9 ? (today.getDate()).toString() : '0' + (today.getDate());
+    res.locals.workschedule.days.push({
+      category: null,
+      date: `${today.getFullYear()}-${mm}-${dd}`,
+      schedule: null
+    });
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, today.getHours());// +1 day loop
+  }
+  for(let i = 0; i < res.locals.workschedule.days.length; i++) {
+    schedule[0].schedule2s.forEach(s => {
+      if(s.date == res.locals.workschedule.days[i].date) {
+        // full / mix / off
+        res.locals.workschedule.days[i].category = s.work.indexOf('work') >= 0 ? 'ws_full' : (s.work == 'off' || s.work == 'holiday' || s.work == 'vacation') ? 'ws_off' : 'ws_mix';
+        res.locals.workschedule.days[i].schedule = s.work;
+      }
+    });
   }
 
   next();
