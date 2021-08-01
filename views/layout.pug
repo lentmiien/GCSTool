@@ -110,7 +110,7 @@ html(lang='en')
             .wsday.col(class=day.category)
               b= day.date 
               br
-              i= day.schedule
+              i(lg_language=`_${day.schedule}_`)
         hr
 
       div(class='row')
