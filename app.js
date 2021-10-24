@@ -14,6 +14,7 @@ var meetingRouter = require('./routes/meeting');
 var countryRouter = require('./routes/country');
 var apiRouter = require('./routes/api');
 var binpackRouter = require('./routes/binpack');
+var hsRouter = require('./routes/hs');
 
 var app = express();
 
@@ -40,6 +41,7 @@ app.use('/meeting', requireAuthenticated, meetingRouter);
 app.use('/country', requireAuthenticated, countryRouter);
 app.use('/api', requireAuthenticated, apiRouter);
 app.use('/binpack', requireAuthenticated, binpackRouter);
+app.use('/hs', requireAuthenticated, hsRouter);
 
 app.get('/logout', (req, res) => {
   req.logOut();

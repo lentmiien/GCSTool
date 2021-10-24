@@ -7,6 +7,7 @@ const HolidayModel = require('./models/holiday');
 const ScheduleModel = require('./models/schedule');
 const Schedule2Model = require('./models/schedule2');
 const UserModel = require('./models/user');
+const HSCodeListModel = require('./models/hscodelist');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -33,6 +34,7 @@ const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
 const Schedule2 = Schedule2Model(sequelize, Sequelize);
 const User = UserModel(sequelize, Sequelize);
+const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -62,6 +64,7 @@ module.exports = {
   Schedule,
   Schedule2,
   User,
+  HSCodeList,
   Op,
   Country,
   Countrylist,

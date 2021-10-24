@@ -256,3 +256,33 @@ svg {
 .ws_off {
   background-color: rgb(25, 0, 0);
 }
+
+.card {
+  border: 5px dashed grey;
+  border-radius: 10px;
+  padding: 7px;
+  margin-bottom: 10px;
+}
+
+.card-done {
+  background-color: rgb(0, 61, 0);
+}
+.card-new {
+  background-color: rgb(61, 0, 0);
+}
+
+.pill {
+  border: 1px solid rgb(78, 78, 107);
+  border-radius: 10px;
+  padding: 2px;
+  background-color: rgb(0, 100, 0);
+  color: rgb(185, 255, 185);
+}
+
+.new_pill {
+  border: 3px solid rgb(78, 107, 78);
+  border-radius: 10px;
+  padding: 2px;
+  background-color: rgb(100, 0, 0);
+  color: rgb(255, 185, 185);
+}

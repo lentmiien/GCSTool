@@ -1,0 +1,597 @@
+[
+ {
+  "name": "Toy plastic figurine",
+  "code": "950300",
+  "uses": 136
+ },
+ {
+  "name": "Sticker (plastic)",
+  "code": "391990",
+  "uses": 15
+ },
+ {
+  "name": "Keychain (acrylic resin. metal)",
+  "code": "392690",
+  "uses": 12
+ },
+ {
+  "name": "Empty Bottle (plastic)",
+  "code": "392310",
+  "uses": 1
+ },
+ {
+  "name": "Neck Strap (polyester)",
+  "code": "630790",
+  "uses": 1
+ },
+ {
+  "name": "Keychain (acrylic resin)",
+  "code": "392690",
+  "uses": 13
+ },
+ {
+  "name": "Sticker",
+  "code": "391990",
+  "uses": 5
+ },
+ {
+  "name": "Keychain (plastic. metal)",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Mug (ceramic)",
+  "code": "691200",
+  "uses": 1
+ },
+ {
+  "name": "Book (Manga/Art book)",
+  "code": "490199",
+  "uses": 10
+ },
+ {
+  "name": "Keychain Set (acrylic resin. metal)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Towel (polyester)",
+  "code": "630493",
+  "uses": 1
+ },
+ {
+  "name": "Light (plastic. paper)",
+  "code": "940592",
+  "uses": 1
+ },
+ {
+  "name": "ID Holder (artificial leather)",
+  "code": "420340",
+  "uses": 1
+ },
+ {
+  "name": "Accessory case (plastic)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Notebook",
+  "code": "482010",
+  "uses": 4
+ },
+ {
+  "name": "Toy figure display (acrylic)",
+  "code": "950300",
+  "uses": 12
+ },
+ {
+  "name": "Acrylic Display (acrylic resin)",
+  "code": "950300",
+  "uses": 12
+ },
+ {
+  "name": "Calendar",
+  "code": "491000",
+  "uses": 2
+ },
+ {
+  "name": "Keyholder (rubber)",
+  "code": "401699",
+  "uses": 2
+ },
+ {
+  "name": "FIGURE-055580 with Bonus item",
+  "code": "481490",
+  "uses": 1
+ },
+ {
+  "name": "Toy plastic model kit",
+  "code": "950300",
+  "uses": 3
+ },
+ {
+  "name": "Watch (acrylic resin. plastic. polyurethane. glass)",
+  "code": "910211",
+  "uses": 1
+ },
+ {
+  "name": "Toy trading card game",
+  "code": "950440",
+  "uses": 3
+ },
+ {
+  "name": "FIGURE-120930 with Bonus item",
+  "code": "481490",
+  "uses": 1
+ },
+ {
+  "name": "FIGURE-118636 with Bonus item",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Keychain Charm",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Pen Stand (acrylic resin)",
+  "code": "392610",
+  "uses": 2
+ },
+ {
+  "name": "Badge",
+  "code": "800700",
+  "uses": 6
+ },
+ {
+  "name": "Display Item (acrylic resin)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Shirt (cotton)",
+  "code": "620520",
+  "uses": 9
+ },
+ {
+  "name": "Card Game (plastic)",
+  "code": "950440",
+  "uses": 2
+ },
+ {
+  "name": "Acrylic Display",
+  "code": "950300",
+  "uses": 3
+ },
+ {
+  "name": "Memo Stand (acrylic resin)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Memo pad (paper)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Plastic Figurine",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Toy plastic doll clothes",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Toy jigsaw puzzle",
+  "code": "950300",
+  "uses": 2
+ },
+ {
+  "name": "Keychain (polyester)",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Embroidery patch",
+  "code": "581092",
+  "uses": 1
+ },
+ {
+  "name": "Decorative tableware",
+  "code": "691200",
+  "uses": 4
+ },
+ {
+  "name": "Blu-ray disc",
+  "code": "852349",
+  "uses": 2
+ },
+ {
+  "name": "Video game software",
+  "code": "852359",
+  "uses": 2
+ },
+ {
+  "name": "Stuffed Doll",
+  "code": "950300",
+  "uses": 6
+ },
+ {
+  "name": "Badge (acrylic resin)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "MED-BOOK-021765 with Bonus item",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Keychain",
+  "code": "392690",
+  "uses": 3
+ },
+ {
+  "name": "Face cover (polyester)",
+  "code": "630790",
+  "uses": 5
+ },
+ {
+  "name": "Mask (polyester)",
+  "code": "630790",
+  "uses": 3
+ },
+ {
+  "name": "File holder (plastic)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Keyholder (acrylic)",
+  "code": "392690",
+  "uses": 16
+ },
+ {
+  "name": "Postcard Set (paper)",
+  "code": "481720",
+  "uses": 2
+ },
+ {
+  "name": "Game Software/Accessory",
+  "code": "852359",
+  "uses": 1
+ },
+ {
+  "name": "Audio CD",
+  "code": "852349",
+  "uses": 2
+ },
+ {
+  "name": "FIGURE-124149 with Bonus item",
+  "code": "950300",
+  "uses": 2
+ },
+ {
+  "name": "Wiping Cloth (microfiber fabric)",
+  "code": "630790",
+  "uses": 2
+ },
+ {
+  "name": "Poster (plastic. polyester)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Toy rail model",
+  "code": "950300",
+  "uses": 6
+ },
+ {
+  "name": "GAME-0025044 with Bonus item",
+  "code": "852349",
+  "uses": 1
+ },
+ {
+  "name": "GAME-0025044 with Bonus item",
+  "code": "630539",
+  "uses": 1
+ },
+ {
+  "name": "Keyholder (metal)",
+  "code": "830890",
+  "uses": 1
+ },
+ {
+  "name": "Plush (polyester)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Figurine (metal)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Memo Pad (paper)",
+  "code": "482010",
+  "uses": 3
+ },
+ {
+  "name": "Hooded Sweatshirt (cotton)",
+  "code": "120721",
+  "uses": 2
+ },
+ {
+  "name": "Shirt",
+  "code": "610510",
+  "uses": 2
+ },
+ {
+  "name": "Sticker Set",
+  "code": "391990",
+  "uses": 1
+ },
+ {
+  "name": "Illustration Card Set",
+  "code": "490900",
+  "uses": 1
+ },
+ {
+  "name": "Masking tape",
+  "code": "391910",
+  "uses": 5
+ },
+ {
+  "name": "Collectible card sleeves (plastic)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Plastic Card Sleeves",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Toy character charm",
+  "code": "392690",
+  "uses": 3
+ },
+ {
+  "name": "Towel (cotton)",
+  "code": "630790",
+  "uses": 1
+ },
+ {
+  "name": "Tote bag (cotton)",
+  "code": "630520",
+  "uses": 1
+ },
+ {
+  "name": "Wallet (polyester)",
+  "code": "420212",
+  "uses": 1
+ },
+ {
+  "name": "Toy plush doll",
+  "code": "950300",
+  "uses": 4
+ },
+ {
+  "name": "Toilet Paper Holder",
+  "code": "630790",
+  "uses": 1
+ },
+ {
+  "name": "Cushion (polyurethane. polyester)",
+  "code": "940490",
+  "uses": 2
+ },
+ {
+  "name": "Empty Bag (polyester)",
+  "code": "630590",
+  "uses": 1
+ },
+ {
+  "name": "MED-CD2-38512 with Bonus item",
+  "code": "491191",
+  "uses": 1
+ },
+ {
+  "name": "Tableware Plate",
+  "code": "691200",
+  "uses": 1
+ },
+ {
+  "name": "Empty Bag (cotton)",
+  "code": "630520",
+  "uses": 2
+ },
+ {
+  "name": "Cup",
+  "code": "701337",
+  "uses": 1
+ },
+ {
+  "name": "Clear File (plastic)",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Smartphone Case (plastic. artificial leather)",
+  "code": "420212",
+  "uses": 1
+ },
+ {
+  "name": "Portable Mirror (plastic. mirror)",
+  "code": "700992",
+  "uses": 3
+ },
+ {
+  "name": "Empty Storage Case",
+  "code": "392690",
+  "uses": 3
+ },
+ {
+  "name": "Poster (polyester)",
+  "code": "630790",
+  "uses": 4
+ },
+ {
+  "name": "Stationery",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Stuffed Doll (polyester)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "ID Holder (plastic)",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Sticky Notes Set (polyurethane. paper)",
+  "code": "482190",
+  "uses": 1
+ },
+ {
+  "name": "Clear File Set (plastic. metal)",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "FIGURE-124655 with Bonus item",
+  "code": "392690",
+  "uses": 1
+ },
+ {
+  "name": "Keychain (plastic. rubber)",
+  "code": "401699",
+  "uses": 2
+ },
+ {
+  "name": "Book (Novel)",
+  "code": "490199",
+  "uses": 1
+ },
+ {
+  "name": "Cutlery (plastic)",
+  "code": "392690",
+  "uses": 2
+ },
+ {
+  "name": "Key Case (artificial leather)",
+  "code": "420211",
+  "uses": 1
+ },
+ {
+  "name": "Portable Mirror (mirror. polyester. glass)",
+  "code": "700992",
+  "uses": 1
+ },
+ {
+  "name": "Toy playing cards",
+  "code": "950440",
+  "uses": 1
+ },
+ {
+  "name": "Wallet (artificial leather)",
+  "code": "420211",
+  "uses": 2
+ },
+ {
+  "name": "Wallet (artificial leather. polyester. metal)",
+  "code": "420211",
+  "uses": 2
+ },
+ {
+  "name": "Key Case (leather)",
+  "code": "420211",
+  "uses": 1
+ },
+ {
+  "name": "Music box",
+  "code": "920810",
+  "uses": 2
+ },
+ {
+  "name": "ID Holder (artificial leather. metal)",
+  "code": "420212",
+  "uses": 1
+ },
+ {
+  "name": "Sticky Notes (polyurethane. paper)",
+  "code": "482190",
+  "uses": 1
+ },
+ {
+  "name": "Mouse pad (rubber)",
+  "code": "401699",
+  "uses": 1
+ },
+ {
+  "name": "Letter set (paper)",
+  "code": "481720",
+  "uses": 1
+ },
+ {
+  "name": "Empty Pouch (plastic. polyester. metal)",
+  "code": "420212",
+  "uses": 1
+ },
+ {
+  "name": "Used Toy",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Plastic Figurine Set (plastic)",
+  "code": "950300",
+  "uses": 1
+ },
+ {
+  "name": "Plush Toy",
+  "code": "950300",
+  "uses": 2
+ },
+ {
+  "name": "Smartphone Case (glass)",
+  "code": "702000",
+  "uses": 1
+ },
+ {
+  "name": "FIGURE-054758 with Bonus item",
+  "code": "481490",
+  "uses": 2
+ },
+ {
+  "name": "Cushion Cover (polyester)",
+  "code": "630493",
+  "uses": 1
+ },
+ {
+  "name": "Stationery (plastic. metal. wood)",
+  "code": "741999",
+  "uses": 1
+ },
+ {
+  "name": "Badge (metal)",
+  "code": "800700",
+  "uses": 1
+ },
+ {
+  "name": "Mouse Pad (rubber)",
+  "code": "401699",
+  "uses": 1
+ },
+ {
+  "name": "Cutlery",
+  "code": "392690",
+  "uses": 1
+ }
+]
