@@ -179,7 +179,7 @@ exports.previous = (req, res) => {
     toUpdate.forEach(update => {
       let updated = false;
       entries.forEach(entry => {
-        if (entry.name == update.name) {
+        if (entry.name == update.name && entry.code == update.code) {
           // Update existing entry
           updated = true;
           HSCodeList.update({uses: entry.uses + update.uses}, { where: { id: entry.id } });
