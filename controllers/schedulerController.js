@@ -624,3 +624,108 @@ exports.analyze_schedule = function (req, res) {
     res.redirect('/scheduler');
   }
 };
+
+exports.schedule_csv = (req, res) => {
+  if (req.user.role === 'admin' || req.user.userid === 'Yokoyama') {
+    // Access DB
+    async.parallel(
+      {
+        staff: function (callback) {
+          Staff.findAll({ include: [{ model: Schedule2 }] }).then((staff) => callback(null, staff));
+        },
+        holidays: function (callback) {
+          Holiday.findAll().then((holidays) => callback(null, holidays));
+        },
+      },
+      function (err, results) {
+        const year = parseInt(req.query.year);
+        const holidays = [];
+        results.holidays.forEach(holiday => {
+          const hdate = new Date(holiday.date);
+          if (hdate.getFullYear() == year) {
+            holidays.push(holiday.date);
+          }
+        });
+        const year_schedule = [];// 1 row per date, date in first column, followed by 1 column per staff member
+        const year_lookup = [];
+        for (let d = new Date(year, 0, 1); d.getFullYear() == year; d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)) {
+          const d_str = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth() + 1 : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
+          year_schedule.push([d_str]);
+          year_lookup.push(d_str);
+        }
+        const year_schedule_headder = ['日付'];// Followed by 1 column per staff member
+        const year_schedule_fotter1 = ['合計出勤(242)'];// Followed by 1 column per staff member
+        const year_schedule_fotter2 = ['合計定休(102)'];// Followed by 1 column per staff member
+        const year_schedule_fotter3 = ['合計祝日(21)'];// Followed by 1 column per staff member
+        const schedule_changes = [];// 1 entry per staff member, specifying all changes from default schedule
+        results.staff.forEach((staff, i) => {
+          year_schedule_headder.push(staff.name);
+          year_schedule_fotter1.push(0);
+          year_schedule_fotter2.push(0);
+          year_schedule_fotter3.push(0);
+          schedule_changes.push({
+            name: staff.name,
+            changes: []
+          });
+          
+          // Loop scheduled
+          staff.schedule2s.forEach(schedule_day => {
+            const sd = new Date(schedule_day.date);
+            if(sd.getFullYear() == year) {
+              let regular_schedule = staff[`day${sd.getDay()}`];
+              if (holidays.indexOf(schedule_day.date) >= 0) {
+                regular_schedule = 'holiday';
+              }
+
+              // Populate data
+              const index = year_lookup.indexOf(schedule_day.date);
+              if (schedule_day.work == 'off') {
+                year_schedule_fotter2[i+1]++;
+                year_schedule[index][i+1] = "定休";
+              } else if (schedule_day.work == 'holiday') {
+                year_schedule_fotter3[i+1]++;
+                year_schedule[index][i+1] = "祝日";
+              } else {
+                year_schedule_fotter1[i+1]++;
+                year_schedule[index][i+1] = "出勤";
+              }
+              // Handle changes
+              const converter = {
+                holiday: "祝日",
+                telwork: "出勤",
+                work: "出勤",
+                vacation: "出勤",
+                off: "定休",
+              };
+              if (converter[regular_schedule] != converter[schedule_day.work]) {
+                schedule_changes[i].changes.push([schedule_day.date, `${converter[regular_schedule]}　→　${converter[schedule_day.work]}`]);
+              }
+            }
+          });
+        });
+
+        let outdata = year_schedule_headder.join(",") + "\n";
+        year_schedule.forEach(entry => {
+          outdata += entry.join(",") + "\n";
+        });
+        outdata += year_schedule_fotter1.join(",") + "\n";
+        outdata += year_schedule_fotter2.join(",") + "\n";
+        outdata += year_schedule_fotter3.join(",") + "\n";
+
+        schedule_changes.forEach(sc => {
+          outdata += "\n" + sc.name + "\n";
+          sc.changes.forEach(c => {
+            outdata += c.join(",") + "\n";
+          });
+        });
+
+        // Return CSV data
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="schedule_${year}.csv"`);
+        res.send(outdata);
+      }
+    );
+  } else {
+    res.redirect('/scheduler');
+  }
+};

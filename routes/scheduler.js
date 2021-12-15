@@ -63,4 +63,7 @@ router.get('/updatelog', scheduler_controller.view_changelog);
 // Analyze
 router.get('/analyze', scheduler_controller.analyze_schedule);
 
+// Get CSV file
+router.get('/csv', scheduler_controller.schedule_csv);
+
 module.exports = router;
