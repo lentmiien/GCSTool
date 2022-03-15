@@ -9,7 +9,11 @@ block content
         a.btn.btn-link(href='/scheduler/addholiday', lg_language='_manage_holiday_')
         | 
         a.btn.btn-link(href=`/scheduler/csv?year=${(new Date()).getFullYear()+1}`) CSV
-        hr
+    - const d = new Date()
+    a.btn.btn-link(href=`/scheduler/analyze?year=${d.getFullYear()}`)= `${d.getFullYear()} schedule`
+    if d.getMonth() == 11
+        a.btn.btn-link(href=`/scheduler/analyze?year=${d.getFullYear()+1}`)= `${d.getFullYear()+1} schedule`
+    hr
     - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
     div.hidden= today.toUTCString()
     - const a_week = []
