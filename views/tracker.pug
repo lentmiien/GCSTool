@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  h1 Tracker 
+  .row 
+    .col 
+      div Status: 
+        b#status ---
+      div Last updated: 
+        b#lastupdated ---
+  .row 
+    .col 
+      input#trackingnumber.form-control(type="text", name="trackingnumber", placeholder="Tracking number to add (max 1 at time)")
+      button.btn.btn-primary(onclick="Add()") Add
+      a.btn.btn-primary(href="/tracker") Refresh page 
+  .row 
+    .col 
+      table.table.table-dark.table-striped 
+        thead 
+          tr 
+            th Tracking 
+            th Shipped 
+            th Delivered 
+            th Last checked 
+            th Status 
+            th Action 
+        tbody#table_output
+  script(src="/javascripts/tracker_controller.js")

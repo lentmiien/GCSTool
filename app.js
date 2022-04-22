@@ -15,6 +15,7 @@ var countryRouter = require('./routes/country');
 var apiRouter = require('./routes/api');
 var binpackRouter = require('./routes/binpack');
 var hsRouter = require('./routes/hs');
+var trackerRouter = require('./routes/tracker');
 
 var app = express();
 
@@ -42,6 +43,7 @@ app.use('/country', requireAuthenticated, countryRouter);
 app.use('/api', requireAuthenticated, apiRouter);
 app.use('/binpack', requireAuthenticated, binpackRouter);
 app.use('/hs', requireAuthenticated, hsRouter);
+app.use('/tracker', requireAuthenticated, trackerRouter);
 
 app.get('/logout', (req, res) => {
   req.logOut();

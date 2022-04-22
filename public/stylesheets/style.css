@@ -187,7 +187,7 @@ textarea {
 .stickyheader {
   position: sticky;
   top: 0;
-  background-color: #888888"
+  background-color: #888888
 }
 
 .f_fact {
@@ -285,4 +285,32 @@ svg {
   padding: 2px;
   background-color: rgb(100, 0, 0);
   color: rgb(255, 185, 185);
+}
+
+/* Tracker styles */
+.fullscreen-popup {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+}
+.popup-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.popup-title {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+.popup-history {
+  position: absolute;
+  top: 50px;
+  left: 0px;
+  bottom: 0px;
+  width: 100%;
+  overflow-y: scroll;
 }
