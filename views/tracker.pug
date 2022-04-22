@@ -3,15 +3,19 @@ extends layout
 block content
   h1 Tracker 
   .row 
-    .col 
+    .col-6 
       div Status: 
         b#status ---
+    .col-6
       div Last updated: 
         b#lastupdated ---
-  .row 
-    .col 
-      input#trackingnumber.form-control(type="text", name="trackingnumber", placeholder="Tracking number to add (max 1 at time)")
-      button.btn.btn-primary(onclick="Add()") Add
+  .row.mt-3 
+    .col-10 
+      .input-group.mb-3
+        input#trackingnumber.form-control(type="text", name="trackingnumber", placeholder="Tracking number to add (max 1 at time)")
+        .input-group-append
+          button.btn.btn-primary(onclick="Add()") Add
+    .col-2
       a.btn.btn-primary(href="/tracker") Refresh page 
   .row 
     .col 
@@ -25,4 +29,11 @@ block content
             th Status 
             th Action 
         tbody#table_output
+  .row 
+    .col 
+      h2 Notes 
+      ul 
+        li Tracking numbers are saved in the browser, when switching to other browser or computer, tracking number will not be there 
+        li When status says "Updating", wait for a few minutes and refresh the page for the latest updates
+        li After adding new tracking numbers, refresh the page to start updating the tracking details
   script(src="/javascripts/tracker_controller.js")

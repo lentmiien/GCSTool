@@ -88,6 +88,12 @@ function UpdateTable() {
       document.getElementById(`delivered_${entry.tracking}`).innerText = entry.delivereddate > 1 ? (new Date(entry.delivereddate)).toDateString() : '---';
       // td Last checked 
       document.getElementById(`lastchecked_${entry.tracking}`).innerText = entry.lastchecked > 1 ? (new Date(entry.lastchecked)).toDateString() : '---';
+      // Add above: [Delivered -> "Done"] or [If expired -> "Expired"]
+      if (entry.delivereddate > 1) document.getElementById(`lastchecked_${entry.tracking}`).innerHTML += ' <b class="tracker-done">Done</b>';
+      else if (
+        (entry.carrier == "JP" && entry.shippeddate < Date.now() - (1000*60*60*24*160)) ||
+        (entry.carrier == "DHL" && entry.shippeddate < Date.now() - (1000*60*60*24*90)) ||
+        (entry.carrier == "USPS" && entry.addeddate < Date.now() - (1000*60*60*24*90))) document.getElementById(`lastchecked_${entry.tracking}`).innerHTML += ' <b class="tracker-expired">Expired</b>';
       // td Status 
       document.getElementById(`status_${entry.tracking}`).innerText = entry.status;
     }

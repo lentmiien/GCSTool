@@ -54,7 +54,9 @@ exports.getdata = (req, res) => {
       response.forEach(entry => {
         database_cache[user_id].list.push({
           tracking: entry.tracking,
+          carrier: entry.carrier,
           country: entry.country,
+          addeddate: entry.addeddate,
           lastchecked: entry.lastchecked,
           status: entry.status,
           shippeddate: entry.shippeddate,

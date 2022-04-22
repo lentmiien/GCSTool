@@ -314,3 +314,17 @@ svg {
   width: 100%;
   overflow-y: scroll;
 }
+.tracker-done {
+  border: 1px solid greenyellow;
+  background-color: black;
+  color: greenyellow;
+  border-radius: 3px;
+  padding: 2px;
+}
+.tracker-expired {
+  border: 1px solid rgb(255, 95, 47);
+  background-color: black;
+  color: rgb(255, 95, 47);
+  border-radius: 3px;
+  padding: 2px;
+}
