@@ -1,39 +1,43 @@
 extends layout
 
 block content
-  h1 Tracker 
+  h1(lg_language='_tracker_')
   .row 
     .col-6 
-      div Status: 
+      div
+        span(lg_language='_status_')
+        | : 
         b#status ---
     .col-6
-      div Last updated: 
+      div
+        span(lg_language='_last_updated_')
+        | : 
         b#lastupdated ---
   .row.mt-3 
     .col-10 
       .input-group.mb-3
         input#trackingnumber.form-control(type="text", name="trackingnumber", placeholder="Tracking number to add (max 1 at time)")
         .input-group-append
-          button.btn.btn-primary(onclick="Add()") Add
+          button.btn.btn-primary(onclick="Add()", lg_language='_submit_add_')
     .col-2
-      a.btn.btn-primary(href="/tracker") Refresh page 
+      a.btn.btn-primary(href="/tracker", lg_language='_refresh_page_')
   .row 
     .col 
       table.table.table-dark.table-striped 
         thead 
           tr 
-            th Tracking 
-            th Shipped 
-            th Delivered 
-            th Last checked 
-            th Status 
-            th Action 
+            th(lg_language='_tracking_')
+            th(lg_language='_shipped_')
+            th(lg_language='_delivered_')
+            th(lg_language='_last_updated_')
+            th(lg_language='_status_')
+            th(lg_language='_action_')
         tbody#table_output
   .row 
     .col 
-      h2 Notes 
+      h2(lg_language='_notes_')
       ul 
-        li Tracking numbers are saved in the browser, when switching to other browser or computer, tracking number will not be there 
-        li When status says "Updating", wait for a few minutes and refresh the page for the latest updates
-        li After adding new tracking numbers, refresh the page to start updating the tracking details
+        li(lg_language='_tracker_1_')
+        li(lg_language='_tracker_2_')
+        li(lg_language='_tracker_3_')
   script(src="/javascripts/tracker_controller.js")

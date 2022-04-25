@@ -812,12 +812,73 @@ var json_language = {
     japanese:
       "<h4>テンプレート・会社連絡はテキストフォーマット</h4>入力したままに保存したり、表示したりする。<h4>マニュアルはHTMLフォーマット</h4>＊一部の一般的なHTMLタグ<br><b>&lt;br&gt;</b><span>：　改行</span><br><b>&lt;b&gt;ボルド&lt;/b&gt;</b><br><b>&lt;i&gt;イタリック&lt;/i&gt;</b><br><b>&lt;u&gt;下線&lt;/u&gt;</b><br><b>&lt;h1&gt;タイトル（大）&lt;/h1&gt;</b><br>（大） h1 - h2 - h3 - h4 - h5 （小）<br><b>&lt;h5&gt;タイトル（小）&lt;/h5&gt;</b><br><b>&lt;ol&gt;&lt;li&gt;番号リスト#1&lt;/li&gt;&lt;li&gt;番号リスト#2&lt;/li&gt;&lt;/ol&gt;</b><br><b>&lt;ul&gt;&lt;li&gt;ドットリスト&lt;/li&gt;&lt;li&gt;ドットリスト&lt;/li&gt;&lt;/ul&gt;</b><br>リンクボタン (フィルター言葉, タグ, テンプレートです, マニュアルです, 会社連絡です)<br><b>&lt;button onclick=\"SetFilter('cancel', '_', 'true', 'true', 'true')\"&gt;ボタンテキスト&lt;/button&gt;</b><hr><b>&lt;div class=\"lennart\"&gt;レンナルトからのメッセージ&lt;/div&gt;</b><span>：色付きのテキスト枠、名前を変更したら、色も変わる</span>",
   },
+  _tracker_: {
+    english: 'Tracker',
+    swedish: 'Spåra',
+    japanese: '追跡'
+  },
+  _status_: {
+    english: 'Status',
+    swedish: 'Status',
+    japanese: 'ステータス'
+  },
+  _last_updated_: {
+    english: 'Last updated',
+    swedish: 'Senast uppdaterad',
+    japanese: '最新更新'
+  },
+  _refresh_page_: {
+    english: 'Refresh page',
+    swedish: 'Uppdatera sidan',
+    japanese: 'ページをリフレッシュ'
+  },
+  _tracking_: {
+    english: 'Tracking #',
+    swedish: 'Spårning #',
+    japanese: '追跡番号'
+  },
+  _shipped_: {
+    english: 'Shipped',
+    swedish: 'Skickad',
+    japanese: '出荷'
+  },
+  _delivered_: {
+    english: 'Delivered',
+    swedish: 'Levererad',
+    japanese: '配達'
+  },
+  _action_: {
+    english: 'Action',
+    swedish: 'Handling',
+    japanese: '行動'
+  },
+  _notes_: {
+    english: 'Notes',
+    swedish: 'Notera',
+    japanese: '注意'
+  },
+  _tracker_1_: {
+    english: 'Tracking numbers are saved in the browser, when switching to other browser or computer, tracking number will not be there',
+    swedish: 'Spårnings nummer är sparade i webläsaren, när du byter till annan webläsare eller dator, så kommer spårnings nummrena inte vara där',
+    japanese: '追跡番号がブラウザのメモリの保存される、ブラウザ・パソコンを替えたら、追跡番号が見られない'
+  },
+  _tracker_2_: {
+    english: 'When status says "Updating", wait for a few minutes and refresh the page for the latest updates',
+    swedish: 'När statusen är "Updating", vänta några minuter och updatera sidan för dom senates updateringarna',
+    japanese: 'ステータスが「Updating」になっている時には、数分待ちしてページをリフレッシュしたら、最新情報が見られる'
+  },
+  _tracker_3_: {
+    english: 'After adding new tracking numbers, refresh the page to start updating the tracking details',
+    swedish: 'När du har lagt till nya spårnings nummer, updatera sidan för att börja updatera spårnings statusen',
+    japanese: '新規追跡番号を追加してから、ページをリフレッシュしたら、情報更新が始まる'
+  },
   /*,
   __: {
     english: '',
     swedish: '',
     japanese: ''
   }
+  åäöÅÄÖ
   */
 };
 
