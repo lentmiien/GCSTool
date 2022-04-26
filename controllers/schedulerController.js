@@ -1,6 +1,11 @@
 const async = require('async');
+const fs = require('fs');
+
 // Require necessary database models
 const { User, Staff, Holiday, Schedule2 } = require('../sequelize');
+
+// Require settings
+const settings = require('../data/Scheduler_settings.json');
 
 // Schedule change log
 const scheduler_change_log = [];
@@ -364,7 +369,7 @@ exports.display_personal_schedule = async function (req, res) {
         schedule[`${parseInt(date[0])}-${parseInt(date[1]) - 1}-${parseInt(date[2])}`] = entry.work;
       }
     });
-    res.render('s_personal_schedule', { id: req.params.id, schedule, schedule_name: staff_name.name, show_year: req.query.year });
+    res.render('s_personal_schedule', { id: req.params.id, schedule, schedule_name: staff_name.name, show_year: req.query.year, total_days_off: settings.total_days_off, total_holidays: settings.total_holidays });
   });
 };
 
@@ -725,3 +730,24 @@ exports.schedule_csv = (req, res) => {
     res.redirect('/scheduler');
   }
 };
+
+exports.settings_page = (req, res) => {
+  if (req.user.role === 'admin') {
+    res.render('scheduler_settings', {settings});
+  } else {
+    res.redirect('/scheduler');
+  }
+}
+
+exports.settings_post = (req, res) => {
+  if (req.user.role === 'admin') {
+    // Process input {setting: setting.value, key: key.value, value: value.value}
+    // Add/Update data in [settings]
+    settings[req.body.setting][req.body.key] = req.body.value;
+    // Save to "../data/Scheduler_settings.json"
+    fs.writeFile("./data/Scheduler_settings.json", JSON.stringify(settings), err => console.log(err));
+    res.json({status: "Ok"});
+  } else {
+    res.json({status: "Error: Need to be admin"});
+  }
+}

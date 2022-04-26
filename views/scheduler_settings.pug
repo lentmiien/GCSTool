@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1 Edit [Scheduler_settings.json]
+  pre= JSON.stringify(settings, null, 2)
+  - const setting_keys = Object.keys(settings)
+  select#setting.form-control(name="setting") 
+    each key in setting_keys
+      option(value=key)= key 
+  label(for="key") Key
+  input#key.form-control(type="text", name="key") 
+  label(for="value") Value
+  input#value.form-control(type="text", name="value") 
+  button.btn.btn-primary(onclick="Edit()") Edit
+  #output
+  script(src="/javascripts/scheduler_settings.js") 

@@ -9,6 +9,8 @@ block content
         a.btn.btn-link(href='/scheduler/addholiday', lg_language='_manage_holiday_')
         | 
         a.btn.btn-link(href=`/scheduler/csv?year=${(new Date()).getFullYear()+1}`) CSV
+        | 
+        a.btn.btn-link(href='/scheduler/settings') Settings
     - const d = new Date()
     a.btn.btn-link(href=`/scheduler/analyze?year=${d.getFullYear()}`)= `${d.getFullYear()} schedule`
     if d.getMonth() == 11

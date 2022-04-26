@@ -66,4 +66,7 @@ router.get('/analyze', scheduler_controller.analyze_schedule);
 // Get CSV file
 router.get('/csv', scheduler_controller.schedule_csv);
 
+router.get('/settings', scheduler_controller.settings_page);
+router.post('/settings', scheduler_controller.settings_post);
+
 module.exports = router;
