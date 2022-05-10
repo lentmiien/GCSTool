@@ -11,7 +11,7 @@ block content
       tr
         th(span="col") Date
         each team in teams
-          th(span="col")= `${team} (kanri)`
+          th(span="col", lg_language=`${team}`)
     tbody
       each date_data in data
         - let this_month = parseInt(date_data.date.split("-")[1])

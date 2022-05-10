@@ -857,6 +857,11 @@ var json_language = {
     swedish: 'Notera',
     japanese: '注意'
   },
+  _tracker_: {
+    english: 'Tracker',
+    swedish: 'Spårare',
+    japanese: '追跡ツール'
+  },
   _tracker_1_: {
     english: 'Tracking numbers are saved in the browser, when switching to other browser or computer, tracking number will not be there',
     swedish: 'Spårnings nummer är sparade i webläsaren, när du byter till annan webläsare eller dator, så kommer spårnings nummrena inte vara där',
