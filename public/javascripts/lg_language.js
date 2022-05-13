@@ -877,6 +877,11 @@ var json_language = {
     swedish: 'När du har lagt till nya spårnings nummer, updatera sidan för att börja updatera spårnings statusen',
     japanese: '新規追跡番号を追加してから、ページをリフレッシュしたら、情報更新が始まる'
   },
+  _test_: {
+    english: 'Test',
+    swedish: 'Test',
+    japanese: '試し'
+  },
   /*,
   __: {
     english: '',
