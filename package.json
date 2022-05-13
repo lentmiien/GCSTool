@@ -2,10 +2,12 @@
   "name": "gcstool",
   "version": "2.6.2",
   "private": true,
+  "description": "A tool for Oh-ami Global Customer Support department.",
+  "author": {
+    "name": "Lennart Granstrom"
+  },
   "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon ./bin/www",
-    "test": "node test"
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "async": "^3.2.0",
