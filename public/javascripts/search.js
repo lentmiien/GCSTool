@@ -158,18 +158,18 @@ function ChangeSearch() {
           if (output[i][`${key}_small_sample`]) {
             document.getElementById(`${key}_available`).innerHTML += `<b style="color:red;">△</b>`;
           }
-          document.getElementById(`${key}_average`).innerHTML = `${
-            output[i][`${key}_averagetime`] > 0 ? Math.round(10 * output[i][`${key}_averagetime`]) / 10 : '--'
-          } days <span class="${
-            Math.round(10 * output[i][`${key}_averagetime`]) / 10 - output[i][`${key}_totalaveragetime`] < 0 ? 'fast' : 'slow'
-          }" title="Overall average shipping time: ${output[i][`${key}_totalaveragetime`]} days">(${
-            output[i][`${key}_averagetime`] > 0
-              ? Math.round(10 * (output[i][`${key}_averagetime`] - output[i][`${key}_totalaveragetime`])) / 10
-              : '--'
-          } days)</span>`;
-          document.getElementById(`${key}_lastshipped`).innerHTML = `${
-            output[i][`${key}_lastsucessfullyshipped`] > 0 ? new Date(output[i][`${key}_lastsucessfullyshipped`]).toDateString() : ''
-          }`;
+          // document.getElementById(`${key}_average`).innerHTML = `${
+          //   output[i][`${key}_averagetime`] > 0 ? Math.round(10 * output[i][`${key}_averagetime`]) / 10 : '--'
+          // } days <span class="${
+          //   Math.round(10 * output[i][`${key}_averagetime`]) / 10 - output[i][`${key}_totalaveragetime`] < 0 ? 'fast' : 'slow'
+          // }" title="Overall average shipping time: ${output[i][`${key}_totalaveragetime`]} days">(${
+          //   output[i][`${key}_averagetime`] > 0
+          //     ? Math.round(10 * (output[i][`${key}_averagetime`] - output[i][`${key}_totalaveragetime`])) / 10
+          //     : '--'
+          // } days)</span>`;
+          // document.getElementById(`${key}_lastshipped`).innerHTML = `${
+          //   output[i][`${key}_lastsucessfullyshipped`] > 0 ? new Date(output[i][`${key}_lastsucessfullyshipped`]).toDateString() : ''
+          // }`;
         }
       }
     }
