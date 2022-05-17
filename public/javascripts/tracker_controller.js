@@ -1,3 +1,5 @@
+const SurfaceParcel_label_id = 25; // Surface Parcel in AmiAmi DB (won't work at home)
+
 // Get data from server
 const tracking_numbers = localStorage.getItem("tracking") ? JSON.parse(localStorage.getItem("tracking")) : [];
 if (tracking_numbers.length > 0) {
@@ -91,7 +93,8 @@ function UpdateTable() {
       // Add above: [Delivered -> "Done"] or [If expired -> "Expired"]
       if (entry.delivereddate > 1) document.getElementById(`lastchecked_${entry.tracking}`).innerHTML += ' <b class="tracker-done">Done</b>';
       else if (
-        (entry.carrier == "JP" && entry.shippeddate < Date.now() - (1000*60*60*24*160)) ||
+        (entry.carrier == "JP" && entry.grouplabel == SurfaceParcel_label_id && entry.shippeddate < Date.now() - (1000*60*60*24*300)) ||
+        (entry.carrier == "JP" && entry.grouplabel != SurfaceParcel_label_id && entry.shippeddate < Date.now() - (1000*60*60*24*160)) ||
         (entry.carrier == "DHL" && entry.shippeddate < Date.now() - (1000*60*60*24*90)) ||
         (entry.carrier == "USPS" && entry.addeddate < Date.now() - (1000*60*60*24*90))) document.getElementById(`lastchecked_${entry.tracking}`).innerHTML += ' <b class="tracker-expired">Expired</b>';
       // td Status 
