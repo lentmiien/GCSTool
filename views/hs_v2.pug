@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 1. Select input file
+  p When detecting that a file has been selected, connect to server API, send item names, and receive HS code suggestions.
+  input#inputfile(type="file", name="inputfile")
+  h1 2. Select and verify HS codes
+  p First select an input file above, then edit the HS codes below.
+  a(href="https://hts.usitc.gov/", target="_blank") HS lookup tool (HTS, HS first 6 digits)
+  div#hsinput
+  h1 3. Generate output file
+  p When done, press the button below to save the output CSV file.
+  button(onclick="Generate()") Generate CSV
+
+  pre#sections_lookup.hidden= JSON.stringify(sections_lookup)
+  pre#headings_lookup.hidden= JSON.stringify(headings_lookup)
+  pre#entries.hidden= JSON.stringify(entries)
+
+  script(src='/javascripts/FileSaver.js', defer)
+  script(src='/javascripts/hs_controller_v2.js', defer)

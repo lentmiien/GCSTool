@@ -13,5 +13,8 @@ router.get('/', controller.index);
 router.post('/suggestions', controller.suggestions);
 router.post('/previous', controller.previous);
 
+// Version 2
+router.get('/v2', controller.index_v2);
+
 // Export router
 module.exports = router;

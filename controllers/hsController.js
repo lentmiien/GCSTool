@@ -195,3 +195,10 @@ exports.previous = (req, res) => {
   // Return something...
   res.json({ status: "OK" })
 };
+
+exports.index_v2 = (req, res) => {
+  // Load database and send data to hs_v2.pug
+  HSCodeList.findAll().then(entries => {
+    res.render('hs_v2', { sections_lookup, headings_lookup, entries })
+  });
+};

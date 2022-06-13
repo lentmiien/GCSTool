@@ -329,3 +329,16 @@ svg {
   border-radius: 3px;
   padding: 2px;
 }
+
+/* HS code editor */
+.new_hs {
+  color: yellow;
+  font-weight: 900;
+}
+.highlight {
+  border: 1px solid greenyellow;
+  color: greenyellow;
+  background-color: rgb(0, 68, 0);
+  padding: 1px;
+  margin: 1px;
+}
