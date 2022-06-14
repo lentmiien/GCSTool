@@ -117,7 +117,7 @@ window.addEventListener('load', function () {
         const u_td3 = document.createElement("td");
         u_td3.id = `u${i}`;
         u_td3.innerText = ue.hs;
-        u_td3.title = headings_lookup[ue.hs]?.description;
+        u_td3.title = ue.hs in headings_lookup ? headings_lookup[ue.hs].description : 'Undefined';
         const u_td4 = document.createElement("td");
         const u_td4_edit = document.createElement("button");
         u_td4_edit.innerText = "Edit";
@@ -150,7 +150,7 @@ window.addEventListener('load', function () {
         const u_td3 = document.createElement("td");
         u_td3.id = `u${i}`;
         u_td3.innerText = ue.hs;
-        u_td3.title = headings_lookup[ue.hs]?.description;
+        u_td3.title = ue.hs in headings_lookup ? headings_lookup[ue.hs].description : 'Undefined';
         const u_td4 = document.createElement("td");
         const u_td4_edit = document.createElement("button");
         u_td4_edit.innerText = "Edit";
@@ -239,7 +239,7 @@ window.addEventListener('load', function () {
         const o_td3 = document.createElement("td");
         o_td3.id = `${order.order}_${i}`;
         o_td3.innerText = oe.hs;
-        o_td3.title = headings_lookup[oe.hs]?.description;
+        o_td3.title = oe.hs in headings_lookup ? headings_lookup[oe.hs].description : 'Undefined';
         const o_td4 = document.createElement("td");
         const o_td4_edit = document.createElement("button");
         o_td4_edit.id = `${order.order}_${i}_btn`;
@@ -449,17 +449,17 @@ function ClosePopup() {
   if (HSCODE != '---') {
     if (current_id) {
       document.getElementById(current_id).innerText = HSCODE;
-      document.getElementById(current_id).title = headings_lookup[HSCODE]?.description;
+      document.getElementById(current_id).title = HSCODE in headings_lookup ? headings_lookup[HSCODE].description : 'Undefined';
       document.getElementById(current_id+'_btn').classList.remove('btn-danger');
       document.getElementById(current_id+'_btn').classList.add('btn-success');
     } else {
       document.getElementById(`u${unique_entries.indexOf(current_name)}`).innerText = HSCODE;
-      document.getElementById(`u${unique_entries.indexOf(current_name)}`).title = headings_lookup[HSCODE]?.description;
+      document.getElementById(`u${unique_entries.indexOf(current_name)}`).title = HSCODE in headings_lookup ? headings_lookup[HSCODE].description : 'Undefined';
       orders.forEach(order => {
         order.data.forEach((entry, i) => {
           if (entry.name == current_name) {
             document.getElementById(`${order.order}_${i}`).innerText = HSCODE;
-            document.getElementById(`${order.order}_${i}`).title = headings_lookup[HSCODE]?.description;;
+            document.getElementById(`${order.order}_${i}`).title = HSCODE in headings_lookup ? headings_lookup[HSCODE].description : 'Undefined';
           }
         });
       });
