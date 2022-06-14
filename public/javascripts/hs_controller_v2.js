@@ -87,6 +87,7 @@ window.addEventListener('load', function () {
     const u_th1 = document.createElement("th");
     u_th1.innerText = 'Invoice';
     const u_th2 = document.createElement("th");
+    u_th2.innerText = 'Count / Previous';
     const u_th3 = document.createElement("th");
     u_th3.innerText = 'HS code';
     const u_th4 = document.createElement("th");
@@ -104,34 +105,79 @@ window.addEventListener('load', function () {
     u_table.appendChild(u_thead);
     const u_tbody = document.createElement("tbody");
     unique_entries_details.forEach((ue, i) => {
-      const u_tdrow = document.createElement("tr");
-      const u_td0 = document.createElement("td");
-      u_td0.classList.add('new_hs');
-      u_td0.innerText = ue.prev_use == 0 ? "NEW" : "";
-      const u_td1 = document.createElement("td");
-      u_td1.innerText = ue.name;
-      const u_td2 = document.createElement("td");
-      u_td2.innerText = `${ue.count}/${ue.prev_use}`;
-      const u_td3 = document.createElement("td");
-      u_td3.id = `u${i}`;
-      u_td3.innerText = ue.hs;
-      const u_td4 = document.createElement("td");
-      const u_td4_edit = document.createElement("button");
-      u_td4_edit.innerText = "Edit";
-      u_td4_edit.classList.add('btn');
-      u_td4_edit.classList.add('btn-primary');
-      u_td4_edit.addEventListener('click', e => { Edit(ue.name, null); });
-      u_td4.appendChild(u_td4_edit);
-
-      u_tdrow.appendChild(u_td0);
-      u_tdrow.appendChild(u_td1);
-      u_tdrow.appendChild(u_td2);
-      u_tdrow.appendChild(u_td3);
-      u_tdrow.appendChild(u_td4);
-      u_tbody.appendChild(u_tdrow);
-      u_table.appendChild(u_tbody);
+      if (ue.prev_use == 0) {
+        const u_tdrow = document.createElement("tr");
+        const u_td0 = document.createElement("td");
+        u_td0.classList.add('new_hs');
+        u_td0.innerText = ue.prev_use == 0 ? "NEW" : "";
+        const u_td1 = document.createElement("td");
+        u_td1.innerText = ue.name;
+        const u_td2 = document.createElement("td");
+        u_td2.innerText = `${ue.count}/${ue.prev_use}`;
+        const u_td3 = document.createElement("td");
+        u_td3.id = `u${i}`;
+        u_td3.innerText = ue.hs;
+        const u_td4 = document.createElement("td");
+        const u_td4_edit = document.createElement("button");
+        u_td4_edit.innerText = "Edit";
+        u_td4_edit.classList.add('btn');
+        u_td4_edit.classList.add(ue.prev_use == 0 ? "btn-danger" : "btn-success");
+        u_td4_edit.classList.add('lg-edit-button');
+        u_td4_edit.dataset.value = ue.name;
+        u_td4_edit.addEventListener('click', e => { Edit(ue.name, null); });
+        u_td4.appendChild(u_td4_edit);
+        
+        u_tdrow.appendChild(u_td0);
+        u_tdrow.appendChild(u_td1);
+        u_tdrow.appendChild(u_td2);
+        u_tdrow.appendChild(u_td3);
+        u_tdrow.appendChild(u_td4);
+        u_tbody.appendChild(u_tdrow);
+        u_table.appendChild(u_tbody);
+      }
+    });
+    unique_entries_details.forEach((ue, i) => {
+      if (ue.prev_use > 0) {
+        const u_tdrow = document.createElement("tr");
+        const u_td0 = document.createElement("td");
+        u_td0.classList.add('new_hs');
+        u_td0.innerText = ue.prev_use == 0 ? "NEW" : "";
+        const u_td1 = document.createElement("td");
+        u_td1.innerText = ue.name;
+        const u_td2 = document.createElement("td");
+        u_td2.innerText = `${ue.count}/${ue.prev_use}`;
+        const u_td3 = document.createElement("td");
+        u_td3.id = `u${i}`;
+        u_td3.innerText = ue.hs;
+        const u_td4 = document.createElement("td");
+        const u_td4_edit = document.createElement("button");
+        u_td4_edit.innerText = "Edit";
+        u_td4_edit.classList.add('btn');
+        u_td4_edit.classList.add(ue.prev_use == 0 ? "btn-danger" : "btn-success");
+        u_td4_edit.classList.add('lg-edit-button');
+        u_td4_edit.dataset.value = ue.name;
+        u_td4_edit.addEventListener('click', e => { Edit(ue.name, null); });
+        u_td4.appendChild(u_td4_edit);
+        
+        u_tdrow.appendChild(u_td0);
+        u_tdrow.appendChild(u_td1);
+        u_tdrow.appendChild(u_td2);
+        u_tdrow.appendChild(u_td3);
+        u_tdrow.appendChild(u_td4);
+        u_tbody.appendChild(u_tdrow);
+        u_table.appendChild(u_tbody);
+      }
     });
     display.appendChild(u_table);
+
+    // Add an generate CSV file below unique entries
+    // button.btn.btn-primary(onclick="Generate()") Generate CSV
+    const generate_csv = document.createElement("button");
+    generate_csv.innerText = "Generate CSV";
+    generate_csv.classList.add('btn');
+    generate_csv.classList.add('btn-primary');
+    generate_csv.addEventListener('click', Generate);
+    display.appendChild(generate_csv);
 
     // Orders sections
     const o_title = document.createElement("h1");
@@ -141,9 +187,11 @@ window.addEventListener('load', function () {
     o_description.innerText = "*Update single entries below. (only the modified row will be changed)"
     display.appendChild(o_description);
     orders.forEach(order => {
+      let has_new = false;
+
       const card = document.createElement('div');
       card.classList.add("card");
-      card.classList.add("card-new");
+      card.classList.add("card-done");// card-new / card-done
       const card_title = document.createElement('h3');
       card_title.innerText = order.order;
       card.appendChild(card_title);
@@ -159,6 +207,7 @@ window.addEventListener('load', function () {
       const o_th1 = document.createElement("th");
       o_th1.innerText = 'Invoice';
       const o_th2 = document.createElement("th");
+      o_th2.innerText = 'Count / Previous';
       const o_th3 = document.createElement("th");
       o_th3.innerText = 'HS code';
       const o_th4 = document.createElement("th");
@@ -176,6 +225,7 @@ window.addEventListener('load', function () {
       o_table.appendChild(o_thead);
       const o_tbody = document.createElement("tbody");
       order.data.forEach((oe, i) => {
+        if (oe.prev_use == 0) has_new = true;
         const o_tdrow = document.createElement("tr");
         const o_td0 = document.createElement("td");
         o_td0.classList.add('new_hs');
@@ -189,9 +239,12 @@ window.addEventListener('load', function () {
         o_td3.innerText = oe.hs;
         const o_td4 = document.createElement("td");
         const o_td4_edit = document.createElement("button");
+        o_td4_edit.id = `${order.order}_${i}_btn`;
         o_td4_edit.innerText = "Edit";
         o_td4_edit.classList.add('btn');
-        o_td4_edit.classList.add('btn-primary');
+        o_td4_edit.classList.add(oe.prev_use == 0 ? "btn-danger" : "btn-success");
+        o_td4_edit.classList.add('lg-edit-button');
+        o_td4_edit.dataset.value = oe.name;
         o_td4_edit.addEventListener('click', e => { Edit(oe.name, `${order.order}_${i}`); });
         o_td4.appendChild(o_td4_edit);
 
@@ -203,6 +256,10 @@ window.addEventListener('load', function () {
         o_tbody.appendChild(o_tdrow);
         o_table.appendChild(o_tbody);
       });
+      if (has_new) {
+        card.classList.remove("card-done");// card-new / card-done
+        card.classList.add("card-new");// card-new / card-done
+      }
       card.appendChild(o_table);
 
       display.appendChild(card);
@@ -237,52 +294,6 @@ const csvToJson = (string) => {
   });
   return output;
 }
-
-
-// Edit HS codes
-// TODO: Generate necessary functions
-// NOTE: When clicking edit for a row, it shoud show a fullscreen popup to edit the HS code
-// NOTE: If there are more of the same entry, update all entires to same value (only empty -> value, ignore entries that already has a value)
-
-// function UpdateRecommended(element, base_id, number) {
-//   /* For recommended radio buttons */
-//   // TODO Update value of hs select box, to match the radio button clicked
-//   // TODO Then basically do the same as "UpdateThis"
-// }
-// function UpdateThis(element, base_id, number) {
-//   let base_hs = element.value;
-//   if (base_hs == "freetext") {
-//     base_hs = document.getElementById(`${base_id}_${number}_freetext`).value;
-//   }
-
-//   // If select box, clear input
-//   if (base_hs == document.getElementById(`${base_id}_${number}`).value) {
-//     document.getElementById(`${base_id}_${number}_freetext`).value = '';
-//   }
-
-//   // If input, clear select box
-//   if (base_hs == document.getElementById(`${base_id}_${number}_freetext`).value) {
-//     document.getElementById(`${base_id}_${number}`).value = 'freetext';
-//   }
-
-//   if (base_hs.length == 6 && base_hs in hs_lookup) {
-//     //${row[0]}_${cnt}_section
-//     document.getElementById(`${base_id}_${number}_section`).innerHTML = `${hs_lookup[base_hs].section}: ${section_lookup[hs_lookup[base_hs].section]}`;
-//     //${row[0]}_${cnt}_level2
-//     document.getElementById(`${base_id}_${number}_level2`).innerHTML = hs_lookup[hs_lookup[base_hs].parent].parent + ': ' + hs_lookup[hs_lookup[hs_lookup[base_hs].parent].parent].description;
-//     //${row[0]}_${cnt}_level4
-//     document.getElementById(`${base_id}_${number}_level4`).innerHTML = hs_lookup[base_hs].parent + ': ' + hs_lookup[hs_lookup[base_hs].parent].description;
-//     //${row[0]}_${cnt}_level6
-//     document.getElementById(`${base_id}_${number}_level6`).innerHTML = base_hs + ': ' + hs_lookup[base_hs].description;
-//   } else {
-//     document.getElementById(`${base_id}_${number}_section`).innerHTML = `[${base_hs}] is not a valid HS code!`;
-//     document.getElementById(`${base_id}_${number}_level2`).innerHTML = '';
-//     document.getElementById(`${base_id}_${number}_level4`).innerHTML = '';
-//     document.getElementById(`${base_id}_${number}_level6`).innerHTML = '';
-//   }
-
-//   // TODO Clear recommended radio buttons
-// }
 
 // Generate output, also send data to server so that suggestions can be saved for next time
 function Generate() {
@@ -432,17 +443,28 @@ function ClosePopup() {
   // if current_id has value, then only save there
   // if current_id == null, then save to all entries with same name
   const HSCODE = document.getElementById('current_hs').innerText;
-  if (current_id) {
-    document.getElementById(current_id).innerText = HSCODE;
-  } else {
-    document.getElementById(`u${unique_entries.indexOf(current_name)}`).innerText = HSCODE;
-    orders.forEach(order => {
-      order.data.forEach((entry, i) => {
-        if (entry.name == current_name) {
-          document.getElementById(`${order.order}_${i}`).innerText = HSCODE;
-        }
+  if (HSCODE != '---') {
+    if (current_id) {
+      document.getElementById(current_id).innerText = HSCODE;
+      document.getElementById(current_id+'_btn').classList.remove('btn-danger');
+      document.getElementById(current_id+'_btn').classList.add('btn-success');
+    } else {
+      document.getElementById(`u${unique_entries.indexOf(current_name)}`).innerText = HSCODE;
+      orders.forEach(order => {
+        order.data.forEach((entry, i) => {
+          if (entry.name == current_name) {
+            document.getElementById(`${order.order}_${i}`).innerText = HSCODE;
+          }
+        });
       });
-    });
+      const buttons = document.getElementsByClassName('lg-edit-button');
+      for (let i = 0; i < buttons.length; i++) {
+        if (buttons[i].dataset.value == current_name) {
+          buttons[i].classList.remove('btn-danger');
+          buttons[i].classList.add('btn-success');
+        }
+      }
+    }
   }
   document.getElementById("popup").remove();
 }
