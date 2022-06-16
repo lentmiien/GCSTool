@@ -882,6 +882,46 @@ var json_language = {
     swedish: 'Test',
     japanese: '試し'
   },
+  _hs_step_1_: {
+    english: '1. Select input file',
+    swedish: '1. Välj indatafil',
+    japanese: '１．入力ファイルを選択する'
+  },
+  _hs_description_1_: {
+    english: 'When an input file has been selected, an input form for step 2 will be generated.',
+    swedish: 'När en indatafil har blivit vald, ett inmatningsformulär kommer att genereras för steg 2.',
+    japanese: '入力ファイルが選択されたら、ステップ２では入力フォームが表示される。'
+  },
+  _hs_step_2_: {
+    english: '2. Fill in missing HS codes',
+    swedish: '2. Fyll i saknade HS koder',
+    japanese: '２．不足HSコードを入力する'
+  },
+  _hs_description_2_: {
+    english: 'Press the "Edit" button to update the HS codes, all orders needs to be completed with HS codes to proceed.',
+    swedish: 'Clicka "Edit" knappen för att updatera HS koder, alla beställningar måste vara kompletta med HS koder.',
+    japanese: '「Edit」をクリックしてHSコードを更新する、次に進むために全部の注文は完全なHSコードが必要です。'
+  },
+  _hs_step_3_: {
+    english: '3. Generate output file',
+    swedish: '3. Skapa utdatafil',
+    japanese: '３．出力ファイルを作成する'
+  },
+  _hs_description_3_: {
+    english: 'Press the button below to save the output CSV file.',
+    swedish: 'Klicka knappen nedan för att spara updata CSV fil.',
+    japanese: '下記のボタンをクリックして、CSVファイルを保存する。'
+  },
+  _hs_link_: {
+    english: 'HS lookup tool (HS is first 6 digits of HTS)',
+    swedish: 'HS uppslagsverktyg (HS är dom 6 första nummrena från HTS)',
+    japanese: 'HSコード検索ツール（HTSの最初の6桁はHS）'
+  },
+  _generate_csv_: {
+    english: 'Generate CSV',
+    swedish: 'Skapa CSV',
+    japanese: 'CSV作成'
+  }
   /*,
   __: {
     english: '',
