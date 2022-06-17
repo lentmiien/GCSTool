@@ -180,7 +180,8 @@ window.addEventListener('load', function () {
     // Add an generate CSV file below unique entries
     // button.btn.btn-primary(onclick="Generate()") Generate CSV
     const generate_csv = document.createElement("button");
-    generate_csv.innerText = "Generate CSV";
+    generate_csv.innerText = GetData("_generate_csv_");
+    generate_csv.setAttribute('lg_language','_generate_csv_');
     generate_csv.classList.add('btn');
     generate_csv.classList.add('btn-primary');
     generate_csv.addEventListener('click', Generate);
