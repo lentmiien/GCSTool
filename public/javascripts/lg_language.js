@@ -921,6 +921,41 @@ var json_language = {
     english: 'Generate CSV',
     swedish: 'Skapa CSV',
     japanese: 'CSV作成'
+  },
+  _unique_entries_: {
+    english: 'Unique entries',
+    swedish: 'Unika inlägg',
+    japanese: '一意内容'
+  },
+  _invoice_: {
+    english: 'Invoice',
+    swedish: 'Faktura',
+    japanese: 'インボイス'
+  },
+  _count_previous_: {
+    english: 'Count / Previous',
+    swedish: 'Antal / Föregående',
+    japanese: '数／以前'
+  },
+  _hs_code_: {
+    english: 'HS code',
+    swedish: 'HS kod',
+    japanese: 'HSコード'
+  },
+  _orders_: {
+    english: 'Orders',
+    swedish: 'Beställningar',
+    japanese: '注文'
+  },
+  _hs_unique_description_: {
+    english: '*Update entries below and all orders will be updated accordingly, "NEW" requires to be updated.',
+    swedish: '*Updatera inläggen nedan och alla beställningar blir updaterade följaktligen, "NEW" måste bli updaterade.',
+    japanese: '※下記の内容を更新したら、全注文が更新される。「NEW」は更新が必要です。'
+  },
+  _hs_order_description_: {
+    english: '*If unique entries wasn\'t updated, or any order(s) need customized HS codes, update the individual orders below.',
+    swedish: '*Om unika inlägg inte är updaterat, eller om några beställningar behöver anpassade HS koder, updatera dom separata beställningarna nedan.',
+    japanese: '※一意内容は更新されていなく、または注文にカスタマイズHSコードが必要な場合には、下記の注文を更新する。'
   }
   /*,
   __: {

@@ -72,10 +72,12 @@ window.addEventListener('load', function () {
 
     // Unique entries section
     const u_title = document.createElement("h1");
-    u_title.innerText = "Unique entries"
+    u_title.innerText = GetData("_unique_entries_");
+    u_title.setAttribute('lg_language','_unique_entries_');
     display.appendChild(u_title);
     const u_description = document.createElement("p");
-    u_description.innerText = "*If you update these entries, then all orders below (with same content) will be updated."
+    u_description.innerText = GetData("_hs_unique_description_");
+    u_description.setAttribute('lg_language','_hs_unique_description_');
     display.appendChild(u_description);
     const u_table = document.createElement("table");
     u_table.classList.add("table")
@@ -85,11 +87,14 @@ window.addEventListener('load', function () {
     const u_throw = document.createElement("tr");
     const u_th0 = document.createElement("th");
     const u_th1 = document.createElement("th");
-    u_th1.innerText = 'Invoice';
+    u_th1.innerText = GetData("_invoice_");
+    u_th1.setAttribute('lg_language','_invoice_');
     const u_th2 = document.createElement("th");
-    u_th2.innerText = 'Count / Previous';
+    u_th2.innerText = GetData("_count_previous_");
+    u_th2.setAttribute('lg_language','_count_previous_');
     const u_th3 = document.createElement("th");
-    u_th3.innerText = 'HS code';
+    u_th3.innerText = GetData("_hs_code_");
+    u_th3.setAttribute('lg_language','_hs_code_');
     const u_th4 = document.createElement("th");
     u_th0.style.width = "10%";
     u_th1.style.width = "50%";
@@ -183,10 +188,12 @@ window.addEventListener('load', function () {
 
     // Orders sections
     const o_title = document.createElement("h1");
-    o_title.innerText = "Orders"
+    o_title.innerText = GetData("_orders_");
+    o_title.setAttribute('lg_language','_orders_');
     display.appendChild(o_title);
     const o_description = document.createElement("p");
-    o_description.innerText = "*Update single entries below. (only the modified row will be changed)"
+    o_description.innerText = GetData("_hs_order_description_");
+    o_description.setAttribute('lg_language','_hs_order_description_');
     display.appendChild(o_description);
     orders.forEach(order => {
       let has_new = false;
@@ -207,11 +214,14 @@ window.addEventListener('load', function () {
       const o_throw = document.createElement("tr");
       const o_th0 = document.createElement("th");
       const o_th1 = document.createElement("th");
-      o_th1.innerText = 'Invoice';
+      o_th1.innerText = GetData("_invoice_");
+      o_th1.setAttribute('lg_language','_invoice_');
       const o_th2 = document.createElement("th");
-      o_th2.innerText = 'Count / Previous';
+      o_th2.innerText = GetData("_count_previous_");
+      o_th2.setAttribute('lg_language','_count_previous_');
       const o_th3 = document.createElement("th");
-      o_th3.innerText = 'HS code';
+      o_th3.innerText = GetData("_hs_code_");
+      o_th3.setAttribute('lg_language','_hs_code_');
       const o_th4 = document.createElement("th");
       o_th0.style.width = "10%";
       o_th1.style.width = "50%";
