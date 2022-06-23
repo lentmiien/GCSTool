@@ -193,12 +193,42 @@ exports.previous = (req, res) => {
   });
 
   // Return something...
-  res.json({ status: "OK" })
+  res.json({ status: "OK" });
 };
 
 exports.index_v2 = (req, res) => {
   // Load database and send data to hs_v2.pug
   HSCodeList.findAll().then(entries => {
-    res.render('hs_v2', { sections_lookup, headings_lookup, entries })
+    res.render('hs_v2', { sections_lookup, headings_lookup, entries });
+  });
+};
+
+// Manual editor
+exports.manual_edit = (req, res) => {
+  SCodeList.findAll().then(entries => {
+    res.render('hs_manual_edit', { sections_lookup, headings_lookup, entries });
+  });
+};
+
+// To easily verify the content of a file
+exports.checker = (req, res) => {
+  SCodeList.findAll().then(entries => {
+    res.render('hs_checker', { sections_lookup, headings_lookup, entries });
+  });
+};
+
+// Database edit layout
+exports.db_editor = (req, res) => {
+  SCodeList.findAll().then(entries => {
+    res.render('hs_db_editor', { sections_lookup, headings_lookup, entries });
+  });
+};
+
+// Access as API endpoint
+exports.db_update = (req, res) => {
+  SCodeList.findAll().then(entries => {
+    // TODO: Update database, update content in req.body
+
+    res.json({ status: "OK" });
   });
 };
