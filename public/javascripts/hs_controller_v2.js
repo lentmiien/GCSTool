@@ -146,8 +146,8 @@ window.addEventListener('load', function () {
       if (ue.prev_use > 0) {
         const u_tdrow = document.createElement("tr");
         const u_td0 = document.createElement("td");
-        u_td0.classList.add('new_hs');
-        u_td0.innerText = ue.prev_use == 0 ? "NEW" : "";
+        u_td0.classList.add(ue.hs == "999999" ? 'invalid_hs' : 'new_hs');
+        u_td0.innerText = ue.hs == "999999" ? "INVALID" : "";
         const u_td1 = document.createElement("td");
         u_td1.innerText = ue.name;
         const u_td2 = document.createElement("td");
@@ -241,8 +241,8 @@ window.addEventListener('load', function () {
         if (oe.prev_use == 0) has_new = true;
         const o_tdrow = document.createElement("tr");
         const o_td0 = document.createElement("td");
-        o_td0.classList.add('new_hs');
-        o_td0.innerText = oe.prev_use == 0 ? "NEW" : "";
+        o_td0.classList.add(oe.hs == "999999" ? 'invalid_hs' : 'new_hs');
+        o_td0.innerText = oe.prev_use == 0 ? "NEW" : (oe.hs == "999999" ? "INVALID" : "");
         const o_td1 = document.createElement("td");
         o_td1.innerText = oe.name;
         const o_td2 = document.createElement("td");
@@ -326,6 +326,9 @@ function Generate() {
       if (hscode == '---') {
         missing_count++;
       }
+      if (hscode == '999999') {
+        missing_count = 1000000;
+      }
       data[index][i+4] = hscode;
       previous_array.push({ name: row[i], code: hscode })
     }
@@ -333,7 +336,10 @@ function Generate() {
   });
 
   // Make sure that data is complete before proceding
-  if (missing_count > 0) {
+  if (missing_count >= 1000000) {
+    alert(`An order is missing HS codes, please get the order removed from the file and try again. (The removed order needs manual processing)`);
+    return;
+  } else if (missing_count > 0) {
     alert(`An order is missing one or more HS codes, fix the issue and try again.`);
     return;
   }
