@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  h1 HS database
+  p Red (1-10 uses), Orange (11-25 uses), Green (26+ uses)
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Invoice name 
+        th HS code 
+        th HS title 
+        th Uses (this/HS)
+        th Edit
+    tbody
+      each entry in entries 
+        tr 
+          td(id=`name_${entry.id}`)= entry.name
+          td(id=`code_${entry.id}` style=`color:${usage[entry.code] <= 10 ? 'red' : (usage[entry.code] <= 25 ? 'orange' : 'green')};`)= entry.code
+          td(id=`desc_${entry.id}`)= headings_lookup[entry.code].description
+          td(id=`uses_${entry.id}`)= `${entry.uses}/${usage[entry.code]}`
+          td(id=`edit_${entry.id}`)
+            input.form-control(id=`input_${entry.id}` type="text" onchange=`Change(${entry.id})` onkeyup=`Change(${entry.id})`)
+            button.btn.btn-danger(onclick=`Delete(${entry.id})`) Delete
+
+  pre#sections_lookup.hidden= JSON.stringify(sections_lookup)
+  pre#headings_lookup.hidden= JSON.stringify(headings_lookup)
+  pre#entries.hidden= JSON.stringify(entries)
+
+  script(src='/javascripts/hs_db_editor.js', defer)

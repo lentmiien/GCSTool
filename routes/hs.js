@@ -25,6 +25,7 @@ router.get('/checker', controller.checker);
 // Edit database
 router.get('/dbeditor', controller.db_editor);
 router.post('/dbupdate', controller.db_update);
+router.post('/dbdelete', controller.db_delete);
 
 // Export router
 module.exports = router;
