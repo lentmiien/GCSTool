@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 HS manual editor 
+  p Copy-paste the invoice entries below, edit the data, and copy the output.
+  h1 Step 1
+  p Paste the invoice item names below (1 item per row)
+  textarea#input.form-control(name="input" onchange="Setup()" onkeyup="Setup()")
+  h1 Step 2
+  p Edit the output data below (select and edit entries that needs to be changed)
+  #edit 
+  h1 Step 3
+  p Copy output (to paste output in other place)
+  button(onclick="Copy()") Copy
+
+  pre#sections_lookup.hidden= JSON.stringify(sections_lookup)
+  pre#headings_lookup.hidden= JSON.stringify(headings_lookup)
+  pre#entries.hidden= JSON.stringify(entries)
+
+  script(src='/javascripts/hs_manual_edit.js', defer)
