@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1 HS checker 
+  p Select file to check
+  input#inputfile.form-control(type="file", name="inputfile")
+  #check
+
+  pre#sections_lookup.hidden= JSON.stringify(sections_lookup)
+  pre#headings_lookup.hidden= JSON.stringify(headings_lookup)
+  pre#entries.hidden= JSON.stringify(entries)
+
+  script(src='/javascripts/hs_checker.js', defer)
