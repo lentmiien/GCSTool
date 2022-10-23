@@ -4,7 +4,7 @@ module.exports = (sequelize, type) => {
       method: type.STRING,
       cost: type.INTEGER,
       costdate: type.INTEGER,
-      zone: type.INTEGER
+      zone: type.STRING
     });
   };
   

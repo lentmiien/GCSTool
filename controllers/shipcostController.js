@@ -242,6 +242,37 @@ exports.index = async (req, res) => {
 
   // Generate difference output data
   const difference = [];
+  const new_data = [];
+  const mkeys = Object.keys(charts);
+  mkeys.forEach(mkey => {
+    const zkeys = Object.keys(charts[mkey]);
+    zkeys.forEach(zkey => {
+      charts[mkey][zkey].forEach(value => {
+        new_data.push({
+          uptoweight_g: value[0],
+          method: mkey,
+          cost: value[1],
+          zone: zkey
+        });
+      });
+    });
+  });
+  const old_data = {};
+  current_data.forEach(entry => {
+    if (!(entry.method in old_data)) old_data[entry.method] = {};
+    if (!(entry.zone in old_data[entry.method])) old_data[entry.method][entry.zone] = {};
+    if (entry.uptoweight_g in old_data[entry.method][entry.zone]) {
+      if (entry.costdate > old_data[entry.method][entry.zone][entry.uptoweight_g].costdate) {
+        old_data[entry.method][entry.zone][entry.uptoweight_g].cost = entry.cost;
+        old_data[entry.method][entry.zone][entry.uptoweight_g].costdate = entry.costdate;
+      }
+    } else {
+      old_data[entry.method][entry.zone][entry.uptoweight_g] = {
+        cost: entry.cost,
+        costdate: entry.costdate
+      };
+    }
+  });
 
   res.render('shipcost', {zone_labels, current_data, charts, difference});
 };
