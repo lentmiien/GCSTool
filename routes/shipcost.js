@@ -10,3 +10,6 @@ var controller = require('../controllers/shipcostController');
 //-------------------------------------------//
 
 router.get('/', controller.index);
+
+// Export router
+module.exports = router;

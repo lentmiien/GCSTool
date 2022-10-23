@@ -4,3 +4,11 @@ block content
   .row
     .col
       h1 Shipping cost manager
+
+  pre= JSON.stringify(zone_labels, null, 2)
+  pre= JSON.stringify(current_data, null, 2)
+  pre= JSON.stringify(charts, null, 2)
+  pre= JSON.stringify(difference, null, 2)
+
+  script(src='/javascripts/FileSaver.js', defer)
+  script(src='/javascripts/shipcost.js', defer)
