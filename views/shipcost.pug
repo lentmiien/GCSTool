@@ -4,11 +4,31 @@ block content
   .row
     .col
       h1 Shipping cost manager
-
-  pre= JSON.stringify(zone_labels, null, 2)
-  pre= JSON.stringify(current_data, null, 2)
-  pre= JSON.stringify(charts, null, 2)
-  pre= JSON.stringify(difference, null, 2)
+  .row 
+    .col 
+      - const methods = Object.keys(output)
+      each method in methods 
+        h2= method
+        - const zones = Object.keys(output[method])
+        table.table.table-striped.table-dark.table-bordered
+          thead 
+            tr 
+              th Weight 
+              each zone in zones 
+                th= zone
+          tbody 
+            - let i = 0
+            while i < output[method][zones[0]].length
+              tr 
+                th= output[method][zones[0]][i].uptoweight_g
+                each zone in zones 
+                  td
+                    .form-row 
+                      .col
+                        span= output[method][zone][i].before_cost
+                      .col
+                        input.form-control(value=output[method][zone][i].current_cost)
+              - i++
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/shipcost.js', defer)

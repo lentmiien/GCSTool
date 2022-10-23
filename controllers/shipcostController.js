@@ -241,7 +241,7 @@ exports.index = async (req, res) => {
   // TODO add Surface mail premium price list, from ???
 
   // Generate difference output data
-  const difference = [];
+  const output = {};
   const new_data = [];
   const mkeys = Object.keys(charts);
   mkeys.forEach(mkey => {
@@ -273,8 +273,23 @@ exports.index = async (req, res) => {
       };
     }
   });
+  new_data.forEach(d => {
+    if (!(d.method in output)) output[d.method] = {};
+    if (!(d.zone in output[d.method])) output[d.method][d.zone] = [];
 
-  res.render('shipcost', {zone_labels, current_data, charts, difference});
+    const before_cost = 0;
+    if (d.method in old_data && d.zone in old_data[d.method] && d.uptoweight_g in old_data[d.method][d.zone]) {
+      before_cost = old_data[d.method][d.zone][d.uptoweight_g].cost;
+    }
+
+    output[d.method][d.zone].push({
+      uptoweight_g: d.uptoweight_g,
+      before_cost,
+      current_cost: d.cost
+    })
+  });
+
+  res.render('shipcost', {zone_labels, current_data, charts, output});
 };
 
 async function GetJPChart(link, table_id_array) {
