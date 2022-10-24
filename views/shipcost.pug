@@ -6,6 +6,80 @@ block content
       h1 Shipping cost manager
   .row 
     .col 
+      span Air small packet unregistered 
+      span(style=`color:${"Air small packet unregistered" in output ? "green" : "red"};`)= "Air small packet unregistered" in output ? "✔" : "✘"
+    .col 
+      span SAL small packet unregistered 
+      span(style=`color:${"SAL small packet unregistered" in output ? "green" : "red"};`)= "SAL small packet unregistered" in output ? "✔" : "✘"
+    .col 
+      span Air small packet registered 
+      span(style=`color:${"Air small packet registered" in output ? "green" : "red"};`)= "Air small packet registered" in output ? "✔" : "✘"
+    .col 
+      span SAL small packet registered 
+      span(style=`color:${"SAL small packet registered" in output ? "green" : "red"};`)= "SAL small packet registered" in output ? "✔" : "✘"
+    .col 
+      span Air parcel 
+      span(style=`color:${"Air parcel" in output ? "green" : "red"};`)= "Air parcel" in output ? "✔" : "✘"
+    .col 
+      span Surface parcel 
+      span(style=`color:${"Surface parcel" in output ? "green" : "red"};`)= "Surface parcel" in output ? "✔" : "✘"
+    .col 
+      span SAL parcel 
+      span(style=`color:${"SAL parcel" in output ? "green" : "red"};`)= "SAL parcel" in output ? "✔" : "✘"
+    .col 
+      span EMS 
+      span(style=`color:${"EMS" in output ? "green" : "red"};`)= "EMS" in output ? "✔" : "✘"
+    .col 
+      span DHL 
+      span(style=`color:${"DHL" in output ? "green" : "red"};`)= "DHL" in output ? "✔" : "✘"
+    .col 
+      span Surface mail premium 
+      span(style=`color:${"Surface mail premium" in output ? "green" : "red"};`)= "Surface mail premium" in output ? "✔" : "✘"
+  .row 
+    .col 
+      h3 4 zones (Small packet)
+      div 
+        input#asp_u.smallpacket(type="checkbox", value="Air small packet unregistered", disabled=output["Air small packet unregistered"] ? false : true)
+        | Air small packet unregistered
+      div 
+        input#salsp_u.smallpacket(type="checkbox", value="SAL small packet unregistered", disabled=output["SAL small packet unregistered"] ? false : true)
+        | SAL small packet unregistered
+      div 
+        input#asp.smallpacket(type="checkbox", value="Air small packet registered", disabled=output["Air small packet registered"] ? false : true)
+        | Air small packet registered
+      div 
+        input#salsp.smallpacket(type="checkbox", value="SAL small packet registered", disabled=output["SAL small packet registered"] ? false : true)
+        | SAL small packet registered
+      button.btn.btn-primary(onclick="Charts('smallpacket','_4zones')") Zendesk small packet chart
+    .col 
+      h2 5 zones (Parcel)
+      div 
+        input#ap.parcel(type="checkbox", value="Air parcel", disabled=output["Air parcel"] ? false : true)
+        | Air parcel
+      div 
+        input#sp.parcel(type="checkbox", value="Surface parcel", disabled=output["Surface parcel"] ? false : true)
+        | Surface parcel
+      div 
+        input#salp.parcel(type="checkbox", value="SAL parcel", disabled=output["SAL parcel"] ? false : true)
+        | SAL parcel
+      div 
+        input#ems.parcel(type="checkbox", value="EMS", disabled=output["EMS"] ? false : true)
+        | EMS
+      button.btn.btn-primary(onclick="Charts('parcel','_5zones')") Zendesk parcel chart
+    .col 
+      h2 7 zones (DHL)
+      div 
+        input#dhl.dhl(type="checkbox", value="DHL", disabled=output["DHL"] ? false : true)
+        | DHL
+      button.btn.btn-primary(onclick="Charts('dhl','_dhlzones')") Zendesk dhl chart
+    .col 
+      h2 1 zone (Surface mail premium)
+      div 
+        input#smp.surfacemailpremium(type="checkbox", value="Surface mail premium", disabled=output["Surface mail premium"] ? false : true)
+        | Surface mail premium
+      button.btn.btn-primary(onclick="Charts('surfacemailpremium','_usaonly')", disabled) Zendesk surface mail premium chart
+  .row 
+    .col 
       - const methods = Object.keys(output)
       each method in methods 
         h2= method
@@ -29,6 +103,9 @@ block content
                       .col
                         input.form-control(value=output[method][zone][i].current_cost)
               - i++
+
+  pre#zones= JSON.stringify(zone_labels)
+  pre#data= JSON.stringify(output)
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/shipcost.js', defer)

@@ -11,5 +11,7 @@ var controller = require('../controllers/shipcostController');
 
 router.get('/', controller.index);
 
+// router.post('/savetodb', controller.savetodb)
+
 // Export router
 module.exports = router;
