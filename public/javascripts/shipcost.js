@@ -40,8 +40,8 @@ function Charts(group, type) {
       return 0
     });
     output_data_array.forEach((o, x) => {
-      output += `<tr style="background-color:${row_colors[x%2]};"><td>Up to ${o.w}g</td>`;
-      method_arr.forEach(m => output += (m in o ? `<td>${o[m]} JPY</td>` : `<td></td>` ))
+      output += `<tr style="background-color:${row_colors[x%2]};"><td>Up to ${FormatWeight(o.w)}</td>`;
+      method_arr.forEach(m => output += (m in o ? `<td>${FormatCost(o[m])}</td>` : `<td></td>` ))
       output += `</tr>`;
     });
 
@@ -61,4 +61,17 @@ function CopyToClipboard(s) {
   document.addEventListener('copy', listener);
   document.execCommand('copy');
   document.removeEventListener('copy', listener);
+}
+
+function FormatWeight(w) {
+  let w_str = `${w > 999 ? w/1000 : w}${w%1000 == 0 ? ".0" : ""}${w > 999 ? "kg" : "g"}`;
+  return w_str;
+}
+
+function FormatCost(c) {
+  let c_str = `${c}`;
+  if (c > 100000) c_str = c_str.slice(0, 3) + "," + c_str.slice(3);
+  else if (c > 10000) c_str = c_str.slice(0, 2) + "," + c_str.slice(2);
+  else if (c > 1000) c_str = c_str.slice(0, 1) + "," + c_str.slice(1);
+  return c_str + " JPY";
 }
