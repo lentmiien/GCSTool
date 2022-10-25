@@ -346,3 +346,8 @@ svg {
   padding: 1px;
   margin: 1px;
 }
+
+/* Shipping cost manager */
+.cost-change {
+  background-color: yellow;
+}

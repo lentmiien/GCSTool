@@ -5,6 +5,10 @@ block content
     .col
       h1 Shipping cost manager
   .row 
+    .col  
+      hr
+      h2 Status
+  .row 
     .col 
       span Air small packet unregistered 
       span(style=`color:${"Air small packet unregistered" in output ? "green" : "red"};`)= "Air small packet unregistered" in output ? "✔" : "✘"
@@ -35,6 +39,23 @@ block content
     .col 
       span Surface mail premium 
       span(style=`color:${"Surface mail premium" in output ? "green" : "red"};`)= "Surface mail premium" in output ? "✔" : "✘"
+  .row 
+    .col 
+      hr
+      h2 Zendesk tables
+  .row 
+    .col 
+      label(for="lowlimit") Lower limit for weight 
+      input#lowlimit.form-control(type="number", value="300")
+    .col 
+      label(for="highlimit") Upper limit for weight 
+      input#highlimit.form-control(type="number", value="20000")
+    .col 
+      input#hide2575(type="checkbox", checked)
+      label(for="hide2575") Hide 1.25kg and 1.75kg rows
+      br
+      input#hideempty(type="checkbox")
+      label(for="hideempty") Hide rows with empty cells
   .row 
     .col 
       h3 4 zones (Small packet)
@@ -80,9 +101,16 @@ block content
       button.btn.btn-primary(onclick="Charts('surfacemailpremium','_usaonly')", disabled) Zendesk surface mail premium chart
   .row 
     .col 
+      hr
+      h2 Rate charts
+  .row 
+    .col 
       - const methods = Object.keys(output)
-      each method in methods 
+      each method, x in methods 
         h2= method
+        label(for=`updatedate${x}`) Update date
+        input(id=`updatedate${x}`, type="date")
+        button(onclick=`UpdateDatabase(${x},"${method}")`) Update database
         - const zones = Object.keys(output[method])
         table.table.table-striped.table-dark.table-bordered
           thead 
@@ -101,7 +129,7 @@ block content
                       .col
                         span= output[method][zone][i].before_cost
                       .col
-                        input.form-control(value=output[method][zone][i].current_cost)
+                        input.form-control(class=`group${x}${output[method][zone][i].current_cost != output[method][zone][i].before_cost ? " cost-change" : ""}`, value=output[method][zone][i].current_cost, data-previous=output[method][zone][i].before_cost, onchange="ManualUpdate(this)", data-weight=output[method][zones[0]][i].uptoweight_g, data-zone=zone)
               - i++
 
   pre#zones= JSON.stringify(zone_labels)
