@@ -120,6 +120,19 @@ function UpdateDatabase(index, method) {
     });
   }
 
-  // TODO send to server
-  console.log(value_arr);
+  // Send to server
+  fetch('/shipcost/savetodb', {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: "POST",
+    body: JSON.stringify({method, data_array: value_arr})
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((myJson) => {
+    alert(myJson.status);
+  });
 }

@@ -128,6 +128,7 @@ exports.index = async (req, res) => {
 
   // Air small packet registered (epacket)
   // https://www.post.japanpost.jp/int/download/epacket-charges.pdf
+  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
   charts["Air small packet registered"] = {
     zone1: [
       [ 100, 690 ],
@@ -221,6 +222,7 @@ exports.index = async (req, res) => {
 
   // DHL
   // "DHL_prices_20221001.csv"
+  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
   charts["DHL"] = {};
   const dhl_data = fs.readFileSync("./data/DHL_prices_20221001.csv");
   const row_data = dhl_data.toString().split('\r\n');
@@ -239,6 +241,7 @@ exports.index = async (req, res) => {
   });
 
   // TODO add Surface mail premium price list, from ???
+  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
 
   // Generate difference output data
   const output = {};
@@ -277,7 +280,7 @@ exports.index = async (req, res) => {
     if (!(d.method in output)) output[d.method] = {};
     if (!(d.zone in output[d.method])) output[d.method][d.zone] = [];
 
-    const before_cost = 0;
+    let before_cost = 0;
     if (d.method in old_data && d.zone in old_data[d.method] && d.uptoweight_g in old_data[d.method][d.zone]) {
       before_cost = old_data[d.method][d.zone][d.uptoweight_g].cost;
     }
@@ -381,3 +384,36 @@ https://www.post.japanpost.jp/int/charge/list/ems4_en.html
 Fifth Zone (Central and South America (excluding Mexico), Africa)
 https://www.post.japanpost.jp/int/charge/list/ems5_en.html
 */
+
+exports.upload = async (req, res) => {
+  // POST request
+  // body: {method, data_array} *data_array is array of entries of same format as DB
+  // load DB data
+  const current_data = await Shipcost.findAll({where:{method:req.body.method}});
+  // loop through input array and put updated data entries in a save_array
+  const save_array = [];
+  req.body.data_array.forEach(e => {
+    const current_values = {
+      // uptoweight_g: type.INTEGER,
+      // method: type.STRING,
+      cost: 0,
+      costdate: 0,
+      // zone: type.STRING
+    };
+    for (let i = 0; i < current_data.length; i++) {
+      if (e.uptoweight_g == current_data[i].uptoweight_g && e.zone == current_data[i].zone) {
+        if (current_values.costdate < current_data[i].costdate) {
+          current_values.cost = current_data[i].cost;
+          current_values.costdate = current_data[i].costdate;
+        }
+      }
+    }
+    if (current_values.cost != e.cost) {
+      save_array.push(e);
+    }
+  });
+  // save save_array to DB
+  await Shipcost.bulkCreate(save_array);
+
+  res.json({status: `Saved ${save_array.length} entries`});
+};
