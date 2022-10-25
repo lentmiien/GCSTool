@@ -128,7 +128,7 @@ exports.index = async (req, res) => {
 
   // Air small packet registered (epacket)
   // https://www.post.japanpost.jp/int/download/epacket-charges.pdf
-  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
+  // change to load DB data to chart (since automatic loading of new data isn't possible)
   charts["Air small packet registered"] = {
     zone1: [
       [ 100, 690 ],
@@ -219,10 +219,112 @@ exports.index = async (req, res) => {
       [ 2000, 3620 ]
     ]
   };
+  const aspr_dates = {
+    zone1: {
+      100: 0,
+      200: 0,
+      300: 0,
+      400: 0,
+      500: 0,
+      600: 0,
+      700: 0,
+      800: 0,
+      900: 0,
+      1000: 0,
+      1100: 0,
+      1200: 0,
+      1300: 0,
+      1400: 0,
+      1500: 0,
+      1600: 0,
+      1700: 0,
+      1800: 0,
+      1900: 0,
+      2000: 0
+    },
+    zone2: {
+      100: 0,
+      200: 0,
+      300: 0,
+      400: 0,
+      500: 0,
+      600: 0,
+      700: 0,
+      800: 0,
+      900: 0,
+      1000: 0,
+      1100: 0,
+      1200: 0,
+      1300: 0,
+      1400: 0,
+      1500: 0,
+      1600: 0,
+      1700: 0,
+      1800: 0,
+      1900: 0,
+      2000: 0
+    },
+    zone3: {
+      100: 0,
+      200: 0,
+      300: 0,
+      400: 0,
+      500: 0,
+      600: 0,
+      700: 0,
+      800: 0,
+      900: 0,
+      1000: 0,
+      1100: 0,
+      1200: 0,
+      1300: 0,
+      1400: 0,
+      1500: 0,
+      1600: 0,
+      1700: 0,
+      1800: 0,
+      1900: 0,
+      2000: 0
+    },
+    zone4: {
+      100: 0,
+      200: 0,
+      300: 0,
+      400: 0,
+      500: 0,
+      600: 0,
+      700: 0,
+      800: 0,
+      900: 0,
+      1000: 0,
+      1100: 0,
+      1200: 0,
+      1300: 0,
+      1400: 0,
+      1500: 0,
+      1600: 0,
+      1700: 0,
+      1800: 0,
+      1900: 0,
+      2000: 0
+    }
+  };
+  current_data.forEach(e => {
+    if (e.method == "Air small packet registered") {
+      if (aspr_dates[e.zone][e.uptoweight_g] < e.costdate) {
+        aspr_dates[e.zone][e.uptoweight_g] = e.costdate;
+        for (let j = 0; j < charts["Air small packet registered"][e.zone].length; j++) {
+          if (charts["Air small packet registered"][e.zone][j][0] == e.uptoweight_g) {
+            charts["Air small packet registered"][e.zone][j][1] = e.cost;
+          }
+        }
+      }
+    }
+  });
 
   // DHL
   // "DHL_prices_20221001.csv"
-  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
+  // change to load DB data to chart (since automatic loading of new data isn't possible)
   charts["DHL"] = {};
   const dhl_data = fs.readFileSync("./data/DHL_prices_20221001.csv");
   const row_data = dhl_data.toString().split('\r\n');
@@ -237,6 +339,24 @@ exports.index = async (req, res) => {
       const weight = parseInt(cell_data[0]);
       const cost = parseInt(cell_data[i]);
       charts["DHL"][`zone${i}`].push([weight, cost]);
+    }
+  });
+  const dhl_dates = {};
+  const dhl_zone_keys = Object.keys(charts["DHL"]);
+  dhl_zone_keys.forEach(dhl_zone_key => {
+    dhl_dates[dhl_zone_key] = {};
+    charts["DHL"][dhl_zone_key].forEach(t => dhl_dates[dhl_zone_key][t[0]] = 0);
+  });
+  current_data.forEach(e => {
+    if (e.method == "DHL") {
+      if (dhl_dates[e.zone][e.uptoweight_g] < e.costdate) {
+        dhl_dates[e.zone][e.uptoweight_g] = e.costdate;
+        for (let j = 0; j < charts["DHL"][e.zone].length; j++) {
+          if (charts["DHL"][e.zone][j][0] == e.uptoweight_g) {
+            charts["DHL"][e.zone][j][1] = e.cost;
+          }
+        }
+      }
     }
   });
 
