@@ -177,6 +177,7 @@ function Dataloader() {
     const zone = inputs[i].dataset.zone;
     if (weight in data && zone in data[weight]) {
       inputs[i].value = data[weight][zone];
+      ManualUpdate(inputs[i]);
     }
   }
 
