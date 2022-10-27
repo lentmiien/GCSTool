@@ -136,3 +136,50 @@ function UpdateDatabase(index, method) {
     alert(myJson.status);
   });
 }
+
+function Dataloader() {
+  const dataloader_select = document.getElementById("dataloader_select");
+  const dataloader_input = document.getElementById("dataloader_input");
+
+  // Get inputs
+  const class_selector = `group${dataloader_select.value}`;
+  const inputs = document.getElementsByClassName(class_selector);
+
+  // Get new values
+  const raw_data = dataloader_input.value;
+  const row_symbol = raw_data.indexOf("\r\n") >= 0 ? "\r\n" : "\n";
+  const col_symbol = raw_data.indexOf("\t") >= 0 ? "\t" : ",";
+  const row_data = raw_data.split(row_symbol);
+  const header_labels = row_data[0].split(col_symbol);
+  const data = {};
+  for (let i = 1; i < row_data.length; i++) {
+    if (row_data[i].length > 0) {
+      const data_values = row_data[i].split(col_symbol);
+      const weight_label = data_values[0];
+      for (let j = 1; j < data_values.length; j++) {
+        const zone_label = header_labels[j];
+
+        console.log(weight_label, zone_label, data_values[j]);
+
+        // Input in data
+        if (weight_label in data) {
+          data[weight_label][zone_label] = data_values[j];
+        } else {
+          data[weight_label] = { [zone_label]: data_values[j] };
+        }
+      }
+    }
+  }
+
+  // Update inputs values from data
+  for (let i = 0; i < inputs.length; i++) {
+    const weight = inputs[i].dataset.weight;
+    const zone = inputs[i].dataset.zone;
+    if (weight in data && zone in data[weight]) {
+      inputs[i].value = data[weight][zone];
+    }
+  }
+
+  // Clear input
+  dataloader_input.value = "";
+}

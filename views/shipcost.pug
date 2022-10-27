@@ -131,6 +131,19 @@ block content
                       .col
                         input.form-control(class=`group${x}${output[method][zone][i].current_cost != output[method][zone][i].before_cost ? " cost-change" : ""}`, value=output[method][zone][i].current_cost, data-previous=output[method][zone][i].before_cost, onchange="ManualUpdate(this)", data-weight=output[method][zones[0]][i].uptoweight_g, data-zone=zone)
               - i++
+  .dataloader
+    select#dataloader_select.form-control
+      option(value="0") Air small packet unregistered
+      option(value="1") SAL small packet unregistered
+      option(value="2") SAL small packet registered
+      option(value="3") Air parcel
+      option(value="4") Surface parcel
+      option(value="5") SAL parcel
+      option(value="6") EMS
+      option(value="7") Air small packet registered
+      option(value="8") DHL
+    textarea#dataloader_input.form-control(placeholder="Weight,zone1,zone2\n500,123,456\n1000,789,1012")
+    button.btn.btn-primary(style="width:100%;", onclick="Dataloader()") Update
 
   pre#zones= JSON.stringify(zone_labels)
   pre#data= JSON.stringify(output)
