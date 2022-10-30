@@ -362,6 +362,40 @@ exports.index = async (req, res) => {
 
   // TODO add Surface mail premium price list, from ???
   // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
+  charts["Surface mail premium"] = {};
+  const smp_data = fs.readFileSync("./data/SurfaceMail(Premium)20221028.csv");
+  const smp_row_data = smp_data.toString().split('\r\n');
+  smp_row_data.forEach((row, e) => {
+    const cell_data = row.split(',');
+    if (e == 0) {
+      for (let i = 1; i < cell_data.length; i++) {
+        charts["Surface mail premium"][`zone${i}`] = [];
+      }
+    }
+    for (let i = 1; i < cell_data.length; i++) {
+      const weight = parseInt(cell_data[0]);
+      const cost = parseInt(cell_data[i]);
+      charts["Surface mail premium"][`zone${i}`].push([weight, cost]);
+    }
+  });
+  const smp_dates = {};
+  const smp_zone_keys = Object.keys(charts["Surface mail premium"]);
+  smp_zone_keys.forEach(smp_zone_key => {
+    smp_dates[smp_zone_key] = {};
+    charts["Surface mail premium"][smp_zone_key].forEach(t => smp_dates[smp_zone_key][t[0]] = 0);
+  });
+  current_data.forEach(e => {
+    if (e.method == "Surface mail premium") {
+      if (smp_dates[e.zone][e.uptoweight_g] < e.costdate) {
+        smp_dates[e.zone][e.uptoweight_g] = e.costdate;
+        for (let j = 0; j < charts["Surface mail premium"][e.zone].length; j++) {
+          if (charts["Surface mail premium"][e.zone][j][0] == e.uptoweight_g) {
+            charts["Surface mail premium"][e.zone][j][1] = e.cost;
+          }
+        }
+      }
+    }
+  });
 
   // Generate difference output data
   const output = {};

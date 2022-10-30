@@ -98,7 +98,7 @@ block content
       div 
         input#smp.surfacemailpremium(type="checkbox", value="Surface mail premium", disabled=output["Surface mail premium"] ? false : true)
         | Surface mail premium
-      button.btn.btn-primary(onclick="Charts('surfacemailpremium','_usaonly')", disabled) Zendesk surface mail premium chart
+      button.btn.btn-primary(onclick="Charts('surfacemailpremium','_usaonly')") Zendesk surface mail premium chart
   .row 
     .col 
       hr
@@ -142,6 +142,7 @@ block content
       option(value="6") EMS
       option(value="7") Air small packet registered
       option(value="8") DHL
+      option(value="9") Surface mail premium
     textarea#dataloader_input.form-control(placeholder="Weight,zone1,zone2\n500,123,456\n1000,789,1012")
     button.btn.btn-primary(style="width:100%;", onclick="Dataloader()") Update
 
