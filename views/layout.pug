@@ -40,9 +40,12 @@ html(lang='en')
                 a.dropdown-item(href='/hs/v2') HS code editor v2
                 a.dropdown-item(href='/hs/manualedit') HS code manual editor
                 a.dropdown-item(href='/hs/checker') HS code checker
-                a.dropdown-item(href='/hs/dbeditor') HS database
+                if role === 'admin'
+                  a.dropdown-item(href='/hs/dbeditor') HS database
                 hr.dropdown-divider
-                a.dropdown-item(href='/shipcost') Shipping costs
+                a.dropdown-item(href='/shipcost/view') Shipping cost tables
+                if role === 'admin'
+                  a.dropdown-item(href='/shipcost') Shipping cost manager
                 if role === 'admin'
                   hr.dropdown-divider
                   a.dropdown-item(href='/timekeeper') Timekeeper

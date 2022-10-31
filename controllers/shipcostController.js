@@ -360,8 +360,8 @@ exports.index = async (req, res) => {
     }
   });
 
-  // TODO add Surface mail premium price list, from ???
-  // TODO change to load DB data to chart (since automatic loading of new data isn't possible)
+  // Add Surface mail premium price list, from SurfaceMail(Premium)20221028.csv
+  // Load DB data to chart (since automatic loading of new data isn't possible)
   charts["Surface mail premium"] = {};
   const smp_data = fs.readFileSync("./data/SurfaceMail(Premium)20221028.csv");
   const smp_row_data = smp_data.toString().split('\r\n');
@@ -570,4 +570,40 @@ exports.upload = async (req, res) => {
   await Shipcost.bulkCreate(save_array);
 
   res.json({status: `Saved ${save_array.length} entries`});
+};
+
+exports.view = async (req, res) => {
+  // Zone labels
+  const zone_labels = {
+    _4zones: [
+      "Asia",
+      "Oceania, Canada, Central America, Middle East, Europe",
+      "South America and Africa",
+      "The United States (including overseas territories like Guam)"
+    ],
+    _5zones: [
+      "China, South Korea, Taiwan",
+      "Asia (excluding China, South Korea, Taiwan)",
+      "Oceania, North America (excluding the U.S.), Middle East, Europe",
+      "U.S. (including Guam and other U.S. territories)",
+      "Central and South America (excluding Mexico), Africa"
+    ],
+    _dhlzones: [
+      "Asia",
+      "India, Australia",
+      "North America, Mexico",
+      "Europe",
+      "Russia, Ukraine",
+      "South America",
+      "Africa, Middle East"
+    ],
+    _usaonly: [
+      "The United States"
+    ]
+  };
+
+  // Load database data
+  const current_data = await Shipcost.findAll();
+
+  res.render('shipcostview', {labels: zone_labels, data: current_data});
 };

@@ -13,5 +13,7 @@ router.get('/', controller.index);
 
 router.post('/savetodb', controller.upload);
 
+router.get('/view', controller.view);
+
 // Export router
 module.exports = router;
