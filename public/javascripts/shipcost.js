@@ -10,6 +10,7 @@ function Charts(group, type) {
   const highlimit = parseInt(document.getElementById("highlimit").value);
   const hide2575 = document.getElementById("hide2575").checked;
   const hideempty = document.getElementById("hideempty").checked;
+  const showless = document.getElementById("showless").checked;
 
   const group_elements = document.getElementsByClassName(group);
   const method_arr = [];
@@ -32,11 +33,21 @@ function Charts(group, type) {
         if (index == -1) {
           if (data[ma][zone][x].uptoweight_g >= lowlimit && data[ma][zone][x].uptoweight_g <= highlimit) {
             if (!(hide2575 && (data[ma][zone][x].uptoweight_g == 1250 || data[ma][zone][x].uptoweight_g == 1750))) {
-              output_data_array.push({
-                w: data[ma][zone][x].uptoweight_g,
-                [ma]: data[ma][zone][x].before_cost
-              });
-              output_data_array_lookup.push(data[ma][zone][x].uptoweight_g);
+              if (showless) {
+                if (data[ma][zone][x].uptoweight_g <= 2000 || data[ma][zone][x].uptoweight_g%500 == 0) {
+                  output_data_array.push({
+                    w: data[ma][zone][x].uptoweight_g,
+                    [ma]: data[ma][zone][x].before_cost
+                  });
+                  output_data_array_lookup.push(data[ma][zone][x].uptoweight_g);
+                }
+              } else {
+                output_data_array.push({
+                  w: data[ma][zone][x].uptoweight_g,
+                  [ma]: data[ma][zone][x].before_cost
+                });
+                output_data_array_lookup.push(data[ma][zone][x].uptoweight_g);
+              }
             }
           }
         } else {
