@@ -9,6 +9,7 @@ block content
       - const d = new Date();
       input#table_date.form-control(type="date", value=`${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth()+1 : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate(): '0' + d.getDate()}`)
       button.btn.btn-primary.m-3(onclick="GenerateTables()") Update
+      button.btn.btn-primary.m-3(onclick="DownloadCSV()") Download CSV
   .row 
     .col
       #controls
@@ -17,4 +18,5 @@ block content
   pre#labels.hidden= JSON.stringify(labels)
   pre#data.hidden= JSON.stringify(data)
 
+  script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/shipcostview.js', defer)

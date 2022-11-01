@@ -86,7 +86,8 @@ function GenerateTables() {
     zones.forEach((z, g) => {
       const th_th_z = document.createElement("th");
       th_row.append(th_th_z);
-      th_th_z.innerText = labels[zone_labels][g];
+      th_th_z.innerText = z;
+      th_th_z.setAttribute("title", labels[zone_labels][g])
     });
     t.append(thead);
     // tbody
@@ -119,4 +120,64 @@ function ShowTable(method) {
       tables[i].style.display = "none";
     }
   }
+}
+
+function DownloadCSV() {
+  const date = new Date(table_date.value);
+  const method_zones = []
+  const weights = []
+  const this_data = data;
+  this_data.forEach(td => {
+    const method_zone = `${td.method.toLowerCase().split(" ").join("_")}_${td.zone}`;
+    if (method_zones.indexOf(method_zone) == -1) method_zones.push(method_zone);
+    if (weights.indexOf(td.uptoweight_g) == -1) weights.push(td.uptoweight_g);
+  });
+  method_zones.sort((a, b) => {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  });
+  weights.sort((a, b) => {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  });
+  const values = [];
+  method_zones.forEach((a, b) => {
+    values.push([]);
+    weights.forEach((c, d) => {
+      values[b].push({cost:0,date:0})
+    })
+  });
+  const cut = date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate();
+  this_data.forEach(td => {
+    const method_zone = `${td.method.toLowerCase().split(" ").join("_")}_${td.zone}`;
+    const z = method_zones.indexOf(method_zone);
+    const w = weights.indexOf(td.uptoweight_g);
+    if (values[z][w].date < td.costdate && td.costdate <= cut) {
+      values[z][w].date = td.costdate;
+      values[z][w].cost = td.cost;
+    }
+  });
+
+  // Generate output data
+  let csv_data = "";
+  // Header row
+  csv_data += `Up to weight (g),${method_zones.join(",")}\r\n`;
+  // Content rows
+  weights.forEach((w, wi) => {
+    csv_data += `${w}`;
+    method_zones.forEach((m, mi) => {
+      if (values[mi][wi].date > 0) csv_data += `,${values[mi][wi].cost}`;
+      else csv_data += `,`;
+    });
+    csv_data += `\r\n`;
+  });
+
+  saveDynamicDataToFile(csv_data, `shipping_costs_${cut}.csv`);
+}
+
+function saveDynamicDataToFile(data, fname) {
+  var blob = new Blob([data], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, fname);
 }
