@@ -326,8 +326,9 @@ exports.index = async (req, res) => {
   // "DHL_prices_20221001.csv"
   // change to load DB data to chart (since automatic loading of new data isn't possible)
   charts["DHL"] = {};
-  const dhl_data = fs.readFileSync("./data/DHL_prices_20221001.csv");
-  const row_data = dhl_data.toString().split('\r\n');
+  const dhl_data = (fs.readFileSync("./data/DHL_prices_20221001.csv")).toString();
+  let row_separator = dhl_data.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
+  const row_data = dhl_data.toString().split(row_separator);
   row_data.forEach((row, e) => {
     const cell_data = row.split(',');
     if (e == 0) {
@@ -363,8 +364,9 @@ exports.index = async (req, res) => {
   // Add Surface mail premium price list, from SurfaceMail(Premium)20221028.csv
   // Load DB data to chart (since automatic loading of new data isn't possible)
   charts["Surface mail premium"] = {};
-  const smp_data = fs.readFileSync("./data/SurfaceMail(Premium)20221028.csv");
-  const smp_row_data = smp_data.toString().split('\r\n');
+  const smp_data = (fs.readFileSync("./data/SurfaceMail(Premium)20221028.csv")).toString();
+  row_separator = smp_data.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
+  const smp_row_data = smp_data.split(row_separator);
   smp_row_data.forEach((row, e) => {
     const cell_data = row.split(',');
     if (e == 0) {
