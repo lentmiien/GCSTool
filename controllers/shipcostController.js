@@ -15,26 +15,26 @@ exports.index = async (req, res) => {
   // Zone labels
   const zone_labels = {
     _4zones: [
-      "Asia",
-      "Oceania, Canada, Central America, Middle East, Europe",
-      "South America and Africa",
-      "The United States (including overseas territories like Guam)"
+      "First Zone; Asia",
+      "Second Zone; Oceania, Canada, Central America, Middle East, Europe",
+      "Third Zone; South America and Africa",
+      "Fourth Zone; The United States (including overseas territories like Guam)"
     ],
     _5zones: [
-      "China, South Korea, Taiwan",
-      "Asia (excluding China, South Korea, Taiwan)",
-      "Oceania, North America (excluding the U.S.), Middle East, Europe",
-      "U.S. (including Guam and other U.S. territories)",
-      "Central and South America (excluding Mexico), Africa"
+      "First Zone; China, South Korea, Taiwan",
+      "Second Zone; Asia (excluding China, South Korea, Taiwan)",
+      "Third Zone; Oceania, North America (excluding the U.S.), Middle East, Europe",
+      "Fourth Zone; U.S. (including Guam and other U.S. territories)",
+      "Fifth Zone; Central and South America (excluding Mexico), Africa"
     ],
     _dhlzones: [
-      "Asia",
-      "India, Australia",
-      "North America, Mexico",
-      "Europe",
-      "Russia, Ukraine",
-      "South America",
-      "Africa, Middle East"
+      "First-Third Zone; Asia",
+      "Fourth Zone; India, Australia",
+      "Fifth Zone; North America, Mexico",
+      "Sixth Zone; Europe",
+      "Seventh Zone; Russia, Ukraine",
+      "Eight Zone; South America",
+      "Nineth Zone; Africa, Middle East"
     ],
     _usaonly: [
       "The United States"

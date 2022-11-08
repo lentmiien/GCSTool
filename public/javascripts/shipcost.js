@@ -79,7 +79,8 @@ function Charts(group, type) {
     output += `</table>`;
   });
 
-  CopyToClipboard(`<p>${top_links}</p>${output}`);
+  const d = new Date();
+  CopyToClipboard(`<p><i><b style="color:#bbb;">Updated: ${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}</b></i></p><p>${top_links}</p>${output}`);
 }
 
 function CopyToClipboard(s) {
