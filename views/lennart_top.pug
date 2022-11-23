@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 Lennart top
+  .row 
+    .col 
+      textarea#ait_input(style="width:100%;", rows="10")
+    .col 
+      button.btn.btn-primary(style="width:100%;", onclick="AIT_CheckUpdates()") Check⇒
+    .col 
+      div#ait_updates
+    .col 
+      button.btn.btn-primary(style="width:100%;", onclick="AIT_SaveAndGenerateOutput()") Generate⇒
+    .col 
+      textarea#ait_output(style="width:100%;", rows="10")
+
+  script(src="/javascripts/lennart.js")

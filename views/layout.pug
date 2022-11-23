@@ -51,6 +51,9 @@ html(lang='en')
                   hr.dropdown-divider
                   a.dropdown-item(href='/timekeeper') Timekeeper
                   a.dropdown-item(href='/scheduler/updatelog') Scheduler update log
+            if name === "Lennart"
+              li.nav-item
+                a.nav-link(href='/lennart') Lennart
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
