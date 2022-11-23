@@ -4,11 +4,15 @@ block content
   .row
     .col
       h1 Lennart top
+      button.btn.btn-danger(onclick="EnableDanger()") Enable dangerous actions
   .row 
     .col 
       textarea#ait_input(style="width:100%;", rows="10")
     .col 
       button.btn.btn-primary(style="width:100%;", onclick="AIT_CheckUpdates()") Check⇒
+      button.btn.btn-warning(style="width:100%;", onclick="AIT_GetSavedData()") ⇐Get saved data
+      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_SaveToLocalstorage()", disabled) ⇐Save to localstorage
+      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_ClearLocalstorage()", disabled) *Delete saved data*
     .col 
       div#ait_updates
     .col 

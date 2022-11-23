@@ -1,9 +1,16 @@
+const d = new Date();
+const d_str = `${d.getFullYear()}-${d.getMonth() > 8 ? (d.getMonth()+1) : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
 let ait_data = [];
+
+function EnableDanger() {
+  const danger_action = document.getElementsByClassName("danger_action");
+  for (let i = 0; i < danger_action.length; i++) {
+    danger_action[i].disabled = false;
+  }
+}
 
 function AIT_CheckUpdates() {
   const indata = document.getElementById("ait_input").value;
-  const d = new Date();
-  const d_str = `${d.getFullYear()}-${d.getMonth() > 8 ? (d.getMonth()+1) : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
 
   // Parse input
   const rows = indata.split('\n');
@@ -12,13 +19,13 @@ function AIT_CheckUpdates() {
     const cells = r.split('\t');
     if (i > 0) {
       const c_str = cells[5].split('-').join('');
-      const pks = parseInt(cells[6]);
-      const pal = parseInt(cells[7]);
+      const pks = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
+      const pal = isNaN(parseInt(cells[7])) ? 0 : parseInt(cells[7]);
       if (c_str.length > 0) {
         use_data.push({
           container: c_str,
-          packages: isNaN(pks) ? 0 : pks,
-          pallets: isNaN(pal) ? 0 : pal,
+          packages: pks > pal ? pks : pal,
+          pallets: pks > pal ? pal : pks,
           arrival_estimate: cells[10],
           arrival: cells[11],
           status: cells[12],
@@ -123,8 +130,14 @@ function AIT_SaveAndGenerateOutput() {
 
   for (let j = 0; j < arrival_estimate.length; j++) {
     const i = parseInt(arrival_estimate[j].dataset.i);
-    ait_data[i].arrival_estimate.value = arrival_estimate[j].value;
-    ait_data[i].arrival.value = arrival[j].value;
+    if (ait_data[i].arrival_estimate.value != arrival_estimate[j].value) {
+      ait_data[i].arrival_estimate.up_date = d_str;
+      ait_data[i].arrival_estimate.value = arrival_estimate[j].value;
+    }
+    if (ait_data[i].arrival.value != arrival[j].value) {
+      ait_data[i].arrival.up_date = d_str;
+      ait_data[i].arrival.value = arrival[j].value;
+    }
   }
 
   // Save to localstorage
@@ -140,4 +153,16 @@ function AIT_SaveAndGenerateOutput() {
   document.getElementById("ait_output").value = `<table class="table table-dark table-striped"><thead><tr><th>Container</th><th>Packages</th><th>Pallets</th><th>Estimared arrival</th><th>Confirmed arrived</th><th>Status</th></tr></thead><tbody>${outputs.join('')}</tbody></table>`;
 
   console.log(ait_data);
+}
+
+function AIT_GetSavedData() {
+  if (localStorage.hasOwnProperty('ait_data') == true) {
+    document.getElementById("ait_input").value = localStorage.getItem('ait_data');
+  }
+}
+function AIT_SaveToLocalstorage() {
+  localStorage.setItem('ait_data', document.getElementById("ait_input").value);
+}
+function AIT_ClearLocalstorage() {
+  localStorage.setItem('ait_data', "[]");
 }
