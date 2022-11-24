@@ -15,18 +15,21 @@ function AIT_CheckUpdates() {
   // Parse input
   const rows = indata.split('\n');
   const use_data = [];
+  let lastdate = null;
   rows.forEach((r, i) => {
     const cells = r.split('\t');
     if (i > 0) {
       const c_str = cells[5].split('-').join('');
       const pks = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
       const pal = isNaN(parseInt(cells[7])) ? 0 : parseInt(cells[7]);
+      const date = cells[10].split(" ").join("");
+      if (date.length > 0) lastdate = date;
       if (c_str.length > 0) {
         use_data.push({
           container: c_str,
           packages: pks > pal ? pks : pal,
           pallets: pks > pal ? pal : pks,
-          arrival_estimate: cells[10],
+          arrival_estimate: lastdate,
           arrival: cells[11],
           status: cells[12],
         });
@@ -118,7 +121,9 @@ function AIT_CheckUpdates() {
     // Display middle edit field
     let html_str = [];
     updated_i.forEach(i => {
-      html_str.push(`<div><b>${ait_data[i].container.value}</b><br><span>Estimate: ${ait_data[i].arrival_estimate.label}</span><br><input type="text" class="form-control arrival_estimate" data-i="${i}" value="${ait_data[i].arrival_estimate.value}"><br><span>Arrive: ${ait_data[i].arrival.label}</span><br><input type="text" class="form-control arrival" data-i="${i}" value="${ait_data[i].arrival.value}"></div>`);
+      const e_date = SpecialDateParser(ait_data[i].arrival_estimate.label, ait_data[i].arrival_estimate.value);
+      const a_date = SpecialDateParser(ait_data[i].arrival.label, ait_data[i].arrival.value);
+      html_str.push(`<div><b>${ait_data[i].container.value}</b><br><span>Estimate: ${ait_data[i].arrival_estimate.label}</span><br><input type="text" class="form-control arrival_estimate" data-i="${i}" value="${e_date}"><br><span>Arrive: ${ait_data[i].arrival.label}</span><br><input type="text" class="form-control arrival" data-i="${i}" value="${a_date}"></div>`);
     });
     document.getElementById("ait_updates").innerHTML = html_str.join("<hr>");
   }
@@ -165,4 +170,27 @@ function AIT_SaveToLocalstorage() {
 }
 function AIT_ClearLocalstorage() {
   localStorage.setItem('ait_data', "[]");
+}
+
+const m_lookup = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+function SpecialDateParser(label, previous) {
+  // only support labels of the format: 4-Sep, 20-Sep
+  // previous is always an empty string or a date of format YYYY-MM-DD *Default return value if accurate date could not be determined
+  const label_parts = label.split("-");
+  if (label_parts.length == 2 && (label_parts[0].length == 1 || label_parts[0].length == 2) && label_parts[1].length == 3) {
+    let new_year = (new Date()).getFullYear();
+    const new_date = parseInt(label_parts[0]);
+    const new_month = m_lookup.indexOf(label_parts[1].toLowerCase()) + 1;
+    const testdate1 = new Date(new_year, new_month-1, new_date);
+    const testdate2 = new Date(new_year+1, new_month-1, new_date);
+    if (testdate1.getTime() > Date.now()-(1000*60*60*24*60) && testdate1.getTime() < Date.now()+(1000*60*60*24*120)) {
+      return `${new_year}-${new_month > 9 ? new_month : '0' + new_month}-${new_date > 9 ? new_date : '0' + new_date}`;
+    } else if (testdate2.getTime() > Date.now()-(1000*60*60*24*60) && testdate2.getTime() < Date.now()+(1000*60*60*24*120)) {
+      return `${new_year + 1}-${new_month > 9 ? new_month : '0' + new_month}-${new_date > 9 ? new_date : '0' + new_date}`;
+    } else {
+      return previous;
+    }
+  } else {
+    return previous;
+  }
 }
