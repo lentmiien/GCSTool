@@ -7,138 +7,168 @@ block content
   h3 Background
   p When I started working as customer support, we mainly used a text document to keep track of the mail templates, and we did not have a proper manual when I started working. So I got the idea to create an HTML file instead for the templates that we were using at the time. After using the HTML tool for some time, I realized that it was hard to maintain the tool and add new content, so I decided to switch over to dynamically loaded content, and due to browser security limitations, it became necessary to copy paste the content data into the tool. At this point a started to think that the tool could become useful for the team, so I decided to include our Mail Manuals in the tool, as well as make a more useful interface for the tool. The next major step was to make the data handling easier, and at this point I got access to a server for the tool, so I moved the Master data to be loaded from a file on the server, and save/load Personal data from the browser memory. Due to the still existing limitations in sharing and updating the data used by the tool, then next and current step of implementing the tool in Node.js and the Express framework was decided, and the data will be stored in a database on the server for easier sharing.
   h3 Version History
-  b Version 2.7.0 [2022-11-02]
-  ul
-    li HS code 
-      ul
-        li Editor version 2 (view and edit list of all unique entries at top, or each order at bottom, also new popup interface for selecting HS codes)
-        li Manual editor (copy-paste invoice item names and get HS code output)
-        li Checker (For checking output files, verifying HS codes)
-        li Database (For editing saved entries)
-    li Shipping costs 
-      ul
-        li Cost tables: A view layout for checking shipping rate charts from different points in time, and downloading csv files with those shipping costs
-        li Cost manager: A tool for managing shipping rate tables and generating HTML formated tables for sharing (Automatically acquire latest fees for Japan Post shipping methods)
-    li Layout 
-      ul 
-        li Adjust "Test" to English/Japanese, so text lines up better
-    li Server app
-      ul
-        li Necessary additions for new HS code functionality
-        li Necessary additions for Shipping costs functionality
-  b Version 2.6.2 [--]
-  ul
-    li Shipping
-      ul
-        li Hide average and last shipped columns (because is not updated)
-    li Server app
-      ul
-        li Package cleanup and update (removing unused packages and updating old packages)
-        li Cleanup and update package.json
-  b Version 2.6.1 [2022-05-11]
-  ul
-    li Tracker
-      ul
-        li Show fullscreen popup on top (bug fix, hide "Add" button)
-  b Version 2.6.0 [2022-05-10]
-  ul
-    li Scheduler update
-      ul
-        li All staff one year schedule available to everyone 
-        li JSON file for scheduler settings (days off/holiday count)
-    li Tracker
-      ul
-        li A tool for keeping track on certain shipments (the list of tracking numbers is saved in the browser for each user)
-    li Feedback
-      ul
-        li Temporarilly hide feedback function
-  b Version 2.5.0 [2021-10-24]
-  ul
-    li HS code tool
-      ul
-        li Tool for editing CSV files, add HS codes to the file
-  b Version 2.4.1 [2020-11-26]
-  ul
-    li Japan Post news
-      ul
-        li Show news from Japan Post (updated twice a day)
-    li Binpacker *Experimental
-      ul
-        li A tool for packing items in boxes and visualize the result
-  b Version 2.4.0 [2020-10-12]
-  ul
-    li Scheduler update
-      ul
-        li Remove team schedule and added 2 weeks schedule
-        li All translation done
-    li Feedback function added
-      ul
-        li Every one can add feedback to feedback database (intended for renewal feedback)
-        li English only
-    li Timekeeper (prototype)
-      ul
-        li Auto logging function for start/end using the tool every day per user
-        li English only
-  b Version 2.3.0 [2020-06-17]
-  ul
-    li Shipping average times function
-      ul
-        li per country and shipping method
-        li Shows which shipping methods that are available and if there are any delays
-        li Average shipping time graph
-    li Document creating function
-      ul
-        li DHL return request
-        li DHL import tax
-  b Version 2.2.0 [2020-04-15]
-  ul
-    li Changed to user login system
-      ul
-        li Non-logged in users can only access login page
-  b Version 2.1
-  ul
-    li Sound effects for reminders
-    li Licence details on about page
-    li Scheduler added Holiday (national holidays) and Vacation (additional days off)
-    li Added yearly schedule
-    li Schedule main layout shows 1 week schedule for all staff members
-    li Possible to do a search on Content page on open page, through GET parameters
-  b Version 2.0
-  ul
-    li Some parts of the tool moved to server side (Using Node.js, Express, Sequalize(MySQL))
-    li Dynamic HTML page with dynamic content loaded from database on server (Personal data also saved on server)
-    li Handling Templates, Manuals, Company Contact Templates data
-    li Add/Edit function within the tool, with data saved automatically on server
-    li Includes Dark color mode and Scheduler function
-      ul
-        li Scheduler function supports: Work full day, 2hrs off in morning/evening, half day off in morning/evening, full day off
-    li Used by international customer support mail team
-  b Version 1.5
-  ul
-    li Static HTML page with dynamic content loaded from server (Master data) and browser memory (Personal data)
-    li Handling Templates, Manuals, Company Contact Templates data
-    li Add/Edit function within the tool, where Personal data is saved automatically, but Master data need to be saved manually and the file needs to be manually updated on the server
-    li Search function for finding templates/manuals/assistance calculators/company contact templates
-    li Dark color mode added
-    li Scheduler function added (data handled the same way as Master data)
-    li Used by international customer support mail team
-  b Version 1.0
-  ul
-    li Static HTML page with dynamic content loaded by copy-pasting data from a local text file
-    li Handling Templates, Manuals, Assistance Calculator, Company Contact Templates data
-    li Add/Edit function within the tool, but need to manually save data to local text file
-    li Search function for finding templates/manuals/assistance calculators/company contact templates
-    li Used by international customer support mail team
-  b Version 0.5
-  ul
-    li Static HTML page with dynamic content loaded by copy-pasting data from a local text file
-    li Function for adding templates within tool, but need to manually save data to local text file
-    li Search function for finding templates
-    li Only used by Lennart
-  b Version 0.1
-  ul
-    li Static HTML page with some links and sections for easier navigation to the various templates
-    li Only used by Lennart
+  div(data-update="2022-11-28")
+    b Version 2.7.1 [2022-11-28]
+    ul
+      li Shipping costs 
+        ul
+          li Cost manager: bugfix for display of DHL and Surface Mail Premium
+      li Javascript "lg_update.js"
+        ul 
+          li Color updated HTML elements *useful for manuals (within 24 hours: yellow border, within 1 week: green background, within 1 month: yellow background, within 3 months: blue background)
+            br
+            | *Applies for all html with data-update="2022-11-28" attribute set (given date should be update date)
+      li Lennart test endpoint
+        ul
+          li A new endpoint for misc. tools used by Lennart and testing new stuff 
+          li Tool: convert AIT spredsheet to manual
+  div(data-update="2022-11-02")
+    b Version 2.7.0 [2022-11-02]
+    ul
+      li HS code 
+        ul
+          li Editor version 2 (view and edit list of all unique entries at top, or each order at bottom, also new popup interface for selecting HS codes)
+          li Manual editor (copy-paste invoice item names and get HS code output)
+          li Checker (For checking output files, verifying HS codes)
+          li Database (For editing saved entries)
+      li Shipping costs 
+        ul
+          li Cost tables: A view layout for checking shipping rate charts from different points in time, and downloading csv files with those shipping costs
+          li Cost manager: A tool for managing shipping rate tables and generating HTML formated tables for sharing (Automatically acquire latest fees for Japan Post shipping methods)
+      li Layout 
+        ul 
+          li Adjust "Test" to English/Japanese, so text lines up better
+      li Server app
+        ul
+          li Necessary additions for new HS code functionality
+          li Necessary additions for Shipping costs functionality
+  div(data-update="2022-11-02")
+    b Version 2.6.2 [--]
+    ul
+      li Shipping
+        ul
+          li Hide average and last shipped columns (because is not updated)
+      li Server app
+        ul
+          li Package cleanup and update (removing unused packages and updating old packages)
+          li Cleanup and update package.json
+  div(data-update="2022-05-11")
+    b Version 2.6.1 [2022-05-11]
+    ul
+      li Tracker
+        ul
+          li Show fullscreen popup on top (bug fix, hide "Add" button)
+  div(data-update="2022-05-10")
+    b Version 2.6.0 [2022-05-10]
+    ul
+      li Scheduler update
+        ul
+          li All staff one year schedule available to everyone 
+          li JSON file for scheduler settings (days off/holiday count)
+      li Tracker
+        ul
+          li A tool for keeping track on certain shipments (the list of tracking numbers is saved in the browser for each user)
+      li Feedback
+        ul
+          li Temporarilly hide feedback function
+  div(data-update="2021-10-24")
+    b Version 2.5.0 [2021-10-24]
+    ul
+      li HS code tool
+        ul
+          li Tool for editing CSV files, add HS codes to the file
+  div(data-update="2020-11-26")
+    b Version 2.4.1 [2020-11-26]
+    ul
+      li Japan Post news
+        ul
+          li Show news from Japan Post (updated twice a day)
+      li Binpacker *Experimental
+        ul
+          li A tool for packing items in boxes and visualize the result
+  div(data-update="2020-10-12")
+    b Version 2.4.0 [2020-10-12]
+    ul
+      li Scheduler update
+        ul
+          li Remove team schedule and added 2 weeks schedule
+          li All translation done
+      li Feedback function added
+        ul
+          li Every one can add feedback to feedback database (intended for renewal feedback)
+          li English only
+      li Timekeeper (prototype)
+        ul
+          li Auto logging function for start/end using the tool every day per user
+          li English only
+  div(data-update="2020-06-17")
+    b Version 2.3.0 [2020-06-17]
+    ul
+      li Shipping average times function
+        ul
+          li per country and shipping method
+          li Shows which shipping methods that are available and if there are any delays
+          li Average shipping time graph
+      li Document creating function
+        ul
+          li DHL return request
+          li DHL import tax
+  div(data-update="2020-04-15")
+    b Version 2.2.0 [2020-04-15]
+    ul
+      li Changed to user login system
+        ul
+          li Non-logged in users can only access login page
+  div
+    b Version 2.1
+    ul
+      li Sound effects for reminders
+      li Licence details on about page
+      li Scheduler added Holiday (national holidays) and Vacation (additional days off)
+      li Added yearly schedule
+      li Schedule main layout shows 1 week schedule for all staff members
+      li Possible to do a search on Content page on open page, through GET parameters
+  div
+    b Version 2.0
+    ul
+      li Some parts of the tool moved to server side (Using Node.js, Express, Sequalize(MySQL))
+      li Dynamic HTML page with dynamic content loaded from database on server (Personal data also saved on server)
+      li Handling Templates, Manuals, Company Contact Templates data
+      li Add/Edit function within the tool, with data saved automatically on server
+      li Includes Dark color mode and Scheduler function
+        ul
+          li Scheduler function supports: Work full day, 2hrs off in morning/evening, half day off in morning/evening, full day off
+      li Used by international customer support mail team
+  div
+    b Version 1.5
+    ul
+      li Static HTML page with dynamic content loaded from server (Master data) and browser memory (Personal data)
+      li Handling Templates, Manuals, Company Contact Templates data
+      li Add/Edit function within the tool, where Personal data is saved automatically, but Master data need to be saved manually and the file needs to be manually updated on the server
+      li Search function for finding templates/manuals/assistance calculators/company contact templates
+      li Dark color mode added
+      li Scheduler function added (data handled the same way as Master data)
+      li Used by international customer support mail team
+  div
+    b Version 1.0
+    ul
+      li Static HTML page with dynamic content loaded by copy-pasting data from a local text file
+      li Handling Templates, Manuals, Assistance Calculator, Company Contact Templates data
+      li Add/Edit function within the tool, but need to manually save data to local text file
+      li Search function for finding templates/manuals/assistance calculators/company contact templates
+      li Used by international customer support mail team
+  div
+    b Version 0.5
+    ul
+      li Static HTML page with dynamic content loaded by copy-pasting data from a local text file
+      li Function for adding templates within tool, but need to manually save data to local text file
+      li Search function for finding templates
+      li Only used by Lennart
+  div
+    b Version 0.1
+    ul
+      li Static HTML page with some links and sections for easier navigation to the various templates
+      li Only used by Lennart
   h3 Licence
   ul
     li GCS Support Tool: 
