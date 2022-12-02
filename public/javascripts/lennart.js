@@ -155,7 +155,7 @@ function AIT_SaveAndGenerateOutput() {
     max--;
     outputs.push(`<tr><td data-update="${ait_data[i].container.up_date}">${ait_data[i].container.value}</td><td data-update="${ait_data[i].packages.up_date}">${ait_data[i].packages.value}</td><td data-update="${ait_data[i].pallets.up_date}">${ait_data[i].pallets.value}</td><td data-update="${ait_data[i].arrival_estimate.up_date}">${ait_data[i].arrival_estimate.value}</td><td data-update="${ait_data[i].arrival.up_date}">${ait_data[i].arrival.value}</td><td data-update="${ait_data[i].status.up_date}">${ait_data[i].status.value}</td></tr>`);
   }
-  document.getElementById("ait_output").value = `<table class="table table-dark table-striped"><thead><tr><th>Container</th><th>Packages</th><th>Pallets</th><th>Estimared arrival</th><th>Confirmed arrived</th><th>Status</th></tr></thead><tbody>${outputs.join('')}</tbody></table>`;
+  document.getElementById("ait_output").value = `<table class="table table-dark table-striped"><thead><tr><th>Container</th><th>Packages</th><th>Pallets</th><th>Estimared arrival</th><th>Confirmed/Scheduled arrived</th><th>Status</th></tr></thead><tbody>${outputs.join('')}</tbody></table>`;
 
   console.log(ait_data);
 }
