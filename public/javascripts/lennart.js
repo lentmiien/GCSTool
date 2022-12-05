@@ -78,7 +78,7 @@ function AIT_CheckUpdates() {
 
   // Compare data
   const updated_i = [];
-  for (let i = 0; i < ait_data.length; i++) {
+  for (let i = 0; i < use_data.length; i++) {
     let updated = false;
     if (use_data[i].container != ait_data[i].container.value) {
       ait_data[i].container.up_date = d_str;
