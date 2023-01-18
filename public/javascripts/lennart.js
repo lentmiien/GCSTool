@@ -19,10 +19,10 @@ function AIT_CheckUpdates() {
   rows.forEach((r, i) => {
     const cells = r.split('\t');
     if (i > 0) {
-      const c_str = cells[5].split('-').join('');
-      const pks = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
-      const pal = isNaN(parseInt(cells[7])) ? 0 : parseInt(cells[7]);
-      const date = cells[10].split(" ").join("");
+      const c_str = cells[4].split('-').join('');
+      const pks = isNaN(parseInt(cells[5])) ? 0 : parseInt(cells[5]);
+      const pal = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
+      const date = cells[9].split(" ").join("");
       if (date.length > 0) lastdate = date;
       if (c_str.length > 0) {
         use_data.push({
@@ -30,8 +30,8 @@ function AIT_CheckUpdates() {
           packages: pks > pal ? pks : pal,
           pallets: pks > pal ? pal : pks,
           arrival_estimate: lastdate,
-          arrival: cells[11],
-          status: cells[12],
+          arrival: cells[10],
+          status: cells[11],
         });
       }
     }
