@@ -16,13 +16,28 @@ function AIT_CheckUpdates() {
   const rows = indata.split('\n');
   const use_data = [];
   let lastdate = null;
+  let container_col = 5;
+  let carton_col = 6;
+  let pallet_col = 7;
+  let estimate_col = 10;
+  let arrive_col = 11;
+  let status_col = 12;
   rows.forEach((r, i) => {
     const cells = r.split('\t');
-    if (i > 0) {
-      const c_str = cells[4].split('-').join('');
-      const pks = isNaN(parseInt(cells[5])) ? 0 : parseInt(cells[5]);
-      const pal = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
-      const date = cells[9].split(" ").join("");
+    if (i === 0) {
+      cells.forEach((data, index) => {
+        if (data === "Container (VV)") container_col = index;
+        if (data === "Cartons in MFST") carton_col = index;
+        if (data === "Pallets shipped from Tokyo") pallet_col = index;
+        if (data === "ETA (VV)") estimate_col = index;
+        if (data === "Recd LAX (CO)") arrive_col = index;
+        if (data === "Status (CO)") status_col = index;
+      });
+    } else {
+      const c_str = cells[container_col].split('-').join('');
+      const pks = isNaN(parseInt(cells[carton_col])) ? 0 : parseInt(cells[carton_col]);
+      const pal = isNaN(parseInt(cells[pallet_col])) ? 0 : parseInt(cells[pallet_col]);
+      const date = cells[estimate_col].split(" ").join("");
       if (date.length > 0) lastdate = date;
       if (c_str.length > 0) {
         use_data.push({
@@ -30,8 +45,8 @@ function AIT_CheckUpdates() {
           packages: pks > pal ? pks : pal,
           pallets: pks > pal ? pal : pks,
           arrival_estimate: lastdate,
-          arrival: cells[10],
-          status: cells[11],
+          arrival: cells[arrive_col],
+          status: cells[status_col],
         });
       }
     }
