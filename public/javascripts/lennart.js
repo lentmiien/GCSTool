@@ -176,7 +176,7 @@ function AIT_SaveAndGenerateOutput() {
 function AIT_GenerateZendeskArticle() {
   const d = new Date(Date.now() - (1000*60*60*24*60));
   const cut_date_str = `${d.getFullYear()}-${d.getMonth() > 8 ? (d.getMonth()+1) : "0"+(d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : "0"+d.getDate()}`;
-  const d_new = new Date(Date.now() - (1000*60*60*24*3));
+  const d_new = new Date(Date.now() - (1000*60*60*24*7));
   const new_date_str = `${d_new.getFullYear()}-${d_new.getMonth() > 8 ? (d_new.getMonth()+1) : "0"+(d_new.getMonth()+1)}-${d_new.getDate() > 9 ? d_new.getDate() : "0"+d_new.getDate()}`;
 
   const outputs = [];
@@ -196,20 +196,22 @@ function AIT_GenerateZendeskArticle() {
       let status_update = cut_date_str;
       if (ait_data[i].status.value.length > 0) {
         status = "Processing to shipout by local carrier";
-        if (ait_data[i].status.value.toLowerCase() === "completed") {
+        if (ait_data[i].status.value.toLowerCase().indexOf("completed") >= 0) {
           status = "Local shipout completed";
         }
         status_update = ait_data[i].status.up_date;
       }
 
-      // Put together output row
-      const i = outputs.length;
-      outputs.push(`<tr style="background-color:${(i%2) === 1 ? "#EEEEEE" : "#FFFFFF"};"><td>${ait_data[i].container.value}</td><td${date_str_update > new_date_str ? ' style="font-weight:900;"' : ""}>${date_str}</td$><td${status_update > new_date_str ? ' style="font-weight:900;"' : ""}>${status}</td$></tr>`);
+      if (date_str > cut_date_str) {
+        // Put together output row
+        const index = outputs.length;
+        outputs.push(`<tr style="background-color:${(index%2) === 1 ? "#EEEEEE" : "#FFFFFF"};"><td>${ait_data[i].container.value}</td><td${date_str_update > new_date_str ? ' style="font-weight:900;"' : ""}>${date_str}</td><td${status_update > new_date_str ? ' style="font-weight:900;"' : ""}>${status}</td></tr>`);
+      }
     }
   }
 
   // Set output
-  document.getElementById("ait_output").value = `<table><tr style="background-color:#DDDDDD;"><th>Container</th><th>United States arrival date</th><th>Status</th></tr>${outputs.join("")}</table><p>*Prelimary arrival date to port in United States, date may change and a few more days required to reach warehouse.</p>`;
+  document.getElementById("ait_output").value = `<table><tr style="background-color:#DDDDDD;"><th style="width:15%;">Container</th><th style="width:30%;">United States arrival date</th><th style="width:55%;">Status</th></tr>${outputs.join("")}</table><p>*Preliminary arrival date to port in United States, date may change and a few more days required to reach warehouse.</p><p><b>Bold entries</b> are recent updates.</p>`;
 }
 
 function AIT_GetSavedData() {
