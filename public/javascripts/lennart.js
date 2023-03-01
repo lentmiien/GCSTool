@@ -192,12 +192,12 @@ function AIT_GenerateZendeskArticle() {
       }
 
       // ait_data[i].status.value
-      let status = "On the way";
+      let status = "In transit to the USA";
       let status_update = cut_date_str;
       if (ait_data[i].status.value.length > 0) {
-        status = "Processing to shipout by local carrier";
+        status = "Received/Processing at USA warehouse";
         if (ait_data[i].status.value.toLowerCase().indexOf("completed") >= 0) {
-          status = "Local shipout completed";
+          status = "Tracking information Sent";
         }
         status_update = ait_data[i].status.up_date;
       }
@@ -211,7 +211,7 @@ function AIT_GenerateZendeskArticle() {
   }
 
   // Set output
-  document.getElementById("ait_output").value = `<table><tr style="background-color:#DDDDDD;"><th style="width:15%;">Container</th><th style="width:30%;">United States arrival date</th><th style="width:55%;">Status</th></tr>${outputs.join("")}</table><p>*Preliminary arrival date to port in United States, date may change and a few more days required to reach warehouse.</p><p><b>Bold entries</b> are recent updates.</p>`;
+  document.getElementById("ait_output").value = `<table><tr style="background-color:#DDDDDD;"><th style="width:15%;">Container</th><th style="width:30%;">United States arrival date</th><th style="width:55%;">Status</th></tr>${outputs.join("")}</table><p>*Preliminary arrival date to port in United States, date may change and a few more days required to reach warehouse.</p><p><b>Bold entries</b> are recent updates.</p><p><i>Note: If in case the status is updated to "Tracking information Sent", and you still don't receive your tracking number within the next few days, please notify our customer support.</i></p>`;
 }
 
 function AIT_GetSavedData() {
