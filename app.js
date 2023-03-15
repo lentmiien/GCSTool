@@ -18,6 +18,7 @@ var hsRouter = require('./routes/hs');
 var trackerRouter = require('./routes/tracker');
 var shipcostRouter = require('./routes/shipcost');
 var lennartRouter = require('./routes/lennart');
+var formRouter = require('./routes/form');
 
 var app = express();
 
@@ -48,6 +49,7 @@ app.use('/hs', requireAuthenticated, hsRouter);
 app.use('/tracker', requireAuthenticated, trackerRouter);
 app.use('/shipcost', requireAuthenticated, shipcostRouter);
 app.use('/lennart', requireAuthenticated, lennartRouter);
+app.use('/form', requireAuthenticated, formRouter);
 
 app.get('/logout', (req, res) => {
   req.logOut();

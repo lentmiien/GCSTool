@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 Azur Lane Bache returns form
+      a.btn.btn-link(href="/form/csv") Download CSV data
+  .row
+    .col
+      b Only add when you have all the data to fill in!
+      form(action="/form/add", method="post") 
+        label(for="order") Order number of original order*
+        input#order.form-control(type="text", name="order", required)
+        label(for="tracking") Return tracking number*
+        input#tracking.form-control(type="text", name="tracking", required)
+        label(for="cost") Return shipping cost (in paid currency)*
+        input#cost.form-control(type="text", name="cost", required)
+        label(for="currency") Currency*
+        input#currency.form-control(type="text", name="currency", required)
+        label(for="support_id") Zendesk ticket id*
+        input#support_id.form-control(type="text", name="support_id", required)
+        label(for="group_label") Type of case*
+          select#group_label.form-control(name="group_label", required) 
+            option(value="Azur Lane Bache return") Azur Lane Bache return
+        br
+        input.btn.btn-primary(type="submit", value="Submit")
+  .row.mt-3
+    .col
+      table.table.table-dark.table-striped
+        thead 
+          tr 
+            th Order
+            th Tracking
+            th Processed by
+            th Added
+            th Cost
+            th Support id
+            th Label
+        tbody 
+          each entry in entries 
+            tr 
+              td= entry.order
+              td= entry.tracking
+              td= entry.processed_by
+              td= (new Date(entry.added_date)).toDateString()
+              td= `${entry.cost} ${entry.currency}`
+              td= entry.support_id
+              td= entry.group_label
