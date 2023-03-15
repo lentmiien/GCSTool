@@ -7,6 +7,12 @@ block content
   h3 Background
   p When I started working as customer support, we mainly used a text document to keep track of the mail templates, and we did not have a proper manual when I started working. So I got the idea to create an HTML file instead for the templates that we were using at the time. After using the HTML tool for some time, I realized that it was hard to maintain the tool and add new content, so I decided to switch over to dynamically loaded content, and due to browser security limitations, it became necessary to copy paste the content data into the tool. At this point a started to think that the tool could become useful for the team, so I decided to include our Mail Manuals in the tool, as well as make a more useful interface for the tool. The next major step was to make the data handling easier, and at this point I got access to a server for the tool, so I moved the Master data to be loaded from a file on the server, and save/load Personal data from the browser memory. Due to the still existing limitations in sharing and updating the data used by the tool, then next and current step of implementing the tool in Node.js and the Express framework was decided, and the data will be stored in a database on the server for easier sharing.
   h3 Version History
+  div(data-update="2023-03-15")
+    b Version 2.7.3 [2023-03-15]
+    ul
+      li Form
+        ul
+          li Added a form route for collecting data on certain specific cases (input form and download data in CSV format)
   div(data-update="2023-01-16")
     b Version 2.7.2 [2023-01-16]
     ul
