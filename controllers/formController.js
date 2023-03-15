@@ -36,3 +36,8 @@ exports.fetch_data = (req, res) => {
     res.send(outdata);
   });
 };
+
+exports.delete = (req, res) => {
+  Form.destroy({ where: { id: req.params.id } });
+  setTimeout(() => res.redirect("/form"), 200);
+};

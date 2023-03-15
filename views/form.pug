@@ -7,23 +7,27 @@ block content
       a.btn.btn-link(href="/form/csv") Download CSV data
   .row
     .col
-      b Only add when you have all the data to fill in!
+      i.warning.m-1 **Only add when you have all the data to fill in!
       form(action="/form/add", method="post") 
-        label(for="order") Order number of original order*
-        input#order.form-control(type="text", name="order", required)
-        label(for="tracking") Return tracking number*
-        input#tracking.form-control(type="text", name="tracking", required)
-        label(for="cost") Return shipping cost (in paid currency)*
-        input#cost.form-control(type="text", name="cost", required)
-        label(for="currency") Currency*
-        input#currency.form-control(type="text", name="currency", required)
-        label(for="support_id") Zendesk ticket id*
-        input#support_id.form-control(type="text", name="support_id", required)
-        label(for="group_label") Type of case*
-          select#group_label.form-control(name="group_label", required) 
-            option(value="Azur Lane Bache return") Azur Lane Bache return
-        br
-        input.btn.btn-primary(type="submit", value="Submit")
+        .row.mt-2
+          .col
+            label(for="order") Order number of original order*
+            input#order.form-control(type="text", name="order", required)
+            label.mt-3(for="tracking") Return tracking number*
+            input#tracking.form-control(type="text", name="tracking", required)
+          .col
+            label(for="cost") Return shipping cost (in paid currency)*
+            input#cost.form-control(type="text", name="cost", required)
+            label.mt-3(for="currency") Currency*
+            input#currency.form-control(type="text", name="currency", list="cur", required)
+          .col
+            label(for="support_id") Zendesk ticket id*
+            input#support_id.form-control(type="text", name="support_id", required)
+            label.mt-3(for="group_label") Type of case*
+            select#group_label.form-control(name="group_label", required) 
+              option(value="Azur Lane Bache return") Azur Lane Bache return
+        input.btn.btn-primary.mt-2(type="submit", value="Submit")
+        hr
   .row.mt-3
     .col
       table.table.table-dark.table-striped
@@ -36,6 +40,7 @@ block content
             th Cost
             th Support id
             th Label
+            th 
         tbody 
           each entry in entries 
             tr 
@@ -46,3 +51,15 @@ block content
               td= `${entry.cost} ${entry.currency}`
               td= entry.support_id
               td= entry.group_label
+              td 
+                if role === "admin" || name === entry.processed_by
+                  a.btn.btn-danger(href=`/form/delete/${entry.id}`) X 
+  
+  datalist#cur
+    option(value="USD") 
+    option(value="CAD") 
+    option(value="MXN") 
+    option(value="KRW") 
+    option(value="AUD") 
+    option(value="EUR") 
+    option(value="JPY") 

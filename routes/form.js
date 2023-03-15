@@ -8,5 +8,6 @@ var controller = require('../controllers/formController');
 router.get('/', controller.index);
 router.post('/add', controller.add_post);
 router.get('/csv', controller.fetch_data);
+router.get('/delete/:id', controller.delete);
 
 module.exports = router;
