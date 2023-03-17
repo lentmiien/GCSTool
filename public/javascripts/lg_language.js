@@ -1002,11 +1002,6 @@ var json_language = {
     swedish: 'Typ av fall',
     japanese: 'ケースの種類'
   },
-  _azur_lane_bache_return_: {
-    english: 'Azur Lane Bache return',
-    swedish: 'Azur Lane Bache retur',
-    japanese: 'アズールレーン バッチ 返品'
-  },
   _order_: {
     english: 'Order',
     swedish: 'Beställning',
@@ -1025,7 +1020,7 @@ var json_language = {
   _cost_: {
     english: 'Cost',
     swedish: 'Kostnad',
-    japanese: '値段'
+    japanese: 'コスト'
   },
   _ticket_: {
     english: 'Ticket',
