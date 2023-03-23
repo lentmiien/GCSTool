@@ -3,27 +3,27 @@ extends layout
 block content
   .row
     .col
-      h1 Azur Lane Bache returns form
-      a.btn.btn-link(href="/form/csv") Download CSV data
+      h1(lg_language='_azur_lane_bache_returns_form_')
+      a.btn.btn-link(href="/form/csv", lg_language='_download_csv_data_')
   .row
     .col
-      i.warning.m-1 **Only add when you have all the data to fill in!
+      i.warning.m-1(lg_language='_all_data_needed_')
       form(action="/form/add", method="post") 
         .row.mt-2
           .col
-            label(for="order") Order number of original order*
+            label(for="order", lg_language='_order_number_of_original_order_')
             input#order.form-control(type="text", name="order", required)
-            label.mt-3(for="tracking") Return tracking number*
+            label.mt-3(for="tracking", lg_language='_return_tracking_number_')
             input#tracking.form-control(type="text", name="tracking", required)
           .col
-            label(for="cost") Return shipping cost (in paid currency)*
+            label(for="cost", lg_language='_return_shipping_cost_')
             input#cost.form-control(type="text", name="cost", required)
-            label.mt-3(for="currency") Currency*
+            label.mt-3(for="currency", lg_language='_currency_')
             input#currency.form-control(type="text", name="currency", list="cur", required)
           .col
-            label(for="support_id") Zendesk ticket id*
+            label(for="support_id", lg_language='_zendesk_ticket_id_')
             input#support_id.form-control(type="text", name="support_id", required)
-            label.mt-3(for="group_label") Type of case*
+            label.mt-3(for="group_label", lg_language='_type_of_case_')
             select#group_label.form-control(name="group_label", required) 
               option(value="Azur Lane Bache return") Azur Lane Bache return
         input.btn.btn-primary.mt-2(type="submit", value="Submit")
@@ -33,13 +33,13 @@ block content
       table.table.table-dark.table-striped
         thead 
           tr 
-            th Order
-            th Tracking
-            th Processed by
-            th Added
-            th Cost
-            th Support id
-            th Label
+            th(lg_language='_order_')
+            th(lg_language='_tracking_')
+            th(lg_language='_processed_by_')
+            th(lg_language='_added_')
+            th(lg_language='_cost_')
+            th(lg_language='_ticket_')
+            th(lg_language='_label_')
             th 
         tbody 
           each entry in entries 

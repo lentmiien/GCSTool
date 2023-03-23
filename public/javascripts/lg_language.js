@@ -224,7 +224,7 @@ var json_language = {
   _submit_: {
     english: 'Submit',
     swedish: 'Sänd',
-    japanese: '実行',
+    japanese: '送信',
   },
   _submit_delete_: {
     english: 'Delete',
@@ -833,8 +833,8 @@ var json_language = {
     japanese: 'ページをリフレッシュ'
   },
   _tracking_: {
-    english: 'Tracking #',
-    swedish: 'Spårning #',
+    english: 'Tracking',
+    swedish: 'Spårning',
     japanese: '追跡番号'
   },
   _shipped_: {
@@ -956,6 +956,81 @@ var json_language = {
     english: '*If unique entries wasn\'t updated, or any order(s) need customized HS codes, update the individual orders below.',
     swedish: '*Om unika inlägg inte är updaterat, eller om några beställningar behöver anpassade HS koder, updatera dom separata beställningarna nedan.',
     japanese: '※一意内容は更新されていなく、または注文にカスタマイズHSコードが必要な場合には、下記の注文を更新する。'
+  },
+  _azur_lane_bache_returns_form_: {
+    english: 'Azur Lane Bache returns form',
+    swedish: 'Azur Lane Bache retur formulär',
+    japanese: 'アズールレーン バッチ 返品フォーム'
+  },
+  _download_csv_data_: {
+    english: 'Download CSV data',
+    swedish: 'Ladda ner CSV data',
+    japanese: 'CSVダウンロード'
+  },
+  _all_data_needed_: {
+    english: '**Only add when you have all the data to fill in!',
+    swedish: '**Fyll bara i när du har data för alla fält!',
+    japanese: '※※入力データが揃ったら、記入してください！'
+  },
+  _order_number_of_original_order_: {
+    english: 'Order number of original order',
+    swedish: 'Ordernummer för originalorder',
+    japanese: '元注文の注文番号'
+  },
+  _return_tracking_number_: {
+    english: 'Return tracking number',
+    swedish: 'Retur spårningsnummer',
+    japanese: '返送の追跡番号'
+  },
+  _return_shipping_cost_: {
+    english: 'Return shipping cost (in paid currency)',
+    swedish: 'Returfraktkostnad (i betald valuta)',
+    japanese: '返送の送料（現地の通貨）'
+  },
+  _currency_: {
+    english: 'Currency',
+    swedish: 'Valuta',
+    japanese: '通貨'
+  },
+  _zendesk_ticket_id_: {
+    english: 'Zendesk ticket id',
+    swedish: 'Zendesk ticket id',
+    japanese: 'Zendeskチケット'
+  },
+  _type_of_case_: {
+    english: 'Type of case',
+    swedish: 'Typ av fall',
+    japanese: 'ケースの種類'
+  },
+  _order_: {
+    english: 'Order',
+    swedish: 'Beställning',
+    japanese: '注文'
+  },
+  _processed_by_: {
+    english: 'Processed by',
+    swedish: 'Behandlad av',
+    japanese: '処理者'
+  },
+  _added_: {
+    english: 'Added',
+    swedish: 'Lagt till',
+    japanese: '作成日'
+  },
+  _cost_: {
+    english: 'Cost',
+    swedish: 'Kostnad',
+    japanese: 'コスト'
+  },
+  _ticket_: {
+    english: 'Ticket',
+    swedish: 'Ticket',
+    japanese: 'チケット'
+  },
+  _label_: {
+    english: 'Label',
+    swedish: 'Etikett',
+    japanese: 'ラベル'
   }
   /*,
   __: {
