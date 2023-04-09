@@ -36,7 +36,22 @@ block content
     #back
     each entry in entries
         div(class='entry ' + entry.category)
-            button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')= entry.title
+            - const title_arr = []
+            if entry.title.indexOf('[') >= 0
+                each part in entry.title.split('[')
+                    if part.indexOf(']') >= 0
+                        - const sub_parts = part.split(']')
+                        - title_arr.push({label:true,text:sub_parts[0]})
+                        if sub_parts[1].length > 0
+                            - title_arr.push({label:false,text:sub_parts[1]})
+                    else
+                        if part.length > 0
+                            - title_arr.push({label:false,text:part})
+            else
+                - title_arr.push({label:false,text:entry.title})
+            button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')
+                each title_part in title_arr 
+                    span(class=`${title_part.label ? "highlight" : ""}`)= title_part.text
             i.label(lg_language='_' + entry.category + '_')
             i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;', lg_language=entry.ismaster ? '_master_' : '_private_')
             br
