@@ -5,7 +5,7 @@
  */
 require('dotenv').config();
 
-var app = require('../app');
+var {app, sessionMiddleware} = require('../app');
 var debug = require('debug')('gcstool:server');
 var http = require('http');
 
@@ -21,6 +21,12 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * Setup socket.io
+ */
+
+require('../socket_io_controller').io(server, sessionMiddleware);
 
 /**
  * Listen on provided port, on all network interfaces.

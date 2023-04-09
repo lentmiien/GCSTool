@@ -33,7 +33,8 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 8640000000 } }));
+const sessionMiddleware = session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 8640000000 } });
+app.use(sessionMiddleware);
 app.use(pp.passport.initialize());
 app.use(pp.passport.session());
 
@@ -51,9 +52,11 @@ app.use('/shipcost', requireAuthenticated, shipcostRouter);
 app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
 
-app.get('/logout', (req, res) => {
-  req.logOut();
-  res.redirect('/');
+app.get('/logout', (req, res, next) => {
+  req.logOut(function(err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
 });
 
 // catch 404 and forward to error handler
@@ -90,4 +93,4 @@ function requireNotAuthenticated(req, res, next) {
   next();
 }
 
-module.exports = app;
+module.exports = {app, sessionMiddleware};
