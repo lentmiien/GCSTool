@@ -109,6 +109,43 @@ exports.send = async (req, res) => {
   setTimeout(() => res.redirect(`/chatgpt?tid=${tid}`), 100);
 };
 
+exports.generate = async (req, res) => {
+  // input: text in body
+  let output = req.body.text;
+
+  // New chat
+  const messages = [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: req.body.text },
+  ];
+  const response = await chatGPT(messages);
+  if (response) {
+    output = response.choices[0].message.content;
+    messages.push({ role: 'assistant', content: response.choices[0].message.content });
+    // Save to database
+    const ts = Date.now();
+    const db_data = [];
+    messages.forEach((m, i) => {
+      db_data.push({
+        user: req.user.userid,
+        role: m.role,
+        content: m.content,
+        tokens: 0,
+        timestamp: ts + i,
+        threadid: ts,
+        title: `AI ${new Date().toDateString()}`,
+      });
+    });
+    db_data[2].tokens = response.usage.total_tokens;
+    await Chatmsg.bulkCreate(db_data);
+  } else {
+    console.log('Failed to get a response from ChatGPT.');
+  }
+
+  // output: text in json
+  res.json({ text: output });
+};
+
 /* Chatmsg
 role: type.STRING,
 content: type.STRING,

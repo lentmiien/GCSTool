@@ -61,7 +61,10 @@ block content
                         if (i == 0)
                             span.tooltip TIP
                                 span.tooltiptextright(lg_language='_tooltip_enter_data_')
-                        textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
+                        .input-group.mb-3
+                            textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
+                            .input-group-append
+                                button.btn.btn-warning.input-group-text(data-label='content' + (i+1), onclick="AI(event)") AI
                 button.btn.btn-primary(type='submit', lg_language='_submit_update_')
     else
         h2(lg_language='_couldnt_update_')
@@ -70,3 +73,4 @@ block content
                 li!= error.msg
         hr
         a(href="/entry", lg_language='_back_')
+    script(src="/javascripts/edit_controller.js") 

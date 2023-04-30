@@ -65,13 +65,29 @@ block content
             label(for='content1', lg_language='_content_')
             span.tooltip TIP
                 span.tooltiptextright(lg_language='_tooltip_enter_data_')
-            textarea#content1.form-control(name='content1', cols='30', rows='10' required='true')= (undefined===request.content1 ? '' : request.content1)
+            .input-group.mb-3
+                textarea.form-control(id='content1', name='content1', cols='30', rows='10', required='true')= (undefined===request.content1 ? '' : request.content1)
+                .input-group-append
+                    button.btn.btn-warning.input-group-text(data-label="content1", onclick=`AI(event)`) AI
             label(for='content2', lg_language='_content_')
-            textarea#content2.form-control(name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)
+            .input-group.mb-3
+                textarea.form-control(id='content2', name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)
+                .input-group-append
+                    button.btn.btn-warning.input-group-text(data-label="content2", onclick=`AI(event)`) AI
             label(for='content3', lg_language='_content_')
-            textarea#content3.form-control(name='content3', cols='30', rows='10')= (undefined===request.content3 ? '' : request.content3)
+            .input-group.mb-3
+                textarea.form-control(id='content3', name='content3', cols='30', rows='10')= (undefined===request.content3 ? '' : request.content3)
+                .input-group-append
+                    button.btn.btn-warning.input-group-text(data-label="content3", onclick=`AI(event)`) AI
             label(for='content4', lg_language='_content_')
-            textarea#content4.form-control(name='content4', cols='30', rows='10')= (undefined===request.content4 ? '' : request.content4)
+            .input-group.mb-3
+                textarea.form-control(id='content4', name='content4', cols='30', rows='10')= (undefined===request.content4 ? '' : request.content4)
+                .input-group-append
+                    button.btn.btn-warning.input-group-text(data-label="content4", onclick=`AI(event)`) AI
             label(for='content5', lg_language='_content_')
-            textarea#content5.form-control(name='content5', cols='30', rows='10')= (undefined===request.content5 ? '' : request.content5)
+            .input-group.mb-3
+                textarea.form-control(id='content5', name='content5', cols='30', rows='10')= (undefined===request.content5 ? '' : request.content5)
+                .input-group-append
+                    button.btn.btn-warning.input-group-text(data-label="content5", onclick=`AI(event)`) AI
         button.btn.btn-primary(type='submit', lg_language='_submit_')
+    script(src="/javascripts/edit_controller.js") 

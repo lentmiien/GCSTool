@@ -8,4 +8,6 @@ var controller = require('../controllers/chatgptController');
 router.get('/', controller.index);
 router.post('/', controller.send);
 
+router.post('/generate', controller.generate);
+
 module.exports = router;

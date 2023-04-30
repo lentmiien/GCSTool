@@ -40,7 +40,7 @@ const User = UserModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
 const Form = FormModel(sequelize, Sequelize);
-const Chatmsg = ChatmsgModel(sequelize_gcs, Sequelize);
+const Chatmsg = ChatmsgModel(sequelize, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
