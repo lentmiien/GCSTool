@@ -361,3 +361,37 @@ svg {
   border: 3px solid #73AD21;
   background-color: black;
 }
+
+/* ChatGPT */
+.system {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: grey;
+  color: black;
+}
+
+.user {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: rgb(205, 255, 205);
+  color: black;
+}
+
+.assistant {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: rgb(182, 182, 255);
+  color: rgb(27, 27, 27);
+  font-weight: bold;
+}
+
+.tokens {
+  border-bottom: 1px dashed gray;
+  color: gray;
+}

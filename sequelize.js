@@ -10,6 +10,7 @@ const UserModel = require('./models/user');
 const HSCodeListModel = require('./models/hscodelist');
 const ShipcostModel = require('./models/shipcost');
 const FormModel = require('./models/form');
+const ChatmsgModel = require('./models/chatmsg');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -39,6 +40,7 @@ const User = UserModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
 const Form = FormModel(sequelize, Sequelize);
+const Chatmsg = ChatmsgModel(sequelize_gcs, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -71,6 +73,7 @@ module.exports = {
   HSCodeList,
   Shipcost,
   Form,
+  Chatmsg,
   Op,
   Country,
   Countrylist,

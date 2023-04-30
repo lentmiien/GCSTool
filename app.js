@@ -19,6 +19,7 @@ var trackerRouter = require('./routes/tracker');
 var shipcostRouter = require('./routes/shipcost');
 var lennartRouter = require('./routes/lennart');
 var formRouter = require('./routes/form');
+const chatgptRouter = require('./routes/chatgpt');
 
 var app = express();
 
@@ -51,6 +52,7 @@ app.use('/tracker', requireAuthenticated, trackerRouter);
 app.use('/shipcost', requireAuthenticated, shipcostRouter);
 app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
+app.use('/chatgpt', requireAuthenticated, chatgptRouter);
 
 app.get('/logout', (req, res, next) => {
   req.logOut(function(err) {

@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .row 
+    .col-2 
+      div
+        button.btn.btn-primary(onclick="OpenChat(0)") New chat
+      each key in keys 
+        div
+          - let tokens = 0
+          each entry in display[key]
+            - tokens += entry.tokens
+          button.btn.btn-primary(onclick=`OpenChat(${key})`)= `${display[key][display[key].length-1].title} ($${Math.round(10 * tokens * 0.002) / 10000})`
+    .col-10
+      #chatarea 
+        if chat != '0'
+          each entry in display[chat]
+            div(class=entry.role)
+              div.tokens= `Tokens: ${entry.tokens}`
+              - let parts = entry.content.split("```")
+              each d, i in parts 
+                if i%2 == 0
+                  p!= d.split('\n').join('<br>')
+                else 
+                  pre= d
+      #inputarea 
+        form(action="/chatgpt", method="post") 
+          input#threadid.form-control(type="text", name="threadid", value=`${chat}`, readonly)
+          input#title.form-control(type="text", name="title", value=`${chat != '0' ? display[chat][display[chat].length-1].title : ""}`)
+          textarea#input.form-control(name="input", rows="5", required)
+          input.btn.btn-success(type="submit", value="Send")
+  pre#data.hidden= JSON.stringify(display, null, 2)
+  script(src="/javascript/chatgpt_controller.js") 
