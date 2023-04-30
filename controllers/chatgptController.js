@@ -112,6 +112,7 @@ exports.send = async (req, res) => {
 exports.generate = async (req, res) => {
   // input: text in body
   let output = req.body.text;
+  const title = req.body.title;
 
   // New chat
   const messages = [
@@ -133,7 +134,7 @@ exports.generate = async (req, res) => {
         tokens: 0,
         timestamp: ts + i,
         threadid: ts,
-        title: `AI ${new Date().toDateString()}`,
+        title: `AI [${title}]`,
       });
     });
     db_data[2].tokens = response.usage.total_tokens;
