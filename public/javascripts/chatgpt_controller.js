@@ -9,7 +9,7 @@ function OpenChat(threadid) {
       element.classList.add(comment.role);
       const tokens = document.createElement('div');
       tokens.classList.add('tokens');
-      tokens.innerText = `Tokens: ${comment.tokens}`;
+      tokens.innerText = `Tokens: ${comment.tokens}, Processed by: ${comment.user}`;
       element.append(tokens);
       const parts = comment.content.split('```');
       parts.forEach((d, i) => {

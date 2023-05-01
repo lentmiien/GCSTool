@@ -363,6 +363,11 @@ svg {
 }
 
 /* ChatGPT */
+.button-list > button {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
 .system {
   padding: 10px;
   margin: 5px;

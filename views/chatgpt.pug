@@ -3,20 +3,17 @@ extends layout
 block content
   .row 
     .col-2 
-      div
+      div.button-list
         button.btn.btn-primary(onclick="OpenChat(0)") New chat
-      each key in keys 
-        div
-          - let tokens = 0
-          each entry in display[key]
-            - tokens += entry.tokens
-          button.btn.btn-primary(onclick=`OpenChat(${key})`)= `${display[key][display[key].length-1].title} ($${Math.round(10 * tokens * 0.002) / 10000})`
+      each button in button_list 
+        div.button-list
+          button.btn.btn-primary(onclick=`OpenChat(${button.threadid})`)= `${button.title} (${button.tokens})`
     .col-10
       #chatarea 
         if chat != '0'
           each entry in display[chat]
             div(class=entry.role)
-              div.tokens= `Tokens: ${entry.tokens}`
+              div.tokens= `Tokens: ${entry.tokens}, Processed by: ${entry.user}`
               - let parts = entry.content.split("```")
               each d, i in parts 
                 if i%2 == 0
@@ -29,5 +26,19 @@ block content
           input#title.form-control(type="text", name="title", value=`${chat != '0' ? display[chat][display[chat].length-1].title : ""}`)
           textarea#input.form-control(name="input", rows="5", required)
           input.btn.btn-success(type="submit", value="Send")
+  .row 
+    .col 
+      table.table.table-dark.table-striped 
+        thead 
+          tr 
+            th Month 
+            th Tokens 
+            th Cost 
+        tbody 
+          each cost in costs 
+            tr 
+              td= cost.dlabel
+              td= cost.tokens
+              td= `$${Math.round(100 * cost.cost) / 100}`
   pre#data.hidden= JSON.stringify(display, null, 2)
   script(src="/javascripts/chatgpt_controller.js") 
