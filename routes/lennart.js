@@ -10,4 +10,6 @@ router.all('*', controller.all);
 /* GET landing page. */
 router.get('/', controller.index);
 
+router.post('/updateait', controller.updateait);
+
 module.exports = router;
