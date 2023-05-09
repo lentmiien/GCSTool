@@ -1,3 +1,14 @@
+/********************************
+ * 
+ * version3 TODO
+ * 
+ * add support for new database format (history in separate database)
+ * 
+ * add tracking upload function
+ * 
+ */
+
+
 // Require used packages
 
 // Require necessary database models

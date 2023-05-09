@@ -1,3 +1,13 @@
+/****************************
+ * 
+ * version3 TODO
+ * 
+ * allow for custamizable labels and based on label choosen change
+ * the input field names and table column names
+ * (database columns can remain the same and have a fixed count)
+ * 
+ */
+
 // Require necessary database models
 const { Form } = require('../sequelize');
 

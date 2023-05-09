@@ -1,3 +1,13 @@
+/*************************************
+ * 
+ * version3 TODO
+ * 
+ * meeting update functionality
+ * 
+ * add some announcement system (notification to all users)
+ * 
+ */
+
 const socketIO = require('socket.io');
 
 exports.io = (server, sessionMiddleware) => {

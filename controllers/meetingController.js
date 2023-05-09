@@ -1,3 +1,12 @@
+/**************************
+ * 
+ * version3 TODO
+ * 
+ * Change from google-spreadsheet to database
+ * Change to process changes/updates through socket.io, and send updates to all users
+ * 
+ */
+
 const e = require('express');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 
