@@ -1,22 +1,22 @@
 extends layout
 
 block content
-  div(class='row')
-    div(class='col-sm-12')
+  .row
+    .col-sm-12
       h1.titlestyle GCS Mail team topics
       p
         button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#new_form", aria-expanded="false", aria-controls="collapseExample") NEW
       #new_form.collapse.alert.alert-secondary(role="alert")
         h3 新規作成
+        input#name(type="hidden", name="name", value=`${name}`)
         .input-group
           .input-group-prepend
-            .input-group-text Topic
-          input#newtopic.form-control(type="text", name="newtopic" placeholder="Topic")
+            .input-group-text Title
+          input#newtitle.form-control(type="text", name="newtitle" placeholder="Title")
         .input-group
           .input-group-prepend
-            .input-group-text Details
-          textarea#newdetails.form-control(name="newdetails", cols="30", rows="3", placeholder="Details")
-        input#newedit_user(type="hidden", name="newedit_user" value=request.userid.toLowerCase())
+            .input-group-text Content
+          textarea#newcontent.form-control(name="newcontent", cols="30", rows="3", placeholder="Content")
         .input-group
           .input-group-prepend
             .input-group-text
@@ -24,7 +24,7 @@ block content
               br
               | comment
           textarea#newmycomment.form-control(name="newmycomment", cols="30", rows="3", placeholder="Your comment")
-        button.btn.btn-success.btn-lg.btn-block(onclick="NewPost()") Post new topic
+        button#newpostbutton.btn.btn-success.btn-lg.btn-block Post new topic
       - let cYear = 9999
       - let cMonth = 99
       - let cnt = 0

@@ -12,6 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Connected to the server');
   });
 
+  /***********
+   * Meeting *
+   ***********/
+  document.getElementById('newpostbutton').addEventListener('click', () => {
+    const name = document.getElementById('name').value;
+    const title = document.getElementById('newtitle');
+    const content = document.getElementById('newcontent');
+    const comment = document.getElementById('newmycomment');
+    socket.emit('meeting_new', { name, title: title.value, content: content.value, comment: comment.value });
+  });
+
   // Handle server messages
   socket.on('message', (data) => {
     console.log('Message from the server:', data);

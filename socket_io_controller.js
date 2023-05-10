@@ -1,14 +1,17 @@
 /*************************************
- * 
+ *
  * version3 TODO
- * 
+ *
  * meeting update functionality
- * 
+ *
  * add some announcement system (notification to all users)
- * 
+ *
  */
 
 const socketIO = require('socket.io');
+
+// Require necessary database models
+const { Meeting, MeetingComment } = require('./sequelize');
 
 exports.io = (server, sessionMiddleware) => {
   const io = socketIO(server);
@@ -27,6 +30,14 @@ exports.io = (server, sessionMiddleware) => {
   // Socket.IO connection handling
   io.on('connection', (socket) => {
     console.log('Authenticated user connected:', socket.request.session.passport.user);
+
+    /***********
+     * Meeting *
+     ***********/
+    socket.on('meeting_new', (data) => {
+      console.log(data);
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.request.session.passport.user);
     });
