@@ -32,6 +32,23 @@ document.addEventListener('DOMContentLoaded', () => {
       socket.emit('meeting_update', { name, id, content: content.value, status: status.value });
     });
   }
+  const add_comment_buttons = document.getElementsByClassName("update_meeting_button");
+  for (let i = 0; i < add_comment_buttons.length; i++){
+    add_comment_buttons[i].addEventListener('click', (e) => {
+      const name = document.getElementById('name').value;
+      const id = e.target.dataset.id;
+      const comment = document.getElementById(`newcomment${id}`);
+      socket.emit('comment_add', { name, id, comment: comment.value });
+    });
+  }
+  const update_comment_buttons = document.getElementsByClassName("update_comment_button");
+  for (let i = 0; i < update_comment_buttons.length; i++){
+    update_comment_buttons[i].addEventListener('click', (e) => {
+      const id = e.target.dataset.id;
+      const comment = document.getElementById(`mycomment${id}`);
+      socket.emit('comment_update', { id, comment: comment.value });
+    });
+  }
 
   // Handle server messages
   socket.on('message', (data) => {

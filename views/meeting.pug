@@ -83,8 +83,8 @@ block content
                 pre= comment.content
                 if comment.created_by == name
                   textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
-                  button.btn.btn-warning.btn-lg.btn-block(onclick=`UpdateComment(${comment.id})`) Update comment
+                  button.btn.btn-warning.btn-lg.btn-block.update_comment_button(data-id=`${comment.id}`) Update comment
             .comment
               textarea.form-control(id=`newcomment${row.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")
-              button.btn.btn-warning.btn-lg.btn-block(onclick=`AddComment(${row.id})`) Add comment
+              button.btn.btn-warning.btn-lg.btn-block.add_comment_button(data-id=`${row.id}`) Add comment
   script(src="/javascripts/open_meeting.js")
