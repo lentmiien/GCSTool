@@ -22,6 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const comment = document.getElementById('newmycomment');
     socket.emit('meeting_new', { name, title: title.value, content: content.value, comment: comment.value });
   });
+  const update_meeting_buttons = document.getElementsByClassName("update_meeting_button");
+  for (let i = 0; i < update_meeting_buttons.length; i++){
+    update_meeting_buttons[i].addEventListener('click', (e) => {
+      const name = document.getElementById('name').value;
+      const id = e.target.dataset.id;
+      const status = document.getElementById(`editstatus${id}`);
+      const content = document.getElementById(`editdetails${id}`);
+      socket.emit('meeting_update', { name, id, content: content.value, status: status.value });
+    });
+  }
 
   // Handle server messages
   socket.on('message', (data) => {

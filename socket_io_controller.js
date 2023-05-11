@@ -36,6 +36,28 @@ exports.io = (server, sessionMiddleware) => {
      ***********/
     socket.on('meeting_new', (data) => {
       console.log(data);
+      // Save new meeting database entry
+      // Save new meeting comment database entry (if given)
+
+      // Emit: new database entries
+    });
+    socket.on('meeting_update', (data) => {
+      console.log(data);
+      // Update meeting database entry
+
+      // Emit: database entry
+    });
+    socket.on('comment_add', (data) => {
+      console.log(data);
+      // Save new meeting comment database entry
+
+      // Emit: new database entry
+    });
+    socket.on('comment_update', (data) => {
+      console.log(data);
+      // Update meeting comment database entry
+
+      // Emit: database entry
     });
 
     socket.on('disconnect', () => {

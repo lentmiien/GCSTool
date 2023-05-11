@@ -38,15 +38,16 @@ block content
         - let classType = "alert-primary"
         - let message = ""
         - let hide = false
-        if row.status.indexOf('新規') >= 0
+        - const s_list = {"new": "新規", "prosessing": "対応中", "onhold": "待ち", "completed": "完了", "discontinued": "中止"}
+        if row.status == "new"
           - classType = "alert-danger"
-        if row.status.indexOf('対応中') >= 0
+        if row.status == "prosessing"
           - classType = "alert-warning"
-        if row.status.indexOf('完了') >= 0
+        if row.status == "completed"
           - classType = "alert-success"
           - message = "<b>【完了】</b>"
           - hide = true
-        if row.status.indexOf('中止') >= 0
+        if row.status == "discontinued"
           - classType = "alert-dark"
           - message = "<b>【中止】</b>"
           - hide = true
@@ -55,39 +56,35 @@ block content
             if hide
               button.btn.btn-primary.ml-3(type="button", data-toggle="collapse" data-target=`#collapseExample${cnt}` aria-expanded="false" aria-controls=`collapseExample${cnt}`) Show
           div.collapse(id=`collapseExample${cnt}`, class=`${hide ? "" : "show"}`)
-            b= `Status: ${row.status}`
+            b= `Status: ${s_list[row.status]}`
             i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
             pre= row.content
             p
               button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
             .collapse(id="edit_form"+cnt)
-              input#edittopic(type="hidden", name="edittopic" value=row.topic)
               .input-group
                 .input-group-prepend
                   .input-group-text Status
-                input#editwho.form-control(type="text", name="editwho")
-                .input-group-append
-                  select#editstatus.form-control(name="editstatus")
-                    option(value="新規") 新規
-                    option(value="対応中") 対応中
-                    option(value="待ち") 待ち
-                    option(value="完了") 完了
-                    option(value="中止") 中止
+                select.form-control(id=`editstatus${row.id}`, name="editstatus")
+                  option(value="new") 新規
+                  option(value="prosessing") 対応中
+                  option(value="onhold") 待ち
+                  option(value="completed") 完了
+                  option(value="discontinued") 中止
               .input-group
                 .input-group-prepend
                   .input-group-text Details
-                textarea#editdetails.form-control(name="editdetails", cols="30", rows="3")= row.details
-              button.btn.btn-warning.btn-lg.btn-block(onclick=`Update(${row.id})`) Update
+                textarea.form-control(id=`editdetails${row.id}`, name="editdetails", cols="30", rows="3")= row.content
+              button.btn.btn-warning.btn-lg.btn-block.update_meeting_button(data-id=`${row.id}`) Update
             hr
             each comment in row.comments
               .comment
-                h4= user.userid
-                if row[user.userid.toLowerCase()].length > 0
-                  pre= row[user.userid.toLowerCase()]
-                if user.userid == request.userid
-                  textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
+                h4= comment.created_by
+                pre= comment.content
+                if comment.created_by == name
+                  textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
                   button.btn.btn-warning.btn-lg.btn-block(onclick=`UpdateComment(${comment.id})`) Update comment
             .comment
-              textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
+              textarea.form-control(id=`newcomment${row.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")
               button.btn.btn-warning.btn-lg.btn-block(onclick=`AddComment(${row.id})`) Add comment
   script(src="/javascripts/open_meeting.js")
