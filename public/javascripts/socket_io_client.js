@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
       socket.emit('comment_update', { id, comment: comment.value });
     });
   }
+  // Listen for the 'server response' event
+  socket.on('server_response', function(data) {
+    console.log(data);
+  });
 
   // Handle server messages
   socket.on('message', (data) => {
