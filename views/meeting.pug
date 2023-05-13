@@ -28,9 +28,11 @@ block content
       - let cYear = 9999
       - let cMonth = 99
       - let cnt = 0
+      h2= "NEW"
+      div(id=`new_meeting_section`)
       each row in meetings
         - cnt++
-        - let sDate = row.updatedDate
+        - let sDate = row.updatedAt
         if !(cYear == sDate.getFullYear() && cMonth == sDate.getMonth()+1)
           - cYear = sDate.getFullYear()
           - cMonth = sDate.getMonth()+1
@@ -51,14 +53,14 @@ block content
           - classType = "alert-dark"
           - message = "<b>【中止】</b>"
           - hide = true
-        .alert(class=classType, role="alert")
+        .alert(id=`meeting_${row.id}`, class=classType, role="alert")
           h3!= "■" + message + row.title
             if hide
               button.btn.btn-primary.ml-3(type="button", data-toggle="collapse" data-target=`#collapseExample${cnt}` aria-expanded="false" aria-controls=`collapseExample${cnt}`) Show
           div.collapse(id=`collapseExample${cnt}`, class=`${hide ? "" : "show"}`)
-            b= `Status: ${s_list[row.status]}`
+            b(id=`meeting_status_${row.id}`)= `Status: ${s_list[row.status]}`
             i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
-            pre= row.content
+            pre(id=`meeting_content_${row.id}`)= row.content
             p
               button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
             .collapse(id="edit_form"+cnt)
@@ -77,14 +79,15 @@ block content
                 textarea.form-control(id=`editdetails${row.id}`, name="editdetails", cols="30", rows="3")= row.content
               button.btn.btn-warning.btn-lg.btn-block.update_meeting_button(data-id=`${row.id}`) Update
             hr
-            each comment in row.comments
-              .comment
-                h4= comment.created_by
-                pre= comment.content
-                if comment.created_by == name
-                  textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
-                  button.btn.btn-warning.btn-lg.btn-block.update_comment_button(data-id=`${comment.id}`) Update comment
             .comment
               textarea.form-control(id=`newcomment${row.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")
               button.btn.btn-warning.btn-lg.btn-block.add_comment_button(data-id=`${row.id}`) Add comment
+            div(id=`comment_section_${row.id}`)
+              each comment in row.comments
+                .comment
+                  h4= comment.created_by
+                  pre(id=`comment_id_${comment.id}`)= comment.content
+                  if comment.created_by == name
+                    textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
+                    button.btn.btn-warning.btn-lg.btn-block.update_comment_button(data-id=`${comment.id}`) Update comment
   script(src="/javascripts/open_meeting.js")
