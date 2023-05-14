@@ -14,7 +14,7 @@ const { FormV2, FormFormat } = require('../sequelize');
 exports.index = (req, res) => {
   FormV2.findAll().then((entries) => {
     FormFormat.findAll().then((forms) => {
-      res.render('form', { entries, forms, label: 'label' in req.query ? req.query.label : null });
+      res.render('form', { entries, forms });
     });
   });
 };
@@ -31,7 +31,7 @@ exports.add_post = (req, res) => {
   };
   FormV2.create(new_entry);
 
-  setTimeout(() => res.redirect(`/form?label=${req.body.group_label}`), 200);
+  setTimeout(() => res.redirect(`/form`), 200);
 };
 
 exports.add_format = (req, res) => {
@@ -45,7 +45,7 @@ exports.add_format = (req, res) => {
   };
   FormFormat.create(new_entry);
 
-  setTimeout(() => res.redirect(`/form?label=${req.body.format_group_label}`), 200);
+  setTimeout(() => res.redirect(`/form`), 200);
 };
 
 exports.fetch_data = (req, res) => {
