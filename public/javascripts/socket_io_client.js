@@ -294,7 +294,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('new_meeting_section').prepend(document.getElementById(`meeting_${data.newComment[0].meeting_id}`));
       }
       if (data.updateComment.length > 0) {
-        document.getElementById(`comment_id_${data.updateComment[0].id}`).innerHTML = data.updateComment[0].content;
+        const comment_text = document.getElementById(`comment_id_${data.updateComment[0].id}`);
+        comment_text.innerHTML = data.updateComment[0].content;
+
+        // Move comment to the top
+        const comment = comment_text.parentElement;
+        comment.parentElement.prepend(comment);
 
         document.getElementById('new_meeting_section').prepend(document.getElementById(`meeting_${data.updateComment[0].meeting_id}`));
       }
