@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update as necessary
       if (data.newMeeting.length > 0) {
         const cnt = Date.now();
-        const sDate = data.newMeeting[0].updatedAt;
+        const sDate = new Date(data.newMeeting[0].updatedAt);
         let classType = 'alert-primary';
         let message = '';
         let hide = false;
@@ -96,8 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const i_updated = document.createElement('i');
         i_updated.innerText = ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth() + 1}-${sDate.getDate()})`;
         content.append(i_updated);
-        const pre_content = data.newMeeting[0].content;
+        const pre_content = document.createElement('pre');
         pre_content.id = `meeting_content_${data.newMeeting[0].id}`;
+        pre_content.innerHTML = data.newMeeting[0].content;
         content.append(pre_content);
         const p_button = document.createElement('p');
         content.append(p_button);
@@ -289,9 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           comment.append(button4);
         }
+
+        document.getElementById('new_meeting_section').prepend(document.getElementById(`meeting_${data.newComment[0].meeting_id}`));
       }
       if (data.updateComment.length > 0) {
         document.getElementById(`comment_id_${data.updateComment[0].id}`).innerHTML = data.updateComment[0].content;
+
+        document.getElementById('new_meeting_section').prepend(document.getElementById(`meeting_${data.updateComment[0].meeting_id}`));
       }
     } else {
       // Alert

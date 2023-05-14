@@ -32,7 +32,7 @@ block content
       div(id=`new_meeting_section`)
       each row in meetings
         - cnt++
-        - let sDate = row.updatedAt
+        - let sDate = row.date
         if !(cYear == sDate.getFullYear() && cMonth == sDate.getMonth()+1)
           - cYear = sDate.getFullYear()
           - cMonth = sDate.getMonth()+1
