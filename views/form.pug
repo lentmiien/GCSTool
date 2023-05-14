@@ -3,7 +3,10 @@ extends layout
 block content
   .row
     .col
-      h1(lg_language='_azur_lane_bache_returns_form_')
+      h1#title
+      select.form-control(onchange="SelectForm(this)")
+        each form in forms
+          option(value=`${form.id}`)= form.title
       a.btn.btn-link(href="/form/csv", lg_language='_download_csv_data_')
   .row
     .col
@@ -54,12 +57,3 @@ block content
               td 
                 if role === "admin" || name === entry.processed_by
                   a.btn.btn-danger(href=`/form/delete/${entry.id}`) X 
-  
-  datalist#cur
-    option(value="USD") 
-    option(value="CAD") 
-    option(value="MXN") 
-    option(value="KRW") 
-    option(value="AUD") 
-    option(value="EUR") 
-    option(value="JPY") 
