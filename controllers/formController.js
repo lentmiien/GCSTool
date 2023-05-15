@@ -49,6 +49,7 @@ exports.add_format = (req, res) => {
 };
 
 exports.fetch_data = (req, res) => {
+  let title = `All ${Date.now()}`;
   const g_label = 'label' in req.query ? req.query.label : null;
   FormV2.findAll().then((entries) => {
     FormFormat.findAll().then((forms) => {
@@ -57,21 +58,27 @@ exports.fetch_data = (req, res) => {
       if (g_label) {
         forms.forEach((f) => {
           if (f.group_label == g_label) {
-            outdata = `order,processed_by,date,${f.label1},${f.label2},${f.label3},${f.label4},group_label\n`;
+            outdata = `order,processed_by,date,${f.label1.toLowerCase().split(' ').join('_')},${f.label2
+              .toLowerCase()
+              .split(' ')
+              .join('_')},${f.label3.toLowerCase().split(' ').join('_')},${f.label4.toLowerCase().split(' ').join('_')},group_label\n`;
+            title = `${f.title} ${Date.now()}`;
           }
         });
       }
 
       // Fill in data
       entries.forEach((d) => {
-        outdata += `${d.order},${d.processed_by},${d.createdAt.toDateString()},${d.label1},${d.label2},${d.label3},${d.label4},${
-          d.group_label
-        }\n`;
+        if (g_label == null || g_label == d.group_label) {
+          outdata += `${d.order},${d.processed_by},${d.createdAt.toDateString()},${d.label1},${d.label2},${d.label3},${d.label4},${
+            d.group_label
+          }\n`;
+        }
       });
 
       // Return CSV data
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="Azur_Lane_Bache_returns.csv"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${title}.csv"`);
       res.send(outdata);
     });
   });
