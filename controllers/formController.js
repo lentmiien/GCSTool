@@ -49,19 +49,31 @@ exports.add_format = (req, res) => {
 };
 
 exports.fetch_data = (req, res) => {
-  // TODO: make working with new label format
-  Form.findAll().then((entries) => {
-    let outdata = 'order,tracking,processed_by,added,cost,currency,support_id,group_label\n';
-    entries.forEach((d) => {
-      outdata += `${d.order},${d.tracking},${d.processed_by},${new Date(d.added_date).toDateString()},${d.cost},${d.currency},${
-        d.support_id
-      },${d.group_label}\n`;
-    });
+  const g_label = 'label' in req.query ? req.query.label : null;
+  FormV2.findAll().then((entries) => {
+    FormFormat.findAll().then((forms) => {
+      // Set header row
+      let outdata = 'order,processed_by,date,field1,field2,field3,field4,group_label\n';
+      if (g_label) {
+        forms.forEach((f) => {
+          if (f.group_label == g_label) {
+            outdata = `order,processed_by,date,${f.label1},${f.label2},${f.label3},${f.label4},group_label\n`;
+          }
+        });
+      }
 
-    // Return CSV data
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="Azur_Lane_Bache_returns.csv"`);
-    res.send(outdata);
+      // Fill in data
+      entries.forEach((d) => {
+        outdata += `${d.order},${d.processed_by},${d.createdAt.toDateString()},${d.label1},${d.label2},${d.label3},${d.label4},${
+          d.group_label
+        }\n`;
+      });
+
+      // Return CSV data
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="Azur_Lane_Bache_returns.csv"`);
+      res.send(outdata);
+    });
   });
 };
 
