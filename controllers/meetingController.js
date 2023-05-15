@@ -1,6 +1,6 @@
 /**************************
  *
- * version3 TODO
+ * version3
  *
  * Change from google-spreadsheet to database
  * Change to process changes/updates through socket.io, and send updates to all users
