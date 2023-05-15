@@ -49,7 +49,7 @@ exports.add_format = (req, res) => {
 };
 
 exports.fetch_data = (req, res) => {
-  let title = `All ${Date.now()}`;
+  let title = `All_${Date.now()}`;
   const g_label = 'label' in req.query ? req.query.label : null;
   FormV2.findAll().then((entries) => {
     FormFormat.findAll().then((forms) => {
@@ -62,7 +62,7 @@ exports.fetch_data = (req, res) => {
               .toLowerCase()
               .split(' ')
               .join('_')},${f.label3.toLowerCase().split(' ').join('_')},${f.label4.toLowerCase().split(' ').join('_')},group_label\n`;
-            title = `${f.title} ${Date.now()}`;
+            title = `${f.title.split(' ').join('_')}_${Date.now()}`;
           }
         });
       }
