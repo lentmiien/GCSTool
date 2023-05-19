@@ -1,5 +1,5 @@
 // Constants
-const AIT_UPDATES_CONTENT_ID = -1;
+const AIT_UPDATES_CONTENT_ID = parseInt(process.env.AIT_UPDATES_CONTENT_ID);
 
 // Require necessary database models
 const { Content } = require('../sequelize');
