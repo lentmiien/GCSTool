@@ -11,7 +11,5 @@ var controller = require('../controllers/countryController');
 
 router.get('/', controller.country);
 
-router.get('/countrygraph/:countrycode', controller.country_graphs);
-
 // Export router
 module.exports = router;

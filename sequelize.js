@@ -14,6 +14,8 @@ const MeetingModel = require('./models/meeting');
 const MeetingCommentModel = require('./models/meeting_comment');
 const FormV2Model = require('./models/form_v2');
 const FormFormatModel = require('./models/form_format');
+const CountryshippinglistModel = require('./models/countryshippinglist');
+const UpdatenoticeModel = require('./models/updatenotice');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -47,6 +49,8 @@ const Meeting = MeetingModel(sequelize, Sequelize);
 const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
 const FormV2 = FormV2Model(sequelize, Sequelize);
 const FormFormat = FormFormatModel(sequelize, Sequelize);
+const Countryshippinglist = CountryshippinglistModel(sequelize, Sequelize);
+const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -83,6 +87,8 @@ module.exports = {
   MeetingComment,
   FormV2,
   FormFormat,
+  Countryshippinglist,
+  Updatenotice,
   Op,
   Country,
   Countrylist,

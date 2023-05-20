@@ -1,0 +1,28 @@
+module.exports = (sequelize, type) => {
+  return sequelize.define('countryshippinglist', {
+    iso3166_country: type.STRING,
+    iso3166_alpha_2_code: type.STRING,
+    iso3166_alpha_3_code: type.STRING,
+    iso3166_numeric: type.STRING,
+    amiami_country: type.STRING,
+    amiami_code: type.STRING,
+    jp_country: type.STRING,
+    jp_country_jap: type.STRING,
+    jp_cid: type.STRING,
+    jp_asp: type.STRING,
+    jp_salsp: type.STRING,
+    jp_ssp: type.STRING,
+    jp_ap: type.STRING,
+    jp_salp: type.STRING,
+    jp_sp: type.STRING,
+    jp_ems: type.STRING,
+    fm_country: type.STRING,
+    fm_country_full: type.STRING,
+    fm_country_jap: type.STRING,
+    fm_twoletter: type.STRING,
+    fm_threeletter: type.STRING,
+    fm_code: type.STRING,
+    fm_dhl: type.STRING,
+    fm_ait: type.STRING,
+  });
+};
