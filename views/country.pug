@@ -1,68 +1,37 @@
 extends layout
 
 block content
-  h3(lg_language='_search_box_')
-  input#search.form-control(type="text", name="search", onkeyup="ChangeSearch()")
-  div#auto
-  .card.text-white.bg-dark
-    .card-header
-      h3#country
-      p#tracking
-    #output.card-body
-      #link
-      table.table.table-dark.table-striped
-        thead
-          tr
-            th(span="col")
-            th(span="col", title="Available/delay: Selectable and possible to ship\nSuspended: Selectable, shipped when possible\nOther: Non-usable") Status
-            //- th(span="col") Average last 2 weeks
-            //-   br
-            //-   | (compared to all time average)
-            //- th(span="col", title="Shipping date of last shipped order that has been delivered") Last successfully
-            //-   br
-            //-   | shipped
-        tbody
-          tr
-            td(span="row") EMS
-            td#ems_available
-            //- td#ems_average
-            //- td#ems_lastshipped
-          tr
-            td(span="row") ASP*
-            td#airsp_available
-            //- td#airsp_average
-            //- td#airsp_lastshipped
-          tr
-            td(span="row") SAL Reg.*
-            td#salspr_available
-            //- td#salspr_average
-            //- td#salspr_lastshipped
-          tr
-            td(span="row") SAL Unreg.**
-            td#salspu_available
-            //- td#salspu_average ---
-            //- td#salspu_lastshipped ---
-          tr
-            td(span="row") SAL Parcel*
-            td#salp_available
-            //- td#salp_average
-            //- td#salp_lastshipped
-          tr
-            td(span="row") DHL
-            td#dhl_available
-            //- td#dhl_average
-            //- td#dhl_lastshipped
-          tr
-            td(span="row") Air Parcel*
-            td#airp_available
-            //- td#airp_average
-            //- td#airp_lastshipped
-      b(style="color:red;", lg_language="_ship_details_1_")
-      br
-      b(style="color:red;", lg_language="_ship_details_2_")
-      br
-      b(style="color:red;", lg_language="_ship_details_3_")
-  pre.hidden= JSON.stringify(countries, null, 2)
-  pre.hidden= JSON.stringify(trackings, null, 2)
-  
-  script(src="/javascripts/search.js")
+  .row 
+    .col 
+      a.btn.btn-link(href="/country/fix_database") Fix incomplete database entries
+    .col 
+      form(action="/country/update3166", method="post") 
+        input#3166.form-control(type="file", name="3166")
+        input.btn.btn-primary(type="submit", value="Upload ISO3166 csv")
+  h2 Available shipping methods 
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Country 
+        th DHL 
+        th EMS 
+        th Air Parcel 
+        th Air SP 
+        th SAL Parcel 
+        th SAL SP 
+        th Surface Parcel 
+        th AIT 
+    tbody 
+      each country in countries
+        tr 
+          td
+            a(href=`/country/edit?id=${country.id}`)= country.amiami_country.length > 0 ? country.amiami_country : (country.fm_country.length > 0 ? country.fm_country : (country.iso3166_country.length > 0 ? country.iso3166_country : country.jp_country))
+          td= country.fm_dhl.length > 0 ? country.fm_dhl : "-"
+          td= country.jp_ems.length > 0 ? country.jp_ems : "-"
+          td= country.jp_ap.length > 0 ? country.jp_ap : "-"
+          td= country.jp_asp.length > 0 ? country.jp_asp : "-"
+          td= country.jp_salp.length > 0 ? country.jp_salp : "-"
+          td= country.jp_salsp.length > 0 ? country.jp_salsp : "-"
+          td= country.jp_sp.length > 0 ? country.jp_sp : "-"
+          td= country.fm_ait.length > 0 ? country.fm_ait : "-"
+  script(src="/javascripts/country_controller.js")
