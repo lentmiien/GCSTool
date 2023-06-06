@@ -5,9 +5,11 @@ block content
     .col 
       a.btn.btn-link(href="/country/fix_database") Fix incomplete database entries
     .col 
-      form(action="/country/update3166", method="post") 
-        input#3166.form-control(type="file", name="3166")
+      form(action="/country/update3166", method="post", enctype="multipart/form-data") 
+        input#iso3166.form-control(type="file", name="iso3166")
         input.btn.btn-primary(type="submit", value="Upload ISO3166 csv")
+    .col 
+      a.btn.btn-link(href="/country/checkjp") Check for JP updates
   h2 Available shipping methods 
   table.table.table-dark.table-striped 
     thead 
@@ -16,16 +18,16 @@ block content
         th DHL 
         th EMS 
         th Air Parcel 
-        th Air SP 
+        th Air SP
         th SAL Parcel 
-        th SAL SP 
+        th SAL SP
         th Surface Parcel 
         th AIT 
     tbody 
       each country in countries
         tr 
           td
-            a(href=`/country/edit?id=${country.id}`)= country.amiami_country.length > 0 ? country.amiami_country : (country.fm_country.length > 0 ? country.fm_country : (country.iso3166_country.length > 0 ? country.iso3166_country : country.jp_country))
+            a(href=`/country/edit_country?id=${country.id}`)= country.amiami_country.length > 0 ? country.amiami_country : (country.fm_country.length > 0 ? country.fm_country : (country.iso3166_country.length > 0 ? country.iso3166_country : country.jp_country))
           td= country.fm_dhl.length > 0 ? country.fm_dhl : "-"
           td= country.jp_ems.length > 0 ? country.jp_ems : "-"
           td= country.jp_ap.length > 0 ? country.jp_ap : "-"
@@ -34,4 +36,4 @@ block content
           td= country.jp_salsp.length > 0 ? country.jp_salsp : "-"
           td= country.jp_sp.length > 0 ? country.jp_sp : "-"
           td= country.fm_ait.length > 0 ? country.fm_ait : "-"
-  script(src="/javascripts/country_controller.js")
+  //- script(src="/javascripts/country_controller.js")
