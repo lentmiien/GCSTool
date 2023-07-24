@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  h1 shipping methods/country manager
+  .row 
+    .col 
+      h3 Update website country list 
+      p Upload a CSV file with date (header row 'country,country_code')
+      form(action="/country/officialCountryList/upload", method="post", enctype="multipart/form-data") 
+        input#officialCountryList.form-control(type="file", name="officialCountryList", required)
+        input.btn.btn-primary(type="submit", value="Upload")
+    .col 
+      h3 Update internal country list (including DHL and AIT shipping methods)
+      p Upload a CSV file for adding new entries (header row 'country,country_code,country_j,DHL,AIT')
+      form(action="/country/internalCountryList/upload", method="post", enctype="multipart/form-data") 
+        input#internalCountryList.form-control(type="file", name="internalCountryList", required)
+        input.btn.btn-primary(type="submit", value="Upload")
+    .col 
+      h3 Check for updates by Japan Post 
+      p Select an update massage and a date for the changes to proceed 
+      form(action="/country/japanPostCountryList/update", method="post") 
+        select#update_msg.form-control(name="update_msg", required) 
+          each entry in JP_announcements
+            option(value=`${entry.link[0]}`)= `${entry.title[0]} (${entry.pubDate[0]})`
+        input#update_date.form-control(type="date", name="update_date", value=`${d_str}`, required)
+        input.btn.btn-primary(type="submit", value="Proceed")
+    .col 
+      h3 Link data (JP cid to country code)
+      a.btn.btn-link(href="/country/countryCodeEntryIdLink/manage") Manage links
+    .col 
+      h3 Other 
+      a.btn.btn-link(href="/country/countries") View country list
+      a.btn.btn-link(href="/country/updateHistory/last") View last update

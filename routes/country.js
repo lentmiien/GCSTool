@@ -11,19 +11,30 @@ var controller = require('../controllers/countryController');
 // router.method(path, controller.endpoint); //
 //-------------------------------------------//
 
-router.get('/', controller.country);
+router.get('/', controller.index);
 
-router.get('/edit_country', controller.edit_country);
-router.post('/update3166', upload.single('iso3166'), controller.update3166);
-router.post('/update3166_api', controller.update3166_api);
-router.post('/editamiamientry', controller.editamiamientry);
-router.get('/checkjp', controller.checkjp);
-router.post('/checkjp_update_notice', controller.checkjp_update_notice);
-router.post('/checkjp_update_method', controller.checkjp_update_method);
-router.post('/editfmentry', controller.editfmentry);
-router.get('/fix_database', controller.fix_database);
-router.post('/fix_database_update', controller.fix_database_update);
-router.post('/transfer', upload.array('data'), controller.transfer);
+// OfficialCountryList
+router.post('/officialCountryList/upload', upload.single('officialCountryList'), controller.officialCountryList_upload);
+
+// InternalCountryList
+router.post('/internalCountryList/upload', upload.single('internalCountryList'), controller.internalCountryList_upload);
+
+// JapanPostCountryList
+router.post('/japanPostCountryList/update', controller.japanPostCountryList_update);
+
+// CountryCodeEntryIdLink
+router.get('/countryCodeEntryIdLink/manage', controller.countryCodeEntryIdLink_manage);
+router.post('/countryCodeEntryIdLink/add', controller.countryCodeEntryIdLink_add);
+router.post('/countryCodeEntryIdLink/update/:countryCode', controller.countryCodeEntryIdLink_update);// TODO at some later time
+router.post('/countryCodeEntryIdLink/delete/:countryCode', controller.countryCodeEntryIdLink_delete);// TODO at some later time
+
+// Combined Functionality
+router.get('/countries', controller.countries);
+router.get('/country/:countryCode', controller.country);
+router.get('/updateHistory/:date', controller.updateHistory);
+
+// Search Functionality
+// router.get('/search/:keyword', controller);
 
 // Export router
 module.exports = router;

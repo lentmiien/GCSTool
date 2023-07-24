@@ -14,8 +14,11 @@ const MeetingModel = require('./models/meeting');
 const MeetingCommentModel = require('./models/meeting_comment');
 const FormV2Model = require('./models/form_v2');
 const FormFormatModel = require('./models/form_format');
-const CountryshippinglistModel = require('./models/countryshippinglist');
 const UpdatenoticeModel = require('./models/updatenotice');
+const OfficialCountryListModel = require('./models/OfficialCountryList');
+const InternalCountryListModel = require('./models/InternalCountryList');
+const JapanPostCountryListModel = require('./models/JapanPostCountryList');
+const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -49,8 +52,11 @@ const Meeting = MeetingModel(sequelize, Sequelize);
 const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
 const FormV2 = FormV2Model(sequelize, Sequelize);
 const FormFormat = FormFormatModel(sequelize, Sequelize);
-const Countryshippinglist = CountryshippinglistModel(sequelize, Sequelize);
 const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
+const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
+const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
+const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
+const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -87,8 +93,11 @@ module.exports = {
   MeetingComment,
   FormV2,
   FormFormat,
-  Countryshippinglist,
   Updatenotice,
+  OfficialCountryList,
+  InternalCountryList,
+  JapanPostCountryList,
+  CountryCodeEntryIdLink,
   Op,
   Country,
   Countrylist,

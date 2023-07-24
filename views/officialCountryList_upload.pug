@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  .row
+    .col
+      h2 Sucessfully updated official country list
+      p= `${db_id_to_remove.length} deleted entries!`
+      p= `${db_id_to_update.length} updated entries!`
+      p= `${db_to_add.length} added entries!`

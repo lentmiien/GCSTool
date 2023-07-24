@@ -1,0 +1,30 @@
+extends layout
+
+block content
+  .row
+    .col
+      h2= `Update details for ${newest}`
+  .row 
+    .col 
+      h3 Update history
+      each update in updates
+        div(style="border:1px solid white;margin:10px;padding:5px;background-color:black;")
+          pre= update.message
+          hr
+          button.btn.btn-danger Delete
+          i *Press when removed from website.
+  .row 
+    .col 
+      h3 Update process
+      - const keys = Object.keys(messages)
+      each key in keys 
+        div(style="border:1px solid white;margin:10px;padding:5px;")
+          a.btn.btn-link(href=messages[key].link, target="_blank")= messages[key].link 
+          pre= messages[key].message
+          hr
+          button.btn.btn-secondary Copy
+      div(style="border:1px solid white;margin:10px;padding:5px;")
+          a.btn.btn-link(href="CSV data", target="_blank") CSV data
+          pre= CSVdata
+          hr
+          button.btn.btn-secondary Copy

@@ -3,12 +3,6 @@ extends layout
 block content
   .row 
     .col 
-      a.btn.btn-link(href="/country/fix_database") Fix incomplete database entries
-    .col 
-      form(action="/country/update3166", method="post", enctype="multipart/form-data") 
-        input#iso3166.form-control(type="file", name="iso3166")
-        input.btn.btn-primary(type="submit", value="Upload ISO3166 csv")
-    .col 
       a.btn.btn-link(href="/country/checkjp") Check for JP updates
   h2 Available shipping methods 
   table.table.table-dark.table-striped 
@@ -26,14 +20,12 @@ block content
     tbody 
       each country in countries
         tr 
-          td
-            a(href=`/country/edit_country?id=${country.id}`)= country.amiami_country.length > 0 ? country.amiami_country : (country.fm_country.length > 0 ? country.fm_country : (country.iso3166_country.length > 0 ? country.iso3166_country : country.jp_country))
-          td= country.fm_dhl.length > 0 ? country.fm_dhl : "-"
-          td= country.jp_ems.length > 0 ? country.jp_ems : "-"
-          td= country.jp_ap.length > 0 ? country.jp_ap : "-"
-          td= country.jp_asp.length > 0 ? country.jp_asp : "-"
-          td= country.jp_salp.length > 0 ? country.jp_salp : "-"
-          td= country.jp_salsp.length > 0 ? country.jp_salsp : "-"
-          td= country.jp_sp.length > 0 ? country.jp_sp : "-"
-          td= country.fm_ait.length > 0 ? country.fm_ait : "-"
-  //- script(src="/javascripts/country_controller.js")
+          td= country.country
+          td= country.methods.dhl ? "✓" : "-"
+          td= country.methods.ems ? "✓" : "-"
+          td= country.methods.air_parcel ? "✓" : "-"
+          td= `${country.methods.air_small_packet ? "✓" : "-"} / ${country.methods.air_small_packet_reg ? "✓" : "-"}`
+          td= country.methods.sal_parcel ? "✓" : "-"
+          td= `${country.methods.sal_small_packet ? "✓" : "-"} / ${country.methods.sal_small_packet_reg ? "✓" : "-"}`
+          td= country.methods.surface_parcel ? "✓" : "-"
+          td= country.methods.ait ? "✓" : "-"

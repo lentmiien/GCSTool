@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  h1 Available shipping methods per country 
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Code
+        th Official
+        th Internal
+        th JP
+        th ASP (U/R)
+        th SAL SP (U/R)
+        th Surf SP
+        th A Parcel
+        th SAL Parcel
+        th Surf Parcel
+        th EMS
+        th DHL
+        th AIT
+    tbody 
+      each row in table_data
+        tr 
+          td= row.country_code
+          td= row.o_country
+          td= row.i_country
+          td= row.j_country
+          td= `${row.asp != 0 ? "○" : "✗"} / ${row.asp == 1 ? "○" : "✗"}`
+          td= `${row.salsp != 0 ? "○" : "✗"} / ${row.salsp == 1 ? "○" : "✗"}`
+          td= row.ssp == 1 ? "○" : "✗"
+          td= row.ap == 1 ? "○" : "✗"
+          td= row.salp == 1 ? "○" : "✗"
+          td= row.sp == 1 ? "○" : "✗"
+          td= row.ems == 1 ? "○" : "✗"
+          td= row.dhl == 1 ? "○" : "✗"
+          td= row.ait == 1 ? "○" : "✗"

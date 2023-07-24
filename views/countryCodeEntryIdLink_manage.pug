@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1 Japan Post to country code manager
+  form(action="/country/countryCodeEntryIdLink/add", method="post") 
+    each country, i in unused_country_names
+      input(type="hidden", id=`entry${i}_c`, name=`entry${i}_c`, value=`${country}`)
+      label.mt-3(for=`entry${i}`)= country 
+      select.form-control(id=`entry${i}`, name=`entry${i}`) 
+        option(value="") ---
+        each code in unused_country_codes
+          - const index = all_country_codes.indexOf(code)
+          option(value=`${all_country_codes[index]}`)=  `${all_country_names[index]} [${all_country_codes[index]}]`
+    input.btn.btn-primary(type="submit", value="Add")
+  hr
+  h2 TODO: add edit/delete functionality
