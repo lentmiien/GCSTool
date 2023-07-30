@@ -84,3 +84,36 @@ exports.getdata = (req, res) => {
   // Return current data
   res.json(database_cache[user_id]);
 };
+
+exports.generate = (req, res) => {
+  // Display an input form for generating data,
+  // and display an upload form for uploading the data to add to database
+  // also display an upload history (stored locally in users browser)
+  res.render('generate');
+};
+
+let taskStatus = {};
+
+exports.start_upload_tracking = async (req, res) => {
+  // POST request uploading data from 'generate_csv'
+  const taskId = Math.random().toString(36).substring(7);  // Generate a unique task ID.
+  taskStatus[taskId] = "Processing";
+
+  res.json({ taskId: taskId });
+
+  // Access database and start processing, when done do 'taskStatus[taskId] = "Completed";'
+  // TODO check data in request body (upload data array)
+  // TODO load relevant data from database
+  // TODO process uploaded data
+  // TODO add new entries to database
+  taskStatus[taskId] = `Completed, XX entries added!`;
+};
+
+exports.status_upload_tracking = (req, res) => {
+  const taskId = req.params.taskId;
+  if (!taskStatus[taskId]) {
+    res.status(404).send("Task not found");
+  } else {
+    res.json({ status: taskStatus[taskId] });
+  }
+};

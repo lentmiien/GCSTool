@@ -12,5 +12,10 @@ var controller = require('../controllers/trackerController');
 router.get('/', controller.index);
 router.post('/getdata', controller.getdata);
 
+// For adding tracking numbers to database
+router.get('/generate', controller.generate);
+router.post('/startTask', controller.start_upload_tracking);
+router.get('/status/:taskId', controller.status_upload_tracking);
+
 // Export router
 module.exports = router;
