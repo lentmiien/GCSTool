@@ -1,0 +1,47 @@
+extends layout
+
+block content
+  h1 Data generator 
+  div#status No data...
+  div
+    table.table.table-striped
+      thead 
+        tr 
+          th(style="width:50%;") Add 
+          th(style="width:50%;") Edit
+      tbody 
+        tr 
+          td 
+            textarea#add.form-control(name="add", cols="30", rows="10")
+            button.btn.btn-primary(onclick="Add()") Add 
+            button.btn.btn-danger(onclick="Delete()") Delete 
+          td 
+            textarea#edit.form-control(name="edit", cols="30", rows="10")
+            select#type.form-control(name="type") 
+              option(value="method") Shipping method
+              option(value="date") Shipping date
+              option(value="country") Country
+            input#value.form-control(type="text", name="value", list="ac")
+            button.btn.btn-primary(onclick="Edit()") Edit 
+  div
+    button.btn.btn-primary(onclick="Upload()") Upload
+  .row 
+    .col 
+      h3 Upload history 
+      table.table.table-striped 
+        thead 
+          tr 
+            th ID 
+            th Start 
+            th End
+            th Methods 
+            th Up count 
+            th Add count 
+            th Processed 
+        tbody#history
+
+  datalist(id="ac")
+    each entry in auto_complete
+      option(value=`${entry}`) 
+
+  script(src='/javascripts/generator.js')
