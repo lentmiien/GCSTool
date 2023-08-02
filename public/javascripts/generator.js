@@ -6,6 +6,7 @@ const editElement = document.getElementById("edit");
 const typeElement = document.getElementById("type");
 const valueElement = document.getElementById("value");
 const statusElement = document.getElementById("status");
+const historyElement = document.getElementById("history");
 
 // Want to select content most of the time, so make that the default behaviour
 valueElement.addEventListener("click", e => {
@@ -192,20 +193,59 @@ function Edit() {
   UpdateStatus();
 }
 
+let startDate;
+let endDate;
+let methods;
+
 function Upload() {
-  // TODO: Change from CSV to upload JSON
+  startDate = '9999-99-99';
+  endDate = '0000-00-00';
+  methods = [];
 
-  // console.log("generate csv *will convert array to csv and download file to computer");
-  // data => csv
-  let startDate = '9999-99-99';
-  let endDate = '0000-00-00';
-  let csvdata = '';
+  let updata = [];
   data.forEach(entry => {
-    csvdata += `${entry.track};${entry.country};${entry.method};${entry.date}\r\n`;
+    updata.push({
+      t: entry.track,
+      c: entry.country,
+      sm: entry.method,
+      sd: entry.date
+    });
 
+    if (methods.indexOf(entry.method) == -1) methods.push(entry.method);
     if (entry.date < startDate) startDate = entry.date;
     if (entry.date > endDate) endDate = entry.date;
   });
+
+  startUploadTask(updata);
+}
+
+async function startUploadTask(updata) {
+  try {
+    const res = await fetch('/tracker/startTask', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify(updata),
+    });
+    const taskId = res.data.taskId;
+
+    let taskStatus = "Processing";
+    while (taskStatus === "Processing") {
+      const statusRes = await fetch(`/tracker/status/${taskId}`);
+      taskStatus = statusRes.data.status;
+      if (taskStatus === "Processing") {
+        // If the task is still processing, wait 30 second before checking again.
+        await new Promise(resolve => setTimeout(resolve, 30000));
+      }
+    }
+
+    console.log(taskStatus);
+    AddHistory(taskId, updata.length, taskStatus);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function CopyRemaining(key) {
@@ -225,4 +265,60 @@ function CopyRemaining(key) {
   document.addEventListener('copy', listener);
   document.execCommand('copy');
   document.removeEventListener('copy', listener);
+}
+
+// add functionality for updates list
+let history_data = [];
+
+// First load
+if (localStorage.getItem("upload_history")) {
+  history_data = JSON.parse(localStorage.getItem("upload_history"));
+  history_data.forEach(h => {
+    AddOneRow(h.ticket_id, h.start_date, h.end_date, h.methods, h.count, h.added_count, h.added_date);
+  });
+}
+
+// update when upload is done
+function AddHistory(task_id, count, response_status) {
+  if (response_status.indexOf('Completed') == 0) {
+    const added_count = parseInt(response_status.split(' ')[1]);
+    history_data.push({
+      ticket_id: task_id,
+      start_date: startDate,
+      end_date: endDate,
+      methods: methods.join(', '),
+      count,
+      added_count,
+      added_date: Date.now(),
+    });
+    localStorage.setItem("upload_history", JSON.stringify(history_data));
+    AddOneRow(task_id, startDate, endDate, methods.join(', '), count, added_count, Date.now());
+  }
+}
+
+function AddOneRow(ticket_id, start_date, end_date, mets, count, added_count, added_date) {
+  const row = document.createElement("tr");
+  const id = document.createElement("td");
+  id.innerText = ticket_id;
+  const start = document.createElement("td");
+  start.innerText = start_date;
+  const end = document.createElement("td");
+  end.innerText = end_date;
+  const methods = document.createElement("td");
+  methods.innerText = mets;
+  const count = document.createElement("td");
+  count.innerText = count;
+  const added_count = document.createElement("td");
+  added_count.innerText = added_count;
+  const added_date = document.createElement("td");
+  added_date.innerText = new Date(added_date);
+  row.appendChild(id);
+  row.appendChild(start);
+  row.appendChild(end);
+  row.appendChild(methods);
+  row.appendChild(count);
+  row.appendChild(added_count);
+  row.appendChild(added_date);
+
+  historyElement.prepend(row);
 }
