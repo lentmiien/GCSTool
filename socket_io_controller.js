@@ -1,10 +1,8 @@
 /*************************************
  *
- * version3 TODO
- *
  * meeting update functionality
  *
- * add some announcement system (notification to all users)
+ * Consider adding some announcement system (notification to all users)
  *
  */
 

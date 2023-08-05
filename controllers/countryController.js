@@ -1,6 +1,6 @@
 /***********************
  *
- * version3 TODO
+ * TODO
  *
  * Change to a database for managing available shipping methods
  * - Countryshippinglist database
