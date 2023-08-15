@@ -7,5 +7,6 @@ module.exports = (sequelize, type) => {
     timestamp: type.BIGINT,
     threadid: type.BIGINT,
     title: type.STRING,
+    // model: type.STRING(100),// TODO: uncomment when ready
   });
 };
