@@ -665,7 +665,7 @@ exports.updateHistory = async (req, res) => {
   const internal = await InternalCountryList.findAll();
   const jp = await JapanPostCountryList.findAll();
   const links= await CountryCodeEntryIdLink.findAll();
-  const updates = await Updatenotice.findAll();
+  const updates = await Updatenotice.findAll({order: [['createdAt', 'DESC']]});
 
   // Get date of latest update
   let newest = '0000-00-00';
