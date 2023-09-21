@@ -9,8 +9,16 @@ const Schedule2Model = require('./models/schedule2');
 const UserModel = require('./models/user');
 const HSCodeListModel = require('./models/hscodelist');
 const ShipcostModel = require('./models/shipcost');
-const FormModel = require('./models/form');
 const ChatmsgModel = require('./models/chatmsg');
+const MeetingModel = require('./models/meeting');
+const MeetingCommentModel = require('./models/meeting_comment');
+const FormV2Model = require('./models/form_v2');
+const FormFormatModel = require('./models/form_format');
+const UpdatenoticeModel = require('./models/updatenotice');
+const OfficialCountryListModel = require('./models/OfficialCountryList');
+const InternalCountryListModel = require('./models/InternalCountryList');
+const JapanPostCountryListModel = require('./models/JapanPostCountryList');
+const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -39,8 +47,16 @@ const Schedule2 = Schedule2Model(sequelize, Sequelize);
 const User = UserModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
-const Form = FormModel(sequelize, Sequelize);
 const Chatmsg = ChatmsgModel(sequelize, Sequelize);
+const Meeting = MeetingModel(sequelize, Sequelize);
+const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
+const FormV2 = FormV2Model(sequelize, Sequelize);
+const FormFormat = FormFormatModel(sequelize, Sequelize);
+const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
+const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
+const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
+const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
+const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
 const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -72,8 +88,16 @@ module.exports = {
   User,
   HSCodeList,
   Shipcost,
-  Form,
   Chatmsg,
+  Meeting,
+  MeetingComment,
+  FormV2,
+  FormFormat,
+  Updatenotice,
+  OfficialCountryList,
+  InternalCountryList,
+  JapanPostCountryList,
+  CountryCodeEntryIdLink,
   Op,
   Country,
   Countrylist,

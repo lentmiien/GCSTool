@@ -1,0 +1,70 @@
+extends layout
+
+block content
+  h1 PDF generator 
+  form(action="/pdf/invoice", method="post") 
+    .row 
+      .col
+        label(for="order") Order number
+        input#order.form-control(type="text", name="order")
+        label(for="address") Address
+        textarea#address.form-control(name="address", cols="30", rows="4")
+      .col 
+        label(for="paydate") Payment date 
+        input#paydate.form-control(type="date", name="paydate")
+        label(for="payment_method") Payment method 
+        select#payment_method.form-control(name="payment_method")
+          option(value="PayPal") PayPal 
+          option(value="Credit Card") Credit Card 
+          option(value="Unionpay") Unionpay
+        label(for="shipdate") Shipped date
+        input#shipdate.form-control(type="date", name="shipdate")
+        input#include_hs(type="checkbox", name="include_hs")
+        |  Include HS codes
+    .row 
+      #items.col 
+    .row 
+      .col 
+        a#addbutton.btn.btn-primary.mt-2(href="#addbutton", onclick="AddItemRow()") Add new row
+    .row 
+      .col 
+        label(for="shipping_method") Shipping method
+        select#shipping_method.form-control(name="shipping_method") 
+          option(value="") - Select a method -
+          option(value="Air Parcel") Air Parcel
+          option(value="Air Small Packet") Air Small Packet
+          option(value="DHL") DHL
+          option(value="EMS") EMS
+          option(value="SAL Parcel") SAL Parcel
+          option(value="SAL Small Packet") SAL Small Packet
+          option(value="Surface Mail Premium") Surface Mail Premium
+          option(value="Surface Parcel") Surface Parcel
+        label(for="tracking") Tracking number
+        input#tracking.form-control(type="text", name="tracking")
+        label(for="shipping") Shipping cost
+        input#shipping.form-control(type="number", name="shipping")
+      .col 
+        label(for="gst_type") Type of GST/VAT
+        select#gst_type.form-control(name="gst_type") 
+          option(value="") - None -
+          option(value="Australia") Australia
+          option(value="New Zealand") New Zealand
+          option(value="Singapore") Singapore
+        label(for="gst") GST/VAT
+        input#gst.form-control(type="number", name="gst", value="0")
+      .col 
+        label(for="amiami_point") AmiAmi points used
+        input#amiami_point.form-control(type="number", name="amiami_point", value="0")
+    .row 
+      .col 
+        label(for="remarks") Remarks 
+        textarea#remarks.form-control(name="remarks", cols="30", rows="3")
+    input.btn.btn-success.mt-2(type="submit", value="Generate Invoice")
+  pre#name_to_hs.hidden= JSON.stringify(name_to_hs)
+  datalist#name_list
+    each n in name_list
+      option(value=`${n}`)
+  datalist#hs_list
+    each hs in hs_list
+      option(value=`${hs}`)
+  script(src="/javascripts/pdf_invoice.js")

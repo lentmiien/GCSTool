@@ -7,6 +7,7 @@ var controller = require('../controllers/formController');
 /* GET home page. */
 router.get('/', controller.index);
 router.post('/add', controller.add_post);
+router.post('/add_form', controller.add_format);
 router.get('/csv', controller.fetch_data);
 router.get('/delete/:id', controller.delete);
 

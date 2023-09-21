@@ -412,3 +412,8 @@ svg {
   border-bottom: 1px dashed gray;
   color: gray;
 }
+
+/* Shipping method manager */
+.updated_cell {
+  background-color: rgb(0, 59, 0);
+}

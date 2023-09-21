@@ -3,29 +3,57 @@ extends layout
 block content
   .row
     .col
-      h1(lg_language='_azur_lane_bache_returns_form_')
-      a.btn.btn-link(href="/form/csv", lg_language='_download_csv_data_')
+      h1#title
+      select.form-control(onchange="SelectForm(this)")
+        option(value="") All
+        each form in forms
+          option(value=`${form.group_label}`)= form.title
+      a#csv_link.btn.btn-link(href="/form/csv", lg_language='_download_csv_data_')
+      hr
+  if role == "admin"
+    .row
+      .col
+        h3 Add new group label
+        form(action="/form/add_form", method="post")
+          .row.mt-2
+            .col
+              label(for="format_title") Title
+              input#format_title.form-control(type="text", name="format_title", required)
+              label.mt-3(for="format_label3") Custom label 3
+              input#format_label3.form-control(type="text", name="format_label3", required)
+            .col
+              label(for="format_label1") Custom label 1
+              input#format_label1.form-control(type="text", name="format_label1", required)
+              label.mt-3(for="format_label4") Custom label 4
+              input#format_label4.form-control(type="text", name="format_label4", required)
+            .col
+              label(for="format_label2") Custom label 2
+              input#format_label2.form-control(type="text", name="format_label2", required)
+              label.mt-3(for="format_group_label") Group label
+              input#format_group_label.form-control(type="text", name="format_group_label", required)
+          input.btn.btn-primary.mt-2(type="submit", value="Submit")
+        hr
   .row
     .col
+      h3 Add new case
       i.warning.m-1(lg_language='_all_data_needed_')
       form(action="/form/add", method="post") 
         .row.mt-2
           .col
             label(for="order", lg_language='_order_number_of_original_order_')
             input#order.form-control(type="text", name="order", required)
-            label.mt-3(for="tracking", lg_language='_return_tracking_number_')
-            input#tracking.form-control(type="text", name="tracking", required)
+            label#input_label3.mt-3(for="label3") Label3
+            input#label3.form-control(type="text", name="label3", required)
           .col
-            label(for="cost", lg_language='_return_shipping_cost_')
-            input#cost.form-control(type="text", name="cost", required)
-            label.mt-3(for="currency", lg_language='_currency_')
-            input#currency.form-control(type="text", name="currency", list="cur", required)
+            label#input_label1(for="label1") Label1
+            input#label1.form-control(type="text", name="label1", required)
+            label#input_label4.mt-3(for="label4") Label4
+            input#label4.form-control(type="text", name="label4", required)
           .col
-            label(for="support_id", lg_language='_zendesk_ticket_id_')
-            input#support_id.form-control(type="text", name="support_id", required)
+            label#input_label2(for="label2") Label2
+            input#label2.form-control(type="text", name="label2", required)
             label.mt-3(for="group_label", lg_language='_type_of_case_')
-            select#group_label.form-control(name="group_label", required) 
-              option(value="Azur Lane Bache return") Azur Lane Bache return
+            input#group_label.form-control(name="group_label", readonly, required) 
         input.btn.btn-primary.mt-2(type="submit", value="Submit")
         hr
   .row.mt-3
@@ -34,32 +62,29 @@ block content
         thead 
           tr 
             th(lg_language='_order_')
-            th(lg_language='_tracking_')
             th(lg_language='_processed_by_')
-            th(lg_language='_added_')
-            th(lg_language='_cost_')
-            th(lg_language='_ticket_')
+            th#table_label1 Label1
+            th#table_label2 Label2
+            th#table_label3 Label3
+            th#table_label4 Label4
             th(lg_language='_label_')
             th 
         tbody 
-          each entry in entries 
-            tr 
+          - let i = entries.length - 1
+          while i >= 0
+            - const entry = entries[i]
+            - i--
+            tr(data-gl=`${entry.group_label}`).table_entry 
               td= entry.order
-              td= entry.tracking
-              td= entry.processed_by
-              td= (new Date(entry.added_date)).toDateString()
-              td= `${entry.cost} ${entry.currency}`
-              td= entry.support_id
+              td= `${entry.processed_by} [${entry.createdAt.getFullYear()}-${entry.createdAt.getMonth()+1}-${entry.createdAt.getDate()}]`
+              td= entry.label1
+              td= entry.label2
+              td= entry.label3
+              td= entry.label4
               td= entry.group_label
               td 
                 if role === "admin" || name === entry.processed_by
-                  a.btn.btn-danger(href=`/form/delete/${entry.id}`) X 
-  
-  datalist#cur
-    option(value="USD") 
-    option(value="CAD") 
-    option(value="MXN") 
-    option(value="KRW") 
-    option(value="AUD") 
-    option(value="EUR") 
-    option(value="JPY") 
+                  a.btn.btn-danger(href=`/form/delete/${entry.id}`) X
+  pre#forms.hidden= JSON.stringify(forms) 
+  pre#entries.hidden= JSON.stringify(entries) 
+  script(src="/javascripts/form_controller.js") 

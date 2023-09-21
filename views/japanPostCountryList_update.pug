@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .row
+    .col
+      h2 Sucessfully updated JP country list
+      p= `${db_to_add.length} updated/added entries!`
+      if db_to_add.length > 0
+        a.btn.btn-link(href="/country/updateHistory/last") View last update
+  .row 
+    .col 
+      pre= notice.message

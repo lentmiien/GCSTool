@@ -1,13 +1,5 @@
-const chatGPT = require('../utils/ChatGPT');
+const { chatGPT, embedding } = require('../utils/ChatGPT');
 const { Chatmsg } = require('../sequelize');
-
-/* Chatmsg
-role: type.STRING,
-content: type.STRING,
-tokens: type.INTEGER,
-timestamp: type.BIGINT,
-threadid: type.BIGINT,
-*/
 
 // Monthly token limit 2500000 = $5
 // I'm setting this limit as it's a trial
@@ -37,6 +29,25 @@ async function ExceededMonthlyTokenLimit() {
   return tokens > MONTHLY_TOKEN_LIMIT;
 }
 
+const OpenAI_Prices = {
+  'gpt-3.5-turbo': {
+    'user': 0.0015,
+    'assistant': 0.002,
+    'system': 0,
+  },
+  'gpt-3.5-turbo-16k': {
+    'user': 0.003,
+    'assistant': 0.004,
+    'system': 0,
+  },
+  'text-embedding-ada-002': {
+    'user': 0.0001,
+    'assistant': 0.0001,
+    'system': 0.0001,
+  }
+};
+
+//gpt-3.5-turbo or gpt-3.5-turbo-16k
 exports.index = async (req, res) => {
   // GET
   // /
@@ -80,10 +91,12 @@ exports.index = async (req, res) => {
         dlabel,
         tokens: d.tokens,
         cost: (0.002 * d.tokens) / 1000,
+        // cost: (OpenAI_Prices[d.model][d.role] * d.tokens) / 1000,
       });
     } else {
       costs[index].tokens += d.tokens;
       costs[index].cost = (0.002 * costs[index].tokens) / 1000;
+      // costs[index].cost = (OpenAI_Prices[d.model][d.role] * costs[index].tokens) / 1000;
     }
   });
 
@@ -114,6 +127,7 @@ exports.send = async (req, res) => {
   } else {
     // POST
     // /
+    let model_to_use = 'gpt-3.5-turbo';
     let tid;
     if (req.body.threadid == '0') {
       // New chat
@@ -121,7 +135,7 @@ exports.send = async (req, res) => {
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: req.body.input },
       ];
-      const response = await chatGPT(messages);
+      const response = await chatGPT(messages, model_to_use);
       if (response) {
         messages.push({ role: 'assistant', content: response.choices[0].message.content });
         // Save to database
@@ -155,7 +169,7 @@ exports.send = async (req, res) => {
         }
       });
       messages.push({ role: 'user', content: req.body.input });
-      const response = await chatGPT(messages);
+      const response = await chatGPT(messages, model_to_use);
       if (response) {
         messages.push({ role: 'assistant', content: response.choices[0].message.content });
         // Save to database
@@ -195,12 +209,14 @@ exports.generate = async (req, res) => {
     let output = req.body.text;
     const title = req.body.title;
 
+    let model_to_use = 'gpt-3.5-turbo';
+
     // New chat
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: req.body.text },
     ];
-    const response = await chatGPT(messages);
+    const response = await chatGPT(messages, model_to_use);
     if (response) {
       output = response.choices[0].message.content;
       messages.push({ role: 'assistant', content: response.choices[0].message.content });
@@ -228,11 +244,3 @@ exports.generate = async (req, res) => {
     res.json({ text: output });
   }
 };
-
-/* Chatmsg
-role: type.STRING,
-content: type.STRING,
-tokens: type.INTEGER,
-timestamp: type.BIGINT,
-threadid: type.BIGINT,
-*/

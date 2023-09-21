@@ -1,0 +1,223 @@
+extends layout
+
+block content
+  if new_countries.length > 0
+    #step0 
+      h1 New countries
+      p= `${new_countries.length} new countries found, please save to database before doing anything else (Note: if included in the recent updates, set values to old values before saving)`
+      table.table.table-dark.table-striped 
+        thead 
+          tr 
+            th Country 
+            th ASP 
+            th SAL SP 
+            th Air Parcel 
+            th SAL Parcel 
+            th Surface Parcel 
+            th EMS 
+        tbody 
+          each c in new_countries
+            tr 
+              td= c.country
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="asp", value=`${c.asp}`)
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="salsp", value=`${c.salsp}`)
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="ap", value=`${c.ap}`)
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="salp", value=`${c.salp}`)
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="sp", value=`${c.sp}`)
+              td 
+                input.form-control.new_country_entry(data-id=`${c.jp_cid}`, data-method="ems", value=`${c.ems}`)
+      button.btn.btn-primary(onclick="Save_new_countries()") Save to database
+  else if changes.length > 0
+    #step1
+      h1 Changes overview
+      table.table.table-dark.table-striped 
+        thead 
+          tr 
+            th Country 
+            th ASP 
+            th SAL SP 
+            th Air Parcel 
+            th SAL Parcel 
+            th Surface Parcel 
+            th EMS 
+        tbody 
+          each change in changes
+            tr 
+              td= change.country
+              if "asp" in change.changes 
+                td.updated_cell= change.changes.asp
+              else 
+                td= change.unchanged.asp
+              if "salsp" in change.changes 
+                td.updated_cell= change.changes.salsp
+              else 
+                td= change.unchanged.salsp
+              if "ap" in change.changes 
+                td.updated_cell= change.changes.ap
+              else 
+                td= change.unchanged.ap
+              if "salp" in change.changes 
+                td.updated_cell= change.changes.salp
+              else 
+                td= change.unchanged.salp
+              if "sp" in change.changes 
+                td.updated_cell= change.changes.sp
+              else 
+                td= change.unchanged.sp
+              if "ems" in change.changes 
+                td.updated_cell= change.changes.ems
+              else 
+                td= change.unchanged.ems
+      h1 Review changes 
+      table.table.table-dark.table-striped 
+        thead 
+          tr 
+            th Country 
+            th Method 
+            th Update 
+        tbody 
+          each change, i in changes
+            - let country_set = false
+            if "asp" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td Air Small Packet (u)
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="asp_u")
+                    option(value=`${change.changes.asp == '✓' || change.changes.asp == '*' ? "available" : "unavailable"}`)= `${change.changes.asp} ${change.changes.asp == '✓' || change.changes.asp == '*' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.asp} Available`
+                    option(value=`unavailable`)= `${change.changes.asp} Unavailable`
+              tr 
+                td
+                td Air Small Packet
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="asp")
+                    option(value=`${change.changes.asp == '✓' ? "available" : "unavailable"}`)= `${change.changes.asp} ${change.changes.asp == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.asp} Available`
+                    option(value=`unavailable`)= `${change.changes.asp} Unavailable`
+            if "salsp" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td SAL Small Packet (u)
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="salsp_u")
+                    option(value=`${change.changes.salsp == '✓' || change.changes.salsp == '*' ? "available" : "unavailable"}`)= `${change.changes.salsp} ${change.changes.salsp == '✓' || change.changes.salsp == '*' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.salsp} Available`
+                    option(value=`unavailable`)= `${change.changes.salsp} Unavailable`
+              tr 
+                td
+                td SAL Small Packet
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="salsp")
+                    option(value=`${change.changes.salsp == '✓' ? "available" : "unavailable"}`)= `${change.changes.salsp} ${change.changes.salsp == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.salsp} Available`
+                    option(value=`unavailable`)= `${change.changes.salsp} Unavailable`
+            if "ap" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td Air Parcel
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="ap")
+                    option(value=`${change.changes.ap == '✓' ? "available" : "unavailable"}`)= `${change.changes.ap} ${change.changes.ap == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.ap} Available`
+                    option(value=`unavailable`)= `${change.changes.ap} Unavailable`
+            if "salp" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td SAL Parcel
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="salp")
+                    option(value=`${change.changes.salp == '✓' ? "available" : "unavailable"}`)= `${change.changes.salp} ${change.changes.salp == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.salp} Available`
+                    option(value=`unavailable`)= `${change.changes.salp} Unavailable`
+            if "sp" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td Surface Parcel
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="sp")
+                    option(value=`${change.changes.sp == '✓' ? "available" : "unavailable"}`)= `${change.changes.sp} ${change.changes.sp == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.sp} Available`
+                    option(value=`unavailable`)= `${change.changes.sp} Unavailable`
+            if "ems" in change.changes 
+              tr 
+                if country_set == false 
+                  th= change.country
+                  - country_set = true 
+                else 
+                  td
+                td EMS
+                td 
+                  select.form-control.change_in_method(data-index=`${i}`, data-method="ems")
+                    option(value=`${change.changes.ems == '✓' ? "available" : "unavailable"}`)= `${change.changes.ems} ${change.changes.ems == '✓' ? "Available" : "Unavailable"}`
+                    option(value=`available`)= `${change.changes.ems} Available`
+                    option(value=`unavailable`)= `${change.changes.ems} Unavailable`
+      h1 Actions (set change date and select JP announcement update)
+      input#changedate.form-control(type="date", name="changedate")
+      select#announcement.form-control(name="announcement") 
+        each entry in JP_announcements
+          option(value=`${entry.link[0]}`)= `${entry.title[0]} (${entry.pubDate[0]})`
+      button.btn.btn-success(onclick="s1_next()") Proceed
+  else 
+    #step99
+      h1 No changes
+  #step2.hidden
+    h1 Prepare the announcement message for amiami.com, and share with team
+    textarea#announcement_text.form-control(name="announcement_text", cols="30", rows="10")
+    h1 Actions 
+    button.btn.btn-primary(onclick="s2_gcs_share()") Copy GCS share message
+    button.btn.btn-primary(onclick="s2_gcs_cs_share()") Copy GCS CS share message
+    button.btn.btn-primary(onclick=`s2_zendesk_link("${links[0]}")`) Zendesk link
+    button.btn.btn-primary(onclick="s2_zendesk_html()") Copy Zendesk HTML
+    button.btn.btn-success(onclick="s2_next()") Proceed
+  #step3.hidden
+    h1 Cybozu submit request
+    input#request_comment_number.form-control(type="text", name="request_comment_number")
+    h1 Actions 
+    button.btn.btn-primary(onclick=`s3_announcement_link("${links[1]}")`) Copy link (announcement)
+    button.btn.btn-primary(onclick="s3_announcement_text()") Copy text (announcement)
+    b *Remember to fill in comment number above
+    button.btn.btn-primary(onclick=`s3_update_link("${links[2]}")`) Copy link (update request)
+    button.btn.btn-primary(onclick="s3_update_text()") Copy text (update request)
+    button.btn.btn-primary(onclick="s3_cw_share()") Copy text (share on CW)
+    button.btn.btn-success(onclick="s3_next()") Proceed
+  #step4.hidden
+    h1 Update available methods
+    button.btn.btn-success(onclick=`s4_update_link("${links[3]}")`) Copy link (update methods)
+    button.btn.btn-success(onclick="s4_update_csv()") Save CSV (update methods)
+    button.btn.btn-success(onclick="s4_update_text()") Copy text (update methods)
+    button.btn.btn-success(onclick="s4_next()") Proceed
+  #step5.hidden
+    h1 Review and save
+    button.btn.btn-success(onclick="s5_save()") Save changes
+  pre#changes.hidden= JSON.stringify(changes)
+  pre#new_countries.hidden= JSON.stringify(new_countries)
+  pre#JP_announcements.hidden= JSON.stringify(JP_announcements)
+  pre#DB_notice.hidden= JSON.stringify(DB_notice)
+  script(src="/javascripts/FileSaver.js") 
+  script(src="/javascripts/checkjp_controller.js") 

@@ -1,3 +1,12 @@
+/****************************
+ * 
+ * Consider
+ * 
+ * change so that an entry can have as many content parts as needed
+ * when edit, show the available parts + 1 empty and a button to add more
+ * 
+ */
+
 const async = require('async');
 
 const { body, validationResult } = require('express-validator');

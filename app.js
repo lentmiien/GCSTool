@@ -29,12 +29,23 @@ const {} = require('./sequelize');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
+app.use(
+  logger('combined', {
+    skip: function (req, res) {
+      return res.statusCode < 400;
+    },
+  })
+);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-const sessionMiddleware = session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 8640000000 } });
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 8640000000 },
+});
 app.use(sessionMiddleware);
 app.use(pp.passport.initialize());
 app.use(pp.passport.session());
@@ -55,8 +66,10 @@ app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);
 
 app.get('/logout', (req, res, next) => {
-  req.logOut(function(err) {
-    if (err) { return next(err); }
+  req.logOut(function (err) {
+    if (err) {
+      return next(err);
+    }
     res.redirect('/');
   });
 });
@@ -95,4 +108,4 @@ function requireNotAuthenticated(req, res, next) {
   next();
 }
 
-module.exports = {app, sessionMiddleware};
+module.exports = { app, sessionMiddleware };

@@ -1,37 +1,38 @@
 extends layout
 
 block content
-  div(class='row')
-    div(class='col-sm-12')
+  .row
+    .col-sm-12
       h1.titlestyle GCS Mail team topics
       p
         button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#new_form", aria-expanded="false", aria-controls="collapseExample") NEW
       #new_form.collapse.alert.alert-secondary(role="alert")
         h3 新規作成
-        form(action="/meeting", method="post")
-          .input-group
-            .input-group-prepend
-              .input-group-text Topic
-            input#newtopic.form-control(type="text", name="newtopic" placeholder="Topic")
-          .input-group
-            .input-group-prepend
-              .input-group-text Details
-            textarea#newdetails.form-control(name="newdetails", cols="30", rows="3", placeholder="Details")
-          input#newedit_user(type="hidden", name="newedit_user" value=request.userid.toLowerCase())
-          .input-group
-            .input-group-prepend
-              .input-group-text
-                | Your
-                br
-                | comment
-            textarea#newmycomment.form-control(name="newmycomment", cols="30", rows="3", placeholder="Your comment")
-          button.btn.btn-success.btn-lg.btn-block(type="submit") Post new topic
+        input#name(type="hidden", name="name", value=`${name}`)
+        .input-group
+          .input-group-prepend
+            .input-group-text Title
+          input#newtitle.form-control(type="text", name="newtitle" placeholder="Title")
+        .input-group
+          .input-group-prepend
+            .input-group-text Content
+          textarea#newcontent.form-control(name="newcontent", cols="30", rows="3", placeholder="Content")
+        .input-group
+          .input-group-prepend
+            .input-group-text
+              | Your
+              br
+              | comment
+          textarea#newmycomment.form-control(name="newmycomment", cols="30", rows="3", placeholder="Your comment")
+        button#newpostbutton.btn.btn-success.btn-lg.btn-block Post new topic
       - let cYear = 9999
       - let cMonth = 99
       - let cnt = 0
-      each row in rows
+      h2= "NEW"
+      div(id=`new_meeting_section`)
+      each row in meetings
         - cnt++
-        - let sDate = new Date(parseInt(row.lastupdated))
+        - let sDate = row.date
         if !(cYear == sDate.getFullYear() && cMonth == sDate.getMonth()+1)
           - cYear = sDate.getFullYear()
           - cMonth = sDate.getMonth()+1
@@ -39,58 +40,54 @@ block content
         - let classType = "alert-primary"
         - let message = ""
         - let hide = false
-        if row.status.indexOf('新規') >= 0
+        - const s_list = {"new": "新規", "prosessing": "対応中", "onhold": "待ち", "completed": "完了", "discontinued": "中止"}
+        if row.status == "new"
           - classType = "alert-danger"
-        if row.status.indexOf('対応中') >= 0
+        if row.status == "prosessing"
           - classType = "alert-warning"
-        if row.status.indexOf('完了') >= 0
+        if row.status == "completed"
           - classType = "alert-success"
           - message = "<b>【完了】</b>"
           - hide = true
-        if row.status.indexOf('中止') >= 0
+        if row.status == "discontinued"
           - classType = "alert-dark"
           - message = "<b>【中止】</b>"
           - hide = true
-        .alert(class=classType, role="alert")
-          h3!= "■" + message + row.topic.split('(')[0]
+        .alert(id=`meeting_${row.id}`, class=classType, role="alert")
+          h3!= "■" + message + row.title
             if hide
               button.btn.btn-primary.ml-3(type="button", data-toggle="collapse" data-target=`#collapseExample${cnt}` aria-expanded="false" aria-controls=`collapseExample${cnt}`) Show
           div.collapse(id=`collapseExample${cnt}`, class=`${hide ? "" : "show"}`)
-            b= `Status: ${row.status}`
+            b(id=`meeting_status_${row.id}`)= `Status: ${s_list[row.status]}`
             i= ` (Updated: ${sDate.getFullYear()}-${sDate.getMonth()+1}-${sDate.getDate()})`
-            pre= row.details
+            pre(id=`meeting_content_${row.id}`)= row.content
             p
               button.btn.btn-primary(type="button", data-toggle="collapse", data-target="#edit_form"+cnt, aria-expanded="false", aria-controls="collapseExample") EDIT
             .collapse(id="edit_form"+cnt)
-              form(action="/meeting", method="post")
-                input#edittopic(type="hidden", name="edittopic" value=row.topic)
-                .input-group
-                  .input-group-prepend
-                    .input-group-text Status
-                  input#editwho.form-control(type="text", name="editwho")
-                  .input-group-append
-                    select#editstatus.form-control(name="editstatus")
-                      option(value="新規") 新規
-                      option(value="対応中") 対応中
-                      option(value="待ち") 待ち
-                      option(value="完了") 完了
-                      option(value="中止") 中止
-                .input-group
-                  .input-group-prepend
-                    .input-group-text Details
-                  textarea#editdetails.form-control(name="editdetails", cols="30", rows="3")= row.details
-                button.btn.btn-warning.btn-lg.btn-block(type="submit") Update
+              .input-group
+                .input-group-prepend
+                  .input-group-text Status
+                select.form-control(id=`editstatus${row.id}`, name="editstatus")
+                  option(value="new") 新規
+                  option(value="prosessing") 対応中
+                  option(value="onhold") 待ち
+                  option(value="completed") 完了
+                  option(value="discontinued") 中止
+              .input-group
+                .input-group-prepend
+                  .input-group-text Details
+                textarea.form-control(id=`editdetails${row.id}`, name="editdetails", cols="30", rows="3")= row.content
+              button.btn.btn-warning.btn-lg.btn-block.update_meeting_button(data-id=`${row.id}`) Update
             hr
-            each user in users
-              if Object.keys(row).indexOf(user.userid.toLowerCase()) >= 0 && (row[user.userid.toLowerCase()].length > 0 || user.userid == request.userid)
-                div(class="comment")
-                  h4= user.userid
-                  if row[user.userid.toLowerCase()].length > 0
-                    pre= row[user.userid.toLowerCase()]
-                  if user.userid == request.userid
-                    form(action="/meeting", method="post")
-                      input#topic(type="hidden", name="topic" value=row.topic)
-                      input#edit_user(type="hidden", name="edit_user" value=request.userid.toLowerCase())
-                      textarea#mycomment.form-control(name="mycomment", cols="30", rows="3", style="width: 100%;")= row[user.userid.toLowerCase()].length > 0 ? row[user.userid.toLowerCase()] : ""
-                      button.btn.btn-warning.btn-lg.btn-block(type="submit") Update comment
+            .comment
+              textarea.form-control(id=`newcomment${row.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")
+              button.btn.btn-warning.btn-lg.btn-block.add_comment_button(data-id=`${row.id}`) Add comment
+            div(id=`comment_section_${row.id}`)
+              each comment in row.comments
+                .comment
+                  h4= comment.created_by
+                  pre(id=`comment_id_${comment.id}`)= comment.content
+                  if comment.created_by == name
+                    textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
+                    button.btn.btn-warning.btn-lg.btn-block.update_comment_button(data-id=`${comment.id}`) Update comment
   script(src="/javascripts/open_meeting.js")

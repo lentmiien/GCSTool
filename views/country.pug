@@ -1,68 +1,31 @@
 extends layout
 
 block content
-  h3(lg_language='_search_box_')
-  input#search.form-control(type="text", name="search", onkeyup="ChangeSearch()")
-  div#auto
-  .card.text-white.bg-dark
-    .card-header
-      h3#country
-      p#tracking
-    #output.card-body
-      #link
-      table.table.table-dark.table-striped
-        thead
-          tr
-            th(span="col")
-            th(span="col", title="Available/delay: Selectable and possible to ship\nSuspended: Selectable, shipped when possible\nOther: Non-usable") Status
-            //- th(span="col") Average last 2 weeks
-            //-   br
-            //-   | (compared to all time average)
-            //- th(span="col", title="Shipping date of last shipped order that has been delivered") Last successfully
-            //-   br
-            //-   | shipped
-        tbody
-          tr
-            td(span="row") EMS
-            td#ems_available
-            //- td#ems_average
-            //- td#ems_lastshipped
-          tr
-            td(span="row") ASP*
-            td#airsp_available
-            //- td#airsp_average
-            //- td#airsp_lastshipped
-          tr
-            td(span="row") SAL Reg.*
-            td#salspr_available
-            //- td#salspr_average
-            //- td#salspr_lastshipped
-          tr
-            td(span="row") SAL Unreg.**
-            td#salspu_available
-            //- td#salspu_average ---
-            //- td#salspu_lastshipped ---
-          tr
-            td(span="row") SAL Parcel*
-            td#salp_available
-            //- td#salp_average
-            //- td#salp_lastshipped
-          tr
-            td(span="row") DHL
-            td#dhl_available
-            //- td#dhl_average
-            //- td#dhl_lastshipped
-          tr
-            td(span="row") Air Parcel*
-            td#airp_available
-            //- td#airp_average
-            //- td#airp_lastshipped
-      b(style="color:red;", lg_language="_ship_details_1_")
-      br
-      b(style="color:red;", lg_language="_ship_details_2_")
-      br
-      b(style="color:red;", lg_language="_ship_details_3_")
-  pre.hidden= JSON.stringify(countries, null, 2)
-  pre.hidden= JSON.stringify(trackings, null, 2)
-  
-  script(src="/javascripts/search.js")
+  .row 
+    .col 
+      a.btn.btn-link(href="/country/checkjp") Check for JP updates
+  h2 Available shipping methods 
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Country 
+        th DHL 
+        th EMS 
+        th Air Parcel 
+        th Air SP
+        th SAL Parcel 
+        th SAL SP
+        th Surface Parcel 
+        th AIT 
+    tbody 
+      each country in countries
+        tr 
+          td= country.country
+          td= country.methods.dhl ? "✓" : "-"
+          td= country.methods.ems ? "✓" : "-"
+          td= country.methods.air_parcel ? "✓" : "-"
+          td= `${country.methods.air_small_packet ? "✓" : "-"} / ${country.methods.air_small_packet_reg ? "✓" : "-"}`
+          td= country.methods.sal_parcel ? "✓" : "-"
+          td= `${country.methods.sal_small_packet ? "✓" : "-"} / ${country.methods.sal_small_packet_reg ? "✓" : "-"}`
+          td= country.methods.surface_parcel ? "✓" : "-"
+          td= country.methods.ait ? "✓" : "-"
