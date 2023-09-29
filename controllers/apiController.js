@@ -795,6 +795,8 @@ exports.generate_invoice = async (req, res) => {
     remarks.unshift(`15% GST charged on merchandise price and shipping cost (GST number: 130-703-607)`);
   } else if (req.body.gst_type === 'Singapore') {
     remarks.unshift(`8% GST charged on merchandise price and shipping cost (GST number: M90375235L)`);
+  } else if (req.body.gst_type === 'Singapore2024') {
+    remarks.unshift(`9% GST charged on merchandise price and shipping cost (GST number: M90375235L)`);
   }
   remarks.unshift(`Invoice for ${req.body.shipping_method} shipment ${req.body.tracking}`);
   cnt = 0;
