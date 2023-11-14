@@ -68,7 +68,7 @@ block content
         option(value="Chinese") Chinese 
   .row 
     .col 
-      h3 4 zones (Small packet)
+      h3 5 zones (Small packet)
       div 
         input#asp_u.smallpacket(type="checkbox", value="Air small packet unregistered", disabled=output["Air small packet unregistered"] ? false : true)
         | Air small packet unregistered
@@ -81,7 +81,7 @@ block content
       div 
         input#salsp.smallpacket(type="checkbox", value="SAL small packet registered", disabled=output["SAL small packet registered"] ? false : true)
         | SAL small packet registered
-      button.btn.btn-primary(onclick="Charts('smallpacket','_4zones')") Zendesk small packet chart
+      button.btn.btn-primary(onclick="Charts('smallpacket','_5zones')") Zendesk small packet chart
     .col 
       h2 5 zones (Parcel)
       div 

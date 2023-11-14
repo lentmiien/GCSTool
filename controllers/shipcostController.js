@@ -51,39 +51,47 @@ exports.index = async (req, res) => {
   const sp_unreg_zone2 = await GetJPChart("https://www.post.japanpost.jp/int/charge/list/normal2_en.html", ["#t1-5", "#t3-2"]);
   const sp_unreg_zone3 = await GetJPChart("https://www.post.japanpost.jp/int/charge/list/normal3_en.html", ["#t1-5", "#t3-2"]);
   const sp_unreg_zone4 = await GetJPChart("https://www.post.japanpost.jp/int/charge/list/normal4_en.html", ["#t1-5", "#t3-2"]);
+  const sp_unreg_zone5 = await GetJPChart("https://www.post.japanpost.jp/int/charge/list/normal5_en.html", ["#t1-5", "#t3-2"]);
   charts["Air small packet unregistered"] = {
     zone1: sp_unreg_zone1[0],
     zone2: sp_unreg_zone2[0],
     zone3: sp_unreg_zone3[0],
-    zone4: sp_unreg_zone4[0]
+    zone4: sp_unreg_zone4[0],
+    zone5: sp_unreg_zone5[0],
   };
   charts["SAL small packet unregistered"] = {
     zone1: sp_unreg_zone1[1],
     zone2: sp_unreg_zone2[1],
     zone3: sp_unreg_zone3[1],
-    zone4: sp_unreg_zone4[1]
+    zone4: sp_unreg_zone4[1],
+    zone5: sp_unreg_zone5[1],
   };
-  // "SAL small packet registered" is unregistered prices + 410 JPY
-  charts["SAL small packet registered"] = { zone1: [], zone2: [], zone3: [], zone4: [] };
+  // "SAL small packet registered" is unregistered prices + 460 JPY
+  charts["SAL small packet registered"] = { zone1: [], zone2: [], zone3: [], zone4: [], zone5: [] };
   sp_unreg_zone1[1].forEach(entry => {
     const label = entry[0];
     const cost = entry[1];
-    charts["SAL small packet registered"].zone1.push([label, cost+410]);
+    charts["SAL small packet registered"].zone1.push([label, cost+460]);
   });
   sp_unreg_zone2[1].forEach(entry => {
     const label = entry[0];
     const cost = entry[1];
-    charts["SAL small packet registered"].zone2.push([label, cost+410]);
+    charts["SAL small packet registered"].zone2.push([label, cost+460]);
   });
   sp_unreg_zone3[1].forEach(entry => {
     const label = entry[0];
     const cost = entry[1];
-    charts["SAL small packet registered"].zone3.push([label, cost+410]);
+    charts["SAL small packet registered"].zone3.push([label, cost+460]);
   });
   sp_unreg_zone4[1].forEach(entry => {
     const label = entry[0];
     const cost = entry[1];
-    charts["SAL small packet registered"].zone4.push([label, cost+410]);
+    charts["SAL small packet registered"].zone4.push([label, cost+460]);
+  });
+  sp_unreg_zone5[1].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["SAL small packet registered"].zone5.push([label, cost+460]);
   });
 
   const parcel_zone1 = await GetJPChart("https://www.post.japanpost.jp/int/charge/list/parcel1_en.html", ["#t1", "#t2", "#t3"]);
@@ -126,200 +134,32 @@ exports.index = async (req, res) => {
     zone5: ems_zone5[0]
   };
 
-  // Air small packet registered (epacket)
-  // https://www.post.japanpost.jp/int/download/epacket-charges.pdf
-  // change to load DB data to chart (since automatic loading of new data isn't possible)
-  charts["Air small packet registered"] = {
-    zone1: [
-      [ 100, 690 ],
-      [ 200, 780 ],
-      [ 300, 870 ],
-      [ 400, 960 ],
-      [ 500, 1050 ],
-      [ 600, 1140 ],
-      [ 700, 1230 ],
-      [ 800, 1320 ],
-      [ 900, 1410 ],
-      [ 1000, 1500 ],
-      [ 1100, 1590 ],
-      [ 1200, 1680 ],
-      [ 1300, 1770 ],
-      [ 1400, 1860 ],
-      [ 1500, 1950 ],
-      [ 1600, 2040 ],
-      [ 1700, 2130 ],
-      [ 1800, 2220 ],
-      [ 1900, 2310 ],
-      [ 2000, 2400 ]
-    ],
-    zone2: [
-      [ 100, 790 ],
-      [ 200, 910 ],
-      [ 300, 1030 ],
-      [ 400, 1150 ],
-      [ 500, 1270 ],
-      [ 600, 1390 ],
-      [ 700, 1510 ],
-      [ 800, 1630 ],
-      [ 900, 1750 ],
-      [ 1000, 1870 ],
-      [ 1100, 1990 ],
-      [ 1200, 2110 ],
-      [ 1300, 2230 ],
-      [ 1400, 2350 ],
-      [ 1500, 2470 ],
-      [ 1600, 2590 ],
-      [ 1700, 2710 ],
-      [ 1800, 2830 ],
-      [ 1900, 2950 ],
-      [ 2000, 3070 ]
-    ],
-    zone3: [
-      [ 100, 820 ],
-      [ 200, 1000 ],
-      [ 300, 1180 ],
-      [ 400, 1360 ],
-      [ 500, 1540 ],
-      [ 600, 1720 ],
-      [ 700, 1900 ],
-      [ 800, 2080 ],
-      [ 900, 2260 ],
-      [ 1000, 2440 ],
-      [ 1100, 2620 ],
-      [ 1200, 2800 ],
-      [ 1300, 2980 ],
-      [ 1400, 3160 ],
-      [ 1500, 3340 ],
-      [ 1600, 3520 ],
-      [ 1700, 3700 ],
-      [ 1800, 3880 ],
-      [ 1900, 4060 ],
-      [ 2000, 4240 ]
-    ],
-    zone4: [
-      [ 100, 1150 ],
-      [ 200, 1280 ],
-      [ 300, 1410 ],
-      [ 400, 1540 ],
-      [ 500, 1670 ],
-      [ 600, 1800 ],
-      [ 700, 1930 ],
-      [ 800, 2060 ],
-      [ 900, 2190 ],
-      [ 1000, 2320 ],
-      [ 1100, 2450 ],
-      [ 1200, 2580 ],
-      [ 1300, 2710 ],
-      [ 1400, 2840 ],
-      [ 1500, 2970 ],
-      [ 1600, 3100 ],
-      [ 1700, 3230 ],
-      [ 1800, 3360 ],
-      [ 1900, 3490 ],
-      [ 2000, 3620 ]
-    ]
-  };
-  const aspr_dates = {
-    zone1: {
-      100: 0,
-      200: 0,
-      300: 0,
-      400: 0,
-      500: 0,
-      600: 0,
-      700: 0,
-      800: 0,
-      900: 0,
-      1000: 0,
-      1100: 0,
-      1200: 0,
-      1300: 0,
-      1400: 0,
-      1500: 0,
-      1600: 0,
-      1700: 0,
-      1800: 0,
-      1900: 0,
-      2000: 0
-    },
-    zone2: {
-      100: 0,
-      200: 0,
-      300: 0,
-      400: 0,
-      500: 0,
-      600: 0,
-      700: 0,
-      800: 0,
-      900: 0,
-      1000: 0,
-      1100: 0,
-      1200: 0,
-      1300: 0,
-      1400: 0,
-      1500: 0,
-      1600: 0,
-      1700: 0,
-      1800: 0,
-      1900: 0,
-      2000: 0
-    },
-    zone3: {
-      100: 0,
-      200: 0,
-      300: 0,
-      400: 0,
-      500: 0,
-      600: 0,
-      700: 0,
-      800: 0,
-      900: 0,
-      1000: 0,
-      1100: 0,
-      1200: 0,
-      1300: 0,
-      1400: 0,
-      1500: 0,
-      1600: 0,
-      1700: 0,
-      1800: 0,
-      1900: 0,
-      2000: 0
-    },
-    zone4: {
-      100: 0,
-      200: 0,
-      300: 0,
-      400: 0,
-      500: 0,
-      600: 0,
-      700: 0,
-      800: 0,
-      900: 0,
-      1000: 0,
-      1100: 0,
-      1200: 0,
-      1300: 0,
-      1400: 0,
-      1500: 0,
-      1600: 0,
-      1700: 0,
-      1800: 0,
-      1900: 0,
-      2000: 0
-    }
-  };
-  current_data.forEach(e => {
-    if (e.method == "Air small packet registered") {
-      if (aspr_dates[e.zone][e.uptoweight_g] < e.costdate) {
-        aspr_dates[e.zone][e.uptoweight_g] = e.costdate;
-        for (let j = 0; j < charts["Air small packet registered"][e.zone].length; j++) {
-          if (charts["Air small packet registered"][e.zone][j][0] == e.uptoweight_g) {
-            charts["Air small packet registered"][e.zone][j][1] = e.cost;
-          }
-        }
-      }
-    }
+  // "Air small packet registered" is unregistered prices + 460 JPY
+  charts["Air small packet registered"] = { zone1: [], zone2: [], zone3: [], zone4: [], zone5: [] };
+  sp_unreg_zone1[0].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["Air small packet registered"].zone1.push([label, cost+460]);
+  });
+  sp_unreg_zone2[0].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["Air small packet registered"].zone2.push([label, cost+460]);
+  });
+  sp_unreg_zone3[0].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["Air small packet registered"].zone3.push([label, cost+460]);
+  });
+  sp_unreg_zone4[0].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["Air small packet registered"].zone4.push([label, cost+460]);
+  });
+  sp_unreg_zone5[0].forEach(entry => {
+    const label = entry[0];
+    const cost = entry[1];
+    charts["Air small packet registered"].zone5.push([label, cost+460]);
   });
 
   // DHL
