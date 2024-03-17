@@ -247,3 +247,7 @@ exports.db_delete = (req, res) => {
   HSCodeList.destroy({ where: { id: req.body.id } });
   res.json({ status: "OK" });
 };
+
+exports.manifest_check = (req, res) => {
+  res.render('manifest_check');
+};

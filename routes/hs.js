@@ -27,5 +27,8 @@ router.get('/dbeditor', controller.db_editor);
 router.post('/dbupdate', controller.db_update);
 router.post('/dbdelete', controller.db_delete);
 
+// Manifest
+router.get('/manifest_check', controller.manifest_check);
+
 // Export router
 module.exports = router;

@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  h1 Check Manifest file
+  p A tool for verifying that content in Manifest file is all valid. 
+    i (*The tool will check that required values has been filled in, and check that certain values are valid, but won't verify addresses)
+  hr
+  label(for="inputfile") Select input file (Manifest file to check)
+  input#inputfile.form-control(type="file", name="inputfile")
+  hr
+  h3 Verify content below and input correct values
+  div#verify_content
+    b - No file has been selected -
+  hr
+  h3 Save changes 
+  label(for="container") Which container is this?
+  input#container.form-control(type="text", name="container")
+  button.btn.btn-primary(onclick="Generate()") Save output
+
+  script(src='/javascripts/FileSaver.js', defer)
+  script(src='/js/manifest_check.js', defer)
