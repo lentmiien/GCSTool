@@ -1,0 +1,39 @@
+extends layout
+
+block content
+  .row 
+    .col 
+      h2 Language tools
+  .row 
+    .col 
+      label(for="title") Task title 
+      input#title(type="text", name="title")
+      label(for="csv") Select data file (CSV), first row is header
+      input#csv.for-control(type="file", name="csv")
+      label(for="method") Select processing method 
+      select#method.form-control(name="method")
+        option(value="shorten_names") Shorten product names 
+        option(value="check_translations") Check translations 
+  .row 
+    #input_output.col
+      i *Select an input file...
+  .row 
+    .col 
+      h4 Shorten product names
+      label(for="length") Whats the max length?
+      input#length.form-control(type="number", name="length", value="86")
+    .col 
+      h4 Check translations
+  .row 
+    .col 
+      button.btn.btn-primary(onclick="Process()") Start processing
+  .row 
+    .col 
+      h3 Output 
+  .row 
+    #output_div.col
+  .row 
+    .col 
+      button.btn.btn-primary(onclick="SaveCompleted()") Save CSV
+  script(src="/javascript/FileSaver.js", defer) 
+  script(src="/js/language_tools.js", defer) 

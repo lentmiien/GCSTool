@@ -244,3 +244,71 @@ exports.generate = async (req, res) => {
     res.json({ text: output });
   }
 };
+
+/**
+ * GET
+ * url: /chatgpt/language_tools
+ * Display a page where the user can select a CSV file from their computer,
+ * then select the type of process (merchandise names, translations)
+ * then specify input/output columns *one empty column at end will be default output
+ * lastly specify options and send to server
+ * 
+ * Send to server
+ * - prepare a context message for the particular request and append to messages array
+ * - itterate over the rows in the CSV data, and send in batches of 25 lines to the server
+ *   - prepare message for the 25 lines and append to messages array
+ * - when response is recived, parse the data for the required information
+ * - display output and repeat until done
+ * Note: the context or message should request for response in JSON format
+ */
+exports.language_tools = (req, res) => {
+  res.render('language_tools');
+};
+
+/**
+ * POST
+ * url: /chatgpt/language_tools/send
+ * Input is array of messages in ChatGPT format (prepared on user side), and a thread_id if available
+ * 
+ * Output is the same array of messages, with response appended, and thread_id (generate and return new if not provided)
+ * 
+ * Array structure:
+ * {
+ *   title: A title for the conversation
+ *   thread_id: ID for this conversation,
+ *   messages: [
+ *     { role: 'system' or 'user' or 'assistant', content: Prompt or response },
+ *     {},
+ *     ...
+ *   ]
+ * }
+ */
+exports.language_send = async (req, res) => {
+  const tid = req.body.thread_id != 0 ? req.body.thread_id : Date.now();
+  const ts = Date.now();
+  const db_data = [];
+  const messages = req.body.messages;
+
+  const response = await chatGPT(messages);
+  if (response) {
+    messages.push({ role: 'assistant', content: response.choices[0].message.content });
+    // Save to database
+    for (let i = req.body.thread_id != 0 ? messages.length - 2 : 0; i < messages.length; i++) {
+      const m = messages[i];
+      db_data.push({
+        user: 'Lennart',
+        role: m.role,
+        content: m.content,
+        tokens: 0,
+        timestamp: ts + i,
+        threadid: tid,
+        title: req.body.title && req.body.title.length > 0 ? req.body.title : `${new Date().toDateString()}`,
+      });
+    }
+    db_data[db_data.length - 2].tokens = response.usage.prompt_tokens;
+    db_data[db_data.length - 1].tokens = response.usage.completion_tokens;
+    await Chatmsg.bulkCreate(db_data);
+  }
+
+  res.json({thread_id: tid, messages})
+};
