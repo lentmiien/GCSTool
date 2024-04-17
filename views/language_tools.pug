@@ -3,33 +3,36 @@ extends layout
 block content
   .row 
     .col 
-      h2 Language tools
+      h2 Shorten item names 
+      p In FM, find all paid orders since last check, for relevant countries, then open the layout for editing shorten names. Press button to remove completed/already short enough names, then "Export" data that needs to be processed. Select the exported file below, and click "Start processing", then wait for the task to be completed, and click on "Save CSV" to export the processed data. Now return to FM, and in the same layout you previously opened, press "Import" and select the file you just exported. Done!
+      hr(style="border: 2px solid red;")
   .row 
     .col 
+      h3 1. Input details
       label(for="title") Task title 
-      input#title(type="text", name="title")
-      label(for="csv") Select data file (CSV), first row is header
-      input#csv.for-control(type="file", name="csv")
+      input#title.form-control(type="text", name="title", value=`Short names ${new Date()}`)
+      label(for="csv") Select data file (CSV), no header row
+      input#csv.form-control(type="file", name="csv")
       label(for="method") Select processing method 
       select#method.form-control(name="method")
         option(value="shorten_names") Shorten product names 
-        option(value="check_translations") Check translations 
+        //- option(value="check_translations") Check translations 
   .row 
     #input_output.col
       i *Select an input file...
   .row 
     .col 
-      h4 Shorten product names
+      hr(style="border: 2px solid red;")
+      h3 2. Shorten product names
       label(for="length") Whats the max length?
       input#length.form-control(type="number", name="length", value="86")
-    .col 
-      h4 Check translations
   .row 
     .col 
       button.btn.btn-primary(onclick="Process()") Start processing
   .row 
     .col 
-      h3 Output 
+      hr(style="border: 2px solid red;")
+      h3 3. Output 
   .row 
     #output_div.col
   .row 
