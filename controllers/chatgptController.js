@@ -289,7 +289,7 @@ exports.language_send = async (req, res) => {
   const db_data = [];
   const messages = req.body.messages;
 
-  const response = await chatGPT(messages);
+  const response = await chatGPT(messages, "gpt-4-turbo");
   if (response) {
     messages.push({ role: 'assistant', content: response.choices[0].message.content });
     // Save to database

@@ -37,7 +37,7 @@ window.addEventListener('load', function () {
 
     // Table header
     const table = document.createElement("table");
-    table.classList.add("table", "table-striped");
+    table.classList.add("table", "table-dark", "table-striped");
     const thead = document.createElement("thead");
     const tr = document.createElement("tr");
     ["id", "long_name"].forEach(d => {
@@ -157,7 +157,7 @@ async function Process() {
   const out = document.getElementById("output_div");
   out.innerHTML = "";
   const out_table = document.createElement("table");
-  out_table.classList.add("table", "table-striped");
+  out_table.classList.add("table", "table-dark", "table-striped");
   const out_thead = document.createElement("thead");
   const out_tbody = document.createElement("tbody");
   const out_tr = document.createElement("tr");
