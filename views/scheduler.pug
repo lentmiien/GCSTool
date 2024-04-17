@@ -50,19 +50,33 @@ block content
                                         a(href=`/scheduler/editstaff?id=${s.id}`) Edit
                                         | )
                             - wcnt = 0
+                            - let longtime_off = 0
                             while wcnt < 7
                                 - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
                                 - wcnt++
                                 - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
                                 each sdate in s.schedule2s
                                     if dstr == sdate.date
-                                        - let w_style = "rgb(220, 255, 100)"
-                                        if sdate.work == "off" || sdate.work == "holiday"
-                                            - w_style = "rgb(150, 70, 70)"
-                                        if sdate.work == "work" || sdate.work == "telwork"
-                                            - w_style = "rgb(100, 255, 100)"
-                                        if sdate.work == "vacation"
-                                            - w_style = "rgb(255, 120, 255)"
-                                        td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
+                                        if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
+                                            - longtime_off++
+                            - wcnt = 0
+                            while wcnt < 7
+                                if longtime_off === 7
+                                    td(style=`color:rgb(150, 70, 70);`, colspan="7") -- No work scheduled for next week, or longer --
+                                    - wcnt = 7
+                                else
+                                    - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
+                                    - wcnt++
+                                    - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
+                                    each sdate in s.schedule2s
+                                        if dstr == sdate.date
+                                            - let w_style = "rgb(220, 255, 100)"
+                                            if sdate.work == "off" || sdate.work == "holiday"
+                                                - w_style = "rgb(150, 70, 70)"
+                                            if sdate.work == "work" || sdate.work == "telwork"
+                                                - w_style = "rgb(100, 255, 100)"
+                                            if sdate.work == "vacation"
+                                                - w_style = "rgb(255, 120, 255)"
+                                            td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
     a.btn.btn-link(href="/scheduler/compact", lg_language="_2_week_schedule_")
     a.btn.btn-link(href="/scheduler/lastmonth") Last month
