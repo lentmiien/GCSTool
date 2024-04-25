@@ -249,6 +249,10 @@ async function Process() {
 
       batch = [];
       batch_lookup = [];
+
+      // Update percent done label
+      document.getElementById("per_done").innerText = `${Math.round(100 * i / (data.length - 1))}% done`;
+      document.getElementById("per_done_range").value = Math.round(100 * i / (data.length - 1));
     }
   }
   completed.sort((a,b) => {
@@ -258,6 +262,10 @@ async function Process() {
     if (a_i > b_i) return 1;
     return 0;
   });
+
+  // Update percent done label
+  document.getElementById("per_done").innerText = `100% done`;
+  document.getElementById("per_done_range").value = 100;
 }
 
 function SaveCompleted() {

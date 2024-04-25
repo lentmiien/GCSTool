@@ -33,6 +33,9 @@ block content
     .col 
       hr(style="border: 2px solid red;")
       h3 3. Output 
+        span#per_done 0% done
+      .slidecontainer
+        input#per_done_range.slider(type="range", name="per_done_range", min="0", max="100", value="0", disabled)
   .row 
     #output_div.col
   .row 

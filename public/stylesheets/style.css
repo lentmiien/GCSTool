@@ -417,3 +417,14 @@ svg {
 .updated_cell {
   background-color: rgb(0, 59, 0);
 }
+
+.slidecontainer {
+  width: 100%;
+}
+
+.slider {
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+}
