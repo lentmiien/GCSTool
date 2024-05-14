@@ -30,6 +30,11 @@ async function ExceededMonthlyTokenLimit() {
 }
 
 const OpenAI_Prices = {
+  'gpt-4o': {
+    'user': 0.005,
+    'assistant': 0.015,
+    'system': 0,
+  },
   'gpt-3.5-turbo': {
     'user': 0.0015,
     'assistant': 0.002,
@@ -127,7 +132,7 @@ exports.send = async (req, res) => {
   } else {
     // POST
     // /
-    let model_to_use = 'gpt-3.5-turbo';
+    let model_to_use = 'gpt-4o';
     let tid;
     if (req.body.threadid == '0') {
       // New chat
@@ -209,7 +214,7 @@ exports.generate = async (req, res) => {
     let output = req.body.text;
     const title = req.body.title;
 
-    let model_to_use = 'gpt-3.5-turbo';
+    let model_to_use = 'gpt-4o';
 
     // New chat
     const messages = [
@@ -289,7 +294,7 @@ exports.language_send = async (req, res) => {
   const db_data = [];
   const messages = req.body.messages;
 
-  const response = await chatGPT(messages, "gpt-4-turbo");
+  const response = await chatGPT(messages, "gpt-4o");
   if (response) {
     messages.push({ role: 'assistant', content: response.choices[0].message.content });
     // Save to database
