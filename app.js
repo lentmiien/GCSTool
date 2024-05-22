@@ -4,6 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
+const Sequelize = require('sequelize');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const pp = require('./passport_init');
 
@@ -25,6 +27,18 @@ var app = express();
 
 const {} = require('./sequelize');
 
+// Setup session store
+const sequelize = new Sequelize('gcs', process.env.DB_USER, process.env.DB_PASS, {
+  host: process.env.DB_HOST,
+  dialect: 'mysql',
+  logging: false,
+});
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+  checkExpirationInterval: 15*60*1000,
+  expiration: 8640000000
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -42,13 +56,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
+  store: sessionStore,
   resave: false,
+  // proxy: true,
   saveUninitialized: false,
-  cookie: { maxAge: 8640000000 },
+  cookie: { secure: false, maxAge: 8640000000 },
 });
 app.use(sessionMiddleware);
 app.use(pp.passport.initialize());
 app.use(pp.passport.session());
+sessionStore.sync();
 
 app.use('/login', requireNotAuthenticated, pp.router);
 app.use('/', requireAuthenticated, indexRouter);
