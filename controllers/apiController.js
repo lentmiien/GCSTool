@@ -100,8 +100,15 @@ exports.get_pdf_dhlreturn = async function (req, res) {
 
     // Add company address
     firstPage.drawText(`${process.env.COMPANY_ADDRESS}`, {
-      x: 190,
+      x: 200,
       y: height - 559,
+      size: 12,
+      font: helveticaFont,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText(`${process.env.COMPANY_ADDRESS2}`, {
+      x: 200,
+      y: height - 573,
       size: 12,
       font: helveticaFont,
       color: rgb(0, 0, 0),
