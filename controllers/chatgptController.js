@@ -95,13 +95,15 @@ exports.index = async (req, res) => {
         dkey,
         dlabel,
         tokens: d.tokens,
-        cost: (0.002 * d.tokens) / 1000,
-        // cost: (OpenAI_Prices[d.model][d.role] * d.tokens) / 1000,
+        in_tokens: d.role === "system" || d.role === "user" ? d.token : 0,
+        out_tokens: d.role === "assistant" ? d.token : 0,
+        cost: (0.01 * d.tokens) / 1000,
       });
     } else {
       costs[index].tokens += d.tokens;
-      costs[index].cost = (0.002 * costs[index].tokens) / 1000;
-      // costs[index].cost = (OpenAI_Prices[d.model][d.role] * costs[index].tokens) / 1000;
+      if (d.role === "system" || d.role === "user") costs[index].in_tokens += d.tokens;
+      if (d.role === "assistant") costs[index].out_tokens += d.tokens;
+      costs[index].cost = ((0.005 * costs[index].in_tokens) + (0.015 * costs[index].out_tokens)) / 1000;
     }
   });
 

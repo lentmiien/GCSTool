@@ -32,13 +32,13 @@ block content
         thead 
           tr 
             th Month 
-            th Tokens 
+            th Tokens (In/Out)
             th Cost 
         tbody 
           each cost in costs 
             tr 
               td= cost.dlabel
-              td= cost.tokens
+              td= `${cost.in_tokens} / ${cost.out_tokens}`
               td= `$${Math.round(100 * cost.cost) / 100}`
   pre#data.hidden= JSON.stringify(display, null, 2)
   script(src="/javascripts/chatgpt_controller.js") 
