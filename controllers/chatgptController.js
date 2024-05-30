@@ -95,8 +95,8 @@ exports.index = async (req, res) => {
         dkey,
         dlabel,
         tokens: d.tokens,
-        in_tokens: (d.role === "system" || d.role === "user") ? d.token : 0,
-        out_tokens: d.role === "assistant" ? d.token : 0,
+        in_tokens: (d.role === "system" || d.role === "user") ? d.tokens : 0,
+        out_tokens: d.role === "assistant" ? d.tokens : 0,
         cost: (0.01 * d.tokens) / 1000,
       });
     } else {
