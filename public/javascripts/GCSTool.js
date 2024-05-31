@@ -182,13 +182,13 @@ function RemoveReminder(reminder_index) {
 function AddReminder() {
   //id="sunday_reminder" id="monday_reminder" id="tuesday_reminder" id="wednesday_reminder" id="thursday_reminder" id="friday_reminder" id="saturday_reminder"
   const days = [];
-  if (DocumentFragment.getElementById("sunday_reminder").checked === true) days.push("Su");
-  if (DocumentFragment.getElementById("monday_reminder").checked === true) days.push("M");
-  if (DocumentFragment.getElementById("tuesday_reminder").checked === true) days.push("Tu");
-  if (DocumentFragment.getElementById("wednesday_reminder").checked === true) days.push("W");
-  if (DocumentFragment.getElementById("thursday_reminder").checked === true) days.push("Th");
-  if (DocumentFragment.getElementById("friday_reminder").checked === true) days.push("F");
-  if (DocumentFragment.getElementById("saturday_reminder").checked === true) days.push("Sa");
+  if (document.getElementById("sunday_reminder").checked === true) days.push("Su");
+  if (document.getElementById("monday_reminder").checked === true) days.push("M");
+  if (document.getElementById("tuesday_reminder").checked === true) days.push("Tu");
+  if (document.getElementById("wednesday_reminder").checked === true) days.push("W");
+  if (document.getElementById("thursday_reminder").checked === true) days.push("Th");
+  if (document.getElementById("friday_reminder").checked === true) days.push("F");
+  if (document.getElementById("saturday_reminder").checked === true) days.push("Sa");
   my_settings.reminders.push({
     days: days.join(','),
     time: document.getElementById('reminder_time').value,
