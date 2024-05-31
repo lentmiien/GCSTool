@@ -108,6 +108,8 @@ function ShowReminders() {
   // Show the reminders
   let reminder_html =
     '<thead><tr><th>' +
+    GetHTMLElement('_days_') +
+    '</th><th>' +
     GetHTMLElement('_time_') +
     '</th><th>' +
     GetHTMLElement('_message_') +
@@ -118,6 +120,8 @@ function ShowReminders() {
   for (let ri = 0; ri < my_settings.reminders.length; ri++) {
     reminder_html +=
       '<tr><td>' +
+      ("days" in my_settings.reminders[ri] ? my_settings.reminders[ri].days : "Su,M,Tu,W,Th,F,Sa") +
+      '</td><td>' +
       my_settings.reminders[ri].time +
       '</td><td>' +
       my_settings.reminders[ri].message +
@@ -128,7 +132,7 @@ function ShowReminders() {
       '</button></td></tr>';
   }
   reminder_html +=
-    '<tr><td><input class="form-control mr-sm-2" id="reminder_time" type="text", placeholder="12:00"></td><td><input  class="form-control mr-sm-2" id="reminder_message" type="text" placeholder="Message"></td><td><button class="btn btn-outline-success" onclick="AddReminder()">' +
+    '<tr><td><input id="sunday_reminder" type="checkbox" title="Sunday" checked><input id="monday_reminder" type="checkbox" title="Monday" checked><input id="tuesday_reminder" type="checkbox" title="Tuesday" checked><input id="wednesday_reminder" type="checkbox" title="Wednesday" checked><input id="thursday_reminder" type="checkbox" title="Thursday" checked><input id="friday_reminder" type="checkbox" title="Friday" checked><input id="saturday_reminder" type="checkbox" title="Saturday" checked></td><td><input class="form-control mr-sm-2" id="reminder_time" type="text", placeholder="12:00"></td><td><input  class="form-control mr-sm-2" id="reminder_message" type="text" placeholder="Message"></td><td><button class="btn btn-outline-success" onclick="AddReminder()">' +
     GetHTMLElement('_addnew_') +
     '</button></td></tr>';
   reminder_html += '</tbody>';
@@ -176,11 +180,21 @@ function RemoveReminder(reminder_index) {
 }
 
 function AddReminder() {
+  //id="sunday_reminder" id="monday_reminder" id="tuesday_reminder" id="wednesday_reminder" id="thursday_reminder" id="friday_reminder" id="saturday_reminder"
+  const days = [];
+  if (DocumentFragment.getElementById("sunday_reminder").checked === true) days.push("Su");
+  if (DocumentFragment.getElementById("monday_reminder").checked === true) days.push("M");
+  if (DocumentFragment.getElementById("tuesday_reminder").checked === true) days.push("Tu");
+  if (DocumentFragment.getElementById("wednesday_reminder").checked === true) days.push("W");
+  if (DocumentFragment.getElementById("thursday_reminder").checked === true) days.push("Th");
+  if (DocumentFragment.getElementById("friday_reminder").checked === true) days.push("F");
+  if (DocumentFragment.getElementById("saturday_reminder").checked === true) days.push("Sa");
   my_settings.reminders.push({
+    days: days.join(','),
     time: document.getElementById('reminder_time').value,
     message: document.getElementById('reminder_message').value,
   });
-  SetReminderPopup(document.getElementById('reminder_time').value, document.getElementById('reminder_message').value);
+  SetReminderPopup(document.getElementById('reminder_time').value, document.getElementById('reminder_message').value, days.join(','));
   localStorage.setItem('settings', JSON.stringify(my_settings));
   ShowReminders();
 }
@@ -588,17 +602,18 @@ UpdateStatusBar();
 
 function SetReminders() {
   my_settings.reminders.forEach((rem) => {
-    SetReminderPopup(rem.time, rem.message);
+    SetReminderPopup(rem.time, rem.message, "days" in rem ? rem.days : "Su,M,Tu,W,Th,F,Sa");
   });
   SetReminderFunction('16:59', ShowDocuments);
 }
 
-function SetReminderPopup(trigger_time, message) {
+const weekdayConverter = ["Su","M","Tu","W","Th","F","Sa"];
+function SetReminderPopup(trigger_time, message, days) {
   let nowdate = new Date();
   let split_time = trigger_time.split(':');
   let milliseconds_left =
     new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
-  if (milliseconds_left > 0) {
+  if (milliseconds_left > 0 && days.indexOf(weekdayConverter[nowdate.getDay()]) >= 0) {
     setTimeout('Reminder("' + message + '")', milliseconds_left);
   }
 }

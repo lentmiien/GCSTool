@@ -766,6 +766,11 @@ var json_language = {
     swedish: 'Annat',
     japanese: 'その他',
   },
+  _days_: {
+    english: 'Days (Su-Sa)',
+    swedish: 'Dagar (S-L)',
+    japanese: '曜日（日～土）',
+  },
   _time_: {
     english: 'Time',
     swedish: 'Tid',
