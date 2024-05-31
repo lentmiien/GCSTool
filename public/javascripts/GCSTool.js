@@ -132,7 +132,7 @@ function ShowReminders() {
       '</button></td></tr>';
   }
   reminder_html +=
-    '<tr><td><input id="sunday_reminder" type="checkbox" title="Sunday" checked><input id="monday_reminder" type="checkbox" title="Monday" checked><input id="tuesday_reminder" type="checkbox" title="Tuesday" checked><input id="wednesday_reminder" type="checkbox" title="Wednesday" checked><input id="thursday_reminder" type="checkbox" title="Thursday" checked><input id="friday_reminder" type="checkbox" title="Friday" checked><input id="saturday_reminder" type="checkbox" title="Saturday" checked></td><td><input class="form-control mr-sm-2" id="reminder_time" type="text", placeholder="12:00"></td><td><input  class="form-control mr-sm-2" id="reminder_message" type="text" placeholder="Message"></td><td><button class="btn btn-outline-success" onclick="AddReminder()">' +
+    '<tr><td><div class="d-flex justify-content-evenly"><input id="sunday_reminder" type="checkbox" title="Sunday" checked><input id="monday_reminder" type="checkbox" title="Monday" checked><input id="tuesday_reminder" type="checkbox" title="Tuesday" checked><input id="wednesday_reminder" type="checkbox" title="Wednesday" checked><input id="thursday_reminder" type="checkbox" title="Thursday" checked><input id="friday_reminder" type="checkbox" title="Friday" checked><input id="saturday_reminder" type="checkbox" title="Saturday" checked></div></td><td><input class="form-control mr-sm-2" id="reminder_time" type="text", placeholder="12:00"></td><td><input  class="form-control mr-sm-2" id="reminder_message" type="text" placeholder="Message"></td><td><button class="btn btn-outline-success" onclick="AddReminder()">' +
     GetHTMLElement('_addnew_') +
     '</button></td></tr>';
   reminder_html += '</tbody>';
