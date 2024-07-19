@@ -25,13 +25,13 @@ const CountrylistModel = require('./models/countrylist');
 const TrackingModel = require('./models/tracking');
 
 // Connect to DB: GCS Tool
-const sequelize = new Sequelize('gcs', process.env.DB_USER, process.env.DB_PASS, {
+const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
   host: process.env.DB_HOST,
   dialect: 'mysql',
   logging: false,
 });
 // Connect to DB: Tracker
-const sequelize_tracker = new Sequelize('tracker', process.env.DB_USER, process.env.DB_PASS, {
+const sequelize_tracker = new Sequelize(process.env.DB_NAME_TRACK, process.env.DB_USER, process.env.DB_PASS, {
   host: process.env.DB_HOST,
   dialect: 'mysql',
   logging: false,
