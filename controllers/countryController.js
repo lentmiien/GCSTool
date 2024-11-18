@@ -1046,6 +1046,10 @@ exports.updateHistory = async (req, res) => {
   res.render("updateHistory", {newest, CSVdata, messages, updates})
 };
 
+exports.country_csv_check = async (req, res) => {
+  res.render("country_csv_check");
+};
+
 /************
  * Helper functions
  */

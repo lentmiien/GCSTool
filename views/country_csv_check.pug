@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .row 
+    .col 
+      h2 Select input file 
+      input#csvdata.form-control(type="file", name="csvdata")
+  .row 
+    .col 
+      h2 Check content 
+      #content
+  script(src="/js/country_csv_check.js") 

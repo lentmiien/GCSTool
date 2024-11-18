@@ -36,5 +36,8 @@ router.get('/updateHistory/:date', controller.updateHistory);
 // Search Functionality
 // router.get('/search/:keyword', controller);
 
+// Check shipping method CSV file
+router.get('/country_csv_check', controller.country_csv_check);
+
 // Export router
 module.exports = router;
