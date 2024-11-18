@@ -1,4 +1,6 @@
 SESSION_SECRET=xxxxx
+DB_NAME_GCS=xxxxxxxxxx
+DB_NAME_TRACK=xxxxxxxxxx
 DB_HOST=xxxxxxxxxx
 DB_USER=xxxxxxxxxx
 DB_PASS=xxxxxxxxxx

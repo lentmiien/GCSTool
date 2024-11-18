@@ -28,7 +28,7 @@ var app = express();
 const {} = require('./sequelize');
 
 // Setup session store
-const sequelize = new Sequelize('gcs', process.env.DB_USER, process.env.DB_PASS, {
+const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
   host: process.env.DB_HOST,
   dialect: 'mysql',
   logging: false,
