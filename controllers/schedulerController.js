@@ -6,6 +6,7 @@ const { User, Staff, Holiday, Schedule2 } = require('../sequelize');
 
 // Require settings
 const settings = require('../data/Scheduler_settings.json');
+const schedule = require('../models/schedule');
 
 // Schedule change log
 const scheduler_change_log = [];
@@ -751,3 +752,33 @@ exports.settings_post = (req, res) => {
     res.json({status: "Error: Need to be admin"});
   }
 }
+
+exports.export_travel_expenses = (req, res) => {
+  if (req.user.role === 'guest') {
+    res.render('scheduler', {
+      data: {
+        staff: [{ name: 'sample staff', dayoff1: 0, dayoff2: 6, schedules: [] }],
+        holidays: [],
+      },
+    });
+  } else {
+    async.parallel(
+      {
+        staff: function (callback) {
+          Staff.findAll({ where: { name: "Lennart" }, include: [{ model: Schedule2 }] }).then((staff) => callback(null, staff));
+        },
+      },
+      function (err, results) {
+        const schedule = results.staff[0].schedule2s.filter(d => d.date >= req.query.startDate && d.date <= req.query.endDate && d.work === "work");
+        // res.send(`<pre>${JSON.stringify(schedule, null, 2)}</pre>`);
+        let csvData = '\uFEFF"日付","負担部門","使用用途","","プロジェクト","","備考","訪問先","用件","経路From","経路To","経路(往復)","支払区分","","金額","消費税額","取引区分","","証"\r\n';
+        schedule.forEach(d => csvData += `"${d.date.split("-").join("/")}","         GCS課","2","電車代","","","","GCS課事務所","出社","二俣川","茗荷谷","往復","1","立替","1692","154","0","適格",""\r\n`);
+
+        // Return CSV data
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="Travel_expense_${Date.now()}.csv"`);
+        res.send(csvData);
+      }
+    );
+  }
+};

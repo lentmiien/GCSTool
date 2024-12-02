@@ -69,4 +69,7 @@ router.get('/csv', scheduler_controller.schedule_csv);
 router.get('/settings', scheduler_controller.settings_page);
 router.post('/settings', scheduler_controller.settings_post);
 
+// Travel expenses CSV
+router.get('/export-travel-expenses', scheduler_controller.export_travel_expenses);
+
 module.exports = router;
