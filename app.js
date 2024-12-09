@@ -2,6 +2,7 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+const i18n = require('i18n');
 var logger = require('morgan');
 var session = require('express-session');
 const Sequelize = require('sequelize');
@@ -26,6 +27,16 @@ const chatgptRouter = require('./routes/chatgpt');
 var app = express();
 
 const {} = require('./sequelize');
+
+// Configure i18n
+i18n.configure({
+  locales: ['en', 'jp', 'sv'], // Supported languages
+  directory: __dirname + '/locales', // Path for translation files
+  defaultLocale: 'en',              // Default language
+  cookie: 'lang',                   // Optional: store language in cookies
+  autoReload: true,                 // Reload translation files automatically
+  updateFiles: true                 // Allow adding new keys to JSON
+});
 
 // Setup session store
 const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
@@ -53,6 +64,7 @@ app.use(
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
+app.use(i18n.init);
 app.use(express.static(path.join(__dirname, 'public')));
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
@@ -81,6 +93,29 @@ app.use('/shipcost', requireAuthenticated, shipcostRouter);
 app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);
+
+app.get('/lang/:lang', (req, res) => {
+  const { lang } = req.params;
+
+  // Validate if the requested language is supported
+  if (!['en', 'jp', 'sv'].includes(lang)) {
+    return res.status(400).send('Language not supported.');
+  }
+
+  // Set a cookie with the selected language. 
+  // maxAge is the lifetime of the cookie in milliseconds. Example: 10 years.
+  res.cookie('lang', lang, {
+    maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years (in milliseconds)
+    httpOnly: true, // Prevent client-side JavaScript from accessing it (optional, for security)
+  });
+
+  // Also set the locale for the current request and response
+  res.setLocale(lang);
+
+  // Redirect back to the previous page (or home if no referrer)
+  res.redirect('back');
+});
+
 
 app.get('/logout', (req, res, next) => {
   req.logOut(function (err) {

@@ -3,8 +3,8 @@ extends layout
 block content
   .row
     .col
-      h1 Lennart top
-      button.btn.btn-danger(onclick="EnableDanger()") Enable dangerous actions
+      h1 #{i18n('lennart_top')}
+      button.btn.btn-danger(onclick="EnableDanger()") #{i18n('enable_danger')}
   .row 
     .col 
       textarea#ait_input(style="width:100%;", rows="10")
@@ -20,5 +20,10 @@ block content
       button.btn.btn-primary(style="width:100%;", onclick="AIT_GenerateZendeskArticle()") Zendesk⇒
     .col 
       textarea#ait_output(style="width:100%;", rows="10")
+  .row 
+    .col 
+      a.btn.btn-primary(href="/lang/en") English
+      a.btn.btn-primary(href="/lang/jp") 日本語
+      a.btn.btn-primary(href="/lang/sv") Svenska
 
   script(src="/javascripts/lennart.js")

@@ -16,7 +16,7 @@ exports.all = function (req, res, next) {
 
 // Landing page
 exports.index = (req, res) => {
-  res.render('lennart_top');
+  res.render('lennart_top', { i18n: res.__ });
 };
 
 // Update the AIT manual content, need to set AIT_UPDATES_CONTENT_ID to correct id value to work
