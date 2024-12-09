@@ -81,4 +81,7 @@ block content
     a.btn.btn-link(href="/scheduler/compact", lg_language="_2_week_schedule_")
     a.btn.btn-link(href="/scheduler/lastmonth") Last month
     if name === "Lennart"
-        a.btn.btn-link(href="/scheduler/export-travel-expenses?startDate=2024-08-01&endDate=2024-10-31") Lennart CSV
+        - let d = new Date()
+        - let sd = new Date(d.getFullYear(), d.getMonth()-2, 1)
+        - let ed = new Date(d.getFullYear(), d.getMonth()+1, 0)
+        a.btn.btn-link(href=`/scheduler/export-travel-expenses?startDate=${sd.getFullYear()}-${sd.getMonth() > 8 ? (sd.getMonth()+1) : '0' + (sd.getMonth()+1)}-01&endDate=${ed.getFullYear()}-${ed.getMonth() > 8 ? (ed.getMonth()+1) : '0' + (ed.getMonth()+1)}-${ed.getDate() > 9 ? ed.getDate() : '0' + ed.getDate()}`) Lennart CSV (3 months)
