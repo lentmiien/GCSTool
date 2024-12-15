@@ -89,10 +89,14 @@ exports.io = (server, sessionMiddleware) => {
 
   // Socket.IO middleware to protect connections
   io.use((socket, next) => {
-    sessionMiddleware(socket.request, socket.request.res, next);
+    sessionMiddleware(socket.request, socket.request.res || {}, next);
   });
   io.use((socket, next) => {
-    if (socket.request.session.passport && socket.request.session.passport.user) {
+    if (
+      socket.request.session &&
+      socket.request.session.passport &&
+      socket.request.session.passport.user
+    ) {
       return next();
     }
     return next(new Error('Authentication error'));

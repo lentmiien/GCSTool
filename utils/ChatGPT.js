@@ -1,17 +1,15 @@
-const { Configuration, OpenAIApi } = require('openai');
+const { OpenAI } = require('openai');
 
 // Set your OpenAI API key
-const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
-const openai = new OpenAIApi(configuration);
+const openai = [new OpenAI({ apiKey: process.env.OPENAI_API_KEY }), new OpenAI({ apiKey: process.env.OPENAI_API_KEY2 })];
 
-// gpt-3.5-turbo or gpt-3.5-turbo-16k
-const chatGPT = async (messages, model) => {
+const chatGPT = async (messages, model, api = 0) => {
   try {
-    const response = await openai.createChatCompletion({
+    const response = await openai[api].chat.completions.create({
       messages,
       model,
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error(`Error while calling ChatGPT API: ${error}`);
     return null;
@@ -19,13 +17,13 @@ const chatGPT = async (messages, model) => {
 };
 
 // text-embedding-ada-002
-const embedding = async (text, model) => {
+const embedding = async (text, model, api = 0) => {
   try {
-    const response = await openai.createEmbedding({
+    const response = await openai[api].embeddings.create({
       input: text,
       model,
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error(`Error while calling Embedding API: ${error}`);
     return null;

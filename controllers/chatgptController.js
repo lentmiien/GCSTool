@@ -142,7 +142,7 @@ exports.send = async (req, res) => {
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: req.body.input },
       ];
-      const response = await chatGPT(messages, model_to_use);
+      const response = await chatGPT(messages, model_to_use, 1);
       if (response) {
         messages.push({ role: 'assistant', content: response.choices[0].message.content });
         // Save to database
@@ -176,7 +176,7 @@ exports.send = async (req, res) => {
         }
       });
       messages.push({ role: 'user', content: req.body.input });
-      const response = await chatGPT(messages, model_to_use);
+      const response = await chatGPT(messages, model_to_use, 1);
       if (response) {
         messages.push({ role: 'assistant', content: response.choices[0].message.content });
         // Save to database
@@ -223,7 +223,7 @@ exports.generate = async (req, res) => {
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: req.body.text },
     ];
-    const response = await chatGPT(messages, model_to_use);
+    const response = await chatGPT(messages, model_to_use, 1);
     if (response) {
       output = response.choices[0].message.content;
       messages.push({ role: 'assistant', content: response.choices[0].message.content });
@@ -296,7 +296,7 @@ exports.language_send = async (req, res) => {
   const db_data = [];
   const messages = req.body.messages;
 
-  const response = await chatGPT(messages, "gpt-4o");
+  const response = await chatGPT(messages, "gpt-4o", 0);
   if (response) {
     messages.push({ role: 'assistant', content: response.choices[0].message.content });
     // Save to database
