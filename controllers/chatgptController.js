@@ -134,7 +134,7 @@ exports.send = async (req, res) => {
   } else {
     // POST
     // /
-    let model_to_use = 'gpt-4o';
+    let model_to_use = 'gpt-4o-mini';
     let tid;
     if (req.body.threadid == '0') {
       // New chat
@@ -216,7 +216,7 @@ exports.generate = async (req, res) => {
     let output = req.body.text;
     const title = req.body.title;
 
-    let model_to_use = 'gpt-4o';
+    let model_to_use = 'gpt-4o-mini';
 
     // New chat
     const messages = [
