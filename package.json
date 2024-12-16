@@ -17,7 +17,7 @@
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "binpackingjs": "^2.3.2",
-    "cheerio": "^1.0.0-rc.10",
+    "cheerio": "0.22.0",
     "connect-session-sequelize": "^7.1.7",
     "cookie-parser": "^1.4.5",
     "csvtojson": "^2.0.10",
