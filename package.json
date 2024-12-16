@@ -10,7 +10,7 @@
     "start": "node ./bin/www"
   },
   "engines": {
-    "node": "16.0.0"
+    "node": "16.20.2"
   },
   "dependencies": {
     "async": "^3.2.0",
