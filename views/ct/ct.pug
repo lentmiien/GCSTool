@@ -1,0 +1,95 @@
+extends ../layout
+
+block content
+  h1 Case Tracker
+  #processing_stats.row 
+  h3 Add new case 
+  form(action="/ct/newcase", method="post", encType="multipart/form-data") 
+    .row 
+      .col 
+        label(for="newcase_ordernumber") Order number *Click "Open" if case exist
+        .input-group 
+          input#newcase_ordernumber.form-control(type="number", name="newcase_ordernumber", onkeyup="CheckExisting(this)", required)
+          button#open_button.btn.btn-primary(type="button", data-link="/ct/case/id", disabled, onclick="OpenCase(this)") Open
+        label(for="newcase_type") Claim type
+        select#newcase_type.form-control(name="newcase_type", required)
+          option(value="") - Select a type -
+          each d in claim_types
+            option(value=d)= d
+        label(for="newcase_status") Status
+        select#newcase_status.form-control(name="newcase_status", required)
+          each d in claim_statuses
+            option(value=d)= d
+      .col
+        label(for="newcase_customerid") Customer ID
+        input#newcase_customerid.form-control(type="text", name="newcase_customerid", required)
+        label(for="newcase_country") Country
+        input#newcase_country.form-control(type="text", name="newcase_country", required, list="countries")
+        label(for="newcase_ticket") Zendesk ticket number
+        input#newcase_ticket.form-control(type="number", name="newcase_ticket")
+      .col
+        label(for="newcase_trackingnumber") Tracking number
+        input#newcase_trackingnumber.form-control(type="text", name="newcase_trackingnumber", required)
+        label(for="newcase_shippingmethod") Shipping method
+        select#newcase_shippingmethod.form-control(name="newcase_shippingmethod", required)
+          option(value="") - Select a method -
+          each d in shipping_methods
+            option(value=d)= d
+        label(for="newcase_shippeddate") Shipped date
+        input#newcase_shippeddate.form-control(type="date", name="newcase_shippeddate", required)
+    .row 
+      .col#iteminput 
+        hr
+        .row 
+          .col
+            h5 Items *Can be added later
+          .col.input-group
+            button.btn.btn-primary(type="button", onclick="AddItemRow()") +
+            textarea#item_list.form-control(name="item_list", rows="1", onkeyup="AddItemRows(this)", placeholder="Copy-paste item list (same as used for shipping estimates, only works if items below is empty)")
+    .row 
+      .col
+        hr 
+        h5 Comment 
+        input#newcase_comment.form-control(type="text", name="newcase_comment", required, placeholder="Write an initial comment for this case")
+    input#create_button.btn.btn-primary(type="submit", value="Create")
+  h3 Ongoing cases
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Order 
+        th Type 
+        th Deadline 
+        th Staff 
+        th Status 
+        th Solution 
+        th My todos
+    tbody 
+      each c in cases_details
+        tr 
+          td
+            a(href=`/ct/case/${c.id}`)= c.order
+          td= c.type
+          td= c.deadline ? ((new Date(c.deadline)).toISOString()).split("T")[0] : "- not set -"
+          td= c.staff_in_charge
+          td= c.status
+          td= c.solution
+          td 
+            if todos[c.id]
+              ul 
+                each l in todos[c.id]
+                  li(class=`${l.indexOf("!!") >= 0 ? "bg-danger" : (l.indexOf("!") >= 0 ? "bg-warning" : "")}`)= l
+  a.btn.btn-link(href="/ct/audit") View Audit Log
+  //- hr
+  pre#order_numbers.hidden= JSON.stringify(order_numbers)
+  pre#case_numbers.hidden= JSON.stringify(case_numbers)
+  pre#cases_details.hidden= JSON.stringify(cases_details, null, 2)
+  //- pre= JSON.stringify(todos, null, 2)
+  hr
+  a.btn.btn-primary(href="/ct/items") Check item claims
+  a.btn.btn-primary(href="/ct/refunds") Check refunds
+  a.btn.btn-danger(href="/ct/expire_files") Expire old files (over 6 months)
+  a.btn.btn-danger(href="/ct/delete_all") Delete all case tracker data
+  datalist#countries 
+    each d in ac_countries
+      option(value=d)
+  script(src="/js/ct/case.js") 

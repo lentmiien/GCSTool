@@ -1,8 +1,8 @@
 // Require used packages
 var express = require('express');
 var router = express.Router();
-const multer  = require('multer')
-const upload = multer({ dest: './temp/' })
+// const multer  = require('multer')
+// const upload = multer({ dest: './temp/' })
 
 // Require controller modules
 var controller = require('../controllers/countryController');
@@ -14,10 +14,10 @@ var controller = require('../controllers/countryController');
 router.get('/', controller.index);
 
 // OfficialCountryList
-router.post('/officialCountryList/upload', upload.single('officialCountryList'), controller.officialCountryList_upload);
+router.post('/officialCountryList/upload', controller.officialCountryList_upload);
 
 // InternalCountryList
-router.post('/internalCountryList/upload', upload.single('internalCountryList'), controller.internalCountryList_upload);
+router.post('/internalCountryList/upload', controller.internalCountryList_upload);
 
 // JapanPostCountryList
 router.post('/japanPostCountryList/update', controller.japanPostCountryList_update);

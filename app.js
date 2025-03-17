@@ -7,6 +7,7 @@ var logger = require('morgan');
 var session = require('express-session');
 const Sequelize = require('sequelize');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const fileUpload = require('express-fileupload');
 
 const pp = require('./passport_init');
 
@@ -23,6 +24,7 @@ var shipcostRouter = require('./routes/shipcost');
 var lennartRouter = require('./routes/lennart');
 var formRouter = require('./routes/form');
 const chatgptRouter = require('./routes/chatgpt');
+const ctRouter = require('./routes/ct');
 
 var app = express();
 
@@ -66,6 +68,7 @@ app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
 app.use(i18n.init);
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(fileUpload());
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   store: sessionStore,
@@ -93,6 +96,7 @@ app.use('/shipcost', requireAuthenticated, shipcostRouter);
 app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);
+app.use('/ct', requireAuthenticated, ctRouter);
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;

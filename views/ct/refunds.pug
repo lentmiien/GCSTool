@@ -1,0 +1,76 @@
+extends ../layout
+
+block content
+  h1 Refund processing 
+  a.btn.btn-link(href="/ct") Top 
+  form(action="/ct/process_refunds", method="post") 
+    table.table.table-dark.table-striped 
+      thead 
+        tr 
+          th Order 
+          th Type 
+          th Amount 
+          th Requested 
+          th Processed 
+          th Completed 
+          th Status 
+          th Method 
+          th Transaction# 
+          th Details 
+      tbody 
+        each i in refunds 
+          tr
+            td= i.order
+            td= i.type
+            td= `${i.amount} ${i.currency}${i.amount != i.jpy_amount ? " / " + i.jpy_amount + " JPY" : ""}`
+            td= (new Date(i.requested_date)).toISOString().split("T")[0]
+            td
+              if i.processed_date
+                div= (new Date(i.processed_date)).toISOString().split("T")[0]
+              else 
+                div Set "Transaction#"
+            td 
+              if i.completed_date
+                div= (new Date(i.completed_date)).toISOString().split("T")[0]
+                if i.status === "Pending acceptance" || i.status === "Pending processing"
+                  input(id=`refund__${i.id}__co`, type="radio", name=`refund__${i.id}__completed`, value="Completed (pending)", title="Completed (pending)")
+                  | Co
+                  input(id=`refund__${i.id}__ca`, type="radio", name=`refund__${i.id}__completed`, value="Canceled", title="Canceled")
+                  | Ca
+                  input(id=`refund__${i.id}__ex`, type="radio", name=`refund__${i.id}__completed`, value="Expired", title="Expired")
+                  | Ex
+              else if i.transaction_id
+                input.form-control(id=`refund__${i.id}__completed_date`, type="date", name=`refund__${i.id}__completed_date`)
+                input(id=`refund__${i.id}__co`, type="radio", name=`refund__${i.id}__completed`, value="Completed", title="Completed")
+                | Co
+                input(id=`refund__${i.id}__pa`, type="radio", name=`refund__${i.id}__completed`, value="Pending acceptance", title="Pending acceptance")
+                | PA
+                input(id=`refund__${i.id}__pp`, type="radio", name=`refund__${i.id}__completed`, value="Pending processing", title="Pending processing")
+                | PP
+                input(id=`refund__${i.id}__ca`, type="radio", name=`refund__${i.id}__completed`, value="Canceled", title="Canceled")
+                | Ca
+                input(id=`refund__${i.id}__cc`, type="radio", name=`refund__${i.id}__completed`, value="Canceled (correction)", title="Canceled (correction)")
+                | CC
+                input(id=`refund__${i.id}__re`, type="radio", name=`refund__${i.id}__completed`, value="Rejected", title="Rejected")
+                | Re
+            td= i.status
+            td= i.method
+            td
+              if i.processed_date
+                div= i.transaction_id
+              else 
+                input.form-control(id=`refund__${i.id}__transaction_id`, type="text", name=`refund__${i.id}__transaction_id`)
+            td
+              ul 
+                each d in i.refund_details.split("|")
+                  li= d
+              if !i.processed_date && i.file_id
+                if fileMap[i.file_id] === "EXPIRED"
+                  i File expired
+                else
+                  a(href=`/ct/image/${fileMap[i.file_id]}`, target="_blank")
+                    img(style="max-width: 640px;max-height: 480px;", src=`/ct/image/${fileMap[i.file_id]}`, alt=i.refund_details)
+    input.btn.btn-primary(type="submit", value="Save Changes")
+  //- hr
+  //- pre= JSON.stringify(refunds, null, 2)
+  //- pre= JSON.stringify(fileMap, null, 2)

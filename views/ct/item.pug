@@ -1,0 +1,30 @@
+extends ../layout
+
+block content
+  h1= `Claims with item ${itemCode}`
+  a.btn.btn-link(href="/ct") Top 
+  a.btn.btn-link(href="/ct/items") Items Top
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th 
+        th Date 
+        th Defect 
+        th Photo 
+    tbody 
+      each i in items 
+        tr 
+          td
+            a(href=`/ct/case/${i.case_id}`) View case
+          td= ((new Date(i.created_date)).toISOString()).split("T")[0]
+          td= i.defect
+          td
+            if i.file_id
+              if fileMap[i.file_id] === "EXPIRED"
+                i File expired
+              else
+                a(href=`/ct/image/${fileMap[i.file_id]}`, target="_blank")
+                  img(style="max-width: 640px;max-height: 480px;", src=`/ct/image/${fileMap[i.file_id]}`, alt=i.defect)
+  //- hr
+  //- pre= JSON.stringify(items, null, 2)
+  //- pre= JSON.stringify(fileMap, null, 2)

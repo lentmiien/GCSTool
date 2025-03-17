@@ -1,0 +1,299 @@
+extends ../layout
+
+block content
+  h1 Case Tracker
+  a.btn.btn-link(href="/ct") Top 
+  .row 
+    .col-8
+      .row 
+        .col 
+          h2= `${case_details.order} (${case_details.type})`
+          p
+            b= `Period: ${((new Date(case_details.started)).toISOString()).split("T")[0]} - `
+            b= `${case_details.ended ? ((new Date(case_details.ended)).toISOString()).split("T")[0] : "ongoing"}`
+          p= `${case_details.deadline ? "Next deadline: " + ((new Date(case_details.deadline)).toISOString()).split("T")[0] : "- no deadline -"}`
+          p= `${case_details.staff_in_charge} is in charge of this case, has been processed by: ${case_details.processed_by.split('|').join(', ')}`
+          p Current status: 
+            b= case_details.status
+            | , expected solution: 
+            b= case_details.solution
+          if case_details.cancel_reason
+            p This case was canceled for the following reason: 
+              b= case_details.cancel_reason
+          table.table.table-dark.table.striped 
+            thead 
+              tr 
+                th Assist history
+                each col in userProfile.col_labels
+                  th= col
+            tbody 
+              each row, i in userProfile.output
+                tr 
+                  th= userProfile.row_labels[i]
+                  each val in row 
+                    td= val > 0 ? val : ""
+          each t in case_details.tickets
+            a.btn.btn-link(href=`https://ohami.zendesk.com/agent/tickets/${t.ticket}`, target="_blank")= `Ticket #${t.ticket}`
+          form(action=`/ct/case/${case_details.id}/ticket`, method="post") 
+            .input-group 
+              input#ticket.form-control(type="number", name="ticket", placeholder="Zendesk ticket number", required)
+              input.btn.btn-primary(type="submit", value="Add")
+        .col 
+          h3 Quick actions
+          form(action=`/ct/case/${case_details.id}/take_case`, method="post") 
+            input.btn.btn-warning(type="submit", value="Take this case")
+            a.btn.btn-success(href=`/ct/case/${case_details.id}/complete`) Complete this case
+            a.btn.btn-danger(href=`/ct/case/${case_details.id}/cancel`) Cancel this case
+            if todolist.indexOf("Clear deadline when done!") === 0 && todolist.length === 1
+              a.btn.btn-warning(href=`/ct/case/${case_details.id}/nodeadline`) Clear deadline to close case
+          hr
+          h4 Update deadline
+          form#deadline_form(action=`/ct/case/${case_details.id}/deadline`, method="post") 
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(1, 'week')") 1 weeks
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(2, 'week')") 2 weeks
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(3, 'week')") 3 weeks
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(1, 'month')") 1 month
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(2, 'month')") 2 months
+            button.btn.btn-secondary(type="button", onclick="SetDeadline(3, 'month')") 3 months
+            .input-group 
+              input#new_deadline.form-control(type="date", name="new_deadline", required)
+              input.btn.btn-secondary(type="submit", value="Update")
+          hr
+          form(action=`/ct/case/${case_details.id}/type`, method="post") 
+            .input-group 
+              select#new_type.form-control(name="new_type") 
+                option(value="") - Select a type -
+                each d in claim_types
+                  option(value=d)= d
+              input.btn.btn-primary(type="submit", value="Update claim type")
+          form(action=`/ct/case/${case_details.id}/status`, method="post") 
+            .input-group 
+              select#new_status.form-control(name="new_status") 
+                option(value="") - Select a status -
+                each d, i in claim_statuses
+                  if d != "Completed" && d != "Canceled"
+                    option(value=d)= `${i}: ${d}`
+              input.btn.btn-primary(type="submit", value="Update current status")
+          form(action=`/ct/case/${case_details.id}/solution`, method="post") 
+            .input-group 
+              select#new_solution.form-control(name="new_solution") 
+                option(value="") - Select a solution -
+                each d in claim_solutions
+                  option(value=d)= d
+              input.btn.btn-primary(type="submit", value="Set as solution for this case")
+          if case_details.status === "Pending cancellation"
+            form(action=`/ct/case/${case_details.id}/cancel_reason`, method="post") 
+              .input-group 
+                select#new_cancel_reason.form-control(name="new_cancel_reason") 
+                  option(value="") - Select a cancel reason -
+                  each d in claim_cancel_reasons
+                    option(value=d)= d
+                input.btn.btn-primary(type="submit", value="Set as cancel reason for this case")
+      h3 Related records 
+      div(style="padding:10px;")
+        table.table.table-dark.table-striped 
+          thead 
+            tr 
+              th Order 
+              th Tracking 
+              th Type 
+              th Item 
+              th Shipping 
+              th GST/VAT 
+              th Status 
+              th 
+          tbody 
+            each c in case_details.assistant_records
+              tr(class=`${c.status === "Delivered" ? "table-success" : ""}${c.status === "Canceled" || c.status === "Lost" ? "table-danger" : ""}`) 
+                td= c.order
+                td= c.tracking
+                td= c.type
+                td= c.item_cost
+                td= c.shipping_cost
+                td= c.gst_cost
+                td= c.status
+                td 
+                  button.btn.btn-secondary(data-order=c.order, data-tracking=c.tracking, data-type=c.type, data-item_cost=c.item_cost, data-shipping_cost=c.shipping_cost, data-gst_cost=c.gst_cost, data-status=c.status, onclick="SetRecordForm(this)") Edit
+            form(action=`/ct/case/${case_details.id}/record`, method="post") 
+              tr 
+                td 
+                  input#record_order.form-control(type="number", name="record_order", required)
+                td 
+                  input#record_tracking.form-control(type="text", name="record_tracking")
+                td 
+                  select#record_type.form-control(name="record_type", required)
+                    option(value="") - Select a type -
+                    each d in record_types
+                      option(value=d)= d
+                td 
+                  input#record_item.form-control(type="number", name="record_item", required)
+                td 
+                  input#record_shipping.form-control(type="number", name="record_shipping")
+                td 
+                  input#record_gst.form-control(type="number", name="record_gst")
+                td 
+                  select#record_status.form-control(name="record_status", required)
+                    each d in record_statuses
+                      option(value=d)= d
+                td 
+                  input.btn.btn-primary(type="submit", value="Save")
+      h3 Affected items 
+      div(style="padding:10px;")
+        table.table.table-dark.table-striped 
+          thead 
+            tr 
+              th Item 
+              th Issue 
+              th Value 
+              th Image 
+              th 
+          tbody 
+            each c in case_details.items
+              tr 
+                td
+                  a(href=`/ct/item/${c.item_code}`, target="_blank")= c.item_code
+                td= c.defect
+                td= `${c.item_cost} JPY`
+                td
+                  if c.file_id
+                    each filename in case_details.files.filter(f => f.id === c.file_id).map(f => f.filename)
+                      if filename === "EXPIRED"
+                        i File expired
+                      else
+                        a(href=`/ct/image/${filename}`, target="_blank")= filename
+                td 
+                  button.btn.btn-secondary(data-id=c.id, data-item_code=c.item_code, data-defect=c.defect, data-item_cost=c.item_cost, onclick="SetItemForm(this)") Edit
+            form(action=`/ct/case/${case_details.id}/add_item`, method="post", encType="multipart/form-data") 
+              tr 
+                td 
+                  input#item_item_id(type="hidden", name="item_item_id", value="")
+                  input#item_item_code.form-control(type="text", name="item_item_code", required)
+                td 
+                  input#item_defect.form-control(type="text", name="item_defect", required)
+                td 
+                  input#item_item_cost.form-control(type="number", name="item_item_cost", required)
+                td 
+                  input#item_image.form-control(type="file", name="item_image")
+                td 
+                  input.btn.btn-primary(type="submit", value="Save")
+      h3 Refunds 
+      div(style="padding:10px;")
+        table.table.table-dark.table-striped 
+          thead 
+            tr 
+              th Order 
+              th Type 
+              th Amount 
+              th Amount (JPY)
+              th Requsted
+              th Processed 
+              th Completed 
+              th Status 
+              th Method 
+              th Details 
+              th 
+          tbody 
+            each c in case_details.refunds
+              tr(class=`${c.status === "Completed" || c.status === "Completed (pending)" ? "table-success" : ""}${c.status === "Canceled (correction)" || c.status === "Canceled" || c.status === "Expired" || c.status === "Rejected" ? "table-danger" : ""}`) 
+                td= c.order
+                td= c.type
+                td= `${c.amount} ${c.currency}`
+                td= `${c.jpy_amount} JPY`
+                td= ((new Date(c.requested_date)).toISOString()).split("T")[0]
+                td= c.processed_date ? ((new Date(c.processed_date)).toISOString()).split("T")[0] : ""
+                td= c.completed_date ? ((new Date(c.completed_date)).toISOString()).split("T")[0] : ""
+                td= c.status
+                td= c.method
+                td!= `<ul><li>${c.refund_details.split('|').join('</li><li>')}</li></ul>`
+                td
+                  if !(c.processed_date) && c.status != "Canceled (correction)"
+                    button.btn.btn-secondary(data-id=c.id, data-order=c.order, data-type=c.type, data-amount=c.amount, data-currency=c.currency, data-jpy_amount=c.jpy_amount, data-refund_details=c.refund_details, onclick="SetRefundForm(this)") Edit
+                    form(action=`/ct/case/${case_details.id}/cancel_refund`, method="post") 
+                      input(type="hidden", name="id", value=c.id)
+                      input.btn.btn-danger(type="submit", value="Cancel")
+            form(action=`/ct/case/${case_details.id}/add_refund`, method="post", encType="multipart/form-data") 
+              tr 
+                td(colspan="2")
+                  input#refund_id(type="hidden", name="refund_id", value="")
+                  select#refund_order.form-control(name="refund_order", required) 
+                    option(value="") - Select an order -
+                    for o in existing_orders
+                      option(value=o)= o
+                td(colspan="2")
+                  select#refund_type.form-control(name="refund_type", required)
+                    option(value="") - Select a type -
+                    each d in refund_types
+                      option(value=d)= d
+                td(colspan="2")
+                  .input-group
+                    input#refund_amount.form-control(type="text", name="refund_amount", required)
+                    input#refund_currency.form-control(type="text", name="refund_currency", placeholder="JPY if empty", list="currencies")
+                td(colspan="2")
+                  .input-group
+                    input#refund_amount_jpy.form-control(type="number", name="refund_amount_jpy")
+                    input.form-control(type="text", value="JPY", readonly)
+                td(colspan="2")
+                  select#refund_method.form-control(name="refund_method", required)
+                    option(value="") - Select a method -
+                    each d in refund_methods
+                      option(value=d)= d
+                td
+                  input#refund_receipt.form-control(type="file", name="refund_receipt", placeholder="Receipt")
+              tr 
+                td(colspan="10")
+                  input#refund_details.form-control(type="text", name="refund_details", required, placeholder="Specify what is included, use '|' for multiple rows")
+                td
+                  input.btn.btn-primary(type="submit", value="Save")
+      h3 Uploaded files 
+      div(style="padding:10px;")
+        table.table.table-dark.table-striped 
+          thead 
+            tr 
+              th File 
+              th Type 
+              th Uploaded date 
+          tbody 
+            each c in case_details.files
+              tr 
+                td
+                  if c.filename === "EXPIRED"
+                    i File expired 
+                  else
+                    a(href=`/ct/image/${c.filename}`, target="_blank")= c.filename
+                td= c.type
+                td= ((new Date(c.uploaded_date)).toISOString()).split("T")[0]
+    .col-4
+      h3 ToDo 
+      ul 
+        each l in todolist
+          li(class=`${l.indexOf("!!") >= 0 ? "bg-danger" : (l.indexOf("!") >= 0 ? "bg-warning" : "")}`)= l
+      hr
+      h3 Case history 
+      div(style="padding:10px;")
+        div 
+          form(action=`/ct/case/${case_details.id}/comment`, method="post") 
+            .input-group
+              input#comment.form-control(type="text", name="comment", required)
+              input.btn.btn-primary(type="submit", value="Post comment")
+        each c in case_details.history
+          if c.audit
+            if c.content.indexOf("Added Comment") === -1
+              if c.content.indexOf("Closed case") === 0
+                b(style="font-size: smaller;")= c.content
+              else
+                i(style="color: lightgray;font-size: smaller;")= c.content
+              br
+          else
+            hr
+            div 
+              b= `${c.staff} at ${((new Date(c.ts)).toISOString()).split("T")[0]}`
+              p= c.content
+  //- hr
+  //- pre= JSON.stringify(case_details, null, 2)
+  //- pre= JSON.stringify(todolist, null, 2)
+  //- pre= JSON.stringify(existing_orders, null, 2)
+  //- pre= JSON.stringify(userProfile, null, 2)
+  datalist#currencies 
+    each d in ac_currencies
+      option(value=d) 
+  script(src="/js/ct/case.js") 

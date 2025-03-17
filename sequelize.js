@@ -23,6 +23,16 @@ const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
 const TrackingModel = require('./models/tracking');
+// Case tracker
+const CaseModel = require('./models/ct/ctCase');
+const ProcessedByModel = require('./models/ct/ctProcessedBy');
+const CommentModel = require('./models/ct/ctComment');
+const ItemModel = require('./models/ct/ctItem');
+const AssistantRecordModel = require('./models/ct/ctAssistantRecord');
+const FileModel = require('./models/ct/ctFile');
+const RefundModel = require('./models/ct/ctRefund');
+const CTAuditLogModel = require('./models/ct/ctAuditLog');
+const CTZendeskModel = require('./models/ct/ctZendesk');
 
 // Connect to DB: GCS Tool
 const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
@@ -57,16 +67,29 @@ const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
 const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
 const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
-const Op = Sequelize.Op;
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
 const Countrylist = CountrylistModel(sequelize_tracker, Sequelize);
 const Tracking = TrackingModel(sequelize_tracker, Sequelize);
+// Case tracker
+const Case = CaseModel(sequelize, Sequelize);
+const ProcessedBy = ProcessedByModel(sequelize, Sequelize);
+const Comment = CommentModel(sequelize, Sequelize);
+const Item = ItemModel(sequelize, Sequelize);
+const AssistantRecord = AssistantRecordModel(sequelize, Sequelize);
+const File = FileModel(sequelize, Sequelize);
+const Refund = RefundModel(sequelize, Sequelize);
+const CTAuditLog = CTAuditLogModel(sequelize, Sequelize);
+const Zendesk = CTZendeskModel(sequelize, Sequelize);
 
 // Create table relations: GCS Tool
 Entry.Content = Entry.hasMany(Content);
 Staff.Schedule = Staff.hasMany(Schedule);
 Staff.Schedule2 = Staff.hasMany(Schedule2);
+
+const Op = Sequelize.Op;
+const fn = Sequelize.fn;
+const literal = Sequelize.literal;
 
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(() => {
@@ -98,8 +121,21 @@ module.exports = {
   InternalCountryList,
   JapanPostCountryList,
   CountryCodeEntryIdLink,
-  Op,
   Country,
   Countrylist,
   Tracking,
+  ct: {
+    Case,
+    ProcessedBy,
+    Comment,
+    Item,
+    AssistantRecord,
+    File,
+    Refund,
+    AuditLog: CTAuditLog,
+    Zendesk,
+  },
+  Op,
+  fn,
+  literal,
 };

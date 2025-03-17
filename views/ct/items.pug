@@ -1,0 +1,18 @@
+extends ../layout
+
+block content
+  h1 Items with claim 
+  a.btn.btn-link(href="/ct") Top 
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Item code 
+        th Number of claims 
+    tbody 
+      each i in itemArray 
+        tr 
+          td
+            a(href=`/ct/item/${i.item_code}`)= i.item_code
+          td= i.count
+  //- hr
+  //- pre= JSON.stringify(itemArray, null, 2)

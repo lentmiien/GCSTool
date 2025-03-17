@@ -1,0 +1,31 @@
+extends ../layout
+
+block content
+  h1 30 days audit Log 
+  a.btn.btn-link(href="/ct") Top 
+  table.table.table-dark.table-striped 
+    thead 
+      tr 
+        th Timestamp 
+        th Case 
+        th Staff 
+        th Log 
+        th Metadata 
+    tbody 
+      each a in audit 
+        tr 
+          td= a.timestamp.toISOString()
+          td
+            a(href=`/ct/case/${a.case_id}`)= a.case_id
+          td= a.staff
+          td= a.log
+          td
+            - let md = JSON.parse(a.metadata)
+            - let keys = Object.keys(md)
+            each key in keys 
+              if md[key].before || md[key].after
+                div= `${key}: ${md[key].before} ⇒ ${md[key].after}`
+              else 
+                div= `${key}: ${md[key]}`
+  //- hr
+  //- pre= JSON.stringify(audit, null, 2)
