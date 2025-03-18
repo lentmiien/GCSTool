@@ -57,13 +57,14 @@ html(lang='en')
                 a.dropdown-item(href="/chatgpt/language_tools") Shorten item names
                 hr.dropdown-divider
                 a.dropdown-item(href="/country/country_csv_check") Check methods CSV file
+                hr.dropdown-divider
+                a.dropdown-item(href='/ct') Case Tracker
             if name === "Lennart"
               li.nav-item.dropdown
                 a#navbarDropdownExp2.nav-link.dropdown-toggle(href="#", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Lennart
                 .dropdown-menu(aria-labelledby="navbarDropdownExp2")
                   a.dropdown-item(href='/lennart') Lennart
                   a.dropdown-item(href='/chatgpt') ChatGPT
-                  a.dropdown-item(href='/ct') Case Tracker
           span.form-inline.my-2.my-lg-0
             input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
             button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
