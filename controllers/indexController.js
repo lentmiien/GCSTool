@@ -104,8 +104,8 @@ exports.all = async function (req, res, next) {
   const work_statuses = ["work", "halfoff_e", "halfoff_m", "2hoff_e", "2hoff_m", "telwork"];
 
   const d = new Date();
-  const sd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + (7-d.getDay()));
-  const ed = new Date(d.getFullYear(), d.getMonth(), d.getDate() + (14-d.getDay()));
+  const sd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const ed = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 10);
   const sd_str = `${sd.getFullYear()}-${sd.getMonth() > 8 ? (sd.getMonth()+1) : '0'+(sd.getMonth()+1)}-${sd.getDate() > 9 ? sd.getDate() : '0'+sd.getDate()}`;
   const ed_str = `${ed.getFullYear()}-${ed.getMonth() > 8 ? (ed.getMonth()+1) : '0'+(ed.getMonth()+1)}-${ed.getDate() > 9 ? ed.getDate() : '0'+ed.getDate()}`;
 

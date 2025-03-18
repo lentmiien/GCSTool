@@ -81,14 +81,14 @@ html(lang='en')
       #status_bar.alert.alert-dark.hidden(style="padding:0px;margin-bottom:0px;")
       if holidays_next_week && holidays_next_week.length > 0
         .alert.alert-dark(style="padding:0px;margin-bottom:0px;")
-          b 来週の祝日出勤：　
+          b 次の10日間の祝日出勤：　
           each holiday in holidays_next_week
             b= `${holiday.date}: `
-            each staff in holiday.work_staff
-              span= `${staff}, `
-            button(onclick=`Copy('${holiday.message_title}')`) Title
-            button(onclick=`Copy('${holiday.message_body}')`) Body
-            button(onclick=`Copy('[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]')`) CW
+            span= holiday.work_staff.join(", ")
+            if role === "admin"
+              button(onclick=`Copy('${holiday.message_title}')`) Title
+              button(onclick=`Copy('${holiday.message_body}')`) Body
+              button(onclick=`Copy('[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]')`) CW
       .alert.alert-dark(style="padding:0px;margin-top:0px;")
         span You are logged in as 
           b#u_name= name
