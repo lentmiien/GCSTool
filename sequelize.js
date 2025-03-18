@@ -7,6 +7,7 @@ const HolidayModel = require('./models/holiday');
 const ScheduleModel = require('./models/schedule');
 const Schedule2Model = require('./models/schedule2');
 const UserModel = require('./models/user');
+const UsernameModel = require('./models/username');
 const HSCodeListModel = require('./models/hscodelist');
 const ShipcostModel = require('./models/shipcost');
 const ChatmsgModel = require('./models/chatmsg');
@@ -55,6 +56,7 @@ const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
 const Schedule2 = Schedule2Model(sequelize, Sequelize);
 const User = UserModel(sequelize, Sequelize);
+const Username = UsernameModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
 const Chatmsg = ChatmsgModel(sequelize, Sequelize);
@@ -109,6 +111,7 @@ module.exports = {
   Schedule,
   Schedule2,
   User,
+  Username,
   HSCodeList,
   Shipcost,
   Chatmsg,

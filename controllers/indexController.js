@@ -3,7 +3,7 @@ const axios = require('axios');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Op, Staff, Holiday, Schedule2 } = require('../sequelize');
+const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2 } = require('../sequelize');
 
 const timekeeper = [];
 
@@ -100,6 +100,7 @@ exports.all = async function (req, res, next) {
   const date_lookup = [];
   const staff_schedule = await Staff.findAll({ include: [{ model: Schedule2 }] });
   const holidays = await Holiday.findAll();
+  const names = await Username.findAll();
   const work_statuses = ["work", "halfoff_e", "halfoff_m", "2hoff_e", "2hoff_m", "telwork"];
 
   const d = new Date();
@@ -108,12 +109,20 @@ exports.all = async function (req, res, next) {
   const sd_str = `${sd.getFullYear()}-${sd.getMonth() > 8 ? (sd.getMonth()+1) : '0'+(sd.getMonth()+1)}-${sd.getDate() > 9 ? sd.getDate() : '0'+sd.getDate()}`;
   const ed_str = `${ed.getFullYear()}-${ed.getMonth() > 8 ? (ed.getMonth()+1) : '0'+(ed.getMonth()+1)}-${ed.getDate() > 9 ? ed.getDate() : '0'+ed.getDate()}`;
 
+  const namesLookup = {};
+  for (let i = 0; i < names.length; i++) {
+    namesLookup[names[i].userid] = names[i].name;
+  }
+
   holidays.forEach(h => {
     if (h.date >= sd_str && h.date <= ed_str) {
       date_lookup.push(h.date);
       res.locals.holidays_next_week.push({
         date: h.date,
-        work_staff: []
+        work_staff: [],
+        staff_names: [],
+        message_title: "",
+        message_body: "",
       });
     }
   });
@@ -126,10 +135,19 @@ exports.all = async function (req, res, next) {
         // work, halfoff_e, halfoff_m, 2hoff_e, 2hoff_m, telwork
         if (work_statuses.indexOf(c.work) >= 0) {
           res.locals.holidays_next_week[index].work_staff.push(s.name);
+          res.locals.holidays_next_week[index].staff_names.push(namesLookup[s.name] ? namesLookup[s.name] : `[${s.name}]`);
         }
       }
     });
   });
+  const months = ["１", "２", "３", "４", "５", "６", "７", "８", "９", "１０", "１１", "１２"];
+  const dates = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９", "１０", "１１", "１２", "１３", "１４", "１５", "１６", "１７", "１８", "１９", "２０", "２１", "２２", "２３", "２４", "２５", "２６", "２７", "２８", "２９", "３０", "３１"];
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  for (let i = 0; i < res.locals.holidays_next_week.length; i++) {
+    const hd = new Date(res.locals.holidays_next_week[i].date);
+    res.locals.holidays_next_week[i].message_title = `依頼／${months[hd.getMonth()]}月${dates[hd.getDate()]}日の在宅勤務　リモート制限解除（ＶＰＮ接続）`;
+    res.locals.holidays_next_week[i].message_body = `ＶＰＮ接続を維持してください。\n\n${months[hd.getMonth()]}月${dates[hd.getDate()]}日（${days[hd.getDay()]}）：\n${res.locals.holidays_next_week[i].staff_names.join('\n')}`;
+  }
 
   next();
 };

@@ -248,6 +248,17 @@ function DeleteCOPY() {
   element.parentElement.removeChild(element);
 }
 
+function Copy(content) {
+  // Put in copy buffer
+  function listener(e) {
+    e.clipboardData.setData('text/plain', content);
+    e.preventDefault();
+  }
+  document.addEventListener('copy', listener);
+  document.execCommand('copy');
+  document.removeEventListener('copy', listener);
+}
+
 /**********************************************
  *
  *             HELPER FUNCTIONS
