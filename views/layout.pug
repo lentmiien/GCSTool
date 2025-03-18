@@ -86,9 +86,9 @@ html(lang='en')
             b= `${holiday.date}: `
             each staff in holiday.work_staff
               span= `${staff}, `
-              button(onclick=`Copy('${holiday.message_title}')`) Title
-              button(onclick=`Copy('${holiday.message_body}')`) Body
-              button(onclick=`Copy('[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]')`) CW
+            button(onclick=`Copy('${holiday.message_title}')`) Title
+            button(onclick=`Copy('${holiday.message_body}')`) Body
+            button(onclick=`Copy('[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]')`) CW
       .alert.alert-dark(style="padding:0px;margin-top:0px;")
         span You are logged in as 
           b#u_name= name

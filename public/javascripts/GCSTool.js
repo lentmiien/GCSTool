@@ -251,7 +251,7 @@ function DeleteCOPY() {
 function Copy(content) {
   // Put in copy buffer
   function listener(e) {
-    e.clipboardData.setData('text/plain', content);
+    e.clipboardData.setData('text/plain', content.split("|").join("\n"));
     e.preventDefault();
   }
   document.addEventListener('copy', listener);

@@ -146,7 +146,7 @@ exports.all = async function (req, res, next) {
   for (let i = 0; i < res.locals.holidays_next_week.length; i++) {
     const hd = new Date(res.locals.holidays_next_week[i].date);
     res.locals.holidays_next_week[i].message_title = `依頼／${months[hd.getMonth()]}月${dates[hd.getDate()]}日の在宅勤務　リモート制限解除（ＶＰＮ接続）`;
-    res.locals.holidays_next_week[i].message_body = `ＶＰＮ接続を維持してください。\n\n${months[hd.getMonth()]}月${dates[hd.getDate()]}日（${days[hd.getDay()]}）：\n${res.locals.holidays_next_week[i].staff_names.join('\n')}`;
+    res.locals.holidays_next_week[i].message_body = `ＶＰＮ接続を維持してください。||${months[hd.getMonth()]}月${dates[hd.getDate()]}日（${days[hd.getDay()]}）：|${res.locals.holidays_next_week[i].staff_names.join('|')}`;
   }
 
   next();
