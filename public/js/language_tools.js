@@ -242,6 +242,9 @@ async function Process() {
         entry_td2.innerText = entry.long_name;
         const entry_td3 = document.createElement("td");
         entry_td3.innerText = entry.short_name;
+        if (entry.short_name.length > parseInt(length) || entry.short_name.indexOf(",") >= 0) {
+          entry_td3.classList.add("table-danger");
+        }
         out_tbody.append(entry_tr);
         entry_tr.append(entry_td1, entry_td2, entry_td3);
       });
