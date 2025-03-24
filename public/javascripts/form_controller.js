@@ -11,10 +11,17 @@ const input_label3 = document.getElementById('input_label3');
 const input_label4 = document.getElementById('input_label4');
 const table_entries = document.getElementsByClassName('table_entry');
 const group_label = document.getElementById('group_label');
+const new_entry_button = document.getElementById("new_entry_button");
 
 function SelectForm(select) {
   // Update CSV link
-  csv_link.href = `/form/csv?label=${select.value}`;
+  if (select.value.length > 0) {
+    csv_link.href = `/form/csv?label=${select.value}`;
+    new_entry_button.disabled = false;
+  } else {
+    csv_link.href = `/form/csv`;
+    new_entry_button.disabled = true;
+  }
 
   // Update table header
   forms.forEach((f) => {

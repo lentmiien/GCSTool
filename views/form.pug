@@ -4,8 +4,9 @@ block content
   .row
     .col
       h1#title
+      i.warning.m-1 *Please select a type to add new feedback, if no existing type is appropriate, contact Lennart to add a new type
       select.form-control(onchange="SelectForm(this)")
-        option(value="") All
+        option(value="") Show All (Can't add new entry)
         each form in forms
           option(value=`${form.group_label}`)= form.title
       a#csv_link.btn.btn-link(href="/form/csv", lg_language='_download_csv_data_')
@@ -35,7 +36,7 @@ block content
         hr
   .row
     .col
-      h3 Add new case
+      h3 Add new feedback
       i.warning.m-1(lg_language='_all_data_needed_')
       form(action="/form/add", method="post") 
         .row.mt-2
@@ -54,7 +55,7 @@ block content
             input#label2.form-control(type="text", name="label2", required)
             label.mt-3(for="group_label", lg_language='_type_of_case_')
             input#group_label.form-control(name="group_label", readonly, required) 
-        input.btn.btn-primary.mt-2(type="submit", value="Submit")
+        input#new_entry_button.btn.btn-primary.mt-2(type="submit", value="Submit", disabled)
         hr
   .row.mt-3
     .col
