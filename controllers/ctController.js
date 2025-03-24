@@ -385,7 +385,7 @@ exports.newcase = async (req, res) => {
 
   if (req.body.newcase_ticket && req.body.newcase_ticket.length > 0) {
     const ticket = parseInt(req.body.newcase_ticket);
-    await ct.AddTicket(id, ticket);
+    await ct.AddTicket(id, ticket, staff_in_charge);
   }
 
   res.redirect(`/ct/case/${id}`);
