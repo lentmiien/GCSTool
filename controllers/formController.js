@@ -68,7 +68,7 @@ exports.fetch_data = (req, res) => {
       // Fill in data
       entries.forEach((d) => {
         if (g_label == null || g_label == d.group_label) {
-          outdata += `${d.order},${d.processed_by},${d.createdAt.toDateString()},${d.label1},${d.label2},${d.label3},${d.label4},${
+          outdata += `${d.order},${d.processed_by},${d.createdAt.toISOString().split('T')[0]},${d.label1},${d.label2},${d.label3},${d.label4},${
             d.group_label
           }\n`;
         }

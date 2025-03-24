@@ -3,7 +3,7 @@ extends layout
 block content
   .row
     .col
-      h1#title
+      h1#title Feedback tool
       i.warning.m-1 *Please select a type to add new feedback, if no existing type is appropriate, contact Lennart to add a new type
       select.form-control(onchange="SelectForm(this)")
         option(value="") Show All (Can't add new entry)
@@ -54,11 +54,12 @@ block content
             label#input_label2(for="label2") Label2
             input#label2.form-control(type="text", name="label2", required)
             label.mt-3(for="group_label", lg_language='_type_of_case_')
-            input#group_label.form-control(name="group_label", readonly, required) 
+            input#group_label.form-control(name="group_label", readonly, required, placeholder="Select a type at the top") 
         input#new_entry_button.btn.btn-primary.mt-2(type="submit", value="Submit", disabled)
         hr
   .row.mt-3
     .col
+      h3 Feedback from last year
       table.table.table-dark.table-striped
         thead 
           tr 
@@ -72,20 +73,22 @@ block content
             th 
         tbody 
           - let i = entries.length - 1
+          - let cutoff = new Date(Date.now() - (1000*60*60*24*365))
           while i >= 0
             - const entry = entries[i]
             - i--
-            tr(data-gl=`${entry.group_label}`).table_entry 
-              td= entry.order
-              td= `${entry.processed_by} [${entry.createdAt.getFullYear()}-${entry.createdAt.getMonth()+1}-${entry.createdAt.getDate()}]`
-              td= entry.label1
-              td= entry.label2
-              td= entry.label3
-              td= entry.label4
-              td= entry.group_label
-              td 
-                if role === "admin" || name === entry.processed_by
-                  a.btn.btn-danger(href=`/form/delete/${entry.id}`) X
+            if entry.createdAt > cutoff
+              tr(data-gl=`${entry.group_label}`).table_entry 
+                td= entry.order
+                td= `${entry.processed_by} [${entry.createdAt.getFullYear()}-${entry.createdAt.getMonth()+1}-${entry.createdAt.getDate()}]`
+                td= entry.label1
+                td= entry.label2
+                td= entry.label3
+                td= entry.label4
+                td= entry.group_label
+                td 
+                  if role === "admin" || name === entry.processed_by
+                    a.btn.btn-danger(href=`/form/delete/${entry.id}`) X
   pre#forms.hidden= JSON.stringify(forms) 
   pre#entries.hidden= JSON.stringify(entries) 
   script(src="/javascripts/form_controller.js") 

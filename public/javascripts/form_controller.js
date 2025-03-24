@@ -17,25 +17,26 @@ function SelectForm(select) {
   // Update CSV link
   if (select.value.length > 0) {
     csv_link.href = `/form/csv?label=${select.value}`;
+    // Update table header
+    forms.forEach((f) => {
+      if (f.group_label == select.value) {
+        table_label1.innerText = f.label1;
+        table_label2.innerText = f.label2;
+        table_label3.innerText = f.label3;
+        table_label4.innerText = f.label4;
+        input_label1.innerText = f.label1;
+        input_label2.innerText = f.label2;
+        input_label3.innerText = f.label3;
+        input_label4.innerText = f.label4;
+      }
+    });
+    // Sync select
+    group_label.value = select.value;
+    // Enable submit button
     new_entry_button.disabled = false;
   } else {
     csv_link.href = `/form/csv`;
-    new_entry_button.disabled = true;
   }
-
-  // Update table header
-  forms.forEach((f) => {
-    if (f.group_label == select.value) {
-      table_label1.innerText = f.label1;
-      table_label2.innerText = f.label2;
-      table_label3.innerText = f.label3;
-      table_label4.innerText = f.label4;
-      input_label1.innerText = f.label1;
-      input_label2.innerText = f.label2;
-      input_label3.innerText = f.label3;
-      input_label4.innerText = f.label4;
-    }
-  });
 
   // Show/Hide table rows
   for (let i = 0; i < table_entries.length; i++) {
@@ -45,7 +46,4 @@ function SelectForm(select) {
       table_entries[i].classList.add('hidden');
     }
   }
-
-  // Sync select
-  group_label.value = select.value;
 }
