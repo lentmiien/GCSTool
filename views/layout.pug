@@ -65,12 +65,13 @@ html(lang='en')
                 .dropdown-menu(aria-labelledby="navbarDropdownExp2")
                   a.dropdown-item(href='/lennart') Lennart
                   a.dropdown-item(href='/chatgpt') ChatGPT
-          span.form-inline.my-2.my-lg-0
-            input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
-            button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
-            button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
-            button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
-            button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
+          //- Process changed
+          //- span.form-inline.my-2.my-lg-0
+          //-   input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
+          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
+          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
+          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
+          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
       - let ld = new Date()
       - let dm1 = new Date(ld.getFullYear(), ld.getMonth(), ld.getDate()-1)
       - let ms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
