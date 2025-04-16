@@ -9,5 +9,9 @@ block content
       h2= `${entry.title} (v${entry.current_version})`
       p= `${entry.type} (${entry.category})`
       div!= entry.html
+      a.btn.btn-link(href=`/pmt/details/${entry.id}`) Details 
+      a.btn.btn-link(href=`/pmt/edit/${entry.id}`) Edit 
+      button.btn.btn-link(data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy RAW
   hr
   pre= JSON.stringify(entries, null, 2)
+  script(src="/js/pmt/pmt.js")

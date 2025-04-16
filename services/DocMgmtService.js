@@ -63,7 +63,7 @@ class DocMgmtService {
     }
   }
 
-  async updateEntry({entryId, newContentMarkdown, user}) {
+  async updateEntry({entryId, title, newContentMarkdown, user}) {
     try {
       const entry = await pmt.PMTEntry.findByPk(entryId);
       if (!entry) throw new Error('Entry not found');
@@ -80,6 +80,7 @@ class DocMgmtService {
       });
 
       // Update entry
+      entry.title = title;
       entry.current_version = nextVersionNum;
       entry.content_md = newContentMarkdown;
       await entry.save();

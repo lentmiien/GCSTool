@@ -21,7 +21,18 @@ exports.savenew = async (req, res) => {
     category: req.body.category,
     user: req.user.userid,
   });
-  res.redirect(`/pmt?id=${id}`);
+  res.redirect(`/pmt/edit/${id}`);
+};
+
+exports.edit = async (req, res) => {
+  const entryId = parseInt(req.params.id);
+  const entry = await pmt.fetchEntry(entryId);
+  res.render("pmt/edit", {entry});
+};
+
+exports.editentry = async (req, res) => {
+  console.log(req.body);
+  res.redirect(`/pmt`);
 };
 
 /* DEBUG TOOLS */
