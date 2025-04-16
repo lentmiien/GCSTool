@@ -21,7 +21,17 @@ exports.savenew = async (req, res) => {
     category: req.body.category,
     user: req.user.userid,
   });
-  res.redirect(`/pmt/edit/${id}`);
+  res.redirect(`/pmt/details/${id}`);
+};
+
+exports.details = async (req, res) => {
+  const entryId = parseInt(req.params.id);
+  const entry = await pmt.fetchEntry(entryId);
+  entry.entry.html = marked.parse(entry.entry.content_md);
+  for (let i = 0; i < entry.versions.length; i++) {
+    entry.versions[i].html = marked.parse(entry.versions[i].content_md);
+  }
+  res.render("pmt/details", {entry});
 };
 
 exports.edit = async (req, res) => {
@@ -31,8 +41,14 @@ exports.edit = async (req, res) => {
 };
 
 exports.editentry = async (req, res) => {
-  console.log(req.body);
-  res.redirect(`/pmt`);
+  const entryId = parseInt(req.params.id);
+  await pmt.updateEntry({
+    entryId: entryId,
+    title: req.body.title,
+    newContentMarkdown: req.body.content_md,
+    user: req.user.userid,
+  });
+  res.redirect(`/pmt/details/${entryId}`);
 };
 
 /* DEBUG TOOLS */

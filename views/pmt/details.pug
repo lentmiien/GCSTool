@@ -1,0 +1,36 @@
+extends ../layout
+
+block content
+  h2= entry.entry.title
+  .row 
+    .col-8 
+      select#version.form-control(name="version", onchange="UpdateVersion(this)") 
+        option(value=entry.entry.html) Latest 
+        each v in entry.versions 
+          option(value=v.html)= `Version ${v.version_number} (${v.createdAt.toISOString().split("T")[0]})` 
+      div#content(style="padding: 10px; margin: 5px;")!= entry.entry.html
+    .col-4
+      a.btn.btn-link(href=`/pmt/edit/${entry.entry.id}`) Edit 
+      if entry.parents.length > 0
+        h3 Parents 
+        pre= JSON.stringify(entry.parents, null, 2)
+      if entry.children.length > 0
+        h3 Children 
+        pre= JSON.stringify(entry.children, null, 2)
+      if entry.logs.length > 0
+        h3 Log 
+        table.table.table-dark.table-striped 
+          thead 
+            tr 
+              th Action 
+              th By 
+              th Details 
+              th Date 
+          tbody 
+            each log in entry.logs
+              tr 
+                td= log.action
+                td= log.action_by
+                td= log.details
+                td= log.createdAt.toISOString().split("T")[0]
+  script(src="/js/pmt/details.js") 

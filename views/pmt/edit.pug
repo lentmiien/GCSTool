@@ -6,7 +6,7 @@ block content
   select#version.form-control(name="version", onchange="SelectVersion(this)") 
     option(value=entry.entry.content_md) Latest
     each v in entry.versions 
-      option(value=v.content_md)= `Version ${v.version_number}`
+      option(value=v.content_md)= `Version ${v.version_number} (${v.createdAt.toISOString().split("T")[0]})`
   form#form(action=`/pmt/editentry/${entry.entry.id}`, method="post") 
     label(for='title') Title 
     input#title.form-control(type='text', placeholder='The title', name='title', required='true', value=entry.entry.title)

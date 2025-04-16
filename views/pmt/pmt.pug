@@ -7,11 +7,11 @@ block content
   each entry in entries
     div(style="border: 1px solid gray; padding: 10px; margin: 5px; border-radius: 15px;") 
       h2= `${entry.title} (v${entry.current_version})`
-      p= `${entry.type} (${entry.category})`
+      i= `${entry.type} (${entry.category})`
+      hr
       div!= entry.html
+      hr
       a.btn.btn-link(href=`/pmt/details/${entry.id}`) Details 
       a.btn.btn-link(href=`/pmt/edit/${entry.id}`) Edit 
       button.btn.btn-link(data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy RAW
-  hr
-  pre= JSON.stringify(entries, null, 2)
   script(src="/js/pmt/pmt.js")

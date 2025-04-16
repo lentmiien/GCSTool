@@ -10,6 +10,7 @@ var controller = require('../controllers/pmtController');
 router.get('/', controller.top);
 router.get('/create', controller.create);
 router.post('/savenew', controller.savenew);
+router.get('/details/:id', controller.details);
 router.get('/edit/:id', controller.edit);
 router.post('/editentry/:id', controller.editentry);
 
