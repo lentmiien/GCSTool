@@ -1,0 +1,35 @@
+extends ../layout
+
+block content
+  h2 Create a new entry 
+  form#form(action="/pmt/savenew", method="post") 
+    label(for='title') Title 
+    input#title.form-control(type='text' placeholder='The title' name='title' required='true')
+    label(for="type") Type 
+    select#type.form-control(name="type") 
+      option(value="Template") Template 
+      option(value="Manual") Manual 
+      option(value="Policy") Policy 
+    label(for="category") Category 
+    select#category.form-control(name="category")
+      option(value="_account_related_") Account related
+      option(value="_order_item_statuses_") Order item statuses
+      option(value="_order_modifying_") Order modifying
+      option(value="_payment_shipping_") Payment shipping
+      option(value="_after_service_shipping_") After service shipping
+      option(value="_after_service_defect_") After service defect
+      option(value="_after_service_preowned_") After service preowned
+      option(value="_returns_refunds_") Returns refunds
+      option(value="_claims_cases_") Claims cases
+      option(value="_work_related_") Work related
+      option(value="_case_assist_") Case assist
+      option(value="_customer_dep_") Customer dep
+      option(value="_logistics_dep_") Logistics dep
+      option(value="_feedback_") Feedback
+      option(value="_other_") Other
+    label(for="editor") Content
+    #editor 
+    input#content_md(type="hidden", name="content_md")
+    input.btn.btn-primary(type="submit", value="Save")
+  script(src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js", defer)
+  script(src="/js/pmt/create.js", defer)

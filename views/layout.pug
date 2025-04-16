@@ -5,6 +5,7 @@ html(lang='en')
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous")
+    link(rel='stylesheet', href='https://uicdn.toast.com/editor/latest/toastui-editor.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
   body(onload='Loaded()')
@@ -59,6 +60,7 @@ html(lang='en')
                 a.dropdown-item(href="/country/country_csv_check") Check methods CSV file
                 hr.dropdown-divider
                 a.dropdown-item(href='/ct') Case Tracker
+                a.dropdown-item(href='/pmt') Policy - Manual - Template tool
             if name === "Lennart"
               li.nav-item.dropdown
                 a#navbarDropdownExp2.nav-link.dropdown-toggle(href="#", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Lennart

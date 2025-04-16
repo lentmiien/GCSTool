@@ -205,6 +205,13 @@ class DocMgmtService {
   async fetchLogs(entryId) {
     return await pmt.PMTLog.findAll({where: {entry_id: entryId}});
   }
+
+  async ClearDatabase() {
+    await pmt.PMTEntry.destroy({ where: {}, truncate: true });
+    await pmt.PMTDependencies.destroy({ where: {}, truncate: true });
+    await pmt.PMTVersion.destroy({ where: {}, truncate: true });
+    await pmt.PMTLog.destroy({ where: {}, truncate: true });
+  }
 }
 
 module.exports = new DocMgmtService();

@@ -2,4 +2,12 @@ extends ../layout
 
 block content
   h1 Policy - Manual - Template tool
+  a.btn.btn-primary(href="/pmt/create") Create new
+  a.btn.btn-danger(href="/pmt/reset") Delete all
+  each entry in entries
+    div(style="border: 1px solid gray; padding: 10px; margin: 5px; border-radius: 15px;") 
+      h2= `${entry.title} (v${entry.current_version})`
+      p= `${entry.type} (${entry.category})`
+      div!= entry.html
+  hr
   pre= JSON.stringify(entries, null, 2)
