@@ -25,6 +25,7 @@ var lennartRouter = require('./routes/lennart');
 var formRouter = require('./routes/form');
 const chatgptRouter = require('./routes/chatgpt');
 const ctRouter = require('./routes/ct');
+const pmtRouter = require('./routes/pmt');
 
 var app = express();
 
@@ -97,6 +98,7 @@ app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);
 app.use('/ct', requireAuthenticated, ctRouter);
+app.use('/pmt', requireAuthenticated, pmtRouter);
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;

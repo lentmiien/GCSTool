@@ -34,6 +34,11 @@ const FileModel = require('./models/ct/ctFile');
 const RefundModel = require('./models/ct/ctRefund');
 const CTAuditLogModel = require('./models/ct/ctAuditLog');
 const CTZendeskModel = require('./models/ct/ctZendesk');
+// Policy/Manual/Template
+const PMTEntryModel = require('./models/pmt/pmt_entry');
+const PMTDependenciesModel = require('./models/pmt/pmt_dependencies');
+const PMTVersionModel = require('./models/pmt/pmt_version');
+const PMTLogModel = require('./models/pmt/pmt_log');
 
 // Connect to DB: GCS Tool
 const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
@@ -83,6 +88,11 @@ const File = FileModel(sequelize, Sequelize);
 const Refund = RefundModel(sequelize, Sequelize);
 const CTAuditLog = CTAuditLogModel(sequelize, Sequelize);
 const Zendesk = CTZendeskModel(sequelize, Sequelize);
+// Policy/Manual/Template
+const PMTEntry = PMTEntryModel(sequelize, Sequelize);
+const PMTDependencies = PMTDependenciesModel(sequelize, Sequelize);
+const PMTVersion = PMTVersionModel(sequelize, Sequelize);
+const PMTLog = PMTLogModel(sequelize, Sequelize);
 
 // Create table relations: GCS Tool
 Entry.Content = Entry.hasMany(Content);
@@ -137,6 +147,12 @@ module.exports = {
     Refund,
     AuditLog: CTAuditLog,
     Zendesk,
+  },
+  pmt: {
+    PMTEntry,
+    PMTDependencies,
+    PMTVersion,
+    PMTLog,
   },
   Op,
   fn,
