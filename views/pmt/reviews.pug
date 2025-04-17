@@ -1,0 +1,21 @@
+extends ../layout
+
+block content
+  h2 Items flagged for review
+  table.table.table-dark.table-striped
+    thead
+      tr
+        th Entry
+        th Details
+        th Date
+        th
+    tbody
+      each l in logs
+        tr
+          td
+            a(href=`/pmt/details/${l.entry_id}`)= l.entry_id
+          td= l.details
+          td= l.createdAt.toISOString().split('T')[0]
+          td
+            form(method='post' action=`/pmt/log/${l.id}/complete`)
+              button.btn.btn-success.btn-sm(type='submit') OK

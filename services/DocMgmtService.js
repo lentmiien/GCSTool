@@ -45,7 +45,9 @@ class DocMgmtService {
 
       // Dependencies
       const parents = await this.fetchParentDependencies(entryId);
+      const parentEntries = await pmt.PMTEntry.findAll({ where: { id: parents.map(p=>p.parent_id) }});
       const children = await this.fetchChildDependencies(entryId);
+      const childEntries = await pmt.PMTEntry.findAll({ where: { id: children.map(c=>c.child_id) }});
 
       // All versions for history
       const versions = await this.fetchVersionHistory(entryId);
@@ -54,7 +56,9 @@ class DocMgmtService {
         entry,
         logs,
         parents,
+        parentEntries,
         children,
+        childEntries,
         versions,
       }
     } catch (error) {
@@ -191,6 +195,29 @@ class DocMgmtService {
     return rows;
   }
 
+  async fetchAllLogs(where = {}) {
+    return await pmt.PMTLog.findAll({ where, order: [['createdAt', 'DESC']] });
+  }
+  
+  async markReviewCompleted({ logId, user }) {
+    const log = await pmt.PMTLog.findByPk(logId);
+    if (!log || log.action !== 'flagged-for-review') return false;
+    log.action = 'review-completed';
+    log.action_by = user;
+    log.details += '  (completed)';
+    await log.save();
+    return true;
+  }
+
+  async replaceParents({ entryId, parentIds, user }) {
+    // delete existing
+    await pmt.PMTDependencies.destroy({ where: { child_id: entryId }});
+    // re‑add
+    for (const pid of parentIds) {
+      await this.addDependency({ parentEntryId: pid, childEntryId: entryId, user });
+    }
+  }
+
   async fetchParentDependencies(entryId) {
     return await pmt.PMTDependencies.findAll({where: {child_id: entryId}});
   }
@@ -205,6 +232,10 @@ class DocMgmtService {
 
   async fetchLogs(entryId) {
     return await pmt.PMTLog.findAll({where: {entry_id: entryId}});
+  }
+
+  async fetchPolicies() {
+    return await pmt.PMTEntry.findAll({ where: { type: 'Policy' }});
   }
 
   async ClearDatabase() {

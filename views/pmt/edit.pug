@@ -14,9 +14,20 @@ block content
     input#type.form-control(type="text", name="type", value=entry.entry.type, readonly)
     label(for="category") Category 
     input#category.form-control(type="text", name="category", value=entry.entry.category, readonly)
+    label(for='policies') Parent policy / policies
+    select#policies.form-control(name='policyIds' multiple size=5 onchange='showPreview()')
+      each p in policies
+        option(value=p.id selected=(selected.includes(p.id)))= `${p.id} – ${p.title}`
     label(for="editor") Content
-    #editor 
-    input#content_md(type="hidden", name="content_md", value=entry.entry.content_md)
+    .row 
+      .col-8
+        #editor 
+        input#content_md(type="hidden", name="content_md", value=entry.entry.content_md)
+      .col-4
+        h4 Preview selected Policies
+        #policyPreview(style='border:1px solid #aaa;padding:6px;overflow:auto;height:480px')
     input.btn.btn-primary(type="submit", value="Save")
+  pre#policies_data.hidden= JSON.stringify(policies)
+  script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js", defer)
   script(src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js", defer)
   script(src="/js/pmt/edit.js", defer)

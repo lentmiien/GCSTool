@@ -13,13 +13,19 @@ block content
       a.btn.btn-link(href=`/pmt/edit/${entry.entry.id}`) Edit 
       if entry.parents.length > 0
         h3 Parents 
-        pre= JSON.stringify(entry.parents, null, 2)
+        each p in entry.parents
+          button.btn.btn-outline-info.btn-sm(data-toggle='modal' data-target=`#m${p.parent_id}`)= `#${p.parent_id}`
+      h3 Children 
       if entry.children.length > 0
-        h3 Children 
-        pre= JSON.stringify(entry.children, null, 2)
+        each c in entry.children
+          button.btn.btn-outline-info.btn-sm(data-toggle='modal' data-target=`#m${c.child_id}`)= `#${c.child_id}`
+      if entry.entry.type === 'Policy'
+        br
+        a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Manual&parent=${entry.entry.id}`) + Manual
+        a.btn.btn-sm.btn-primary.ml-1(href=`/pmt/create?type=Template&parent=${entry.entry.id}`) + Template
       if entry.logs.length > 0
         h3 Log 
-        table.table.table-dark.table-striped 
+        table.table.table-dark.table-striped.small 
           thead 
             tr 
               th Action 
@@ -33,4 +39,16 @@ block content
                 td= log.action_by
                 td= log.details
                 td= log.createdAt.toISOString().split("T")[0]
+  each obj in [...entry.parents.map(p=>p.parent_id), ...entry.children.map(c=>c.child_id)]
+    - const ref = obj;
+    - const ent = entryMap[ref];        // we’ll prepare it below in script
+    .modal.fade(id=`m${ref}` tabindex='-1')
+      .modal-dialog.modal-lg
+        .modal-content.bg-dark
+          .modal-header
+            h5.modal-title= ent.title || ('Entry ' + ref)
+            a.btn.btn-sm.btn-link(href=`/pmt/details/${ref}`) Open detail
+            button.close(type='button' data-dismiss='modal') ×
+          .modal-body
+            != ent.html
   script(src="/js/pmt/details.js") 

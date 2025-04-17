@@ -2,12 +2,32 @@ extends ../layout
 
 block content
   h1 Policy - Manual - Template tool
-  a.btn.btn-primary(href="/pmt/create") Create new
-  a.btn.btn-danger(href="/pmt/reset") Delete all
+  //‑‑‑‑‑ FILTER FORM  ‑‑‑‑‑
+  form.form-inline(method='get' action='/pmt')
+    select.form-control(name='type')
+      option(value='') All types
+      option(value='Policy' selected=(query.type=='Policy')) Policy
+      option(value='Manual' selected=(query.type=='Manual')) Manual
+      option(value='Template' selected=(query.type=='Template')) Template
+    select.form-control.ml-2(name='category')
+      option(value='') All categories
+      each cat in ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+        option(value=cat selected=(query.category==cat))= cat
+    button.btn.btn-secondary.ml-2(type='submit') Filter
+  //‑‑‑‑‑ MAIN ACTION BUTTONS  ‑‑‑‑‑
+  a.btn.btn-primary.ml-2(href='/pmt/create') + New entry
+  a.btn.btn-secondary.ml-2(href='/pmt/logs') Logs
+  a.btn.btn-secondary.ml-2(href='/pmt/reviews') Reviews
+  a.btn.btn-danger.ml-2(href='/pmt/reset') Delete all
+  hr
+  //‑‑‑‑‑ ENTRIES LIST  ‑‑‑‑‑
   each entry in entries
     div(style="border: 1px solid gray; padding: 10px; margin: 5px; border-radius: 15px;") 
       h2= `${entry.title} (v${entry.current_version})`
-      i= `${entry.type} (${entry.category})`
+      i
+        span= `${entry.type} (`
+        span(lg_language=entry.category)= entry.category
+        span= `)`
       hr
       div!= entry.html
       hr

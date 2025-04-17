@@ -3,13 +3,16 @@ extends ../layout
 block content
   h2 Create a new entry 
   form#form(action="/pmt/savenew", method="post") 
+    if query.parent
+      input(type='hidden' name='parent_id' value=query.parent)
     label(for='title') Title 
     input#title.form-control(type='text' placeholder='The title' name='title' required='true')
     label(for="type") Type 
     select#type.form-control(name="type") 
-      option(value="Template") Template 
-      option(value="Manual") Manual 
-      option(value="Policy") Policy 
+      - const pre = query.type || ''
+      option(value='Template' selected=(pre=='Template')) Template
+      option(value='Manual' selected=(pre=='Manual')) Manual
+      option(value='Policy' selected=(pre=='Policy')) Policy 
     label(for="category") Category 
     select#category.form-control(name="category")
       option(value="_account_related_") Account related
