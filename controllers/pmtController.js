@@ -10,7 +10,10 @@ exports.top = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  res.render("pmt/create", {query: req.query});
+  const policies = await pmt.fetchPolicies();
+  const selected = [];
+  if (req.query.parent) selected.push(parseInt(req.query.parent));
+  res.render("pmt/create", {query: req.query, policies, selected});
 };
 
 exports.savenew = async (req, res) => {
@@ -21,10 +24,14 @@ exports.savenew = async (req, res) => {
     category: req.body.category,
     user: req.user.userid,
   });
-  if (req.body.parent_id) {
-    await pmt.addDependency({
-      parentEntryId: parseInt(req.body.parent_id),
-      childEntryId: id,
+  const newParentIds = []
+    .concat(req.body.policyIds || [])              // could be string or array
+    .map(x=>parseInt(x))
+    .filter(Boolean);
+  if (newParentIds.length > 0) {
+    await pmt.replaceParents({
+      entryId: id,
+      parentIds: newParentIds,
       user: req.user.userid,
     });
   }
