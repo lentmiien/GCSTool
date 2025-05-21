@@ -12,7 +12,7 @@ block content
     select.form-control.ml-2(name='category')
       option(value='') All categories
       each cat in ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
-        option(value=cat selected=(query.category==cat))= cat
+        option(value=cat selected=(query.category==cat), lg_language=cat)= cat
     button.btn.btn-secondary.ml-2(type='submit') Filter
   //‑‑‑‑‑ MAIN ACTION BUTTONS  ‑‑‑‑‑
   a.btn.btn-primary.ml-2(href='/pmt/create') + New entry
