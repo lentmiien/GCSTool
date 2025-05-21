@@ -180,20 +180,24 @@ class DocMgmtService {
   }
 
   async fetchEntries({ type = null, category = null } = {}) {
-    let rows = [];
-
-    if (type && category) {
-      rows = await pmt.PMTEntry.findAll({where: {type, category}});
-    } else if (type) {
-      rows = await pmt.PMTEntry.findAll({where: {type}});
-    } else if (category) {
-      rows = await pmt.PMTEntry.findAll({where: {category}});
-    } else {
-      rows = await pmt.PMTEntry.findAll();
+    const where = {};
+    if (type) where.type = type;
+    if (category) where.category = category;
+  
+    const options = {
+      where,
+      order: [['updatedAt', 'DESC']]
+    };
+  
+    // If neither type nor category is provided, limit the results to 25
+    if (!type && !category) {
+      options.limit = 25;
     }
-
+  
+    const rows = await pmt.PMTEntry.findAll(options);
     return rows;
   }
+  
 
   async fetchAllLogs(where = {}) {
     return await pmt.PMTLog.findAll({ where, order: [['createdAt', 'DESC']] });
