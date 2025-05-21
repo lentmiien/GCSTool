@@ -17,20 +17,24 @@ block content
   //‑‑‑‑‑ MAIN ACTION BUTTONS  ‑‑‑‑‑
   a.btn.btn-primary.ml-2(href='/pmt/create') + New entry
   a.btn.btn-secondary.ml-2(href='/pmt/logs') Logs
-  a.btn.btn-secondary.ml-2(href='/pmt/reviews') Reviews
+  a.btn.btn-secondary.ml-2(href='/pmt/reviews') Reviews 
+    if reviews > 0
+      span(style="background-color: #955; border: 1px solid red; border-radius: 50%; padding: 5px;")= reviews
   a.btn.btn-danger.ml-2(href='/pmt/reset') Delete all
   hr
   //‑‑‑‑‑ ENTRIES LIST  ‑‑‑‑‑
   each entry in entries
     div(style="border: 1px solid gray; padding: 10px; margin: 5px; border-radius: 15px;") 
-      h2= `${entry.title} (v${entry.current_version})`
-      i
-        span= `${entry.type} (`
-        span(lg_language=entry.category)= entry.category
-        span= `)`
-      hr
-      div!= entry.html
-      hr
+      div(style="background-color: #557;padding: 2px;")
+        h2= `${entry.title} (v${entry.current_version})`
+        i
+          span= `${entry.type} (`
+          span(lg_language=entry.category)= entry.category
+          span= `)`
+      - const d = new Date(Date.now() - (7*24*60*60*1000))
+      if d < entry.updatedAt
+        div!= entry.html
+        hr
       a.btn.btn-link(href=`/pmt/details/${entry.id}`) Details 
       a.btn.btn-link(href=`/pmt/edit/${entry.id}`) Edit 
       button.btn.btn-link(data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy RAW

@@ -5,7 +5,8 @@ exports.top = async (req, res) => {
   const { type, category } = req.query;
   const entries = await pmt.fetchEntries({ type, category });
   entries.forEach(e => (e.html = marked.parse(e.content_md)));
-  res.render('pmt/pmt', { entries, query: req.query });
+  const logs = await pmt.fetchAllLogs({ action: 'flagged-for-review' });
+  res.render('pmt/pmt', { entries, query: req.query, reviews: logs.length });
 };
 
 exports.create = async (req, res) => {
