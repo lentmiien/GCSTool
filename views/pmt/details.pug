@@ -10,20 +10,23 @@ block content
           option(value=v.html)= `Version ${v.version_number} (${v.createdAt.toISOString().split("T")[0]})` 
       div#content(style="padding: 10px; margin: 5px;")!= entry.entry.html
     .col-4
-      a.btn.btn-link(href=`/pmt/edit/${entry.entry.id}`) Edit 
+      a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit this entry
       if entry.parents.length > 0
+        hr
         h3 Parents 
         each p in entry.parents
-          button.btn.btn-outline-info.btn-sm(data-toggle='modal' data-target=`#m${p.parent_id}`)= `#${p.parent_id}`
-      h3 Children 
+          button.btn.btn-outline-info.btn-sm(style="margin-right: 2px;" data-toggle='modal' data-target=`#m${p.parent_id}`)= `${entryMap[p.parent_id].title}`
       if entry.children.length > 0
+        hr
+        h3 Children 
         each c in entry.children
-          button.btn.btn-outline-info.btn-sm(data-toggle='modal' data-target=`#m${c.child_id}`)= `#${c.child_id}`
+          button.btn.btn-outline-info.btn-sm(style="margin-right: 2px;" data-toggle='modal' data-target=`#m${c.child_id}`)= `${entryMap[c.child_id].title}`
       if entry.entry.type === 'Policy'
-        br
+        hr
         a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Manual&parent=${entry.entry.id}`) + Manual
         a.btn.btn-sm.btn-primary.ml-1(href=`/pmt/create?type=Template&parent=${entry.entry.id}`) + Template
       if entry.logs.length > 0
+        hr
         h3 Log 
         table.table.table-dark.table-striped.small 
           thead 
