@@ -268,8 +268,9 @@ exports.generate = async (req, res) => {
  * - display output and repeat until done
  * Note: the context or message should request for response in JSON format
  */
+let lastProcessed = new Date(0);
 exports.language_tools = (req, res) => {
-  res.render('language_tools');
+  res.render('language_tools', {lastProcessed});
 };
 
 /**
@@ -316,6 +317,8 @@ exports.language_send = async (req, res) => {
     db_data[db_data.length - 1].tokens = response.usage.completion_tokens;
     await Chatmsg.bulkCreate(db_data);
   }
+
+  lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
 
   res.json({thread_id: tid, messages})
 };
