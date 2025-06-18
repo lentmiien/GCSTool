@@ -6,10 +6,30 @@ block content
       h2 Shorten item names 
       p In FM, find all paid orders since last check, for relevant countries, then open the layout for editing shorten names. Press button to remove completed/already short enough names, then "Export" data that needs to be processed. Select the exported file below, and click "Start processing", then wait for the task to be completed, and click on "Save CSV" to export the processed data. Now return to FM, and in the same layout you previously opened, press "Import" and select the file you just exported. Done!
       h3 Last processed at: 
-        b= `${lastProcessed.getFullYear()}-${lastProcessed.getMonth()+1}-${lastProcessed.getDate()}, ${lastProcessed.getHours()}:${lastProcessed.getMinutes()}`
+        b#lpa= `${lastProcessed.getFullYear()}-${lastProcessed.getMonth()+1}-${lastProcessed.getDate()}, ${lastProcessed.getHours()}:${lastProcessed.getMinutes()}`
+        button.btn.btn-outline-secondary(onclick="updateChecked()") Update
       hr(style="border: 2px solid red;")
   .row 
     .col 
+      h3 0. Prepare CSV data
+      ol 
+        li Start a new search in FM 
+          ul 
+            li Press: Ctrl + F
+            - const thedate = new Date(lastProcessed.getTime() - (1000*60*60*24))
+            li= `Paid date: ">${thedate.toISOString().split("T")[0].split("-").join("/")}"`
+            li Country: "BRAZIL"
+            li Press: Enter
+        li Extend the search to orders awaiting payment 
+          ul 
+            li Press: Ctrl + F
+            li Status 1: "==入金待ち"
+            li Country: "BRAZIL"
+            li Press: Ctrl + S
+        li Open the Item name window and export the CSV data
+  .row 
+    .col 
+      hr(style="border: 2px solid red;")
       h3 1. Input details
       label(for="title") Task title 
       input#title.form-control(type="text", name="title", value=`Short names ${new Date()}`)

@@ -275,6 +275,17 @@ exports.language_tools = (req, res) => {
 
 /**
  * POST
+ * url: /chatgpt/language_tools/checked
+ * No input/output, only update lastProcessed to curent date-time
+ * Use when there was no data to process
+ */
+exports.update_checked = (req, res) => {
+  lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
+  res.json({status: "OK"});
+};
+
+/**
+ * POST
  * url: /chatgpt/language_tools/send
  * Input is array of messages in ChatGPT format (prepared on user side), and a thread_id if available
  * 
@@ -320,5 +331,5 @@ exports.language_send = async (req, res) => {
 
   lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
 
-  res.json({thread_id: tid, messages})
+  res.json({thread_id: tid, messages});
 };

@@ -269,6 +269,10 @@ async function Process() {
   // Update percent done label
   document.getElementById("per_done").innerText = `100% done`;
   document.getElementById("per_done_range").value = 100;
+
+  // Update last processed (just UI update, as server already updated)
+  const d = new Date();
+  document.getElementById("lpa").innerText = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}, ${d.getHours()}:${d.getMinutes()}`;
 }
 
 function SaveCompleted() {
@@ -283,4 +287,19 @@ function SaveCompleted() {
 function saveDynamicDataToFile(data, filename) {
   var blob = new Blob([data], { type: 'text/csv;charset=utf-8' });
   saveAs(blob, filename);
+}
+
+async function updateChecked() {
+  await fetch(`/chatgpt/language_tools/checked`, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify({}) // body data type must match "Content-Type" header
+  });
+
+  const d = new Date();
+  document.getElementById("lpa").innerText = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}, ${d.getHours()}:${d.getMinutes()}`;
 }
