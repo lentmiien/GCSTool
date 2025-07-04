@@ -9,7 +9,7 @@ exports.all = async (req, res, next) => {
   res.locals.today = `${d.getFullYear()}-${d.getMonth() > 8 ? (d.getMonth() + 1) : "0" + (d.getMonth() + 1)}-${d.getDate() > 9 ? d.getDate() : "0" + d.getDate()}`;
 
   // Select values - TODO: transfer to database
-  res.locals.claim_types = ["Defect", "Lost or Stuck in shipment", "Damaged in shipment", "Not received but appears delivered", "Delivered but missing content", "Delivered but wrong content", "Return reason"];
+  res.locals.claim_types = ["Defect", "Lost or Stuck in shipment", "Damaged in shipment", "Not received but appears delivered", "Delivered but missing content", "Delivered but wrong content", "Return reason", "Other"];
   res.locals.claim_statuses = ["Created", "Confirming issue with customer", "Confirmed issue, confirming solution", "Investigating with shipping company", "Offered solution to customer", "Processing replacement", "Processing return", "Processing refund", "Pending completion", "Completed", "Pending cancellation", "Canceled"];
   res.locals.claim_solutions = ["Exchange", "Return for refund", "Send replacement", "Compensation", "Refund missing items", "Delivered", "Assistance no longer needed"];
   res.locals.claim_cancel_reasons = ["No response", "Customer solved problem", "Rejected customer claim"];
