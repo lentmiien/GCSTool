@@ -284,9 +284,9 @@ exports.ct = async (req, res) => {
     if (a.deadline > b.deadline) return 1;
     return 0;
   });
-  const staff = req.user && req.user.userid ? req.user.userid : "Guest";
-  const todos = await ct.CreateToDoList(null, staff);
-  res.render("ct/ct", {order_numbers, case_numbers, cases_details, todos});
+  // const staff = req.user && req.user.userid ? req.user.userid : "Guest";
+  // const todos = await ct.CreateToDoList(null, staff);
+  res.render("ct/ct", {order_numbers, case_numbers, cases_details, todos: {}});
 };
 
 exports.case = async (req, res) => {
