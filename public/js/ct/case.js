@@ -2,6 +2,23 @@ const order_numbers = JSON.parse(document.getElementById("order_numbers") ? docu
 const case_numbers = JSON.parse(document.getElementById("case_numbers") ? document.getElementById("case_numbers").innerHTML : "[]");
 const open_button = document.getElementById("open_button");
 const create_button = document.getElementById("create_button");
+create_button.addEventListener("click", e => {
+  e.preventDefault();
+
+  // Confirm valid minimum input
+  if (document.getElementById("newcase_type").value.length === 0) return alert("Must have a 'Claim type'!");
+  if (document.getElementById("newcase_status").value.length === 0) return alert("Must have a 'Status'!");
+  if (document.getElementById("newcase_customerid").value.length === 0) return alert("Must have a 'Customer ID'!");
+  if (document.getElementById("newcase_country").value.length === 0) return alert("Must have a 'Country'!");
+  if (document.getElementById("newcase_trackingnumber").value.length === 0) return alert("Must have a 'Tracking number'!");
+  if (document.getElementById("newcase_shippingmethod").value.length === 0) return alert("Must have a 'Shipping method'!");
+  if (document.getElementById("newcase_shippeddate").value.length === 0) return alert("Must have a 'Shipped date'!");
+
+  // Confirm order number and submit form
+  const o = document.getElementById("newcase_ordernumber").value;
+  if (o.length === 9) document.getElementById("new_case_form").submit();
+  else alert("Order number must be 9 digits!");
+});
 function CheckExisting(e) {
   const index = order_numbers.indexOf(parseInt(e.value));
   if (index >= 0) {

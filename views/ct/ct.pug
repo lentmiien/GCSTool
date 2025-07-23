@@ -4,7 +4,7 @@ block content
   h1 Case Tracker
   #processing_stats.row 
   h3 Add new case 
-  form(action="/ct/newcase", method="post", encType="multipart/form-data") 
+  form#new_case_form(action="/ct/newcase", method="post", encType="multipart/form-data") 
     .row 
       .col 
         label(for="newcase_ordernumber") Order number *Click "Open" if case exist
