@@ -1,4 +1,10 @@
 {
-  "lennart_top": "レンナルト　トップ",
-  "enable_danger": "危険機能を有効化"
+  "lennart_top": "レンナルト トップ",
+  "enable_danger": "危険な操作を有効化",
+  "ait_check_updates": "確認",
+  "ait_get_saved_data": "保存データを取得",
+  "ait_save_to_localstorage": "ローカル保存",
+  "ait_clear_localstorage": "保存データを削除",
+  "ait_save_and_generate_output": "保存して生成",
+  "ait_generate_zendesk_article": "Zendesk記事を生成"
 }

@@ -1,4 +1,10 @@
 {
   "lennart_top": "Lennart topp",
-  "enable_danger": "Aktivera farliga åtgärder"
+  "enable_danger": "Aktivera farliga åtgärder",
+  "ait_check_updates": "Kontrollera",
+  "ait_get_saved_data": "Hämta sparad data",
+  "ait_save_to_localstorage": "Spara lokalt",
+  "ait_clear_localstorage": "Ta bort sparad data",
+  "ait_save_and_generate_output": "Spara och skapa",
+  "ait_generate_zendesk_article": "Skapa Zendesk‑artikel"
 }

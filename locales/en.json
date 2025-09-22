@@ -1,4 +1,10 @@
 {
   "lennart_top": "Lennart top",
-  "enable_danger": "Enable dangerous actions"
+  "enable_danger": "Enable dangerous actions",
+  "ait_check_updates": "Check",
+  "ait_get_saved_data": "Get saved data",
+  "ait_save_to_localstorage": "Save to local storage",
+  "ait_clear_localstorage": "Delete saved data",
+  "ait_save_and_generate_output": "Save & Generate",
+  "ait_generate_zendesk_article": "Generate Zendesk article"
 }

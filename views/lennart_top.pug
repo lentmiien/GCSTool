@@ -9,15 +9,15 @@ block content
     .col 
       textarea#ait_input(style="width:100%;", rows="10")
     .col 
-      button.btn.btn-primary(style="width:100%;", onclick="AIT_CheckUpdates()") Check⇒
-      button.btn.btn-warning(style="width:100%;", onclick="AIT_GetSavedData()") ⇐Get saved data
-      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_SaveToLocalstorage()", disabled) ⇐Save to localstorage
-      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_ClearLocalstorage()", disabled) *Delete saved data*
+      button.btn.btn-primary(style="width:100%;", onclick="AIT_CheckUpdates()") #{i18n('ait_check_updates')}
+      button.btn.btn-warning(style="width:100%;", onclick="AIT_GetSavedData()") #{i18n('ait_get_saved_data')}
+      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_SaveToLocalstorage()", disabled) #{i18n('ait_save_to_localstorage')}
+      button.btn.btn-danger(class="danger_action", style="width:100%;", onclick="AIT_ClearLocalstorage()", disabled) #{i18n('ait_clear_localstorage')}
     .col 
       div#ait_updates
     .col 
-      button.btn.btn-primary(style="width:100%;", onclick="AIT_SaveAndGenerateOutput()") Generate⇒
-      button.btn.btn-primary(style="width:100%;", onclick="AIT_GenerateZendeskArticle()") Zendesk⇒
+      button.btn.btn-primary(style="width:100%;", onclick="AIT_SaveAndGenerateOutput()") #{i18n('ait_save_and_generate_output')}
+      button.btn.btn-primary(style="width:100%;", onclick="AIT_GenerateZendeskArticle()") #{i18n('ait_generate_zendesk_article')}
     .col 
       textarea#ait_output(style="width:100%;", rows="10")
   .row 
@@ -27,3 +27,4 @@ block content
       a.btn.btn-primary(href="/lang/sv") Svenska
 
   script(src="/javascripts/lennart.js")
+
