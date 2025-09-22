@@ -19,11 +19,15 @@ block content
             - const thedate = new Date(lastProcessed.getTime() - (1000*60*60*24))
             li
               | Paid date: "
-              span.copy-text(data-copy='>' + thedate.toISOString().split('T')[0].split('-').join('/'), title='Click to copy')= '>' + thedate.toISOString().split('T')[0].split('-').join('/')
+              span.copy-text(data-copy='>' + thedate.toISOString().split('T')[0].split('-').join('/'), title='Click to copy', style='cursor: pointer;')
+                span.copy-label= '>' + thedate.toISOString().split('T')[0].split('-').join('/')
+                span.copy-icon(title='Copy', style='margin-left: 4px; opacity: 0.7;') 📋
               | "
             li
               | Country: "
-              span.copy-text(data-copy='BRAZIL', title='Click to copy') BRAZIL
+              span.copy-text(data-copy='BRAZIL', title='Click to copy', style='cursor: pointer;')
+                span.copy-label BRAZIL
+                span.copy-icon(title='Copy', style='margin-left: 4px; opacity: 0.7;') 📋
               | "
             li Press: Enter
         li Extend the search to orders awaiting payment 

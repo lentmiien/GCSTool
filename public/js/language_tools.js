@@ -322,9 +322,16 @@ document.addEventListener('click', async function (e) {
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    var original = target.textContent;
-    target.textContent = 'Copied!';
-    setTimeout(function () { target.textContent = original; }, 800);
+    var label = target.querySelector('.copy-label');
+    if (label) {
+      var original = label.textContent;
+      label.textContent = 'Copied!';
+      setTimeout(function () { label.textContent = original; }, 800);
+    } else {
+      var originalTarget = target.textContent;
+      target.textContent = 'Copied!';
+      setTimeout(function () { target.textContent = originalTarget; }, 800);
+    }
   } catch (err) {
     console.error('Copy failed', err);
   }
