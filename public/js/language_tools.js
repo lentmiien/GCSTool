@@ -303,3 +303,29 @@ async function updateChecked() {
   const d = new Date();
   document.getElementById("lpa").innerText = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}, ${d.getHours()}:${d.getMinutes()}`;
 }
+// Clipboard copy for language tools hints
+document.addEventListener('click', async function (e) {
+  var target = e.target.closest('.copy-text');
+  if (!target) return;
+  var text = target.getAttribute('data-copy') || target.textContent || '';
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    var original = target.textContent;
+    target.textContent = 'Copied!';
+    setTimeout(function () { target.textContent = original; }, 800);
+  } catch (err) {
+    console.error('Copy failed', err);
+  }
+});

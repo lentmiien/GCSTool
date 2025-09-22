@@ -17,8 +17,14 @@ block content
           ul 
             li Press: Ctrl + F
             - const thedate = new Date(lastProcessed.getTime() - (1000*60*60*24))
-            li= `Paid date: ">${thedate.toISOString().split("T")[0].split("-").join("/")}"`
-            li Country: "BRAZIL"
+            li
+              | Paid date: "
+              span.copy-text(data-copy='>' + thedate.toISOString().split('T')[0].split('-').join('/'), title='Click to copy')= '>' + thedate.toISOString().split('T')[0].split('-').join('/')
+              | "
+            li
+              | Country: "
+              span.copy-text(data-copy='BRAZIL', title='Click to copy') BRAZIL
+              | "
             li Press: Enter
         li Extend the search to orders awaiting payment 
           ul 
