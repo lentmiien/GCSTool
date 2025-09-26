@@ -1,31 +1,22 @@
-extends ../layout
+﻿extends ../layout
 
 block content
-  h1 30 days audit Log 
-  a.btn.btn-link(href="/ct") Top 
-  table.table.table-dark.table-striped 
-    thead 
-      tr 
-        th Timestamp 
-        th Case 
-        th Staff 
-        th Log 
-        th Metadata 
-    tbody 
-      each a in audit 
-        tr 
-          td= a.timestamp.toISOString()
-          td
-            a(href=`/ct/case/${a.case_id}`)= a.case_id
-          td= a.staff
-          td= a.log
-          td
-            - let md = JSON.parse(a.metadata)
-            - let keys = Object.keys(md)
-            each key in keys 
-              if md[key].before || md[key].after
-                div= `${key}: ${md[key].before} ⇒ ${md[key].after}`
-              else 
-                div= `${key}: ${md[key]}`
-  //- hr
-  //- pre= JSON.stringify(audit, null, 2)
+  h1 Recent Case Activity
+  a.btn.btn-link(href='/ct') Back to dashboard
+  if entries && entries.length
+    table.table.table-dark.table-striped.mt-3
+      thead
+        tr
+          th Case
+          th Staff
+          th Action
+          th When
+      tbody
+        each entry in entries
+          tr
+            td= entry.case_id
+            td= entry.staff || '—'
+            td= entry.log
+            td= entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '—'
+  else
+    p.text-muted No audit entries logged yet.

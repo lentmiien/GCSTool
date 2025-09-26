@@ -1,18 +1,21 @@
-extends ../layout
+﻿extends ../layout
 
 block content
-  h1 Items with claim 
-  a.btn.btn-link(href="/ct") Top 
-  table.table.table-dark.table-striped 
-    thead 
-      tr 
-        th Item code 
-        th Number of claims 
-    tbody 
-      each i in itemArray 
-        tr 
-          td
-            a(href=`/ct/item/${i.item_code}`)= i.item_code
-          td= i.count
-  //- hr
-  //- pre= JSON.stringify(itemArray, null, 2)
+  h1 Item Trends
+  a.btn.btn-link(href='/ct') Back to dashboard
+  if items && items.length
+    table.table.table-dark.table-striped.mt-3
+      thead
+        tr
+          th Item code
+          th Cases
+          th
+      tbody
+        each item in items
+          tr
+            td= item.item_code
+            td= item.count
+            td.text-end
+              a.btn.btn-sm.btn-outline-primary(href=`/ct/item/${item.item_code}`) View
+  else
+    p.text-muted No items recorded yet.

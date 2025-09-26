@@ -1,0 +1,36 @@
+﻿extends ../layout
+
+block content
+  h1 Customer #{profile.customerId}
+  a.btn.btn-link(href='/ct') Back to dashboard
+  .mt-3
+    h2 Summary
+    p Open cases: #{profile.summary.open} | Closed cases: #{profile.summary.closed}
+    if Object.keys(profile.summary.byStatus).length
+      ul
+        each val, key in profile.summary.byStatus
+          li #{key}: #{val}
+  hr
+  h2 Cases
+  if profile.cases && profile.cases.length
+    table.table.table-dark.table-striped
+      thead
+        tr
+          th Order
+          th Type
+          th Status
+          th Solution
+          th Deadline
+          th Staff
+      tbody
+        each c in profile.cases
+          tr
+            td
+              a(href=`/ct/case/${c.id}`)= c.order
+            td= c.type || '—'
+            td= c.status || '—'
+            td= c.solution || '—'
+            td= c.deadline ? ((new Date(c.deadline)).toISOString().split('T')[0]) : '—'
+            td= c.staff_in_charge || '—'
+  else
+    p.text-muted No cases recorded for this customer.

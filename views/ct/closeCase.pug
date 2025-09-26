@@ -1,0 +1,41 @@
+﻿extends ../layout
+
+block content
+  - const isCancel = action === 'cancel';
+  h1 #{isCancel ? 'Cancel case' : 'Complete case'}
+  p.text-muted Review the checklist below before finalizing.
+  if error
+    .alert.alert-danger= error
+  if issues && issues.length
+    .alert.alert-warning
+      strong Still required:
+      ul.mb-0
+        each issue in issues
+          li= issue
+  form(action=`/ct/case/${caseDetails.id}/close/${action}`, method='post')
+    if !isCancel
+      .mb-3
+        label.form-label(for='solution') Resolution
+        select#solution.form-select(name='solution', required)
+          option(value='') -- Select --
+          each solution in metadata.solutions
+            option(value=solution selected=caseDetails.solution === solution)= solution
+    else
+      .mb-3
+        label.form-label(for='cancel_reason') Cancel reason
+        select#cancel_reason.form-select(name='cancel_reason', required)
+          option(value='') -- Select --
+          each reason in metadata.cancelReasons
+            option(value=reason selected=caseDetails.cancel_reason === reason)= reason
+    .mb-3
+      label.form-label(for='deadline') Deadline
+      input#deadline.form-control(type='date', name='deadline', value=caseDetails.deadline ? (new Date(caseDetails.deadline).toISOString().split('T')[0]) : '')
+      small.form-text.text-muted Clear the deadline when finishing the case.
+    .mb-3
+      label.form-label(for='staff_in_charge') Staff in charge
+      input#staff_in_charge.form-control(type='text', name='staff_in_charge', value=caseDetails.staff_in_charge || '')
+    .mb-3
+      label.form-label(for='tracking') Tracking number (optional)
+      input#tracking.form-control(type='text', name='tracking', value=caseDetails.tracking || '')
+    button.btn.btn-primary(type='submit') Confirm
+    a.btn.btn-link(href=`/ct/case/${caseDetails.id}`) Back to case

@@ -1,0 +1,74 @@
+﻿extends ../layout
+
+block content
+  h1 Create Case
+  p.text-muted Keep things simple: pick a template, fill in the required fields, and submit.
+  form#new-case-form(action='/ct/case', method='post')
+    .mb-3
+      label.form-label(for='template_id') Template
+      select#template_id.form-select(name='template_id')
+        option(value='') -- No template --
+        each template in templates
+          option(value=template.id selected=template.id === selectedTemplate data-defaults=JSON.stringify(template.defaults))= template.name
+      if templates && templates.length
+        small#template_description.form-text Select a template to auto-fill defaults.
+    .row
+      .col-md-6
+        .mb-3
+          label.form-label(for='order') Order number
+          input#order.form-control(type='text', name='order', value=order || '', required, placeholder='9 digit order number')
+        .mb-3
+          label.form-label(for='customer_id') Customer ID
+          input#customer_id.form-control(type='text', name='customer_id', required)
+        .mb-3
+          label.form-label(for='tracking') Tracking number
+          input#tracking.form-control(type='text', name='tracking')
+        .mb-3
+          label.form-label(for='shipping_method') Shipping method
+          select#shipping_method.form-select(name='shipping_method')
+            option(value='') -- Select --
+            each method in metadata.shippingMethods
+              option(value=method)= method
+        .mb-3
+          label.form-label(for='shipped_date') Shipped date
+          input#shipped_date.form-control(type='date', name='shipped_date')
+      .col-md-6
+        .mb-3
+          label.form-label(for='type') Case type
+          select#type.form-select(name='type')
+            option(value='') -- Select --
+            each t in metadata.claimTypes
+              option(value=t)= t
+        .mb-3
+          label.form-label(for='country') Country
+          input#country.form-control(type='text', name='country')
+        .mb-3
+          label.form-label(for='deadline') Deadline
+          input#deadline.form-control(type='date', name='deadline')
+        .mb-3
+          label.form-label(for='staff_in_charge') Staff in charge
+          input#staff_in_charge.form-control(type='text', name='staff_in_charge', value=staff || '')
+        .mb-3
+          label.form-label(for='status') Status
+          select#status.form-select(name='status')
+            each status in metadata.statuses
+              option(value=status)= status
+        .mb-3
+          label.form-label(for='solution') Solution
+          select#solution.form-select(name='solution')
+            option(value='') -- None yet --
+            each solution in metadata.solutions
+              option(value=solution)= solution
+    .mb-3
+      label.form-label(for='initial_comment') Initial note
+      textarea#initial_comment.form-control(name='initial_comment', rows='2', placeholder='Short summary for the case')
+    .mb-3
+      label.form-label(for='items_text') Affected items (one per line, use "ITEMCODE | issue | value")
+      textarea#items_text.form-control(name='items_text', rows='4', placeholder='ABC-123 | arrived broken | 4500')
+      small.form-text.text-muted Optional. Add more later on the case page.
+    input.btn.btn-primary(type='submit', value='Create case')
+    a.btn.btn-link(href='/ct') Cancel
+  if templates && templates.length
+    script.
+      window.caseTemplates = !{JSON.stringify(templates)};
+  script(src='/js/ct/new-case.js')

@@ -1,40 +1,24 @@
-var express = require('express');
-var router = express.Router();
+﻿const express = require('express');
+const router = express.Router();
 
-// Require controller modules.
-var controller = require('../controllers/ctController');
+const controller = require('../controllers/ctController');
 
-router.all('*', controller.all);
+router.get('/', controller.dashboard);
+router.post('/search', controller.search);
 
-/* GET home page. */
-router.get('/', controller.ct);
-router.get('/case/:id', controller.case);
-router.get('/items', controller.item_top);
-router.get('/item/:item_code', controller.item_report);
-router.get('/refunds', controller.refund_top);
-router.post('/process_refunds', controller.refund_process);
-router.get('/audit', controller.view_audit);
-router.get('/image/:filename', controller.get_image);
+router.get('/case/new', controller.newCaseForm);
+router.post('/case', controller.createCase);
+router.get('/case/:id', controller.caseDetail);
+router.post('/case/:id/update', controller.updateCase);
+router.post('/case/:id/comment', controller.addComment);
+router.post('/case/:id/item', controller.upsertItem);
+router.post('/case/:id/item/:itemId/delete', controller.deleteItem);
+router.get('/case/:id/close/:action', controller.confirmClose);
+router.post('/case/:id/close/:action', controller.closeCase);
 
-router.post('/newcase', controller.newcase);
-router.post('/case/:id/comment', controller.comment);
-router.post('/case/:id/ticket', controller.ticket);
-router.post('/case/:id/record', controller.assistant_record);
-router.post('/case/:id/add_item', controller.add_item);
-router.post('/case/:id/add_refund', controller.add_refund);
-router.post('/case/:id/cancel_refund', controller.cancel_refund);
-router.post('/case/:id/take_case', controller.take_case);
-router.post('/case/:id/deadline', controller.deadline);
-router.post('/case/:id/type', controller.type);
-router.post('/case/:id/status', controller.status);
-router.post('/case/:id/solution', controller.solution);
-router.post('/case/:id/cancel_reason', controller.cancel_reason);
-router.get('/case/:id/complete', controller.complete);
-router.get('/case/:id/cancel', controller.cancel);
-router.get('/case/:id/nodeadline', controller.nodeadline);
-router.get('/expire_files', controller.expire_files);
-
-// For resetting database during testing
-router.get('/delete_all', controller.delete_all);
+router.get('/customer/:customerId', controller.customerProfile);
+router.get('/items', controller.itemList);
+router.get('/item/:item_code', controller.itemReport);
+router.get('/audit', controller.viewAudit);
 
 module.exports = router;

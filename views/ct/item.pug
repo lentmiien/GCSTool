@@ -1,30 +1,30 @@
-extends ../layout
+﻿extends ../layout
 
 block content
-  h1= `Claims with item ${itemCode}`
-  a.btn.btn-link(href="/ct") Top 
-  a.btn.btn-link(href="/ct/items") Items Top
-  table.table.table-dark.table-striped 
-    thead 
-      tr 
-        th 
-        th Date 
-        th Defect 
-        th Photo 
-    tbody 
-      each i in items 
-        tr 
-          td
-            a(href=`/ct/case/${i.case_id}`) View case
-          td= ((new Date(i.created_date)).toISOString()).split("T")[0]
-          td= i.defect
-          td
-            if i.file_id
-              if fileMap[i.file_id] === "EXPIRED"
-                i File expired
+  h1 Item #{report.itemCode}
+  a.btn.btn-link(href='/ct/items') Back to list
+  if report.rows && report.rows.length
+    table.table.table-dark.table-striped.mt-3
+      thead
+        tr
+          th Case
+          th Status
+          th Staff
+          th Issue
+          th Value
+          th Recorded
+      tbody
+        each row in report.rows
+          tr
+            td
+              if row.case
+                a(href=`/ct/case/${row.case.id}`)= row.case.order
               else
-                a(href=`/ct/image/${fileMap[i.file_id]}`, target="_blank")
-                  img(style="max-width: 640px;max-height: 480px;", src=`/ct/image/${fileMap[i.file_id]}`, alt=i.defect)
-  //- hr
-  //- pre= JSON.stringify(items, null, 2)
-  //- pre= JSON.stringify(fileMap, null, 2)
+                span.text-muted Unknown case
+            td= row.case ? (row.case.status || '—') : '—'
+            td= row.case ? (row.case.staff_in_charge || '—') : '—'
+            td= row.item.defect || '—'
+            td= row.item.item_cost ? `${row.item.item_cost} JPY` : '—'
+            td= row.item.created_date ? ((new Date(row.item.created_date)).toISOString().split('T')[0]) : '—'
+  else
+    p.text-muted No cases reference this item yet.
