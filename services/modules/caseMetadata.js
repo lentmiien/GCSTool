@@ -11,7 +11,8 @@
 const solutions = [
   'Replacement',
   'Reshipment',
-  'Repair Assistance',
+  'Return For Refund',
+  'Compensation',
   'Information Only',
   'Other',
 ];
@@ -26,6 +27,7 @@ const cancelReasons = [
 const claimTypes = [
   'Defect',
   'Lost in transit',
+  'Damaged in transit',
   'Delivered with missing items',
   'Wrong item shipped',
   'Other',
@@ -36,7 +38,9 @@ const shippingMethods = [
   'EMS',
   'ECMS',
   'Air Parcel',
+  'Air Small Packet',
   'Domestic',
+  'Surface Mail Premium (AIT)',
   'Other',
 ];
 

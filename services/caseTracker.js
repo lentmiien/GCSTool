@@ -4,6 +4,8 @@ const metadata = require('./modules/caseMetadata');
 const { getTodosForCase, getClosureIssues } = require('./modules/todoValidators');
 
 const FINAL_STATUSES = ['Completed', 'Canceled'];
+const DEFECT_SECONDARY_THRESHOLD = 4; // 4th defect case needs second opinion
+const DEFECT_LEADER_THRESHOLD = 7; // >7 defect cases need leader approval
 
 function toDate(value) {
   if (!value) return null;
@@ -19,6 +21,11 @@ function parseInteger(value) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = parseInt(value, 10);
   return Number.isNaN(parsed) ? null : parsed;
+}
+
+function isFinalStatus(status) {
+  if (!status) return false;
+  return FINAL_STATUSES.indexOf(status) !== -1;
 }
 
 function parseItemsFromText(itemsText) {
@@ -142,19 +149,80 @@ class CaseTrackerService {
       return null;
     }
 
-    const [comments, items, audits] = await Promise.all([
+    const [comments, items, audits, tickets, approvals, customerProfile] = await Promise.all([
       ct.Comment.findAll({ where: { case_id: id }, order: [['timestamp', 'ASC']] }),
       ct.Item.findAll({ where: { case_id: id }, order: [['created_date', 'ASC']] }),
       ct.AuditLog.findAll({ where: { case_id: id }, order: [['timestamp', 'DESC']] }),
+      ct.Zendesk.findAll({ where: { case_id: id }, order: [['ticket', 'ASC']] }),
+      ct.CaseApproval.findAll({ where: { case_id: id } }),
+      this.getCustomerProfile(caseEntry.customer_id, { includeCases: false }),
     ]);
 
     const data = caseEntry.toJSON();
     data.comments = comments.map(comment => comment.toJSON());
     data.items = items.map(item => item.toJSON());
     data.audits = audits.map(audit => audit.toJSON());
+    data.tickets = tickets.map(ticket => ticket.toJSON());
+    const approvalRecords = approvals.map(entry => entry.toJSON());
+    data.approvals = approvalRecords;
+
+    data.customerSummary = {
+      totalCases: customerProfile.totalCases,
+      openCases: customerProfile.summary.open,
+      defect: customerProfile.defectCounts,
+    };
+
+    data.approvalStatus = this.computeApprovalStatus(data, approvalRecords, customerProfile);
     data.todos = getTodosForCase(data);
 
     return data;
+  }
+
+  computeApprovalStatus(caseData, approvalRecords, customerProfile) {
+    const type = (caseData.type || '').toLowerCase();
+    const isDefectCaseType = type === 'defect';
+
+    const required = { secondary: false, leader: false };
+    const granted = { secondary: false, leader: false };
+
+    approvalRecords.forEach(record => {
+      if (!record.approval_type) return;
+      const key = record.approval_type.toLowerCase();
+      if (key === 'leader') {
+        granted.leader = true;
+      } else if (key === 'secondary') {
+        granted.secondary = true;
+      }
+    });
+
+    if (isDefectCaseType) {
+      const defectTotal = customerProfile.defectCounts.total || 0;
+      if (defectTotal >= DEFECT_SECONDARY_THRESHOLD) {
+        required.secondary = true;
+      }
+      if (defectTotal > DEFECT_LEADER_THRESHOLD) {
+        required.leader = true;
+      }
+    }
+
+    if (required.leader) {
+      required.secondary = true;
+    }
+
+    const missing = [];
+    if (required.secondary && !granted.secondary) {
+      missing.push('Secondary approval required (second opinion).');
+    }
+    if (required.leader && !granted.leader) {
+      missing.push('Leader/management approval required.');
+    }
+
+    return {
+      required,
+      granted,
+      missing,
+      defectTotal: customerProfile.defectCounts.total || 0,
+    };
   }
 
   async createCase(payload, staff) {
@@ -164,7 +232,7 @@ class CaseTrackerService {
     if (!deadline && template && template.defaults.deadlineDays) {
       const now = new Date();
       const d = new Date(now);
-      d.setDate(d.getDate() + template.defaults.deadlineDays);
+      d.setDate(d.getDate() + Number(template.defaults.deadlineDays));
       deadline = d;
     }
 
@@ -243,16 +311,16 @@ class CaseTrackerService {
         }
       }
 
-      if (caseEntry[field] instanceof Date) {
-        const current = caseEntry[field];
-        const currentTime = current ? current.getTime() : null;
-        const nextTime = value ? value.getTime() : null;
-        if (currentTime !== nextTime) {
-          changes[field] = { before: current, after: value };
+      const currentValue = caseEntry[field];
+      if (currentValue instanceof Date) {
+        const current = currentValue ? currentValue.getTime() : null;
+        const next = value ? value.getTime() : null;
+        if (current !== next) {
+          changes[field] = { before: currentValue, after: value };
           caseEntry[field] = value;
         }
-      } else if (caseEntry[field] !== value) {
-        changes[field] = { before: caseEntry[field], after: value };
+      } else if (currentValue !== value) {
+        changes[field] = { before: currentValue, after: value };
         caseEntry[field] = value;
       }
     }
@@ -279,6 +347,26 @@ class CaseTrackerService {
     const logMessage = action === 'complete' ? 'Closed case as Completed' : 'Closed case as Canceled';
     await this.logAudit(id, staff, logMessage);
     return caseEntry;
+  }
+
+  async addTicket(caseId, ticketNumber, staff) {
+    const ticket = parseInteger(ticketNumber);
+    if (!ticket) {
+      throw new Error('Ticket number must be numeric.');
+    }
+
+    const existing = await ct.Zendesk.findOne({ where: { case_id: caseId, ticket } });
+    if (existing) {
+      return existing.toJSON();
+    }
+
+    const record = await ct.Zendesk.create({
+      case_id: caseId,
+      ticket,
+    });
+
+    await this.logAudit(caseId, staff, 'Linked Zendesk ticket', { ticket });
+    return record.toJSON();
   }
 
   async addComment(caseId, staff, comment) {
@@ -346,26 +434,96 @@ class CaseTrackerService {
     await this.logAudit(caseId, staff, 'Removed item', { item_id: itemId, item_code: item.item_code });
   }
 
-  async getCustomerProfile(customerId) {
+  async getCustomerProfile(customerId, options = {}) {
+    const includeCases = options.includeCases !== false;
     const cases = await ct.Case.findAll({
       where: { customer_id: customerId },
       order: [['started', 'DESC']],
     });
 
     const plainCases = cases.map(entry => entry.toJSON());
+    const insights = this.buildCustomerInsights(plainCases);
 
-    const summary = plainCases.reduce((acc, entry) => {
+    const profile = {
+      customerId,
+      summary: insights.summary,
+      totalCases: insights.totalCases,
+      defectCounts: insights.defectCounts,
+      matrix: insights.matrix,
+    };
+
+    if (includeCases) {
+      profile.cases = plainCases;
+    }
+
+    return profile;
+  }
+
+  buildCustomerInsights(caseList) {
+    const summary = { open: 0, closed: 0, byStatus: {} };
+    const counts = {};
+    const typeOrder = [...this.metadata.claimTypes];
+    const solutionOrder = [...this.metadata.solutions, 'Unset'];
+    let defectTotal = 0;
+    let defectOngoing = 0;
+
+    for (const entry of caseList) {
       const status = entry.status || 'Unknown';
-      acc.byStatus[status] = (acc.byStatus[status] || 0) + 1;
-      if (FINAL_STATUSES.indexOf(status) !== -1) {
-        acc.closed += 1;
+      summary.byStatus[status] = (summary.byStatus[status] || 0) + 1;
+      if (isFinalStatus(status)) {
+        summary.closed += 1;
       } else {
-        acc.open += 1;
+        summary.open += 1;
       }
-      return acc;
-    }, { open: 0, closed: 0, byStatus: {} });
 
-    return { customerId, cases: plainCases, summary };
+      const typeLabel = entry.type || 'Unspecified';
+      const solutionLabel = entry.solution || 'Unset';
+
+      if (!typeOrder.includes(typeLabel)) {
+        typeOrder.push(typeLabel);
+      }
+      if (!solutionOrder.includes(solutionLabel)) {
+        solutionOrder.push(solutionLabel);
+      }
+
+      if (!counts[typeLabel]) {
+        counts[typeLabel] = {};
+      }
+      if (!counts[typeLabel][solutionLabel]) {
+        counts[typeLabel][solutionLabel] = { completed: 0, ongoing: 0 };
+      }
+
+      if (isFinalStatus(status)) {
+        counts[typeLabel][solutionLabel].completed += 1;
+      } else {
+        counts[typeLabel][solutionLabel].ongoing += 1;
+      }
+
+      if ((entry.type || '').toLowerCase() === 'defect') {
+        defectTotal += 1;
+        if (!isFinalStatus(status)) {
+          defectOngoing += 1;
+        }
+      }
+    }
+
+    const rows = typeOrder.map(type => ({
+      type,
+      cells: solutionOrder.map(solution => {
+        const base = counts[type] && counts[type][solution];
+        return base ? { ...base } : { completed: 0, ongoing: 0 };
+      }),
+    }));
+
+    return {
+      summary,
+      totalCases: caseList.length,
+      defectCounts: { total: defectTotal, ongoing: defectOngoing },
+      matrix: {
+        columns: solutionOrder,
+        rows,
+      },
+    };
   }
 
   async getItemSummary() {
@@ -424,6 +582,45 @@ class CaseTrackerService {
     return getClosureIssues(caseData, action);
   }
 
+  async getStaffPrivileges(staff) {
+    if (!staff || staff === 'Guest') {
+      return [];
+    }
+    const rows = await ct.ApproverPrivilege.findAll({ where: { user_id: staff } });
+    return rows.map(row => (row.level || '').toLowerCase());
+  }
+
+  async recordApproval(caseId, approvalType, staff) {
+    const normalized = approvalType === 'leader' ? 'leader' : 'secondary';
+
+    const existing = await ct.CaseApproval.findOne({
+      where: { case_id: caseId, approval_type: normalized },
+    });
+
+    if (existing) {
+      if (existing.approved_by === staff) {
+        return existing.toJSON();
+      }
+      const previous = existing.approved_by;
+      existing.approved_by = staff;
+      await existing.save();
+      await this.logAudit(caseId, staff, `Updated ${normalized} approval`, {
+        approval_type: normalized,
+        previous,
+      });
+      return existing.toJSON();
+    }
+
+    const record = await ct.CaseApproval.create({
+      case_id: caseId,
+      approval_type: normalized,
+      approved_by: staff,
+    });
+
+    await this.logAudit(caseId, staff, `Recorded ${normalized} approval`, { approval_type: normalized });
+    return record.toJSON();
+  }
+
   async logAudit(caseId, staff, action, metadata = {}) {
     await ct.AuditLog.create({
       case_id: caseId,
@@ -435,4 +632,3 @@ class CaseTrackerService {
 }
 
 module.exports = CaseTrackerService;
-

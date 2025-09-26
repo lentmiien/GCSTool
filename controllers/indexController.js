@@ -1,9 +1,9 @@
-const async = require('async');
+﻿const async = require('async');
 const axios = require('axios');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2 } = require('../sequelize');
+const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2, ct } = require('../sequelize');
 
 const timekeeper = [];
 
@@ -191,16 +191,64 @@ exports.about = function (req, res) {
   res.render('about', {});
 };
 
-exports.admin_get = function (req, res) {
+exports.admin_get = async function (req, res) {
   if (req.user.role === 'guest') {
-    res.render('admin', { users: [] });
-  } else {
-    User.findAll().then((users) => {
-      res.render('admin', { users: users });
+    return res.render('admin', { users: [], approverLevels: ['none', 'secondary', 'leader'] });
+  }
+
+  try {
+    const [users, privileges] = await Promise.all([
+      User.findAll({ order: [['userid', 'ASC']] }),
+      ct.ApproverPrivilege.findAll(),
+    ]);
+
+    const privilegeLookup = privileges.reduce((acc, record) => {
+      const userId = record.user_id;
+      if (!acc[userId]) {
+        acc[userId] = record.level;
+      }
+      if (record.level === 'leader') {
+        acc[userId] = 'leader';
+      }
+      return acc;
+    }, {});
+
+    users.forEach((user) => {
+      const level = privilegeLookup[user.userid] || 'none';
+      user.dataValues.approver_level = level;
     });
+
+    res.render('admin', { users, approverLevels: ['none', 'secondary', 'leader'] });
+  } catch (error) {
+    console.error('Failed to load approver privileges:', error);
+    res.render('admin', { users: [], approverLevels: ['none', 'secondary', 'leader'], error: 'Failed to load privileges.' });
   }
 };
 
+exports.update_privilege = async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.redirect('/admin');
+  }
+
+  const userId = (req.body.user_id || '').trim();
+  const requestedLevel = (req.body.level || 'none').toLowerCase();
+  const allowed = ['none', 'secondary', 'leader'];
+
+  if (!userId || allowed.indexOf(requestedLevel) === -1) {
+    return res.redirect('/admin');
+  }
+
+  try {
+    await ct.ApproverPrivilege.destroy({ where: { user_id: userId } });
+    if (requestedLevel !== 'none') {
+      await ct.ApproverPrivilege.create({ user_id: userId, level: requestedLevel });
+    }
+    res.redirect('/admin');
+  } catch (error) {
+    console.error('Failed to update approver privilege:', error);
+    res.redirect('/admin');
+  }
+};
 exports.adduser = (req, res) => {
   if (req.user.role === 'admin') {
     User.create({ userid: req.body.newuserid, password: '', team: req.body.newteam, role: req.body.newrole }).then(() => {
@@ -290,3 +338,5 @@ exports.removeuser = (req, res) => {
     res.render('s_added', { message: 'Only admin staff can remove users...' });
   }
 };
+
+

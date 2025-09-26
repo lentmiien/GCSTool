@@ -36,6 +36,17 @@ function getTodosForCase(caseData) {
     todos.push('Select the planned resolution before closing.');
   }
 
+  if (caseData.approvalStatus) {
+    const required = caseData.approvalStatus.required || {};
+    const granted = caseData.approvalStatus.granted || {};
+    if (required.secondary && !granted.secondary) {
+      todos.push('Secondary approval pending.');
+    }
+    if (required.leader && !granted.leader) {
+      todos.push('Leader approval pending.');
+    }
+  }
+
   return todos;
 }
 
@@ -67,6 +78,10 @@ function getClosureIssues(caseData, action) {
 
   if (deadline && deadline > now) {
     issues.push('Clear the deadline or move it to today before closing.');
+  }
+
+  if (action === 'complete' && caseData.approvalStatus && Array.isArray(caseData.approvalStatus.missing)) {
+    caseData.approvalStatus.missing.forEach(message => issues.push(message));
   }
 
   return issues;

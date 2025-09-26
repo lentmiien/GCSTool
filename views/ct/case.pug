@@ -3,12 +3,21 @@
 block content
   h1 Case #{caseDetails.order}
   a.btn.btn-link(href='/ct') Back to dashboard
+  if success
+    .alert.alert-success Case details updated.
+  if approved
+    .alert.alert-success Approval recorded (#{approved}).
+  if message
+    .alert.alert-warning= message
   if caseDetails.todos && caseDetails.todos.length
     .alert.alert-warning
       strong Attention needed:
       ul.mb-0
         each todo in caseDetails.todos
           li= todo
+  - const approvalStatus = caseDetails.approvalStatus || { required: {}, granted: {}, missing: [] }
+  - const canApproveSecondary = staffPrivileges && (staffPrivileges.indexOf('secondary') !== -1 || staffPrivileges.indexOf('leader') !== -1)
+  - const canApproveLeader = staffPrivileges && staffPrivileges.indexOf('leader') !== -1
   .row.mt-3
     .col-md-6
       h2 Overview
@@ -36,7 +45,11 @@ block content
           td= caseDetails.shipping_method || '—'
         tr
           th Customer
-          td= caseDetails.customer_id || '—'
+          td
+            if caseDetails.customer_id
+              a(href=`/ct/customer/${encodeURIComponent(caseDetails.customer_id)}`)= caseDetails.customer_id
+            else
+              span —
         tr
           th Country
           td= caseDetails.country || '—'
@@ -46,6 +59,18 @@ block content
         tr
           th Ended
           td= caseDetails.ended ? ((new Date(caseDetails.ended)).toISOString().split('T')[0]) : '—'
+        tr
+          th Customer cases
+          td
+            if caseDetails.customerSummary
+              - const summary = caseDetails.customerSummary
+              | #{summary.totalCases} total (open #{summary.openCases})
+              if summary.defect
+                | , defects #{summary.defect.total}
+                if summary.defect.ongoing
+                  |  (+#{summary.defect.ongoing} open)
+            else
+              span —
     .col-md-6
       h2 Update case
       form(action=`/ct/case/${caseDetails.id}/update`, method='post')
@@ -91,7 +116,60 @@ block content
             each reason in metadata.cancelReasons
               option(value=reason selected=caseDetails.cancel_reason === reason)= reason
         button.btn.btn-primary(type='submit') Save changes
-  hr
+  if approvalStatus.missing && approvalStatus.missing.length
+    .alert.alert-danger
+      strong Approval required:
+      ul.mb-0
+        each item in approvalStatus.missing
+          li= item
+  if (caseDetails.approvals && caseDetails.approvals.length) || (approvalStatus.required.secondary || approvalStatus.required.leader)
+    h2 Approvals
+    if caseDetails.approvals && caseDetails.approvals.length
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th Type
+            th Approved by
+            th Timestamp
+        tbody
+          each approval in caseDetails.approvals
+            tr
+              td= approval.approval_type
+              td= approval.approved_by || '—'
+              td= approval.updatedAt ? (new Date(approval.updatedAt).toISOString().split('T')[0]) : '—'
+    if approvalStatus.required.secondary && !approvalStatus.granted.secondary
+      if canApproveSecondary
+        form.d-inline(action=`/ct/case/${caseDetails.id}/approve`, method='post', class='me-3')
+          input(type='hidden', name='approval_type', value='secondary')
+          button.btn.btn-warning(type='submit') Record secondary approval
+      else
+        p.text-muted Secondary approval pending — approver required.
+    if approvalStatus.required.leader && !approvalStatus.granted.leader
+      if canApproveLeader
+        form.d-inline(action=`/ct/case/${caseDetails.id}/approve`, method='post')
+          input(type='hidden', name='approval_type', value='leader')
+          button.btn.btn-danger(type='submit') Record leader approval
+      else
+        p.text-muted Leader approval pending — management only.
+  h2 Zendesk
+  if caseDetails.tickets && caseDetails.tickets.length
+    table.table.table-dark.table-striped
+      thead
+        tr
+          th Ticket
+          th Added
+      tbody
+        each ticket in caseDetails.tickets
+          tr
+            td
+              a(href=`https://ohami.zendesk.com/agent/tickets/${ticket.ticket}`, target='_blank')= ticket.ticket
+            td= ticket.createdAt ? (new Date(ticket.createdAt).toISOString().split('T')[0]) : '—'
+  else
+    p.text-muted No Zendesk tickets linked yet.
+  form(action=`/ct/case/${caseDetails.id}/ticket`, method='post', class='mb-4')
+    .input-group
+      input.form-control(type='number', name='ticket', placeholder='Zendesk ticket number', required)
+      button.btn.btn-outline-primary(type='submit') Link ticket
   h2 Items
   if caseDetails.items && caseDetails.items.length
     table.table.table-dark.table-striped
@@ -104,7 +182,11 @@ block content
       tbody
         each item in caseDetails.items
           tr
-            td= item.item_code
+            td
+              if item.item_code
+                a(href=`/ct/item/${encodeURIComponent(item.item_code)}`)= item.item_code
+              else
+                span —
             td= item.defect || '—'
             td= item.item_cost ? `${item.item_cost} JPY` : '—'
             td.text-end
@@ -129,32 +211,42 @@ block content
     .mt-2
       button.btn.btn-secondary(type='submit') Save item
       button#item-reset.btn.btn-link(type='button') Clear form
-  hr
   h2 Comments
   if caseDetails.comments && caseDetails.comments.length
-    ul.list-group.mb-3
-      each comment in caseDetails.comments
-        li.list-group-item
-          small.text-muted #{comment.staff} on #{(new Date(comment.timestamp)).toISOString().split('T')[0]}
-          p.mb-0(style="color:black;")= comment.comment
+    table.table.table-dark.table-striped
+      thead
+        tr
+          th Staff
+          th Date
+          th Comment
+      tbody
+        each comment in caseDetails.comments
+          tr
+            td= comment.staff || '—'
+            td= comment.timestamp ? (new Date(comment.timestamp)).toISOString().split('T')[0] : '—'
+            td= comment.comment
   else
     p.text-muted No comments yet.
-  form(action=`/ct/case/${caseDetails.id}/comment`, method='post')
+  form(action=`/ct/case/${caseDetails.id}/comment`, method='post', class='mb-4')
     .input-group
       input.form-control(type='text', name='comment', placeholder='Add a note', required)
       button.btn.btn-primary(type='submit') Post
-  hr
   h2 Activity log
   if caseDetails.audits && caseDetails.audits.length
-    ul.list-unstyled
-      each entry in caseDetails.audits
-        li.mb-2
-          small.text-muted #{entry.staff} on #{(new Date(entry.timestamp)).toISOString().split('T')[0]}
-          br
-          span= entry.log
+    table.table.table-dark.table-striped
+      thead
+        tr
+          th Staff
+          th Date
+          th Entry
+      tbody
+        each entry in caseDetails.audits
+          tr
+            td= entry.staff || '—'
+            td= entry.timestamp ? (new Date(entry.timestamp)).toISOString().split('T')[0] : '—'
+            td= entry.log
   else
     p.text-muted No recent activity logged.
-  hr
   h2 Close case
   a.btn.btn-success.me-2(href=`/ct/case/${caseDetails.id}/close/complete`) Complete case
   a.btn.btn-outline-danger(href=`/ct/case/${caseDetails.id}/close/cancel`) Cancel case

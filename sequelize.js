@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize');
+﻿const Sequelize = require('sequelize');
 // Load models: GCS Tool
 const EntryModel = require('./models/entry');
 const ContentModel = require('./models/content');
@@ -32,6 +32,8 @@ const ItemModel = require('./models/ct/ctItem');
 const AssistantRecordModel = require('./models/ct/ctAssistantRecord');
 const FileModel = require('./models/ct/ctFile');
 const RefundModel = require('./models/ct/ctRefund');
+const CaseApprovalModel = require('./models/ct/ctCaseApproval');
+const ApproverPrivilegeModel = require('./models/ct/ctApproverPrivilege');
 const CTAuditLogModel = require('./models/ct/ctAuditLog');
 const CTZendeskModel = require('./models/ct/ctZendesk');
 // Policy/Manual/Template
@@ -86,6 +88,8 @@ const Item = ItemModel(sequelize, Sequelize);
 const AssistantRecord = AssistantRecordModel(sequelize, Sequelize);
 const File = FileModel(sequelize, Sequelize);
 const Refund = RefundModel(sequelize, Sequelize);
+const CaseApproval = CaseApprovalModel(sequelize, Sequelize);
+const ApproverPrivilege = ApproverPrivilegeModel(sequelize, Sequelize);
 const CTAuditLog = CTAuditLogModel(sequelize, Sequelize);
 const Zendesk = CTZendeskModel(sequelize, Sequelize);
 // Policy/Manual/Template
@@ -145,6 +149,8 @@ module.exports = {
     AssistantRecord,
     File,
     Refund,
+    CaseApproval,
+    ApproverPrivilege,
     AuditLog: CTAuditLog,
     Zendesk,
   },
@@ -158,3 +164,4 @@ module.exports = {
   fn,
   literal,
 };
+

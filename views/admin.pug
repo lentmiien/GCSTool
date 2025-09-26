@@ -1,7 +1,10 @@
-extends layout
+﻿extends layout
 
 block content
     h1(lg_language='_users_')
+    if error
+      .alert.alert-danger= error
+    - const levelLabels = { none: 'None', secondary: 'Secondary approver', leader: 'Leader approver' }
     table.table.table-dark
         thead
             tr
@@ -9,6 +12,7 @@ block content
                 th Password
                 th Team
                 th Role
+                th CT privilege
                 th Action
         tbody
             each u in users
@@ -18,7 +22,7 @@ block content
                             i= u.userid
                         else
                             .input-group
-                                input.form-control(id=`name_${u.id}`, type="text", value=u.userid)
+                                input.form-control(id=`name_${u.id}`, type='text', value=u.userid)
                                 .input-group-append
                                     button.btn.btn-outline-warning(onclick=`UpdateName("${u.id}")`) Update
                     td
@@ -56,17 +60,28 @@ block content
                         else if u.userid != 'Lennart'
                             button.btn.btn-outline-warning(onclick=`MakeUser(${u.id}, this)`) → user
                     td
-                        if u.userid != "Lennart"
-                            a.btn.btn-outline-danger(href="/removeuser/"+u.id) Remove
+                        - const al = JSON.parse(JSON.stringify(u)).approver_level
+                        form(action='/admin/approver_privilege', method='post', class='form-inline')
+                            input(type='hidden', name='user_id', value=u.userid)
+                            select.form-control(name='level')
+                                each level in approverLevels || ['none', 'secondary', 'leader']
+                                    if al == level
+                                        option(value=level, selected)= levelLabels[level] || level
+                                    else
+                                        option(value=level)= levelLabels[level] || level
+                            button.btn.btn-outline-primary(type='submit') Save
+                    td
+                        if u.userid != 'Lennart'
+                            a.btn.btn-outline-danger(href='/removeuser/'+u.id) Remove
                         else
                             i.text-danger *Deletes user private data aswell
-            form(action="/adduser", method="post")
+            form(action='/adduser', method='post')
                 tr
                     td
                         .input-group
                             .input-group-prepend
                                 span.input-group-text User ID
-                            input#newuserid.form-control(type="text", name="newuserid")
+                            input#newuserid.form-control(type='text', name='newuserid')
                     td NOT SET
                     td
                         .input-group
@@ -81,9 +96,12 @@ block content
                         .input-group
                             .input-group-prepend
                                 span.input-group-text Role
-                            select#newrole.form-control(name="newrole")
-                                option(value="user") User
-                                option(value="admin") Admin
+                            select#newrole.form-control(name='newrole')
+                                option(value='user') User
+                                option(value='admin') Admin
                     td
-                        button.btn.btn-outline-success(type="submit") Add user
-    script(src="/javascripts/admin_controller.js")
+                        i.text-muted Set after creation
+                    td
+                        button.btn.btn-outline-success(type='submit') Add user
+    script(src='/javascripts/admin_controller.js')
+

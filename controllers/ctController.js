@@ -82,16 +82,35 @@ exports.createCase = async (req, res, next) => {
 exports.caseDetail = async (req, res, next) => {
   try {
     const caseId = parseInt(req.params.id, 10);
-    const caseDetails = await caseTracker.getCase(caseId);
+    const staff = getStaff(req);
+    const [caseDetails, staffPrivileges] = await Promise.all([
+      caseTracker.getCase(caseId),
+      caseTracker.getStaffPrivileges(staff),
+    ]);
     if (!caseDetails) {
       return res.status(404).render('error', { message: 'Case not found' });
     }
 
     const viewModel = baseViewModel({
       caseDetails,
+      staff,
+      staffPrivileges,
       success: req.query.updated,
+      approved: req.query.approved,
+      message: req.query.message,
     });
     res.render('ct/case', viewModel);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.addTicket = async (req, res, next) => {
+  try {
+    const caseId = parseInt(req.params.id, 10);
+    const staff = getStaff(req);
+    await caseTracker.addTicket(caseId, req.body.ticket, staff);
+    res.redirect(`/ct/case/${caseId}`);
   } catch (error) {
     next(error);
   }
@@ -148,6 +167,23 @@ exports.deleteItem = async (req, res, next) => {
   }
 };
 
+exports.approveCase = async (req, res, next) => {
+  try {
+    const caseId = parseInt(req.params.id, 10);
+    const staff = getStaff(req);
+    const approvalType = req.body.approval_type === 'leader' ? 'leader' : 'secondary';
+    const privileges = await caseTracker.getStaffPrivileges(staff);
+    const canApprove = privileges.includes(approvalType) || (approvalType === 'secondary' && privileges.includes('leader'));
+    if (!canApprove) {
+      return res.redirect(`/ct/case/${caseId}?message=${encodeURIComponent('You do not have permission to record that approval.')}`);
+    }
+    await caseTracker.recordApproval(caseId, approvalType, staff);
+    res.redirect(`/ct/case/${caseId}?approved=${approvalType}`);
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.confirmClose = async (req, res, next) => {
   try {
     const caseId = parseInt(req.params.id, 10);
@@ -184,7 +220,7 @@ exports.closeCase = async (req, res, next) => {
 
     await caseTracker.updateCase(caseId, updates, staff);
     const updatedCase = await caseTracker.getCase(caseId);
-    const issues = caseTracker.getClosureIssues(updatedCase, action);
+    let issues = caseTracker.getClosureIssues(updatedCase, action);
 
     if (issues.length > 0) {
       const viewModel = baseViewModel({
@@ -207,7 +243,7 @@ exports.customerProfile = async (req, res, next) => {
   try {
     const customerId = req.params.customerId;
     const profile = await caseTracker.getCustomerProfile(customerId);
-    if (!profile.cases.length) {
+    if (!profile.cases || !profile.cases.length) {
       return res.redirect('/ct?message=' + encodeURIComponent('No cases found for that customer ID.'));
     }
     const viewModel = baseViewModel({ profile });

@@ -5,11 +5,31 @@ block content
   a.btn.btn-link(href='/ct') Back to dashboard
   .mt-3
     h2 Summary
-    p Open cases: #{profile.summary.open} | Closed cases: #{profile.summary.closed}
-    if Object.keys(profile.summary.byStatus).length
+    if profile.totalCases
+      p Cases: #{profile.totalCases} (open #{profile.summary.open}, closed #{profile.summary.closed})
+      if profile.defectCounts
+        p Defect claims: #{profile.defectCounts.total} total#{profile.defectCounts.ongoing ? ` (+${profile.defectCounts.ongoing} open)` : ''}
+    else
+      p.text-muted No cases recorded for this customer.
+    if Object.keys(profile.summary.byStatus || {}).length
       ul
         each val, key in profile.summary.byStatus
           li #{key}: #{val}
+  if profile.matrix && profile.matrix.rows && profile.matrix.rows.length
+    h2 Type vs. Solution
+    table.table.table-dark.table-striped
+      thead
+        tr
+          th Type
+          each col in profile.matrix.columns
+            th= col
+      tbody
+        each row in profile.matrix.rows
+          tr
+            td= row.type
+            each cell in row.cells
+              - const display = cell.completed || cell.ongoing ? `${cell.completed}${cell.ongoing ? ` (+${cell.ongoing})` : ''}` : '—'
+              td= display
   hr
   h2 Cases
   if profile.cases && profile.cases.length

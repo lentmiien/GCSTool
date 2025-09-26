@@ -1,4 +1,4 @@
-var express = require('express');
+﻿var express = require('express');
 var router = express.Router();
 
 // Require controller modules.
@@ -16,6 +16,7 @@ router.get('/about', index_controller.about);
 router.get('/admin', index_controller.admin_get);
 
 router.post('/adduser', index_controller.adduser);
+router.post('/admin/approver_privilege', index_controller.update_privilege);
 
 router.get('/change_name/:id/:name', index_controller.change_name);
 router.get('/reset_password/:id', index_controller.reset_password);
