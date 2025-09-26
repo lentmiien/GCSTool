@@ -629,6 +629,20 @@ class CaseTrackerService {
       metadata: JSON.stringify(metadata),
     });
   }
+
+  // Delete database content (intended for clearing testing data only, during testing period)
+  async deleteTestData() {
+    await ct.Case.destroy({ where: {}, truncate: true });
+    await ct.ProcessedBy.destroy({ where: {}, truncate: true });
+    await ct.Comment.destroy({ where: {}, truncate: true });
+    await ct.Item.destroy({ where: {}, truncate: true });
+    await ct.AssistantRecord.destroy({ where: {}, truncate: true });
+    await ct.File.destroy({ where: {}, truncate: true });
+    await ct.Refund.destroy({ where: {}, truncate: true });
+    await ct.CaseApproval.destroy({ where: {}, truncate: true });
+    await ct.AuditLog.destroy({ where: {}, truncate: true });
+    await ct.Zendesk.destroy({ where: {}, truncate: true });
+  }
 }
 
 module.exports = CaseTrackerService;

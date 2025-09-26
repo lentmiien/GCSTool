@@ -283,3 +283,13 @@ exports.viewAudit = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteall = async (req, res) => {
+  try {
+    await caseTracker.deleteTestData();
+    res.redirect('/ct');
+  } catch (error) {
+    console.log(error);
+    res.redirect('/ct');
+  }
+};

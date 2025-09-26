@@ -23,4 +23,6 @@ router.get('/items', controller.itemList);
 router.get('/item/:item_code', controller.itemReport);
 router.get('/audit', controller.viewAudit);
 
+router.get('/deleteall', controller.deleteall);
+
 module.exports = router;
