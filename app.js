@@ -26,6 +26,7 @@ var formRouter = require('./routes/form');
 const chatgptRouter = require('./routes/chatgpt');
 const ctRouter = require('./routes/ct');
 const pmtRouter = require('./routes/pmt');
+const imagePdfRouter = require('./routes/imagePdf');
 
 var app = express();
 
@@ -99,6 +100,7 @@ app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);
 app.use('/ct', requireAuthenticated, ctRouter);
 app.use('/pmt', requireAuthenticated, pmtRouter);
+app.use('/image-pdf', requireAuthenticated, imagePdfRouter);
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;
