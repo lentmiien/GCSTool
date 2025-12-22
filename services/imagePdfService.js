@@ -1,6 +1,6 @@
 const csv = require('csvtojson');
 const axios = require('axios');
-const sharp = require('sharp');
+const Jimp = require('jimp');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 
 const PRODUCT_DETAILS_URL = 'https://my.lentmiien.com/api/productDetails';
@@ -334,17 +334,23 @@ async function fetchAndProcessImage(url, maxWidth, maxHeight) {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 15000 });
     const imageBuffer = Buffer.from(response.data);
-    const resized = await sharp(imageBuffer)
-      .resize({
-        width: Math.floor(maxWidth),
-        height: Math.floor(maxHeight),
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .jpeg({ quality: 90 })
-      .toBuffer();
+    const image = await Jimp.read(imageBuffer);
 
-    return resized;
+    const { width, height } = image.bitmap;
+    if (!width || !height) {
+      return FALLBACK_IMAGE_TEXT.error;
+    }
+
+    const widthScale = maxWidth > 0 ? maxWidth / width : 1;
+    const heightScale = maxHeight > 0 ? maxHeight / height : 1;
+    const scale = Math.min(1, widthScale, heightScale);
+
+    if (scale > 0 && scale < 1) {
+      image.scale(scale);
+    }
+
+    image.quality(90);
+    return await image.getBufferAsync(Jimp.MIME_JPEG);
   } catch (error) {
     return FALLBACK_IMAGE_TEXT.error;
   }
