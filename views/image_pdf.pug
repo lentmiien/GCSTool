@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  .container.mt-4
+    h1.mb-3 Image Grid PDF
+    p.text-muted Upload a CSV with item details; descriptions are generated via the product details API.
+    ul.small.text-muted
+      li Regular items (columns 1-7): code, image URL, name, specs, content, description, cost.
+      li Leave one empty row, then add bonus items (columns 1-3): code + "bonus item", image URL, bonus title. Bonus rows skip the API.
+    if error
+      .alert.alert-danger(role="alert")= error
+    form(action="/image-pdf/generate", method="post", encType="multipart/form-data")
+      .mb-3
+        label.form-label(for="csvFile") CSV file
+        input#csvFile.form-control(type="file", name="csvFile", accept=".csv,text/csv", required, aria-describedby="csvFileHelp")
+        div#csvFileHelp.form-text The PDF will reuse the CSV filename.
+      button.btn.btn-primary(type="submit") Generate PDF
