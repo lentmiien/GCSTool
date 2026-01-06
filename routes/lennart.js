@@ -9,6 +9,8 @@ router.all('*', controller.all);
 
 /* GET landing page. */
 router.get('/', controller.index);
+router.get('/zpl', controller.zpl);
+router.post('/zpl', controller.convertZpl);
 
 router.post('/updateait', controller.updateait);
 

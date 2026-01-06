@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  .row
+    .col-md-6
+      h1 ZPL to Image
+      p Upload a ZPL file to generate PNG previews for each label. Images are stored temporarily and cleared daily.
+      if error
+        .alert.alert-danger= error
+      form(method='post', action='/lennart/zpl', enctype='multipart/form-data')
+        .form-group
+          label(for='zplFile') ZPL file
+          input#zplFile.form-control-file(type='file', name='zplFile', accept='.zpl,.txt', required)
+        button.btn.btn-primary.mt-2(type='submit') Convert to images
+    .col-md-6
+      h2 Results
+      if images && images.length > 0
+        .row
+          each image, idx in images
+            .col-md-6.mb-3
+              img.img-fluid.border(src=image, alt=`Label preview ${idx + 1}`)
+      else
+        p.text-muted No images generated yet. Upload a ZPL file to see the preview.

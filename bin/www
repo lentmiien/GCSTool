@@ -8,6 +8,7 @@ require('dotenv').config();
 var {app, sessionMiddleware} = require('../app');
 var debug = require('debug')('gcstool:server');
 var http = require('http');
+const { startTmpCleanup } = require('../utils/tmpCleaner');
 
 /**
  * Get port from environment and store in Express.
@@ -21,6 +22,8 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+startTmpCleanup();
 
 /**
  * Setup socket.io
