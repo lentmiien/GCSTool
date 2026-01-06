@@ -24,6 +24,11 @@ const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
 const TrackingModel = require('./models/tracking');
+const Trackhist0Model = require('./models/trackhist0');
+const Trackhist1Model = require('./models/trackhist1');
+const Trackhist2Model = require('./models/trackhist2');
+const Trackhist3Model = require('./models/trackhist3');
+const Trackhist4Model = require('./models/trackhist4');
 // Case tracker
 const CaseModel = require('./models/ct/ctCase');
 const ProcessedByModel = require('./models/ct/ctProcessedBy');
@@ -80,6 +85,11 @@ const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize)
 const Country = CountryModel(sequelize_tracker, Sequelize);
 const Countrylist = CountrylistModel(sequelize_tracker, Sequelize);
 const Tracking = TrackingModel(sequelize_tracker, Sequelize);
+const Trackhist0 = Trackhist0Model(sequelize_tracker, Sequelize);
+const Trackhist1 = Trackhist1Model(sequelize_tracker, Sequelize);
+const Trackhist2 = Trackhist2Model(sequelize_tracker, Sequelize);
+const Trackhist3 = Trackhist3Model(sequelize_tracker, Sequelize);
+const Trackhist4 = Trackhist4Model(sequelize_tracker, Sequelize);
 // Case tracker
 const Case = CaseModel(sequelize, Sequelize);
 const ProcessedBy = ProcessedByModel(sequelize, Sequelize);
@@ -141,6 +151,13 @@ module.exports = {
   Country,
   Countrylist,
   Tracking,
+  Trackhist: {
+    0: Trackhist0,
+    1: Trackhist1,
+    2: Trackhist2,
+    3: Trackhist3,
+    4: Trackhist4,
+  },
   ct: {
     Case,
     ProcessedBy,

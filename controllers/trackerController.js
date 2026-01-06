@@ -12,7 +12,7 @@
 // Require used packages
 
 // Require necessary database models
-const { InternalCountryList, Tracking } = require('../sequelize');
+const { InternalCountryList, Tracking, Trackhist } = require('../sequelize');
 
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
@@ -63,18 +63,22 @@ exports.getdata = (req, res) => {
     Tracking.findAll({where:{tracking:tracking_numbers}}).then(response => {
       database_cache[user_id].list = [];
       response.forEach(entry => {
-        database_cache[user_id].list.push({
-          tracking: entry.tracking,
-          carrier: entry.carrier,
-          country: entry.country,
-          addeddate: entry.addeddate,
-          lastchecked: entry.lastchecked,
-          status: entry.status,
-          shippeddate: entry.shippeddate,
-          delivereddate: entry.delivereddate,
-          delivered: entry.delivered,
-          data: entry.data,
-          grouplabel: entry.grouplabel
+        // Fetch `data`
+        const num = (Math.floor(entry.shippeddate / 10000))%5;
+        Trackhist[num].findAll({where: {tracking: entry.tracking}}).then(data => {
+          database_cache[user_id].list.push({
+            tracking: entry.tracking,
+            carrier: entry.carrier,
+            country: entry.country,
+            addeddate: entry.addeddate,
+            lastchecked: entry.lastchecked,
+            status: entry.status,
+            shippeddate: entry.shippeddate,
+            delivereddate: entry.delivereddate,
+            delivered: entry.delivered,
+            data: data[0].data.length > 20 ? JSON.parse(data[0].data) : [],
+            grouplabel: entry.grouplabel
+          });
         });
       });
       database_cache[user_id].status = "Ok";
