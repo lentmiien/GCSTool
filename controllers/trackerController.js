@@ -73,7 +73,7 @@ exports.getdata = (req, res) => {
           shippeddate: entry.shippeddate,
           delivereddate: entry.delivereddate,
           delivered: entry.delivered,
-          data: entry.data.length > 0 ? JSON.parse(entry.data): [],
+          data: entry.data,
           grouplabel: entry.grouplabel
         });
       });
