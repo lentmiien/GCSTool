@@ -2,6 +2,8 @@
 const AIT_UPDATES_CONTENT_ID = parseInt(process.env.AIT_UPDATES_CONTENT_ID);
 const path = require('path');
 const fs = require('fs');
+const { webcrypto } = require('node:crypto');
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 const { ready } = require('zpl-renderer-js');
 
 // Require necessary database models
