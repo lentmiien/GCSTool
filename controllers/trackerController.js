@@ -76,7 +76,7 @@ exports.getdata = (req, res) => {
             shippeddate: entry.shippeddate,
             delivereddate: entry.delivereddate,
             delivered: entry.delivered,
-            data: data[0].data.length > 20 ? JSON.parse(data[0].data) : [],
+            data: data.length > 0 ? (data[0].data.length > 20 ? JSON.parse(data[0].data) : []) : [],
             grouplabel: entry.grouplabel
           });
         });
