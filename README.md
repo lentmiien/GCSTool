@@ -21,6 +21,13 @@ GCS Tool is the internal platform used by the Oh-ami Global Customer Support tea
 - Node.js 16.20.2 (match the `.nvmrc` / `package.json` `engines`)
 - MySQL 8+ (or compatible) with two schemas: `DB_NAME_GCS` and `DB_NAME_TRACK`
 - A `.env` file based on `env_sample`
+## Database seed script
+- Copy `env_sample` to `.env` and fill in the required DB variables.
+- Optional: override defaults for the initial admin with `SEED_ADMIN_USER`, `SEED_ADMIN_PASS`, `SEED_ADMIN_NAME`, and `SEED_ADMIN_TEAM` (defaults: admin / changeme / same as user id / gcs).
+- Run `npm run seed` to sync the databases and create the first user, matching username display entry, and scheduler staff record if they do not exist.
+
+## Handled data
+- Templates
 
 ## Getting Started
 1. **Clone and install**
