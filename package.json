@@ -7,7 +7,9 @@
     "name": "Lennart Granstrom"
   },
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "seed": "node ./scripts/seed.js",
+    "codex-commit": "codex exec \"Please help me draft a git commit message for the pending changes.\""
   },
   "engines": {
     "node": "16.20.2"
@@ -40,5 +42,8 @@
     "sequelize": "^6.30.0",
     "socket.io": "^4.6.1",
     "xml2js": "^0.6.0"
+  },
+  "volta": {
+    "node": "16.20.2"
   }
 }

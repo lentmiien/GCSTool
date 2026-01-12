@@ -18,6 +18,11 @@ Besides the PUG(HTML)/CSS/JavaScript files, the tool additionally loads personal
 - `staff`: Staff members for scheduler, schedule data is stored in separate table
 - `user`: Users of the tool, only users registered in this table can access the data in the tool
 
+## Database seed script
+- Copy `env_sample` to `.env` and fill in the required DB variables.
+- Optional: override defaults for the initial admin with `SEED_ADMIN_USER`, `SEED_ADMIN_PASS`, `SEED_ADMIN_NAME`, and `SEED_ADMIN_TEAM` (defaults: admin / changeme / same as user id / gcs).
+- Run `npm run seed` to sync the databases and create the first user, matching username display entry, and scheduler staff record if they do not exist.
+
 ## Handled data
 - Templates
 

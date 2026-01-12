@@ -104,6 +104,8 @@ sequelize_tracker.sync().then(() => {
 
 // Export models
 module.exports = {
+  sequelize,
+  sequelize_tracker,
   Entry,
   Content,
   Staff,
