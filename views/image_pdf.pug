@@ -14,4 +14,7 @@ block content
         label.form-label(for="csvFile") CSV file
         input#csvFile.form-control(type="file", name="csvFile", accept=".csv,text/csv", required, aria-describedby="csvFileHelp")
         div#csvFileHelp.form-text The PDF will reuse the CSV filename.
+      button.btn.btn-outline-secondary.mr-2(type="button", onclick="DownloadSampleCsv()") Download sample CSV
       button.btn.btn-primary(type="submit") Generate PDF
+    script(src='/javascripts/FileSaver.js', defer)
+    script(src='/js/image_pdf.js', defer)
