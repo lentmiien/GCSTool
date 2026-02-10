@@ -268,7 +268,7 @@ exports.generate = async (req, res) => {
  * - display output and repeat until done
  * Note: the context or message should request for response in JSON format
  */
-let lastProcessed = new Date(0);
+let lastProcessed = new Date(Date.now() - (1000*60*60*24*14));
 exports.language_tools = (req, res) => {
   res.render('language_tools', {lastProcessed});
 };
