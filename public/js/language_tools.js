@@ -229,7 +229,7 @@ async function Process() {
       JSON_data.forEach(d => {
         const index = batch_lookup.indexOf(d.id);
         if (index >= 0) {
-          batch[index]["short_name"] = d.short_name;
+          batch[index]["short_name"] = d.short_name.split(',').join('').slice(0, parseInt(length));
         }
       });
 
