@@ -203,6 +203,11 @@ exports.index_v2 = (req, res) => {
   });
 };
 
+// Ireland CSV editor (client-side)
+exports.ireland_editor = (req, res) => {
+  res.render('hs_ireland_editor');
+};
+
 // Manual editor
 exports.manual_edit = (req, res) => {
   HSCodeList.findAll().then(entries => {

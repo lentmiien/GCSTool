@@ -145,3 +145,54 @@ td {
 /*._other_ {
 	background-color: #FF6699;
 }*/
+
+/* Ireland CSV editor (dark mode) */
+.ie-editor {
+  background-color: #1b1b1b;
+  color: #e6e6e6;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #2b2b2b;
+}
+
+.ie-editor label {
+  color: #d8d8d8;
+}
+
+.ie-dark-input {
+  background-color: #2b2b2b;
+  color: #f1f1f1;
+  border-color: #444;
+}
+
+.ie-dark-input:focus {
+  background-color: #2b2b2b;
+  color: #ffffff;
+  border-color: #6ca0ff;
+  box-shadow: 0 0 0 0.2rem rgba(108, 160, 255, 0.25);
+}
+
+.ie-dark-muted {
+  color: #b8b8b8;
+}
+
+.ie-editor-card {
+  background-color: #202020;
+  border-color: #333;
+}
+
+.ie-editor-card-header {
+  background-color: #252525;
+  color: #f1f1f1;
+  border-bottom: 1px solid #333;
+}
+
+.ie-editor-card-body {
+  background-color: #1f1f1f;
+}
+
+.ie-editor-warning {
+  background-color: #4a3d00;
+  border-color: #6b5a00;
+  color: #ffe38f;
+}

@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  .ie-editor
+    h1 Ireland CSV editor
+    p Upload a CSV to edit Ireland (IE) rows only. All processing stays in the browser.
+    p Columns edited: product name (col 26, 32, 38...) and HS code (col 30, 36, 42...).
+    input#inputfile.form-control.ie-dark-input(type='file', name='inputfile', accept='.csv')
+    p#file-status.ie-dark-muted.mt-2
+
+    div#ie-rows.mt-3
+
+    button#export-btn.btn.btn-primary(type='button', disabled) Export CSV
+
+  script(src='/javascripts/FileSaver.js', defer)
+  script(src='/javascripts/hs_ie_csv_editor.js', defer)
