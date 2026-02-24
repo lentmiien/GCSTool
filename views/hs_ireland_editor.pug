@@ -4,7 +4,9 @@ block content
   .ie-editor
     h1 Ireland CSV editor
     p Upload a CSV to edit Ireland (IE) rows only. All processing stays in the browser.
-    p Columns edited: product name (col 26, 32, 38...) and HS code (col 30, 36, 42...).
+    p Columns edited depend on CSV type.
+    p Japan Post: product name (col 26, 32, 38...) and HS code (col 30, 36, 42...).
+    p DHL: product name (col 18) and HS code (col 30).
     input#inputfile.form-control.ie-dark-input(type='file', name='inputfile', accept='.csv')
     p#file-status.ie-dark-muted.mt-2
 
