@@ -6,8 +6,10 @@
 
   let rows = [];
   let rowDelimiter = '\r\n';
+  let fieldDelimiter = ',';
   let fileName = '';
   let csvType = 'japanPost';
+  let hasQuotedFields = false;
 
   const setStatus = (text) => {
     statusEl.textContent = text || '';
@@ -16,6 +18,9 @@
   const detectRowDelimiter = (text) => {
     if (text.indexOf('\r\n') !== -1) {
       return '\r\n';
+    }
+    if (text.indexOf('\r') !== -1) {
+      return '\r';
     }
     if (text.indexOf('\n') !== -1) {
       return '\n';
@@ -26,7 +31,10 @@
   const resetState = () => {
     rows = [];
     rowDelimiter = '\r\n';
+    fieldDelimiter = ',';
     fileName = '';
+    csvType = 'japanPost';
+    hasQuotedFields = false;
     rowsContainer.innerHTML = '';
     exportBtn.disabled = true;
     setStatus('');
@@ -35,11 +43,17 @@
   const parseCsv = (text) => {
     rowDelimiter = detectRowDelimiter(text);
     const lines = text.split(rowDelimiter);
-    csvType = detectCsvType(lines);
+    const format = detectCsvType(lines);
+    csvType = format.type;
+    fieldDelimiter = format.delimiter;
+    hasQuotedFields = format.quoted;
     rows = lines.map(line => (line.length ? parseCsvLine(line) : []));
   };
 
   const parseCsvLine = (line) => {
+    if (!hasQuotedFields) {
+      return line.split(fieldDelimiter);
+    }
     const cols = [];
     let field = '';
     let inQuotes = false;
@@ -54,7 +68,7 @@
         inQuotes = !inQuotes;
         continue;
       }
-      if (char === ',' && !inQuotes) {
+      if (char === fieldDelimiter && !inQuotes) {
         cols.push(field);
         field = '';
         continue;
@@ -68,10 +82,16 @@
   const detectCsvType = (lines) => {
     const sampleLine = lines.find(line => line.length);
     if (!sampleLine) {
-      return 'japanPost';
+      return { type: 'japanPost', delimiter: ',', quoted: false };
     }
     const quotedLinePattern = /^"(?:[^"]|"")*"(?:,"(?:[^"]|"")*")*$/;
-    return quotedLinePattern.test(sampleLine) ? 'dhl' : 'japanPost';
+    if (sampleLine.indexOf('\t') !== -1) {
+      return { type: 'ePacket', delimiter: '\t', quoted: false };
+    }
+    if (quotedLinePattern.test(sampleLine)) {
+      return { type: 'dhl', delimiter: ',', quoted: true };
+    }
+    return { type: 'japanPost', delimiter: ',', quoted: false };
   };
 
   const formatDhlValue = (value) => {
@@ -93,10 +113,23 @@
       return;
     }
 
-    buildJapanPostEditor();
+    if (csvType === 'ePacket') {
+      buildMultiItemEditor({
+        label: 'ePacket',
+        productStartIndex: 22,
+        hsStartIndex: 23
+      });
+      return;
+    }
+
+    buildMultiItemEditor({
+      label: 'Japan Post',
+      productStartIndex: 25,
+      hsStartIndex: 29
+    });
   };
 
-  const buildJapanPostEditor = () => {
+  const buildMultiItemEditor = ({ label, productStartIndex, hsStartIndex }) => {
     const fragment = document.createDocumentFragment();
     let irelandCount = 0;
     let itemCountTotal = 0;
@@ -120,8 +153,8 @@
         let itemIndex = 0;
         let foundItem = false;
         while (true) {
-          const productIndex = 25 + (itemIndex * 6);
-          const hsIndex = 29 + (itemIndex * 6);
+          const productIndex = productStartIndex + (itemIndex * 6);
+          const hsIndex = hsStartIndex + (itemIndex * 6);
           if (productIndex >= row.length || hsIndex >= row.length) {
             break;
           }
@@ -183,7 +216,7 @@
       return;
     }
 
-    setStatus(`Detected Japan Post CSV. Loaded ${rows.length} rows. Showing ${irelandCount} Ireland row(s) with ${itemCountTotal} item(s).`);
+    setStatus(`Detected ${label} CSV. Loaded ${rows.length} rows. Showing ${irelandCount} Ireland row(s) with ${itemCountTotal} item(s).`);
     exportBtn.disabled = false;
   };
 
@@ -302,9 +335,9 @@
         return '';
       }
       if (csvType === 'dhl') {
-        return cols.map(formatDhlValue).join(',');
+        return cols.map(formatDhlValue).join(fieldDelimiter);
       }
-      return cols.join(',');
+      return cols.join(fieldDelimiter);
     }).join(rowDelimiter);
     const blob = new Blob([output], { type: 'text/csv;charset=utf-8' });
     saveAs(blob, fileName);
