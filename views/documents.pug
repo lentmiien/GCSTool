@@ -6,8 +6,16 @@ block content
       h3 DHL return request
       p Used for requesting DHL to return a shipped package.
       form.form(action="/api/get_pdf_dhlreturn", method="get")
-        label(for="tracking") Tracking number
+        label(for="r_tracking") Tracking number
         input#r_tracking.form-control(type="text", name="r_tracking")
+        label(for="r_choice") Choice
+        select#r_choice.form-control(name="r_choice")
+          option(value="transport only") 0: All transport charges
+          option(value="RTO") 1: Redirect...
+          option(value="Disposal" selected) 3: Return to Origin
+          option(value="Redirect") 4 Disposal
+        label(for="r_new_address") New delivery address (Redirect only)
+        input#r_new_address.form-control(type="text", name="r_new_address", placeholder="Example Street 1&#10;12345 City")
         button.btn.btn-primary(type="submit") Generate
     div.document
       h3 DHL tax

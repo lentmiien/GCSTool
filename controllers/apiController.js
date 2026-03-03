@@ -10,117 +10,133 @@ const fs = require('fs');
 const { degrees, PDFDocument, rgb, StandardFonts, appendBezierCurve } = require('pdf-lib');
 const { HSCodeList } = require('../sequelize');
 
+const DHL_RETURN_CHOICES = new Set(['transport only', 'Redirect', 'RTO', 'Disposal']);
+
+function rectToXYWH(rect) {
+  if (rect && typeof rect === 'object' && 'x' in rect && 'y' in rect) {
+    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+  }
+
+  if (rect && typeof rect.asArray === 'function') {
+    const arr = rect.asArray();
+    const x1 = arr[0].asNumber();
+    const y1 = arr[1].asNumber();
+    const x2 = arr[2].asNumber();
+    const y2 = arr[3].asNumber();
+    return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+  }
+
+  throw new Error('Unsupported rectangle format from widget.getRectangle()');
+}
+
+function findWidgetPage(pdfDoc, widget) {
+  if (typeof widget.getPage === 'function') {
+    const page = widget.getPage();
+    if (page) return page;
+  }
+
+  const widgetRefStr = widget && widget.ref && widget.ref.toString ? widget.ref.toString() : null;
+  if (!widgetRefStr) {
+    return pdfDoc.getPages()[0];
+  }
+
+  for (const page of pdfDoc.getPages()) {
+    const annots = page.node.Annots && page.node.Annots();
+    if (!annots) continue;
+
+    const refs = annots.asArray();
+    for (const ref of refs) {
+      if (ref.toString() === widgetRefStr) return page;
+    }
+  }
+
+  return pdfDoc.getPages()[0];
+}
+
+function fitIntoRect(imgW, imgH, rect, padding = 2) {
+  const maxW = Math.max(0, rect.width - padding * 2);
+  const maxH = Math.max(0, rect.height - padding * 2);
+  const scale = Math.min(maxW / imgW, maxH / imgH);
+  const w = imgW * scale;
+  const h = imgH * scale;
+  const x = rect.x + (rect.width - w) / 2;
+  const y = rect.y + (rect.height - h) / 2;
+  return { x, y, width: w, height: h };
+}
+
 exports.page = (req, res) => {
   res.render('documents');
 };
 
 exports.get_pdf_dhlreturn = async function (req, res) {
-  fs.readFile('./data/DHL_return_request_template.pdf', async function (err, existingPdfBytes) {
+  fs.readFile('./data/LOA-DHL-Express-EN.pdf', async function (err, existingPdfBytes) {
     // Load a PDFDocument from the existing PDF bytes
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const form = pdfDoc.getForm();
 
-    // Embed the Helvetica font
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const tracking = `${req.query.r_tracking.slice(0, 10) || ''}`;
+    const choice = `${req.query.r_choice || ''}`;
+    const choiceValue = DHL_RETURN_CHOICES.has(choice) ? choice : 'RTO';
+    const newAddress = `${req.query.r_new_address || ''}`;
 
-    // Embed sign image
-    const pngImageBytes = fs.readFileSync('./data/yokoyama.png');
-    const pngImage = await pdfDoc.embedPng(pngImageBytes);
-    const pngDims = pngImage.scale(0.25);
+    form.getRadioGroup('Choice').select(choiceValue);
+    form.getTextField('company name').setText(`${process.env.COMPANY_COMPANY || ''}`);
+    form.getTextField('Contact Name').setText(`${process.env.COMPANY_CONTACT || ''}`);
+    form.getTextField('Contact Name copy').setText(`${process.env.COMPANY_DHL_ACCOUNT || ''}`);
+    form.getTextField('Contact Phone Number').setText(`${process.env.COMPANY_PHONE || ''}`);
+    form.getTextField('Contact E-mail address').setText(`${process.env.COMPANY_EMAIL || ''}`);
+    form.getTextField('Shipment 3 copy').setText(tracking);
 
-    // Get the first page of the document
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-
-    // Get the width and height of the first page
-    const { width, height } = firstPage.getSize();
-
-    // Add date
     const d = new Date();
-    firstPage.drawText(`${d.getFullYear()} / ${d.getMonth() + 1} / ${d.getDate()}`, {
-      x: 135,
-      y: height - 92,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    form.getTextField('Date').setText(dateStr);
+
+    if (choiceValue === 'RTO' && newAddress.length > 0) {
+      form.getTextField('New delivery address').setText(newAddress);
+    }
+
+    form.getTextField('Signature').setText(`${process.env.COMPANY_CONTACT || ''}`);
+
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    form.updateFieldAppearances(helveticaFont);
+
+    const sigBytes = fs.readFileSync('./data/yokoyama.png');
+    let sigField;
+    try {
+      sigField = form.getSignature('SIGNATURE');
+    } catch {
+      sigField = form.getTextField('Signature');
+    }
+
+    const widgets = sigField.acroField.getWidgets();
+    if (!widgets || widgets.length === 0) {
+      throw new Error('No widgets found for signature field');
+    }
+    const widget = widgets[0];
+    const rect = rectToXYWH(widget.getRectangle());
+    const page = findWidgetPage(pdfDoc, widget);
+
+    form.flatten();
+
+    let sigImage;
+    try {
+      sigImage = await pdfDoc.embedPng(sigBytes);
+    } catch {
+      sigImage = await pdfDoc.embedJpg(sigBytes);
+    }
+
+    page.drawRectangle({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      color: rgb(1, 1, 1),
+      borderColor: rgb(1, 1, 1),
     });
 
-    // Add tracking number
-    firstPage.drawText(`${req.query.r_tracking}`, {
-      x: 230,
-      y: height - 211,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add account number
-    firstPage.drawText(`${process.env.COMPANY_DHL_ACCOUNT}`, {
-      x: 233,
-      y: height - 229,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add company name
-    firstPage.drawText(`${process.env.COMPANY_COMPANY}`, {
-      x: 250,
-      y: height - 464,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add company contact person
-    firstPage.drawText(`${process.env.COMPANY_CONTACT}`, {
-      x: 215,
-      y: height - 487,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add company phone number
-    firstPage.drawText(`${process.env.COMPANY_PHONE}`, {
-      x: 215,
-      y: height - 512,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add company email
-    firstPage.drawText(`${process.env.COMPANY_EMAIL}`, {
-      x: 215,
-      y: height - 535,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add company address
-    firstPage.drawText(`${process.env.COMPANY_ADDRESS}`, {
-      x: 200,
-      y: height - 559,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-    firstPage.drawText(`${process.env.COMPANY_ADDRESS2}`, {
-      x: 200,
-      y: height - 573,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    // Add "Yokoyama sign"
-    firstPage.drawImage(pngImage, {
-      x: 190,
-      y: height - 670,
-      width: pngDims.width,
-      height: pngDims.height,
-    });
+    const imgDims = sigImage.scale(1);
+    const placement = fitIntoRect(imgDims.width, imgDims.height, rect, 2);
+    page.drawImage(sigImage, placement);
 
     // Serialize the PDFDocument to bytes (a Uint8Array)
     const pdfBytes = await pdfDoc.save();
