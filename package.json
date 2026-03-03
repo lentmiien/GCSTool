@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "seed": "node ./scripts/seed.js",
+    "codex-todo": "codex \"In './todo.txt', I've listed some updates I want to do for this project, please check the '/todo.txt' and start coding the changes.\"",
     "codex-commit": "codex exec \"Please help me draft a git commit message for the pending changes.\""
   },
   "engines": {
