@@ -282,6 +282,12 @@ exports.invoice = async (req, res) => {
 }
 
 exports.generate_invoice = async (req, res) => {
+  Object.keys(req.body).forEach((key) => {
+    if (typeof req.body[key] === 'string') {
+      req.body[key] = req.body[key].replace(/\u3000/g, ' ');
+    }
+  });
+
   const pdfDoc = await PDFDocument.create();
   const fontHelvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontHelveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
