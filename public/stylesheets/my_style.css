@@ -172,6 +172,16 @@ td {
   box-shadow: 0 0 0 0.2rem rgba(108, 160, 255, 0.25);
 }
 
+.ie-dark-input[readonly],
+.ie-dark-input:read-only,
+.ie-dark-input[readonly]:focus,
+.ie-dark-input:read-only:focus {
+  background-color: #2b2b2b;
+  color: #f1f1f1;
+  border-color: #444;
+  opacity: 1;
+}
+
 .ie-dark-muted {
   color: #b8b8b8;
 }

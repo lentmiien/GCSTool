@@ -1,210 +1,25 @@
-In `controllers\apiController.js` I have the `exports.get_pdf_dhlreturn = async function (req, res) {...}` route function.
+On the `views/hs_ireland_editor.pug` page, I'd like to add a few tools to optimize my work.
 
-Currently I'm using the "./data/DHL_return_request_template.pdf" PDF file, however, the template file has changed to `LOA-DHL-Express-EN.pdf` in the same folder, also, the format has changed and is now an `AcroForm`.
+All of these tools are for use after I've opened a file, or after I'm done editing the content, so either "edit" tools, to "work summarize" tools.
 
-So, to switch to this new format, please refer to the code example below, how to fill in the PDF, and update the code to use this new PDF template file.
+# 1. Remove "toy" from item names
+For some input files I need to remove the word "Toy" from the item names, for example "Toy plastic figurine(JAN 132456789765)" should be replaced with "Plastic figurine(JAN 132456789765)", so simply just remove "Toy" and capitalize the first letter of the item name, and keep everything else the same.
 
-### Code example:
-```
-import fs from "node:fs";
-import { PDFDocument, rgb } from "pdf-lib";
+# 2. HS to TARIC automation
+I want to create an "item name" + "HS code" to "TARIC code" mapping tool, that will auto-update the HS code to TARIC codes in a database for the tool, and as I update entries, create additional mappings based on changes I did.
+Notes:
+* Some items will include the item JAN code at the end, while other don't: I want to do 2 types of mapping:
+  * JAN to TARIC: since JAN codes are unique for the item, I always want to map the same JAN to the same TARIC code
+  * Item name + HS to TARIC: if it's a new item, I want to only use the item name part (without JAN) and the start HS code to map to a TARIC code I've used for similar items in the past
+  * If no matches, keep the initial HS code for manual editing
 
-const choices = [
-  'transport only',
-  'RTO',
-  'Duty only',
-  'Disposal',
-  'Redirect',
-  'Duty only'
-];
+# 3. HS to TARIC manual
+Display the items one-by-one, where the automated edit tool either matched with "Item name + HS to TARIC" or no matching (still HS code). Display the order number, item row number, and current values, with an TARIC input field, and a next button, for the user to edit the value and go to the next entry. For entries where the automated check completed the edit with "JAN to TARIC", no review is needed.
 
-/**
- * Convert a PDF-lib rectangle into {x, y, width, height}
- * Handles both possible shapes depending on pdf-lib version/internal types.
- */
-function rectToXYWH(rect) {
-  // Newer-ish pdf-lib often returns an object already
-  if (rect && typeof rect === "object" && "x" in rect && "y" in rect) {
-    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
-  }
+# 4. Save output (add save to mapping database)
+When downloading the edited file, also send all edits to the server, for adding to the mapping database.
 
-  // Otherwise it's usually a PDFArray [x1 y1 x2 y2]
-  // with PDFNumber items that have .asNumber()
-  if (rect?.asArray) {
-    const arr = rect.asArray();
-    const x1 = arr[0].asNumber();
-    const y1 = arr[1].asNumber();
-    const x2 = arr[2].asNumber();
-    const y2 = arr[3].asNumber();
-    return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
-  }
+# 5. Copy work summary
+I want to copy a summary of the edits I made for pasting in an Excel worksheet, where I store order numbers, item name edit count per order, TARIC code edit count per order, and unedited lines per order, in the format `{order number},{item name edit count},{TARIC edit count},{non-edit item count}`. "non-edit item count" is usually 0.
 
-  throw new Error("Unsupported rectangle format from widget.getRectangle()");
-}
-
-/**
- * Find the PDF page that contains a given widget annotation.
- * Uses internal structures; works in many real-world PDFs.
- */
-function findWidgetPage(pdfDoc, widget) {
-  // Some versions have widget.getPage()
-  if (typeof widget.getPage === "function") {
-    const page = widget.getPage();
-    if (page) return page;
-  }
-
-  // Fallback: scan pages' annotation refs
-  const widgetRefStr = widget?.ref?.toString?.();
-  if (!widgetRefStr) {
-    // As a last resort: page 1
-    return pdfDoc.getPages()[0];
-  }
-
-  for (const page of pdfDoc.getPages()) {
-    const annots = page.node.Annots?.();
-    if (!annots) continue;
-
-    const refs = annots.asArray();
-    for (const ref of refs) {
-      if (ref.toString() === widgetRefStr) return page;
-    }
-  }
-
-  // Last resort
-  return pdfDoc.getPages()[0];
-}
-
-/**
- * Fit an image into a rectangle while preserving aspect ratio.
- * Returns placement {x,y,width,height}.
- */
-function fitIntoRect(imgW, imgH, rect, padding = 2) {
-  const maxW = Math.max(0, rect.width - padding * 2);
-  const maxH = Math.max(0, rect.height - padding * 2);
-
-  const scale = Math.min(maxW / imgW, maxH / imgH);
-  const w = imgW * scale;
-  const h = imgH * scale;
-
-  const x = rect.x + (rect.width - w) / 2;
-  const y = rect.y + (rect.height - h) / 2;
-
-  return { x, y, width: w, height: h };
-}
-
-async function main() {
-  const inputPdfPath = "LOA-DHL-Express-EN.pdf";
-  const signatureImagePath = "yokoyama.png"; // or .jpg
-  const outputPdfPath = "output-filled-signed.pdf";
-
-  const pdfBytes = fs.readFileSync(inputPdfPath);
-  const sigBytes = fs.readFileSync(signatureImagePath);
-
-  const pdfDoc = await PDFDocument.load(pdfBytes);
-  const form = pdfDoc.getForm();
-
-  form.getRadioGroup("Choice").select(choices[2]);
-  // 0 All transport charges
-  // - Tax...
-  // 2/6 Both transport and tax
-  // 1 Redirect...
-  // 3 Return to Origin
-  // 4 Displosal
-
-  // --- Fill text fields (examples; set what you actually have) ---
-  form.getTextField("company name").setText("ACME GmbH");
-  form.getTextField("Contact Name").setText("Jane Doe");
-  form.getTextField("Contact Phone Number").setText("+49 123 456789");
-  form.getTextField("Contact E-mail address").setText("jane.doe@example.com");
-
-  form.getTextField("New delivery address").setText("Example Street 1\n12345 City");
-  form.getTextField("Date").setText("2026-03-03");
-
-  form.getTextField("Shipment 2").setText("222");
-  form.getTextField("Shipment 3").setText("333");
-  form.getTextField("Shipment 4").setText("444");
-  form.getTextField("Shipment 5").setText("555");
-  form.getTextField("Shipment 6").setText("666");
-
-  // If the PDF has “copy” fields that need to mirror:
-  form.getTextField("Contact Name copy").setText("Jane Doe copy");
-  form.getTextField("Shipment 3 copy").setText("333 copy");
-
-  // This is a *text* field called "Signature" — some forms want typed name here too.
-  // You can either set it, or leave it blank if you're placing an image.
-  form.getTextField("Signature").setText("Lennart");
-
-  // --- Determine where to place the signature image ---
-  // Prefer the real signature widget field ("SIGNATURE" PDFSignature) if present:
-  let sigField;
-  try {
-    sigField = form.getSignature("SIGNATURE");
-  } catch {
-    // Fallback to the text field named "Signature"
-    sigField = form.getTextField("Signature");
-  }
-
-  const widgets = sigField.acroField.getWidgets();
-  if (!widgets || widgets.length === 0) {
-    throw new Error(`No widgets found for signature field "${sigField.getName?.() ?? "SIGNATURE"}"`);
-  }
-
-  // Many fields have exactly one widget; if there are multiple, pick the first.
-  const widget = widgets[0];
-  const rect = rectToXYWH(widget.getRectangle());
-  const page = findWidgetPage(pdfDoc, widget);
-
-  // --- Flatten the form so the interactive fields are turned into page content ---
-  // IMPORTANT: If you don't flatten, some viewers may still show the "sign here" widget
-  // on top of your image.
-  form.flatten();
-
-  // --- Embed signature image ---
-  // Decide based on file type; here we try PNG first, then JPG fallback.
-  let sigImage;
-  try {
-    sigImage = await pdfDoc.embedPng(sigBytes);
-  } catch {
-    sigImage = await pdfDoc.embedJpg(sigBytes);
-  }
-
-  // Optionally paint a white box behind the signature so "Sign Here" doesn't show through
-  // (useful if your PNG has transparency).
-  page.drawRectangle({
-    x: rect.x,
-    y: rect.y,
-    width: rect.width,
-    height: rect.height,
-    color: rgb(1, 1, 1),
-    borderColor: rgb(1, 1, 1),
-  });
-
-  // Place image fitted into the rect
-  const imgDims = sigImage.scale(1);
-  const placement = fitIntoRect(imgDims.width, imgDims.height, rect, 2);
-
-  page.drawImage(sigImage, placement);
-
-  const outBytes = await pdfDoc.save();
-  fs.writeFileSync(outputPdfPath, outBytes);
-
-  console.log("Wrote:", outputPdfPath);
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
-```
-
-Update the UI to include a few more options. Other than the tracking number, I want a select box for choosing "Choice", I want to include the options "0: All transport charges", "1: Redirect...", "3: Return to Origin", "4 Disposal", with "Return to Origin" as default.
-
-Fill in details:
-* `form.getTextField("Shipment 3 copy").setText("{tracking number}");` set tracking number here, and ignore all other "Shipment" fields (only need one)
-* Only set `form.getTextField("New delivery address").setText("Example Street 1\n12345 City");` if the `choice` is "1: Redirect...", and add this input filed in the UI
-* Use todays date for the date
-* Insert the signature image similar as the example code
-
-Use the same `process.env.xxx` for our company details, account number, etc., as the original PDF file.
-
-Now, update the UI input form, and the backend to use the new PDF template file.
+Now, please add the mapping database, and add the code needed for the tools described above. Add one new button for each tool, except "Save output" that can append functionality to the existing save button.

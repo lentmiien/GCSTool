@@ -3,17 +3,86 @@ extends layout
 block content
   .ie-editor
     h1 Ireland CSV editor
-    p Upload a CSV to edit Ireland (IE) rows only. All processing stays in the browser.
+    p Upload a CSV to edit Ireland (IE) rows only.
+    p CSV editing runs in the browser. TARIC mappings are loaded from and saved to the server.
     p Columns edited depend on CSV type.
     p Japan Post: product name (col 26, 32, 38...) and HS code (col 30, 36, 42...).
     p ePacket: product name (col 23, 29, 35...) and HS code (col 24, 30, 36...).
     p DHL: product name (col 18) and HS code (col 30).
     input#inputfile.form-control.ie-dark-input(type='file', name='inputfile', accept='.csv')
     p#file-status.ie-dark-muted.mt-2
+    p#tool-status.ie-dark-muted.mt-1
+
+    .ie-editor-tools.mt-3
+      button#remove-toy-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Remove Toy
+      button#auto-taric-btn.btn.btn-info.mr-2.mb-2(type='button', disabled) HS to TARIC auto
+      button#review-taric-btn.btn.btn-warning.mr-2.mb-2(type='button', disabled) HS to TARIC manual
+      button#copy-summary-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Copy work summary
+      button#export-btn.btn.btn-primary.mb-2(type='button', disabled) Export CSV
 
     div#ie-rows.mt-3
 
-    button#export-btn.btn.btn-primary(type='button', disabled) Export CSV
+    #review-overlay.ie-review-overlay.d-none
+      .card.ie-review-card
+        .card-header.ie-editor-card-header.d-flex.justify-content-between.align-items-center
+          span TARIC review
+          button#review-close-btn.btn.btn-sm.btn-secondary(type='button') Close
+        .card-body.ie-editor-card-body
+          p#review-progress.mb-3
+          .form-row
+            .form-group.col-md-4
+              label(for='review-order') Order number
+              input#review-order.form-control.ie-dark-input(type='text', readonly)
+            .form-group.col-md-4
+              label(for='review-row') CSV row
+              input#review-row.form-control.ie-dark-input(type='text', readonly)
+            .form-group.col-md-4
+              label(for='review-item-number') Item number
+              input#review-item-number.form-control.ie-dark-input(type='text', readonly)
+          .form-group
+            label(for='review-item-name') Item name
+            textarea#review-item-name.form-control.ie-dark-input(rows='2', readonly)
+          .form-row
+            .form-group.col-md-4
+              label(for='review-original-hs') Original HS
+              input#review-original-hs.form-control.ie-dark-input(type='text', readonly)
+            .form-group.col-md-4
+              label(for='review-current-hs') Current TARIC
+              input#review-current-hs.form-control.ie-dark-input(type='text', readonly)
+            .form-group.col-md-4
+              label(for='review-match-status') Automation status
+              input#review-match-status.form-control.ie-dark-input(type='text', readonly)
+          .form-group
+            label(for='review-input') TARIC code
+            input#review-input.form-control.ie-dark-input(type='text')
+          .d-flex.justify-content-end
+            button#review-next-btn.btn.btn-primary(type='button') Next
+
+    pre#taric-mappings.hidden= JSON.stringify(taricMappings || [])
+
+  style.
+    .ie-editor-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .ie-review-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1050;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.75);
+    }
+    .ie-review-card {
+      width: 100%;
+      max-width: 780px;
+    }
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/hs_ie_csv_editor.js', defer)
