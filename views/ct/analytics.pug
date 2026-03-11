@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
+    .mb-3.mb-lg-0
+      h1.mb-1 Case Analytics
+      p.text-muted.mb-0 Placeholder page while data starts accumulating.
+    .btn-group
+      a.btn.btn-outline-secondary(href='/ct') Cases
+      if role === 'admin'
+        a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
+  .card.text-center
+    .card-body.py-5
+      p.text-muted.text-uppercase.mb-2 Total cases
+      h2.display-4.mb-3= totalCases
+      p.text-muted.mb-0 More analytics can be added once enough case data has been collected.

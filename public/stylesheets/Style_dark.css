@@ -131,6 +131,90 @@ select {
   color: rgb(230, 227, 255);
 }
 
+/* Bootstrap component overrides for dark mode */
+.card,
+.list-group-item,
+.input-group-text,
+.modal-content {
+  background-color: rgb(26, 26, 31);
+  border-color: rgb(78, 78, 90);
+  color: rgb(252, 255, 214);
+}
+
+.card-header,
+.card-footer {
+  background-color: rgb(33, 33, 40);
+  border-color: rgb(78, 78, 90);
+  color: rgb(252, 255, 214);
+}
+
+.card .table,
+.list-group-item,
+.list-group-item-action,
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+  color: rgb(252, 255, 214);
+}
+
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+  background-color: rgb(36, 36, 44);
+}
+
+.form-control,
+.custom-select {
+  background-color: rgb(39, 39, 0);
+  border-color: rgb(92, 92, 56);
+  color: rgb(230, 227, 255);
+}
+
+.form-control:focus,
+.custom-select:focus {
+  background-color: rgb(39, 39, 0);
+  border-color: rgb(190, 164, 79);
+  color: rgb(255, 255, 255);
+  box-shadow: 0 0 0 0.2rem rgba(255, 200, 47, 0.2);
+}
+
+.form-control::placeholder {
+  color: rgb(180, 180, 150);
+}
+
+.form-control[readonly],
+.form-control:disabled,
+.custom-select:disabled,
+.input-group-text {
+  background-color: rgb(31, 31, 18);
+  color: rgb(230, 227, 255);
+}
+
+.table {
+  color: rgb(252, 255, 214);
+}
+
+.table th,
+.table td {
+  border-top-color: rgb(88, 88, 88);
+}
+
+.table thead th {
+  border-bottom-color: rgb(110, 110, 110);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.table-hover tbody tr:hover {
+  color: rgb(252, 255, 214);
+  background-color: rgba(255, 200, 47, 0.08);
+}
+
+.text-muted,
+.form-text.text-muted {
+  color: rgb(184, 188, 200) !important;
+}
+
 .textarea_comment {
   width: 100%;
   resize: none;

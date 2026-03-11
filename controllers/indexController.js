@@ -3,7 +3,7 @@ const axios = require('axios');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2, ct } = require('../sequelize');
+const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2 } = require('../sequelize');
 
 const timekeeper = [];
 
@@ -193,60 +193,15 @@ exports.about = function (req, res) {
 
 exports.admin_get = async function (req, res) {
   if (req.user.role === 'guest') {
-    return res.render('admin', { users: [], approverLevels: ['none', 'secondary', 'leader'] });
+    return res.render('admin', { users: [] });
   }
 
   try {
-    const [users, privileges] = await Promise.all([
-      User.findAll({ order: [['userid', 'ASC']] }),
-      ct.ApproverPrivilege.findAll(),
-    ]);
-
-    const privilegeLookup = privileges.reduce((acc, record) => {
-      const userId = record.user_id;
-      if (!acc[userId]) {
-        acc[userId] = record.level;
-      }
-      if (record.level === 'leader') {
-        acc[userId] = 'leader';
-      }
-      return acc;
-    }, {});
-
-    users.forEach((user) => {
-      const level = privilegeLookup[user.userid] || 'none';
-      user.dataValues.approver_level = level;
-    });
-
-    res.render('admin', { users, approverLevels: ['none', 'secondary', 'leader'] });
+    const users = await User.findAll({ order: [['userid', 'ASC']] });
+    res.render('admin', { users });
   } catch (error) {
-    console.error('Failed to load approver privileges:', error);
-    res.render('admin', { users: [], approverLevels: ['none', 'secondary', 'leader'], error: 'Failed to load privileges.' });
-  }
-};
-
-exports.update_privilege = async (req, res) => {
-  if (req.user.role !== 'admin') {
-    return res.redirect('/admin');
-  }
-
-  const userId = (req.body.user_id || '').trim();
-  const requestedLevel = (req.body.level || 'none').toLowerCase();
-  const allowed = ['none', 'secondary', 'leader'];
-
-  if (!userId || allowed.indexOf(requestedLevel) === -1) {
-    return res.redirect('/admin');
-  }
-
-  try {
-    await ct.ApproverPrivilege.destroy({ where: { user_id: userId } });
-    if (requestedLevel !== 'none') {
-      await ct.ApproverPrivilege.create({ user_id: userId, level: requestedLevel });
-    }
-    res.redirect('/admin');
-  } catch (error) {
-    console.error('Failed to update approver privilege:', error);
-    res.redirect('/admin');
+    console.error('Failed to load users:', error);
+    res.render('admin', { users: [], error: 'Failed to load users.' });
   }
 };
 exports.adduser = (req, res) => {
@@ -338,5 +293,4 @@ exports.removeuser = (req, res) => {
     res.render('s_added', { message: 'Only admin staff can remove users...' });
   }
 };
-
 

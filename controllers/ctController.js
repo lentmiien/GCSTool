@@ -1,116 +1,62 @@
-﻿const CaseTrackerService = require('../services/caseTracker');
+const CaseTrackerService = require('../services/caseTracker');
+
 const caseTracker = new CaseTrackerService();
 
-function getStaff(req) {
-  return req.user && req.user.userid ? req.user.userid : 'Guest';
+function setLayoutLocals(req, res) {
+  res.locals.role = req.user && req.user.role ? req.user.role : 'guest';
+  res.locals.name = req.user && req.user.userid ? req.user.userid : 'Guest';
 }
 
-function baseViewModel(extra = {}) {
-  const metadata = caseTracker.getMetadata();
-  return {
-    metadata,
-    templates: caseTracker.getTemplates(),
-    ...extra,
-  };
+function isAdmin(req) {
+  return req.user && req.user.role === 'admin';
+}
+
+function renderNotFound(req, res) {
+  setLayoutLocals(req, res);
+  res.status(404).render('error', {
+    message: 'Case not found.',
+    request: req.body,
+  });
 }
 
 exports.dashboard = async (req, res, next) => {
   try {
-    const days = 3;
-    const casesDueSoon = await caseTracker.getCasesDueSoon(days);
-    const viewModel = baseViewModel({
-      casesDueSoon,
-      days,
-      message: req.query.message,
+    setLayoutLocals(req, res);
+    const dashboard = await caseTracker.getDashboard();
+    res.render('ct/ct', {
+      ...dashboard,
+      message: req.query.message || null,
     });
-    res.render('ct/ct', viewModel);
   } catch (error) {
     next(error);
   }
 };
 
-exports.search = async (req, res, next) => {
+exports.openCase = async (req, res, next) => {
   try {
-    const { query } = req.body;
-    const result = await caseTracker.search(query);
-
-    switch (result.type) {
-      case 'case':
-        return res.redirect(`/ct/case/${result.id}`);
-      case 'customer':
-        return res.redirect(`/ct/customer/${encodeURIComponent(result.customerId)}`);
-      case 'item':
-        return res.redirect(`/ct/item/${encodeURIComponent(result.itemCode)}`);
-      case 'newCase':
-        return res.redirect(`/ct/case/new?order=${encodeURIComponent(result.order)}`);
-      case 'empty':
-        return res.redirect('/ct?message=' + encodeURIComponent('Enter a value to search.'));
-      default:
-        return res.redirect('/ct?message=' + encodeURIComponent('No matching case, customer, or item found.'));
-    }
+    const result = await caseTracker.openCase(req.body.order_number);
+    const message = result.created ? '?message=' + encodeURIComponent('New case created.') : '';
+    res.redirect(`/ct/case/${encodeURIComponent(result.caseEntry.order_number)}${message}`);
   } catch (error) {
-    next(error);
-  }
-};
-
-exports.newCaseForm = (req, res) => {
-  const order = req.query.order || '';
-  const staff = getStaff(req);
-  const selectedTemplate = req.query.template || '';
-  const viewModel = baseViewModel({
-    order,
-    staff,
-    selectedTemplate,
-  });
-  res.render('ct/newCase', viewModel);
-};
-
-exports.createCase = async (req, res, next) => {
-  try {
-    const staff = getStaff(req);
-    await caseTracker.createCase(req.body, staff);
-    const searchResult = await caseTracker.search(req.body.order);
-    if (searchResult.type === 'case') {
-      return res.redirect(`/ct/case/${searchResult.id}`);
+    if (error.message === 'Order number is required.') {
+      return res.redirect('/ct?message=' + encodeURIComponent(error.message));
     }
-    return res.redirect('/ct');
-  } catch (error) {
     next(error);
   }
 };
 
 exports.caseDetail = async (req, res, next) => {
   try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    const [caseDetails, staffPrivileges] = await Promise.all([
-      caseTracker.getCase(caseId),
-      caseTracker.getStaffPrivileges(staff),
-    ]);
-    if (!caseDetails) {
-      return res.status(404).render('error', { message: 'Case not found' });
+    setLayoutLocals(req, res);
+    const viewModel = await caseTracker.getCaseView(req.params.orderNumber, null, {
+      message: req.query.message || null,
+    });
+
+    if (!viewModel) {
+      return renderNotFound(req, res);
     }
 
-    const viewModel = baseViewModel({
-      caseDetails,
-      staff,
-      staffPrivileges,
-      success: req.query.updated,
-      approved: req.query.approved,
-      message: req.query.message,
-    });
     res.render('ct/case', viewModel);
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.addTicket = async (req, res, next) => {
-  try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    await caseTracker.addTicket(caseId, req.body.ticket, staff);
-    res.redirect(`/ct/case/${caseId}`);
   } catch (error) {
     next(error);
   }
@@ -118,178 +64,98 @@ exports.addTicket = async (req, res, next) => {
 
 exports.updateCase = async (req, res, next) => {
   try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    await caseTracker.updateCase(caseId, req.body, staff);
-    res.redirect(`/ct/case/${caseId}?updated=1`);
-  } catch (error) {
-    next(error);
-  }
-};
+    setLayoutLocals(req, res);
+    const result = await caseTracker.updateCase(req.params.orderNumber, req.body);
 
-exports.addComment = async (req, res, next) => {
-  try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    await caseTracker.addComment(caseId, staff, req.body.comment);
-    res.redirect(`/ct/case/${caseId}`);
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.upsertItem = async (req, res, next) => {
-  try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    const payload = {
-      id: req.body.item_id || null,
-      item_code: req.body.item_code,
-      defect: req.body.item_defect,
-      item_cost: req.body.item_cost,
-    };
-    await caseTracker.addOrUpdateItem(caseId, payload, staff);
-    res.redirect(`/ct/case/${caseId}`);
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.deleteItem = async (req, res, next) => {
-  try {
-    const caseId = parseInt(req.params.id, 10);
-    const itemId = parseInt(req.params.itemId, 10);
-    const staff = getStaff(req);
-    await caseTracker.deleteItem(caseId, itemId, staff);
-    res.redirect(`/ct/case/${caseId}`);
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.approveCase = async (req, res, next) => {
-  try {
-    const caseId = parseInt(req.params.id, 10);
-    const staff = getStaff(req);
-    const approvalType = req.body.approval_type === 'leader' ? 'leader' : 'secondary';
-    const privileges = await caseTracker.getStaffPrivileges(staff);
-    const canApprove = privileges.includes(approvalType) || (approvalType === 'secondary' && privileges.includes('leader'));
-    if (!canApprove) {
-      return res.redirect(`/ct/case/${caseId}?message=${encodeURIComponent('You do not have permission to record that approval.')}`);
+    if (result.notFound) {
+      return renderNotFound(req, res);
     }
-    await caseTracker.recordApproval(caseId, approvalType, staff);
-    res.redirect(`/ct/case/${caseId}?approved=${approvalType}`);
+
+    if (!result.ok) {
+      return res.status(400).render('ct/case', result.viewModel);
+    }
+
+    res.redirect(`/ct/case/${encodeURIComponent(req.params.orderNumber)}?message=${encodeURIComponent('Case saved.')}`);
   } catch (error) {
     next(error);
   }
 };
 
-exports.confirmClose = async (req, res, next) => {
+exports.admin = async (req, res, next) => {
   try {
-    const caseId = parseInt(req.params.id, 10);
-    const action = req.params.action === 'cancel' ? 'cancel' : 'complete';
-    const caseDetails = await caseTracker.getCase(caseId);
-    if (!caseDetails) {
-      return res.status(404).render('error', { message: 'Case not found' });
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
     }
-    const issues = caseTracker.getClosureIssues(caseDetails, action);
-    const viewModel = baseViewModel({
-      caseDetails,
-      action,
-      issues,
+
+    setLayoutLocals(req, res);
+    const viewModel = await caseTracker.getAdminView();
+    res.render('ct/admin', {
+      ...viewModel,
+      message: req.query.message || null,
     });
-    res.render('ct/closeCase', viewModel);
   } catch (error) {
     next(error);
   }
 };
 
-exports.closeCase = async (req, res, next) => {
+exports.addComplaintType = async (req, res, next) => {
   try {
-    const caseId = parseInt(req.params.id, 10);
-    const action = req.params.action === 'cancel' ? 'cancel' : 'complete';
-    const staff = getStaff(req);
-    const updates = {
-      ...req.body,
-      status: action === 'complete' ? 'Completed' : 'Canceled',
-    };
-
-    if (action !== 'cancel') {
-      updates.cancel_reason = null;
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
     }
 
-    await caseTracker.updateCase(caseId, updates, staff);
-    const updatedCase = await caseTracker.getCase(caseId);
-    let issues = caseTracker.getClosureIssues(updatedCase, action);
+    const result = await caseTracker.addComplaintType(req.body.name);
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
+  } catch (error) {
+    next(error);
+  }
+};
 
-    if (issues.length > 0) {
-      const viewModel = baseViewModel({
-        caseDetails: updatedCase,
-        action,
-        issues,
-        error: 'Please resolve the items listed below before closing the case.',
-      });
-      return res.render('ct/closeCase', viewModel);
+exports.deleteComplaintType = async (req, res, next) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
     }
 
-    await caseTracker.finalizeCase(caseId, action, staff);
-    res.redirect(`/ct/case/${caseId}`);
+    const result = await caseTracker.deleteComplaintType(parseInt(req.params.id, 10));
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
   } catch (error) {
     next(error);
   }
 };
 
-exports.customerProfile = async (req, res, next) => {
+exports.addSolutionType = async (req, res, next) => {
   try {
-    const customerId = req.params.customerId;
-    const profile = await caseTracker.getCustomerProfile(customerId);
-    if (!profile.cases || !profile.cases.length) {
-      return res.redirect('/ct?message=' + encodeURIComponent('No cases found for that customer ID.'));
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
     }
-    const viewModel = baseViewModel({ profile });
-    res.render('ct/customer', viewModel);
+
+    const result = await caseTracker.addSolutionType(req.body.name);
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
   } catch (error) {
     next(error);
   }
 };
 
-exports.itemList = async (req, res, next) => {
+exports.deleteSolutionType = async (req, res, next) => {
   try {
-    const items = await caseTracker.getItemSummary();
-    const viewModel = baseViewModel({ items });
-    res.render('ct/items', viewModel);
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
+    }
+
+    const result = await caseTracker.deleteSolutionType(parseInt(req.params.id, 10));
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
   } catch (error) {
     next(error);
   }
 };
 
-exports.itemReport = async (req, res, next) => {
+exports.analytics = async (req, res, next) => {
   try {
-    const itemCode = req.params.item_code;
-    const report = await caseTracker.getItemReport(itemCode);
-    const viewModel = baseViewModel({ report });
-    res.render('ct/item', viewModel);
+    setLayoutLocals(req, res);
+    const analytics = await caseTracker.getAnalyticsView();
+    res.render('ct/analytics', analytics);
   } catch (error) {
     next(error);
-  }
-};
-
-exports.viewAudit = async (req, res, next) => {
-  try {
-    const entries = await caseTracker.getRecentAudit();
-    const viewModel = { entries };
-    res.render('ct/audit', viewModel);
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.deleteall = async (req, res) => {
-  try {
-    await caseTracker.deleteTestData();
-    res.redirect('/ct');
-  } catch (error) {
-    console.log(error);
-    res.redirect('/ct');
   }
 };

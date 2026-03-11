@@ -1,253 +1,151 @@
-﻿extends ../layout
+extends ../layout
 
 block content
-  h1 Case #{caseDetails.order}
-  a.btn.btn-link(href='/ct') Back to dashboard
-  if success
-    .alert.alert-success Case details updated.
-  if approved
-    .alert.alert-success Approval recorded (#{approved}).
-  if message
-    .alert.alert-warning= message
-  if caseDetails.todos && caseDetails.todos.length
-    .alert.alert-warning
-      strong Attention needed:
-      ul.mb-0
-        each todo in caseDetails.todos
-          li= todo
-  - const approvalStatus = caseDetails.approvalStatus || { required: {}, granted: {}, missing: [] }
-  - const canApproveSecondary = staffPrivileges && (staffPrivileges.indexOf('secondary') !== -1 || staffPrivileges.indexOf('leader') !== -1)
-  - const canApproveLeader = staffPrivileges && staffPrivileges.indexOf('leader') !== -1
-  .row.mt-3
-    .col-md-6
-      h2 Overview
-      table.table.table-dark.table-sm.table-borderless
-        tr
-          th Scope
-          td= caseDetails.type || '—'
-        tr
-          th Status
-          td= caseDetails.status || '—'
-        tr
-          th Solution
-          td= caseDetails.solution || '—'
-        tr
-          th Deadline
-          td= caseDetails.deadline ? ((new Date(caseDetails.deadline)).toISOString().split('T')[0]) : '—'
-        tr
-          th Staff
-          td= caseDetails.staff_in_charge || '—'
-        tr
-          th Tracking
-          td= caseDetails.tracking || '—'
-        tr
-          th Shipping
-          td= caseDetails.shipping_method || '—'
-        tr
-          th Customer
-          td
-            if caseDetails.customer_id
-              a(href=`/ct/customer/${encodeURIComponent(caseDetails.customer_id)}`)= caseDetails.customer_id
-            else
-              span —
-        tr
-          th Country
-          td= caseDetails.country || '—'
-        tr
-          th Started
-          td= caseDetails.started ? ((new Date(caseDetails.started)).toISOString().split('T')[0]) : '—'
-        tr
-          th Ended
-          td= caseDetails.ended ? ((new Date(caseDetails.ended)).toISOString().split('T')[0]) : '—'
-        tr
-          th Customer cases
-          td
-            if caseDetails.customerSummary
-              - const summary = caseDetails.customerSummary
-              | #{summary.totalCases} total (open #{summary.openCases})
-              if summary.defect
-                | , defects #{summary.defect.total}
-                if summary.defect.ongoing
-                  |  (+#{summary.defect.ongoing} open)
-            else
-              span —
-    .col-md-6
-      h2 Update case
-      form(action=`/ct/case/${caseDetails.id}/update`, method='post')
-        .mb-2
-          label.form-label(for='status') Status
-          select#status.form-select(name='status')
-            each status in metadata.statuses
-              option(value=status selected=caseDetails.status === status)= status
-        .mb-2
-          label.form-label(for='solution') Solution
-          select#solution.form-select(name='solution')
-            option(value='') -- None --
-            each solution in metadata.solutions
-              option(value=solution selected=caseDetails.solution === solution)= solution
-        .mb-2
-          label.form-label(for='deadline') Deadline
-          input#deadline.form-control(type='date', name='deadline', value=caseDetails.deadline ? (new Date(caseDetails.deadline).toISOString().split('T')[0]) : '')
-        .mb-2
-          label.form-label(for='staff_in_charge') Staff in charge
-          input#staff_in_charge.form-control(type='text', name='staff_in_charge', value=caseDetails.staff_in_charge || '')
-        .mb-2
-          label.form-label(for='tracking') Tracking number
-          input#tracking.form-control(type='text', name='tracking', value=caseDetails.tracking || '')
-        .mb-2
-          label.form-label(for='shipping_method') Shipping method
-          select#shipping_method.form-select(name='shipping_method')
-            option(value='') -- Select --
-            each method in metadata.shippingMethods
-              option(value=method selected=caseDetails.shipping_method === method)= method
-        .mb-2
-          label.form-label(for='type') Case type
-          select#type.form-select(name='type')
-            option(value='') -- Select --
-            each t in metadata.claimTypes
-              option(value=t selected=caseDetails.type === t)= t
-        .mb-2
-          label.form-label(for='country') Country
-          input#country.form-control(type='text', name='country', value=caseDetails.country || '')
-        .mb-2
-          label.form-label(for='cancel_reason') Cancellation reason
-          select#cancel_reason.form-select(name='cancel_reason')
-            option(value='') -- Not canceled --
-            each reason in metadata.cancelReasons
-              option(value=reason selected=caseDetails.cancel_reason === reason)= reason
-        button.btn.btn-primary(type='submit') Save changes
-  if approvalStatus.missing && approvalStatus.missing.length
+  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
+    .mb-3.mb-lg-0
+      h1.mb-1= `Case ${caseDetails.order_number}`
+      p.text-muted.mb-0= `Created ${caseDetails.created_at_display || '—'} • Updated ${caseDetails.updated_at_display || '—'}`
+    .btn-group
+      a.btn.btn-outline-secondary(href='/ct') Back
+      a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
+      if role === 'admin'
+        a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
+  if message && (!errors || errors.length === 0)
+    .alert.alert-info= message
+
+  if errors && errors.length > 0
     .alert.alert-danger
-      strong Approval required:
+      p.mb-2 Case was not saved.
       ul.mb-0
-        each item in approvalStatus.missing
-          li= item
-  if (caseDetails.approvals && caseDetails.approvals.length) || (approvalStatus.required.secondary || approvalStatus.required.leader)
-    h2 Approvals
-    if caseDetails.approvals && caseDetails.approvals.length
-      table.table.table-dark.table-striped
-        thead
-          tr
-            th Type
-            th Approved by
-            th Timestamp
-        tbody
-          each approval in caseDetails.approvals
-            tr
-              td= approval.approval_type
-              td= approval.approved_by || '—'
-              td= approval.updatedAt ? (new Date(approval.updatedAt).toISOString().split('T')[0]) : '—'
-    if approvalStatus.required.secondary && !approvalStatus.granted.secondary
-      if canApproveSecondary
-        form.d-inline(action=`/ct/case/${caseDetails.id}/approve`, method='post', class='me-3')
-          input(type='hidden', name='approval_type', value='secondary')
-          button.btn.btn-warning(type='submit') Record secondary approval
-      else
-        p.text-muted Secondary approval pending — approver required.
-    if approvalStatus.required.leader && !approvalStatus.granted.leader
-      if canApproveLeader
-        form.d-inline(action=`/ct/case/${caseDetails.id}/approve`, method='post')
-          input(type='hidden', name='approval_type', value='leader')
-          button.btn.btn-danger(type='submit') Record leader approval
-      else
-        p.text-muted Leader approval pending — management only.
-  h2 Zendesk
-  if caseDetails.tickets && caseDetails.tickets.length
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Ticket
-          th Added
-      tbody
-        each ticket in caseDetails.tickets
-          tr
-            td
-              a(href=`https://ohami.zendesk.com/agent/tickets/${ticket.ticket}`, target='_blank')= ticket.ticket
-            td= ticket.createdAt ? (new Date(ticket.createdAt).toISOString().split('T')[0]) : '—'
-  else
-    p.text-muted No Zendesk tickets linked yet.
-  form(action=`/ct/case/${caseDetails.id}/ticket`, method='post', class='mb-4')
-    .input-group
-      input.form-control(type='number', name='ticket', placeholder='Zendesk ticket number', required)
-      button.btn.btn-outline-primary(type='submit') Link ticket
-  h2 Items
-  if caseDetails.items && caseDetails.items.length
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Code
-          th Issue
-          th Value
-          th
-      tbody
-        each item in caseDetails.items
-          tr
-            td
-              if item.item_code
-                a(href=`/ct/item/${encodeURIComponent(item.item_code)}`)= item.item_code
-              else
-                span —
-            td= item.defect || '—'
-            td= item.item_cost ? `${item.item_cost} JPY` : '—'
-            td.text-end
-              button.btn.btn-sm.btn-outline-secondary(type='button', data-item=JSON.stringify(item)) Edit
-              form.d-inline(action=`/ct/case/${caseDetails.id}/item/${item.id}/delete`, method='post')
-                button.btn.btn-sm.btn-outline-danger(type='submit') Remove
-  else
-    p.text-muted No items recorded yet.
-  h3.mt-3 Add or update item
-  form#item-form(action=`/ct/case/${caseDetails.id}/item`, method='post')
-    input#item_id(type='hidden', name='item_id')
-    .row
-      .col-md-4
-        label.form-label(for='item_code') Item code
-        input#item_code.form-control(type='text', name='item_code', required)
-      .col-md-4
-        label.form-label(for='item_defect') Issue
-        input#item_defect.form-control(type='text', name='item_defect')
-      .col-md-4
-        label.form-label(for='item_cost') Value (JPY)
-        input#item_cost.form-control(type='number', name='item_cost', min='0')
-    .mt-2
-      button.btn.btn-secondary(type='submit') Save item
-      button#item-reset.btn.btn-link(type='button') Clear form
-  h2 Comments
-  if caseDetails.comments && caseDetails.comments.length
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Staff
-          th Date
-          th Comment
-      tbody
-        each comment in caseDetails.comments
-          tr
-            td= comment.staff || '—'
-            td= comment.timestamp ? (new Date(comment.timestamp)).toISOString().split('T')[0] : '—'
-            td= comment.comment
-  else
-    p.text-muted No comments yet.
-  form(action=`/ct/case/${caseDetails.id}/comment`, method='post', class='mb-4')
-    .input-group
-      input.form-control(type='text', name='comment', placeholder='Add a note', required)
-      button.btn.btn-primary(type='submit') Post
-  h2 Activity log
-  if caseDetails.audits && caseDetails.audits.length
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Staff
-          th Date
-          th Entry
-      tbody
-        each entry in caseDetails.audits
-          tr
-            td= entry.staff || '—'
-            td= entry.timestamp ? (new Date(entry.timestamp)).toISOString().split('T')[0] : '—'
-            td= entry.log
-  else
-    p.text-muted No recent activity logged.
-  h2 Close case
-  a.btn.btn-success.me-2(href=`/ct/case/${caseDetails.id}/close/complete`) Complete case
-  a.btn.btn-outline-danger(href=`/ct/case/${caseDetails.id}/close/cancel`) Cancel case
-  script(src='/js/ct/case.js')
+        each error in errors
+          li= error
+
+  .row
+    .col-lg-8
+      form(method='post', action=`/ct/case/${encodeURIComponent(caseDetails.order_number)}`)
+        .card.mb-4
+          .card-body
+            h2.h4.mb-3 Case Details
+            .form-row
+              .form-group.col-md-6
+                label Order number
+                input.form-control(type='text', value=caseDetails.order_number, readonly=true)
+              .form-group.col-md-6
+                label Customer ID
+                input.form-control(type='text', name='customer_id', value=caseDetails.customer_id)
+            .form-row
+              .form-group.col-md-6
+                label Complaint date
+                input.form-control(type='date', name='complaint_date', value=caseDetails.complaint_date, required=true)
+              .form-group.col-md-6
+                label Status
+                if caseDetails.is_open
+                  input.form-control(type='text', value='Open', readonly=true)
+                else
+                  input.form-control(type='text', value=`Solved on ${caseDetails.solved_date}`, readonly=true)
+
+            if caseDetails.customer_complaint
+              .form-group
+                label Original customer complaint
+                input.form-control(type='text', value=caseDetails.customer_complaint, readonly=true)
+                small.form-text.text-muted Set once and then locked. Use complaint edit below to replace the active complaint.
+              .form-group
+                label(for='customer_complaint_edit') Complaint edit
+                select#customer_complaint_edit.form-control(name='customer_complaint_edit')
+                  option(value='') No override
+                  each complaintType in complaintTypes
+                    option(value=complaintType, selected=caseDetails.customer_complaint_edit === complaintType)= complaintType
+            else
+              .form-group
+                label(for='customer_complaint') Customer complaint
+                select#customer_complaint.form-control(name='customer_complaint')
+                  option(value='') Select complaint
+                  each complaintType in complaintTypes
+                    option(value=complaintType, selected=caseDetails.customer_complaint === complaintType)= complaintType
+                if !hasComplaintTypes
+                  small.form-text.text-warning Add complaint types on the admin page before assigning one here.
+
+            .form-group
+              label(for='customer_complaint_comment') Complaint comment
+              textarea#customer_complaint_comment.form-control(name='customer_complaint_comment', rows='3')= caseDetails.customer_complaint_comment
+
+            .form-row
+              .form-group.col-md-6
+                label(for='shipping_method') Shipping method
+                input#shipping_method.form-control(type='text', name='shipping_method', value=caseDetails.shipping_method)
+              .form-group.col-md-6
+                label(for='shipping_date') Shipping date
+                input#shipping_date.form-control(type='date', name='shipping_date', value=caseDetails.shipping_date)
+
+            .form-group
+              label(for='defect_items') Defect items
+              input#defect_items.form-control(type='text', name='defect_items', value=caseDetails.defect_items, placeholder='Example: ITEM-001, ITEM-002')
+            .form-group
+              label(for='defect_description') Defect description
+              textarea#defect_description.form-control(name='defect_description', rows='3')= caseDetails.defect_description
+
+            .form-row
+              .form-group.col-md-6
+                label(for='solution') Solution
+                select#solution.form-control(name='solution')
+                  option(value='') Select solution
+                  each solutionType in solutionTypes
+                    option(value=solutionType, selected=caseDetails.solution === solutionType)= solutionType
+                if !hasSolutionTypes
+                  small.form-text.text-warning Add solution types on the admin page before assigning one here.
+              .form-group.col-md-6
+                label(for='solved_date') Solved date
+                input#solved_date.form-control(type='date', name='solved_date', value=caseDetails.solved_date)
+                small.form-text.text-muted Setting a solved date closes the case.
+
+            button.btn.btn-primary(type='submit') Save case
+
+    .col-lg-4
+      .card.mb-4
+        .card-body
+          h2.h5.mb-3 Summary
+          p.mb-2
+            strong Current complaint:
+            |  #{caseDetails.effective_complaint || '—'}
+          p.mb-2
+            strong Customer ID:
+            |  #{caseDetails.customer_id || '—'}
+          p.mb-0
+            strong State:
+            |  #{caseDetails.is_open ? 'Open' : 'Solved'}
+
+      .card.mb-4
+        .card-body
+          h2.h5.mb-3 Required For Current Complaint
+          if caseDetails.effective_complaint
+            ul.mb-0
+              if requirements.needsShippingMethod
+                li Shipping method
+              if requirements.needsShippingDate
+                li Shipping date
+              if requirements.needsDefectFields
+                li Defect items
+                li Defect description
+              if !requirements.needsShippingMethod && !requirements.needsShippingDate && !requirements.needsDefectFields
+                li No extra required fields for this complaint.
+          else
+            p.text-muted.mb-0 Set a complaint to see conditional field requirements.
+
+      .card
+        .card-body
+          h2.h5.mb-3 Repeat Cases
+          if caseDetails.customer_id
+            if relatedCases.length > 0
+              p.text-muted= `${relatedCases.length} other case(s) found for this customer ID.`
+              .list-group
+                each relatedCase in relatedCases
+                  a.list-group-item.list-group-item-action(href=`/ct/case/${encodeURIComponent(relatedCase.order_number)}`)
+                    .d-flex.w-100.justify-content-between
+                      strong= relatedCase.order_number
+                      span= relatedCase.is_open ? 'Open' : 'Solved'
+                    small.text-muted= relatedCase.effective_complaint || 'No complaint set'
+            else
+              p.text-muted.mb-0 No other cases found for this customer ID.
+          else
+            p.text-muted.mb-0 Add a customer ID to track repeat cases.

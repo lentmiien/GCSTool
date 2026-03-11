@@ -1,0 +1,55 @@
+extends ../layout
+
+block content
+  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
+    .mb-3.mb-lg-0
+      h1.mb-1 Case Admin
+      p.text-muted.mb-0 Manage complaint and solution lookup values.
+    .btn-group
+      a.btn.btn-outline-secondary(href='/ct') Cases
+      a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
+
+  if message
+    .alert.alert-info= message
+
+  .alert.alert-secondary
+    | Cases store plain text values for complaints and solutions, so deleting a type here will not change existing case records.
+
+  .row
+    .col-lg-6
+      .card.mb-4
+        .card-body
+          h2.h4.mb-3 Complaint Types
+          form(method='post', action='/ct/admin/complaints')
+            .input-group.mb-3
+              input.form-control(type='text', name='name', placeholder='Add complaint type', required=true)
+              .input-group-append
+                button.btn.btn-primary(type='submit') Add
+          if complaintTypes.length > 0
+            ul.list-group
+              each complaintType in complaintTypes
+                li.list-group-item.d-flex.justify-content-between.align-items-center
+                  span= complaintType.name
+                  form(method='post', action=`/ct/admin/complaints/${complaintType.id}/delete`)
+                    button.btn.btn-outline-danger.btn-sm(type='submit') Delete
+          else
+            p.text-muted.mb-0 No complaint types configured yet.
+
+    .col-lg-6
+      .card.mb-4
+        .card-body
+          h2.h4.mb-3 Solution Types
+          form(method='post', action='/ct/admin/solutions')
+            .input-group.mb-3
+              input.form-control(type='text', name='name', placeholder='Add solution type', required=true)
+              .input-group-append
+                button.btn.btn-primary(type='submit') Add
+          if solutionTypes.length > 0
+            ul.list-group
+              each solutionType in solutionTypes
+                li.list-group-item.d-flex.justify-content-between.align-items-center
+                  span= solutionType.name
+                  form(method='post', action=`/ct/admin/solutions/${solutionType.id}/delete`)
+                    button.btn.btn-outline-danger.btn-sm(type='submit') Delete
+          else
+            p.text-muted.mb-0 No solution types configured yet.

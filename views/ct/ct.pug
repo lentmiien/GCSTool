@@ -1,36 +1,59 @@
-﻿extends ../layout
+extends ../layout
 
 block content
-  h1 Case Tracker
+  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
+    .mb-3.mb-lg-0
+      h1.mb-1 Cases
+      p.text-muted.mb-0 Open an order number to continue or create a new case.
+    .btn-group
+      a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
+      if role === 'admin'
+        a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
   if message
-    .alert.alert-warning= message
-  form(action='/ct/search', method='post', class='mb-4')
-    .input-group
-      input#ct-search.form-control(type='text', name='query', placeholder='Order number, tracking number, customer ID, or item code', required)
-      button.btn.btn-primary(type='submit') Search
-  if casesDueSoon && casesDueSoon.length
-    h2 Upcoming Deadlines (next #{days} days)
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Order
-          th Type
-          th Status
-          th Deadline
-          th Staff
-      tbody
-        each c in casesDueSoon
-          tr
-            td
-              a(href=`/ct/case/${c.id}`)= c.order
-            td= c.type || '—'
-            td= c.status || '—'
-            td= c.deadline ? ((new Date(c.deadline)).toISOString().split('T')[0]) : '—'
-            td= c.staff_in_charge || '—'
-  else
-    p.text-muted No cases have deadlines within the next #{days} days.
-  hr
-  p.mb-2 Need to create something new?
-  a.btn.btn-outline-primary.me-2(href='/ct/case/new') Create a new case
-  a.btn.btn-outline-secondary.me-2(href='/ct/items') View item trends
-  a.btn.btn-outline-secondary(href='/ct/audit') View recent activity
+    .alert.alert-info= message
+
+  if complaintTypes.length === 0
+    .alert.alert-warning
+      | No complaint types are configured yet.
+      if role === 'admin'
+        |  Add them on the admin page before assigning complaints.
+
+  .card.mb-4
+    .card-body
+      h2.h4.mb-3 Open Case
+      form(method='post', action='/ct/open')
+        .form-row.align-items-end
+          .form-group.col-md-8.mb-2.mb-md-0
+            label(for='order_number') Order number
+            input#order_number.form-control(type='text', name='order_number', placeholder='Enter order number', required=true, autofocus=true)
+          .form-group.col-md-4.mb-0
+            button.btn.btn-primary.btn-block(type='submit') Open case
+
+  .card
+    .card-body
+      .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center.mb-3
+        div
+          h2.h4.mb-1 Open Cases
+          p.text-muted.mb-0= `${openCases.length} open / ${totalCases} total`
+      if openCases.length > 0
+        .table-responsive
+          table.table.table-striped.table-hover.mb-0
+            thead
+              tr
+                th Order number
+                th Customer ID
+                th Current complaint
+                th Complaint date
+                th Last updated
+            tbody
+              each caseEntry in openCases
+                tr
+                  td
+                    a(href=`/ct/case/${encodeURIComponent(caseEntry.order_number)}`)= caseEntry.order_number
+                  td= caseEntry.customer_id || '—'
+                  td= caseEntry.effective_complaint || '—'
+                  td= caseEntry.complaint_date || '—'
+                  td= caseEntry.updated_at_display || '—'
+      else
+        p.text-muted.mb-0 No open cases yet.

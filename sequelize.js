@@ -31,17 +31,9 @@ const Trackhist2Model = require('./models/trackhist2');
 const Trackhist3Model = require('./models/trackhist3');
 const Trackhist4Model = require('./models/trackhist4');
 // Case tracker
-const CaseModel = require('./models/ct/ctCase');
-const ProcessedByModel = require('./models/ct/ctProcessedBy');
-const CommentModel = require('./models/ct/ctComment');
-const ItemModel = require('./models/ct/ctItem');
-const AssistantRecordModel = require('./models/ct/ctAssistantRecord');
-const FileModel = require('./models/ct/ctFile');
-const RefundModel = require('./models/ct/ctRefund');
-const CaseApprovalModel = require('./models/ct/ctCaseApproval');
-const ApproverPrivilegeModel = require('./models/ct/ctApproverPrivilege');
-const CTAuditLogModel = require('./models/ct/ctAuditLog');
-const CTZendeskModel = require('./models/ct/ctZendesk');
+const CaseModel = require('./models/ct/caseRecord');
+const ComplaintTypeModel = require('./models/ct/complaintType');
+const SolutionTypeModel = require('./models/ct/solutionType');
 // Policy/Manual/Template
 const PMTEntryModel = require('./models/pmt/pmt_entry');
 const PMTDependenciesModel = require('./models/pmt/pmt_dependencies');
@@ -94,16 +86,8 @@ const Trackhist3 = Trackhist3Model(sequelize_tracker, Sequelize);
 const Trackhist4 = Trackhist4Model(sequelize_tracker, Sequelize);
 // Case tracker
 const Case = CaseModel(sequelize, Sequelize);
-const ProcessedBy = ProcessedByModel(sequelize, Sequelize);
-const Comment = CommentModel(sequelize, Sequelize);
-const Item = ItemModel(sequelize, Sequelize);
-const AssistantRecord = AssistantRecordModel(sequelize, Sequelize);
-const File = FileModel(sequelize, Sequelize);
-const Refund = RefundModel(sequelize, Sequelize);
-const CaseApproval = CaseApprovalModel(sequelize, Sequelize);
-const ApproverPrivilege = ApproverPrivilegeModel(sequelize, Sequelize);
-const CTAuditLog = CTAuditLogModel(sequelize, Sequelize);
-const Zendesk = CTZendeskModel(sequelize, Sequelize);
+const ComplaintType = ComplaintTypeModel(sequelize, Sequelize);
+const SolutionType = SolutionTypeModel(sequelize, Sequelize);
 // Policy/Manual/Template
 const PMTEntry = PMTEntryModel(sequelize, Sequelize);
 const PMTDependencies = PMTDependenciesModel(sequelize, Sequelize);
@@ -165,16 +149,8 @@ module.exports = {
   },
   ct: {
     Case,
-    ProcessedBy,
-    Comment,
-    Item,
-    AssistantRecord,
-    File,
-    Refund,
-    CaseApproval,
-    ApproverPrivilege,
-    AuditLog: CTAuditLog,
-    Zendesk,
+    ComplaintType,
+    SolutionType,
   },
   pmt: {
     PMTEntry,
