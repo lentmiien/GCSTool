@@ -1,25 +1,23 @@
-On the `views/hs_ireland_editor.pug` page, I'd like to add a few tools to optimize my work.
+I want to remove the current "Case Tracker" (routes/ct.js) from this project, and replace with a much simplified tool that's just a single database table with a simple/quick to use UI.
 
-All of these tools are for use after I've opened a file, or after I'm done editing the content, so either "edit" tools, to "work summarize" tools.
+Importantly, a case should track the following data:
+* Order number: used as unique case id
+* Customer id: used to track repeaters
+* Customer complaint: selected from a pool of predefined values (can only be set once, relpaced by "Customer complaint edit" if changed)
+* Customer complaint edit: same as "Customer complaint" if changed after created, and replaces "Customer complaint" if a value has been set (example "Lost complaint" -> "delivered" -> "Defect complaint")
+* Customer complaint comment: optional extra details
+* Shipping method: required for shipping related complaints (lost/stuck in shipment, shipping damages)
+* Shipping date: required for lost/stuck in shipping complaints
+* Complaint date: same date as added to database, or date provided by user
+* Defect items: comma separated list of item codes, required for defect complaints
+* Defect description: short description of the defect, required for defect complaints
+* Solution: final solution for the case, from predefined list of solutions
+* Solved date: date the case was closed
 
-# 1. Remove "toy" from item names
-For some input files I need to remove the word "Toy" from the item names, for example "Toy plastic figurine(JAN 132456789765)" should be replaced with "Plastic figurine(JAN 132456789765)", so simply just remove "Toy" and capitalize the first letter of the item name, and keep everything else the same.
+Replace the "Case Tracker" with this simplified tool, and create 3 database tables: "cases", "complaint types", "solution types".
 
-# 2. HS to TARIC automation
-I want to create an "item name" + "HS code" to "TARIC code" mapping tool, that will auto-update the HS code to TARIC codes in a database for the tool, and as I update entries, create additional mappings based on changes I did.
-Notes:
-* Some items will include the item JAN code at the end, while other don't: I want to do 2 types of mapping:
-  * JAN to TARIC: since JAN codes are unique for the item, I always want to map the same JAN to the same TARIC code
-  * Item name + HS to TARIC: if it's a new item, I want to only use the item name part (without JAN) and the start HS code to map to a TARIC code I've used for similar items in the past
-  * If no matches, keep the initial HS code for manual editing
+The tool itself should have 2 pages, a landing page, with a order number input field + "open case" button, for either open an existing case (order number exist in database), or create a new case, and a list of open cases; and a view/edit case page, that display any existing data and a minimal form for editing the case.
 
-# 3. HS to TARIC manual
-Display the items one-by-one, where the automated edit tool either matched with "Item name + HS to TARIC" or no matching (still HS code). Display the order number, item row number, and current values, with an TARIC input field, and a next button, for the user to edit the value and go to the next entry. For entries where the automated check completed the edit with "JAN to TARIC", no review is needed.
+Also add an admin page for adding/deleting "complaint types" and "solution types" database entries, and in the "cases" database, save the text values, so nothing break if any types are deleted.
 
-# 4. Save output (add save to mapping database)
-When downloading the edited file, also send all edits to the server, for adding to the mapping database.
-
-# 5. Copy work summary
-I want to copy a summary of the edits I made for pasting in an Excel worksheet, where I store order numbers, item name edit count per order, TARIC code edit count per order, and unedited lines per order, in the format `{order number},{item name edit count},{TARIC edit count},{non-edit item count}`. "non-edit item count" is usually 0.
-
-Now, please add the mapping database, and add the code needed for the tools described above. Add one new button for each tool, except "Save output" that can append functionality to the existing save button.
+I do plan to add an analytics page later, but first we need to start gather data, so just create a placeholder page, that list the total number of cases for now.
