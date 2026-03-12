@@ -49,7 +49,7 @@
     nameHs: new Map(),
   };
 
-  const janPattern = /\(\s*JAN\s*([0-9]{8,14})\s*\)\s*$/i;
+  const janPattern = /\(\s*barcode\s*([0-9]{8,14})\s*\)\s*$/i;
 
   const setStatus = (text) => {
     statusEl.textContent = text || '';
@@ -63,7 +63,7 @@
 
   const sanitizeCode = (value) => collapseWhitespace(value);
 
-  const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*\(\s*JAN\s*[0-9]{8,14}\s*\)\s*$/i, ' '));
+  const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*\(\s*barcode\s*[0-9]{8,14}\s*\)\s*$/i, ' '));
 
   const stripToyPrefix = (value) => collapseWhitespace(String(value || '').replace(/^toy\b[\s-]*/i, ' '));
 
