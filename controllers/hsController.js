@@ -3,6 +3,14 @@ const csv = require('csvtojson');
 
 // Require necessary database models
 const { HSCodeList, IrelandTaricMapping, Op } = require('../sequelize');
+const {
+  collapseWhitespace,
+  sanitizeMappingCode,
+  cleanIrelandItemName,
+  normalizeIrelandItemName,
+  extractIrelandJanCode,
+  buildIrelandNameKey,
+} = require('../utils/irelandTaricMapping');
 // TODO: Load old data to DB first time
 const old_data = require('../data/recommended.json');
 HSCodeList.findAll().then(entries => {
@@ -56,37 +64,6 @@ async function LoadData() {
 }
 LoadData()
 
-const janPattern = /\(\s*JAN\s*([0-9]{8,14})\s*\)\s*$/i;
-
-function collapseWhitespace(value) {
-  return String(value || '').replace(/\s+/g, ' ').trim();
-}
-
-function removeJanSuffix(value) {
-  return collapseWhitespace(String(value || '').replace(/\s*\(\s*JAN\s*[0-9]{8,14}\s*\)\s*$/i, ' '));
-}
-
-function removeToyPrefix(value) {
-  return collapseWhitespace(String(value || '').replace(/^toy\b[\s-]*/i, ' '));
-}
-
-function cleanIrelandItemName(value) {
-  return removeToyPrefix(removeJanSuffix(value));
-}
-
-function normalizeIrelandItemName(value) {
-  return cleanIrelandItemName(value).toLowerCase();
-}
-
-function sanitizeMappingCode(value) {
-  return collapseWhitespace(value);
-}
-
-function extractJanCode(value) {
-  const match = String(value || '').match(janPattern);
-  return match ? match[1] : '';
-}
-
 async function saveIrelandTaricMappings(entries) {
   const janMappings = new Map();
   const nameMappings = new Map();
@@ -94,10 +71,14 @@ async function saveIrelandTaricMappings(entries) {
   entries.forEach((entry) => {
     const sourceHsCode = sanitizeMappingCode(entry.sourceHsCode);
     const taricCode = sanitizeMappingCode(entry.taricCode);
-    const rawItemName = collapseWhitespace(entry.itemName);
+    const rawItemName = collapseWhitespace(entry.itemName || entry.itemNameNormalized);
     const itemName = cleanIrelandItemName(rawItemName);
-    const itemNameNormalized = normalizeIrelandItemName(entry.itemNameNormalized || rawItemName);
-    const janCode = sanitizeMappingCode(entry.janCode || extractJanCode(rawItemName));
+    const itemNameNormalized = normalizeIrelandItemName(rawItemName);
+    const janCode = sanitizeMappingCode(
+      entry.janCode
+      || extractIrelandJanCode(rawItemName)
+      || extractIrelandJanCode(entry.itemNameNormalized)
+    );
 
     if (!sourceHsCode || !taricCode) {
       return;
@@ -124,7 +105,7 @@ async function saveIrelandTaricMappings(entries) {
     }
 
     if (itemNameNormalized) {
-      const itemKey = `${itemNameNormalized}__${sourceHsCode}`;
+      const itemKey = buildIrelandNameKey(itemNameNormalized, sourceHsCode);
       if (nameMappings.has(itemKey)) {
         const currName = nameMappings.get(itemKey);
         currName.taricCode = taricCode;
@@ -144,6 +125,7 @@ async function saveIrelandTaricMappings(entries) {
 
   let created = 0;
   let updated = 0;
+  let deleted = 0;
 
   const janCodes = Array.from(janMappings.keys());
   if (janCodes.length > 0) {
@@ -154,23 +136,40 @@ async function saveIrelandTaricMappings(entries) {
           [Op.in]: janCodes,
         },
       },
+      order: [['updatedAt', 'DESC'], ['id', 'DESC']],
     });
     const existingJanLookup = {};
     existingJanMappings.forEach((entry) => {
-      existingJanLookup[entry.janCode] = entry;
+      if (!existingJanLookup[entry.janCode]) {
+        existingJanLookup[entry.janCode] = [];
+      }
+      existingJanLookup[entry.janCode].push(entry);
     });
 
     for (const janCode of janCodes) {
       const mapping = janMappings.get(janCode);
-      const existing = existingJanLookup[janCode];
+      const existingEntries = existingJanLookup[janCode] || [];
+      const existing = existingEntries[0];
+      const existingUses = existingEntries.reduce((sum, entry) => sum + Number(entry.uses || 0), 0);
+      const duplicateJanIds = existingEntries.slice(1).map((entry) => entry.id);
       if (existing) {
         await IrelandTaricMapping.update({
           itemName: mapping.itemName,
           itemNameNormalized: mapping.itemNameNormalized,
           sourceHsCode: mapping.sourceHsCode,
           taricCode: mapping.taricCode,
-          uses: existing.uses + mapping.uses,
+          uses: existingUses + mapping.uses,
         }, { where: { id: existing.id } });
+        if (duplicateJanIds.length > 0) {
+          await IrelandTaricMapping.destroy({
+            where: {
+              id: {
+                [Op.in]: duplicateJanIds,
+              },
+            },
+          });
+          deleted += duplicateJanIds.length;
+        }
         updated += 1;
       } else {
         await IrelandTaricMapping.create({
@@ -189,9 +188,8 @@ async function saveIrelandTaricMappings(entries) {
 
   const nameKeys = Array.from(nameMappings.keys());
   if (nameKeys.length > 0) {
-    const existingNameMappings = await IrelandTaricMapping.findAll({
+    const relevantMappings = await IrelandTaricMapping.findAll({
       where: {
-        mappingType: 'name_hs',
         [Op.or]: nameKeys.map((itemKey) => {
           const mapping = nameMappings.get(itemKey);
           return {
@@ -200,21 +198,94 @@ async function saveIrelandTaricMappings(entries) {
           };
         }),
       },
+      order: [['updatedAt', 'DESC'], ['id', 'DESC']],
     });
-    const existingNameLookup = {};
-    existingNameMappings.forEach((entry) => {
-      existingNameLookup[`${entry.itemNameNormalized}__${entry.sourceHsCode}`] = entry;
+    const nameKeyState = new Map();
+
+    const ensureNameState = (itemKey, fallback) => {
+      if (!nameKeyState.has(itemKey)) {
+        nameKeyState.set(itemKey, {
+          itemName: fallback && fallback.itemName ? fallback.itemName : '',
+          itemNameNormalized: fallback ? fallback.itemNameNormalized : '',
+          sourceHsCode: fallback ? fallback.sourceHsCode : '',
+          incomingUses: 0,
+          existingUses: 0,
+          taricCodes: new Set(),
+          existingEntries: [],
+        });
+      }
+      return nameKeyState.get(itemKey);
+    };
+
+    relevantMappings.forEach((entry) => {
+      const itemKey = buildIrelandNameKey(entry.itemNameNormalized, entry.sourceHsCode);
+      if (!nameMappings.has(itemKey)) {
+        return;
+      }
+      const state = ensureNameState(itemKey, entry);
+      if (entry.itemName && !state.itemName) {
+        state.itemName = entry.itemName;
+      }
+      if (entry.taricCode) {
+        state.taricCodes.add(sanitizeMappingCode(entry.taricCode));
+      }
+      if (entry.mappingType === 'name_hs') {
+        state.existingEntries.push(entry);
+        state.existingUses += Number(entry.uses || 0);
+      }
+    });
+
+    nameMappings.forEach((mapping, itemKey) => {
+      const state = ensureNameState(itemKey, mapping);
+      state.itemName = mapping.itemName || state.itemName;
+      state.itemNameNormalized = mapping.itemNameNormalized;
+      state.sourceHsCode = mapping.sourceHsCode;
+      state.incomingUses = mapping.uses;
+      if (mapping.taricCode) {
+        state.taricCodes.add(mapping.taricCode);
+      }
     });
 
     for (const itemKey of nameKeys) {
       const mapping = nameMappings.get(itemKey);
-      const existing = existingNameLookup[itemKey];
+      const state = nameKeyState.get(itemKey);
+      const existingEntries = state ? state.existingEntries : [];
+      const distinctTarics = state ? Array.from(state.taricCodes).filter(Boolean) : [];
+
+      if (distinctTarics.length > 1) {
+        if (existingEntries.length > 0) {
+          await IrelandTaricMapping.destroy({
+            where: {
+              id: {
+                [Op.in]: existingEntries.map((entry) => entry.id),
+              },
+            },
+          });
+          deleted += existingEntries.length;
+        }
+        continue;
+      }
+
+      const existing = existingEntries[0];
+      const duplicateNameIds = existingEntries.slice(1).map((entry) => entry.id);
       if (existing) {
         await IrelandTaricMapping.update({
           itemName: mapping.itemName,
+          itemNameNormalized: mapping.itemNameNormalized,
+          sourceHsCode: mapping.sourceHsCode,
           taricCode: mapping.taricCode,
-          uses: existing.uses + mapping.uses,
+          uses: state.existingUses + state.incomingUses,
         }, { where: { id: existing.id } });
+        if (duplicateNameIds.length > 0) {
+          await IrelandTaricMapping.destroy({
+            where: {
+              id: {
+                [Op.in]: duplicateNameIds,
+              },
+            },
+          });
+          deleted += duplicateNameIds.length;
+        }
         updated += 1;
       } else {
         await IrelandTaricMapping.create({
@@ -233,6 +304,7 @@ async function saveIrelandTaricMappings(entries) {
   return {
     created,
     updated,
+    deleted,
     saved: created + updated,
   };
 }
@@ -406,6 +478,7 @@ exports.ireland_save_mappings = async (req, res, next) => {
       status: 'OK',
       created: result.created,
       updated: result.updated,
+      deleted: result.deleted,
       saved: result.saved,
     });
   } catch (err) {

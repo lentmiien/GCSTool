@@ -48,8 +48,9 @@
     jan: new Map(),
     nameHs: new Map(),
   };
+  let blockedNameHsKeys = new Set();
 
-  const janPattern = /\(\s*barcode\s*([0-9]{8,14})\s*\)\s*$/i;
+  const janPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
 
   const setStatus = (text) => {
     statusEl.textContent = text || '';
@@ -63,11 +64,17 @@
 
   const sanitizeCode = (value) => collapseWhitespace(value);
 
-  const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*\(\s*barcode\s*[0-9]{8,14}\s*\)\s*$/i, ' '));
+  const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*[\[(]\s*barcode\s*[0-9]{8,14}\s*[\])]\s*$/i, ' '));
 
   const stripToyPrefix = (value) => collapseWhitespace(String(value || '').replace(/^toy\b[\s-]*/i, ' '));
 
-  const cleanItemName = (value) => stripToyPrefix(stripJanSuffix(value));
+  const cleanItemName = (value) => {
+    const cleanedValue = stripToyPrefix(stripJanSuffix(value));
+    if (cleanedValue && cleanedValue === cleanedValue.toLowerCase()) {
+      return cleanedValue.charAt(0).toUpperCase() + cleanedValue.slice(1);
+    }
+    return cleanedValue;
+  };
 
   const normalizeItemName = (value) => stripToyPrefix(stripJanSuffix(value)).toLowerCase();
 
@@ -113,7 +120,16 @@
 
     if (entry.mappingType === 'name_hs' && entry.itemNameNormalized && entry.sourceHsCode) {
       const key = buildNameKey(entry.itemNameNormalized, entry.sourceHsCode);
+      const nextTaricCode = sanitizeCode(entry.taricCode);
+      if (blockedNameHsKeys.has(key)) {
+        return;
+      }
       const existing = taricLookup.nameHs.get(key);
+      if (existing && sanitizeCode(existing.taricCode) && nextTaricCode && sanitizeCode(existing.taricCode) !== nextTaricCode) {
+        taricLookup.nameHs.delete(key);
+        blockedNameHsKeys.add(key);
+        return;
+      }
       if (force || shouldReplaceMapping(existing, entry)) {
         taricLookup.nameHs.set(key, entry);
       }
@@ -125,6 +141,7 @@
       jan: new Map(),
       nameHs: new Map(),
     };
+    blockedNameHsKeys = new Set();
     initialTaricMappings.forEach((entry) => {
       upsertTaricLookup(entry, false);
     });
