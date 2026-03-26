@@ -1,0 +1,366 @@
+extends layout
+
+mixin hostSampleChart(chart)
+  .card.mb-3
+    .card-body
+      h5.card-title= chart.title
+      if chart.summaryItems && chart.summaryItems.length > 0
+        each summaryItem, index in chart.summaryItems
+          p.text-muted.small(class=index === chart.summaryItems.length - 1 ? 'mb-2' : 'mb-1')
+            b #{summaryItem.label}:
+            |  #{summaryItem.text}
+      else if chart.summaryText
+        p.text-muted.small.mb-2= chart.summaryText
+      if !chart.hideLegend
+        .mb-2
+          each series in chart.series
+            span.badge.badge-light.mr-2.mb-2
+              span(style=`display:inline-block;width:0.75rem;height:0.75rem;border-radius:50%;background-color:${series.color};margin-right:0.4rem;vertical-align:middle;`)
+              | #{series.label}
+      svg(width=chart.width, height=chart.height, viewBox=`0 0 ${chart.width} ${chart.height}`, style='width:100%;height:auto;border:1px solid #ddd;border-radius:4px;')
+        rect(x='0', y='0', width=chart.width, height=chart.height, fill='#ffffff')
+        each tick in chart.ticks
+          line(
+            x1=chart.padding.left,
+            y1=tick.y,
+            x2=chart.width - chart.padding.right,
+            y2=tick.y,
+            stroke='#e9ecef',
+            'stroke-width'='1'
+          )
+          text(
+            x=chart.padding.left - 8,
+            y=tick.y + 4,
+            'text-anchor'='end',
+            'font-size'='11',
+            fill='#6c757d'
+          )= tick.label
+        line(
+          x1=chart.padding.left,
+          y1=chart.height - chart.padding.bottom,
+          x2=chart.width - chart.padding.right,
+          y2=chart.height - chart.padding.bottom,
+          stroke='#adb5bd',
+          'stroke-width'='1'
+        )
+        line(
+          x1=chart.padding.left,
+          y1=chart.padding.top,
+          x2=chart.padding.left,
+          y2=chart.height - chart.padding.bottom,
+          stroke='#adb5bd',
+          'stroke-width'='1'
+        )
+        each series in chart.series
+          if series.polylinePoints
+            polyline(
+              points=series.polylinePoints,
+              fill='none',
+              stroke=series.color,
+              'stroke-width'='3',
+              'stroke-linejoin'='round',
+              'stroke-linecap'='round'
+            )
+          if series.lastPoint
+            circle(cx=series.lastPoint.x, cy=series.lastPoint.y, r='4', fill=series.color)
+      .d-flex.justify-content-between.mt-2.text-muted.small
+        span= chart.startLabel
+        span= chart.endLabel
+
+block content
+  .row.mb-3
+    .col-lg-8
+      h1 Host trends (30 days)
+      p.text-muted.mb-0 Long-term reporting dashboard focused on memory pressure, PM2 process behaviour, and supporting host diagnostics.
+    .col-lg-4.text-md-right
+      a.btn.btn-outline-secondary.mt-2.mt-md-0.mr-2(href='/lennart/host-samples') Short-term samples
+      a.btn.btn-outline-secondary.mt-2.mt-md-0(href='/lennart') Back to Lennart tools
+
+  if error
+    .alert.alert-danger= error
+
+  .row.mb-3
+    .col-lg-4
+      .card.mb-3
+        .card-body
+          h5.card-title Filters
+          form(method='get', action='/lennart/host-trends')
+            .form-group
+              label(for='hostname') Hostname
+              select#hostname.form-control(name='hostname')
+                option(value='') All hosts
+                each host in hostnames
+                  option(value=host, selected=host === hostname)= host
+            .form-group
+              label(for='processLimit') PM2 charts
+              input#processLimit.form-control(type='number', name='processLimit', min='1', max='20', value=processLimit)
+            p.text-muted.small.mb-3 Fixed window: last #{windowDays} days
+            button.btn.btn-primary(type='submit') Apply
+    .col-lg-8
+      .card.mb-3
+        .card-body
+          h5.card-title Scope
+          if overview
+            p.mb-1
+              b Window:
+              |  #{overview.oldestTsShort} UTC to #{overview.latestTsShort} UTC (#{overview.windowDurationText})
+            p.mb-1
+              b Rows:
+              |  #{overview.matchingRows}
+            p.mb-1
+              b Hosts:
+              |  #{overview.hostCount}
+            p.mb-1
+              b Latest sample host:
+              |  #{overview.latestHost}
+            p.mb-1
+              b Coverage:
+              |  #{overview.coverageText}
+            p.mb-2
+              b Typical cadence:
+              |  #{overview.cadenceText}
+          else
+            p.mb-2 No samples found in the selected 30-day window.
+          if scopeNote
+            .alert.alert-info.py-2.mb-0= scopeNote
+
+  if overview && overview.cards.length > 0
+    .row
+      each card in overview.cards
+        .col-md-6.col-xl-3
+          .card.mb-3
+            .card-body
+              p.text-muted.small.mb-1= card.label
+              h4.h5.mb-2= card.value
+              p.text-muted.small.mb-0= card.detail
+
+  if overview && overview.insights.length > 0
+    .row.mb-3
+      .col
+        .card
+          .card-body
+            h5.card-title Key findings
+            ul.mb-0
+              each insight in overview.insights
+                li= insight
+
+  if overview && overview.metrics.length > 0
+    .row.mb-3
+      .col
+        .card
+          .card-body
+            h5.card-title 30-day metric summary
+            .table-responsive
+              table.table.table-sm.table-bordered.mb-0
+                thead.thead-light
+                  tr
+                    th Metric
+                    th Latest
+                    th Average
+                    th P95
+                    th Max
+                    th 7d change
+                tbody
+                  each metric in overview.metrics
+                    tr
+                      td= metric.label
+                      td= metric.latest
+                      td= metric.average
+                      td= metric.p95
+                      td= metric.max
+                      td= metric.trend
+
+  if hostSummaries.length > 1
+    .row.mb-3
+      .col
+        .card
+          .card-body
+            h5.card-title Per-host summary
+            p.text-muted.small.mb-2 Useful when the view includes multiple hosts. This keeps the cross-host averages above in context.
+            .table-responsive
+              table.table.table-sm.table-bordered.mb-0
+                thead.thead-light
+                  tr
+                    th Host
+                    th Rows
+                    th Latest memory
+                    th Avg memory
+                    th Peak memory
+                    th Lowest available
+                    th Max swap
+                    th Max PM2 memory
+                    th Coverage
+                    th Largest gap
+                tbody
+                  each hostSummary in hostSummaries
+                    tr
+                      td= hostSummary.hostname
+                      td= hostSummary.sampleCountText
+                      td= hostSummary.latestMemoryText
+                      td= hostSummary.averageMemoryText
+                      td= hostSummary.peakMemoryText
+                      td= hostSummary.lowAvailableText
+                      td= hostSummary.maxSwapText
+                      td= hostSummary.maxPm2MemoryText
+                      td= hostSummary.coverageText
+                      td= hostSummary.largestGapText
+
+  if charts.length > 0
+    .row
+      each chart in charts
+        .col-xl-6
+          +hostSampleChart(chart)
+
+  if memoryEvents.length > 0 || gapRows.length > 0
+    .row
+      .col-xl-6
+        .card.mb-3
+          .card-body
+            h5.card-title Memory pressure events
+            p.text-muted.small.mb-2 Contiguous high-pressure periods based on high used memory, low available memory, or swap activity.
+            if memoryEvents.length > 0
+              .table-responsive
+                table.table.table-sm.table-bordered.mb-0
+                  thead.thead-light
+                    tr
+                      th Host
+                      th Start
+                      th End
+                      th Duration
+                      th Peak memory
+                      th Lowest available
+                      th Max swap
+                      th Peak PM2
+                      th Peak load
+                  tbody
+                    each event in memoryEvents
+                      tr
+                        td= event.hostname
+                        td= event.startTsShort
+                        td= event.endTsShort
+                        td= event.durationText
+                        td= event.peakMemoryText
+                        td= event.lowAvailableText
+                        td= event.maxSwapText
+                        td= event.peakPm2MemoryText
+                        td= event.peakLoadText
+            else
+              .alert.alert-secondary.mb-0 No memory pressure events were detected in the selected window.
+      .col-xl-6
+        .card.mb-3
+          .card-body
+            h5.card-title Largest collection gaps
+            p.text-muted.small.mb-2 Long gaps often line up with downtime, stalled sampling, or abrupt restarts.
+            if gapRows.length > 0
+              .table-responsive
+                table.table.table-sm.table-bordered.mb-0
+                  thead.thead-light
+                    tr
+                      th Host
+                      th From
+                      th To
+                      th Gap
+                      th Missing rows
+                      th Memory after
+                      th PM2 after
+                      th Load after
+                  tbody
+                    each gapRow in gapRows
+                      tr
+                        td= gapRow.hostname
+                        td= gapRow.fromTsShort
+                        td= gapRow.toTsShort
+                        td= gapRow.gapText
+                        td= gapRow.estimatedMissingSamples
+                        td= gapRow.memoryAfterText
+                        td= gapRow.pm2AfterText
+                        td= gapRow.loadAfterText
+            else
+              .alert.alert-secondary.mb-0 No large sample gaps were detected in the selected window.
+
+  if memoryJumps.length > 0
+    .row.mb-3
+      .col
+        .card
+          .card-body
+            h5.card-title Largest memory jumps between consecutive samples
+            p.text-muted.small.mb-2 These rows help isolate sudden memory growth and whether PM2 memory moved at the same time.
+            .table-responsive
+              table.table.table-sm.table-bordered.mb-0
+                thead.thead-light
+                  tr
+                    th Host
+                    th Timestamp
+                    th Delta used
+                    th Delta used %
+                    th Delta PM2
+                    th Delta swap
+                    th Gap from previous
+                    th Current memory
+                    th Available
+                    th Load
+                tbody
+                  each jump in memoryJumps
+                    tr
+                      td= jump.hostname
+                      td= jump.tsShort
+                      td= jump.deltaMemUsedText
+                      td= jump.deltaMemUsedPctText
+                      td= jump.deltaPm2MemoryText
+                      td= jump.deltaSwapUsedText
+                      td= jump.gapDurationText
+                      td= jump.currentMemoryText
+                      td= jump.currentAvailableText
+                      td= jump.currentLoadText
+
+  if processCharts.length > 0
+    .row.mb-2
+      .col
+        h4 PM2 process memory trends
+        p.text-muted.mb-0 Charts are ranked by a memory-first risk score that also considers restarts and late-period growth.
+    .row
+      each chart in processCharts
+        .col-xl-6
+          +hostSampleChart(chart)
+
+  if processRows.length > 0
+    .row.mb-3
+      .col
+        .card
+          .card-body
+            h5.card-title PM2 process leaderboard
+            p.text-muted.small.mb-2 The table is sorted by the same risk score used for the charts. Restart columns are shown as restart / unstable-restart counter increases.
+            .table-responsive
+              table.table.table-sm.table-bordered.mb-0
+                thead.thead-light
+                  tr
+                    th Process
+                    th Hosts
+                    th Seen
+                    th Latest
+                    th Average
+                    th P95
+                    th Max
+                    th 30d change
+                    th CPU avg / max
+                    th Restarts
+                    th State
+                tbody
+                  each processRow in processRows
+                    tr
+                      td= processRow.name
+                      td= processRow.hostsText
+                      td= processRow.coverageText
+                      td= processRow.latestMemoryText
+                      td= processRow.averageMemoryText
+                      td= processRow.p95MemoryText
+                      td= processRow.maxMemoryText
+                      td= processRow.lateVsEarlyText
+                      td #{processRow.averageCpuText} / #{processRow.maxCpuText}
+                      td= processRow.restartText
+                      td= processRow.latestStateText
+  else if !error
+    .alert.alert-secondary No PM2 process data was available for the selected window.
+
+  if !overview && !error
+    .alert.alert-secondary No host samples are stored in the selected 30-day window.

@@ -11,6 +11,7 @@ router.all('*', controller.all);
 router.get('/', controller.index);
 router.get('/zpl', controller.zpl);
 router.get('/host-samples', controller.hostSamples);
+router.get('/host-trends', controller.hostTrends);
 router.post('/zpl', controller.convertZpl);
 
 router.post('/updateait', controller.updateait);
