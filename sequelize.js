@@ -17,6 +17,7 @@ const MeetingCommentModel = require('./models/meeting_comment');
 const FormV2Model = require('./models/form_v2');
 const FormFormatModel = require('./models/form_format');
 const UpdatenoticeModel = require('./models/updatenotice');
+const HostSampleModel = require('./models/host_sample');
 const OfficialCountryListModel = require('./models/OfficialCountryList');
 const InternalCountryListModel = require('./models/InternalCountryList');
 const JapanPostCountryListModel = require('./models/JapanPostCountryList');
@@ -71,6 +72,7 @@ const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
 const FormV2 = FormV2Model(sequelize, Sequelize);
 const FormFormat = FormFormatModel(sequelize, Sequelize);
 const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
+const HostSample = HostSampleModel(sequelize, Sequelize);
 const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
 const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
@@ -133,6 +135,7 @@ module.exports = {
   FormV2,
   FormFormat,
   Updatenotice,
+  HostSample,
   OfficialCountryList,
   InternalCountryList,
   JapanPostCountryList,

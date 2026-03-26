@@ -10,6 +10,7 @@ router.all('*', controller.all);
 /* GET landing page. */
 router.get('/', controller.index);
 router.get('/zpl', controller.zpl);
+router.get('/host-samples', controller.hostSamples);
 router.post('/zpl', controller.convertZpl);
 
 router.post('/updateait', controller.updateait);

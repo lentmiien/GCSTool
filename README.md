@@ -45,6 +45,7 @@ GCS Tool is the internal platform used by the Oh-ami Global Customer Support tea
    - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME_GCS`, `DB_NAME_TRACK`
    - Company profile fields (`COMPANY_*`) for headers and document templates
    - Optional OpenAI keys (`OPENAI_API_KEY`, `OPENAI_API_KEY2`) for AI helpers
+   - Optional host monitor settings: `HOSTNAME_OVERRIDE`, `PM2_BIN`, and `HOST_SAMPLE_RETENTION_DAYS` (defaults to `30`)
    - `LINK_1` ... `LINK_5` to wire quick-access resources in the UI
 3. **Prepare databases**
    - Create both schemas manually (`CREATE DATABASE ...`)
@@ -83,6 +84,24 @@ env_sample            # Template for required configuration
 - Follow the existing 2-space, single-quote, CommonJS style; mirror nearby patterns in controllers/routes.
 - There is no automated test suite yet; smoke test authentication, Entries, Scheduler, CT, PMT, file upload, and locale switching before shipping changes.
 - When adding dependencies or scripts, keep `package-lock.json` in sync.
+
+## Host Monitor Cron Jobs (EC2)
+- The host monitor uses two standalone scripts:
+  - `npm run collect:host-sample` inserts one row into `host_samples`.
+  - `npm run cleanup:host-samples` removes rows older than `HOST_SAMPLE_RETENTION_DAYS` days. The default is `30`.
+- On Amazon EC2, cron usually runs with a very small `PATH`. Use absolute paths for both `node` and the project files.
+- If PM2 was installed through `nvm`, set `PM2_BIN` in `.env` to the full binary path, for example `/home/ec2-user/.nvm/versions/node/v16.20.2/bin/pm2`.
+- Test both jobs once before enabling cron:
+  ```bash
+  /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js
+  /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js
+  ```
+- Edit the crontab with `crontab -e` and add entries like these. Replace `/home/ec2-user/GCSTool` and the `node` path to match your instance. You can find the correct node path with `which node`.
+  ```cron
+  * * * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js >> /home/ec2-user/GCSTool/temp/collect_host_sample.log 2>&1
+  15 0 * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js >> /home/ec2-user/GCSTool/temp/cleanup_host_samples.log 2>&1
+  ```
+- The first job collects one sample every minute. The second job runs once per day at `00:15` server time and trims the table back to the last 30 days.
 
 ## Troubleshooting
 - **Cannot connect to DB:** Verify `.env` values and that the MySQL user has privileges on both schemas.

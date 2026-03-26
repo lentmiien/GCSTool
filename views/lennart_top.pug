@@ -5,6 +5,10 @@ block content
     .col
       h1 #{i18n('lennart_top')}
       button.btn.btn-danger(onclick="EnableDanger()") #{i18n('enable_danger')}
+  .row.mb-3
+    .col
+      a.btn.btn-outline-secondary.mr-2(href='/lennart/zpl') ZPL converter
+      a.btn.btn-outline-secondary(href='/lennart/host-samples') Host samples
   .row 
     .col 
       textarea#ait_input(style="width:100%;", rows="10")

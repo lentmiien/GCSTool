@@ -1,0 +1,96 @@
+extends layout
+
+block content
+  .row.mb-3
+    .col-md-8
+      h1 Host samples
+      p.text-muted.mb-0 Review host monitor samples stored in the GCS Tool database.
+    .col-md-4.text-md-right
+      a.btn.btn-outline-secondary.mt-2.mt-md-0(href='/lennart') Back to Lennart tools
+
+  if error
+    .alert.alert-danger= error
+
+  .row.mb-3
+    .col-lg-4
+      .card
+        .card-body
+          h5.card-title Filters
+          form(method='get', action='/lennart/host-samples')
+            .form-group
+              label(for='hostname') Hostname
+              select#hostname.form-control(name='hostname')
+                option(value='') All hosts
+                each host in hostnames
+                  option(value=host, selected=host === hostname)= host
+            .form-group
+              label(for='limit') Rows
+              input#limit.form-control(type='number', name='limit', min='1', max='200', value=limit)
+            button.btn.btn-primary(type='submit') Apply
+    .col-lg-8
+      .card
+        .card-body
+          h5.card-title Overview
+          if latestSample
+            p.mb-1
+              b Latest sample:
+              |  #{latestSample.tsIso} UTC
+            p.mb-1
+              b Host:
+              |  #{latestSample.hostname}
+            p.mb-1
+              b Memory:
+              |  #{latestSample.memUsedMb} / #{latestSample.memTotalMb} MB used, #{latestSample.memAvailableMb} MB available
+            p.mb-1
+              b Swap:
+              |  #{latestSample.swapUsedMb} / #{latestSample.swapTotalMb} MB used
+            p.mb-1
+              b Load:
+              |  #{latestSample.load}
+            p.mb-1
+              b Root disk:
+              |  #{latestSample.rootUsedPct}% used
+            p.mb-0
+              b Showing rows:
+              |  #{samples.length} of #{matchingRows}
+          else
+            p.mb-0 No samples found for the selected filter.
+
+  if samples.length > 0
+    .row
+      .col
+        table.table.table-sm.table-striped.table-bordered
+          thead.thead-dark
+            tr
+              th Timestamp
+              th Hostname
+              th Memory
+              th Swap
+              th Load
+              th Root
+              th Processes
+          tbody
+            each sample in samples
+              tr
+                td= sample.tsIso
+                td= sample.hostname
+                td #{sample.memUsedMb} / #{sample.memTotalMb} MB
+                td #{sample.swapUsedMb} / #{sample.swapTotalMb} MB
+                td= sample.load
+                td #{sample.rootUsedPct}%
+                td
+                  div Node: #{sample.processCount}
+                  div PM2: #{sample.pm2ProcessCount}
+              tr
+                td(colspan='7')
+                  details
+                    summary Process details
+                    .row.mt-3
+                      .col-lg-6
+                        h6 Node processes
+                        pre(style='max-height:20rem;overflow:auto;')= sample.nodeProcessesText
+                      .col-lg-6
+                        h6 PM2 processes
+                        pre(style='max-height:20rem;overflow:auto;')= sample.pm2ProcessesText
+  else if !error
+    .alert.alert-secondary No host samples are stored yet.
