@@ -1,5 +1,72 @@
 extends layout
 
+mixin hostSampleChart(chart)
+  .card
+    .card-body
+      h5.card-title= chart.title
+      if chart.summaryItems && chart.summaryItems.length > 0
+        each summaryItem, index in chart.summaryItems
+          p.text-muted.small(class=index === chart.summaryItems.length - 1 ? 'mb-2' : 'mb-1')
+            b #{summaryItem.label}:
+            |  #{summaryItem.text}
+      else if chart.summaryText
+        p.text-muted.small.mb-2= chart.summaryText
+      if !chart.hideLegend
+        .mb-2
+          each series in chart.series
+            span.badge.badge-light.mr-2.mb-2
+              span(style=`display:inline-block;width:0.75rem;height:0.75rem;border-radius:50%;background-color:${series.color};margin-right:0.4rem;vertical-align:middle;`)
+              | #{series.label}
+      svg(width=chart.width, height=chart.height, viewBox=`0 0 ${chart.width} ${chart.height}`, style='width:100%;height:auto;border:1px solid #ddd;border-radius:4px;')
+        rect(x='0', y='0', width=chart.width, height=chart.height, fill='#ffffff')
+        each tick in chart.ticks
+          line(
+            x1=chart.padding.left,
+            y1=tick.y,
+            x2=chart.width - chart.padding.right,
+            y2=tick.y,
+            stroke='#e9ecef',
+            'stroke-width'='1'
+          )
+          text(
+            x=chart.padding.left - 8,
+            y=tick.y + 4,
+            'text-anchor'='end',
+            'font-size'='11',
+            fill='#6c757d'
+          )= tick.label
+        line(
+          x1=chart.padding.left,
+          y1=chart.height - chart.padding.bottom,
+          x2=chart.width - chart.padding.right,
+          y2=chart.height - chart.padding.bottom,
+          stroke='#adb5bd',
+          'stroke-width'='1'
+        )
+        line(
+          x1=chart.padding.left,
+          y1=chart.padding.top,
+          x2=chart.padding.left,
+          y2=chart.height - chart.padding.bottom,
+          stroke='#adb5bd',
+          'stroke-width'='1'
+        )
+        each series in chart.series
+          if series.polylinePoints
+            polyline(
+              points=series.polylinePoints,
+              fill='none',
+              stroke=series.color,
+              'stroke-width'='3',
+              'stroke-linejoin'='round',
+              'stroke-linecap'='round'
+            )
+          if series.lastPoint
+            circle(cx=series.lastPoint.x, cy=series.lastPoint.y, r='4', fill=series.color)
+      .d-flex.justify-content-between.mt-2.text-muted.small
+        span= chart.startLabel
+        span= chart.endLabel
+
 block content
   .row.mb-3
     .col-md-8
@@ -72,63 +139,17 @@ block content
     .row.mb-3
       each chart in charts
         .col-xl-6
-          .card
-            .card-body
-              h5.card-title= chart.title
-              .mb-2
-                each series in chart.series
-                  span.badge.badge-light.mr-2.mb-2
-                    span(style=`display:inline-block;width:0.75rem;height:0.75rem;border-radius:50%;background-color:${series.color};margin-right:0.4rem;vertical-align:middle;`)
-                    | #{series.label}
-              svg(width=chart.width, height=chart.height, viewBox=`0 0 ${chart.width} ${chart.height}`, style='width:100%;height:auto;border:1px solid #ddd;border-radius:4px;')
-                rect(x='0', y='0', width=chart.width, height=chart.height, fill='#ffffff')
-                each tick in chart.ticks
-                  line(
-                    x1=chart.padding.left,
-                    y1=tick.y,
-                    x2=chart.width - chart.padding.right,
-                    y2=tick.y,
-                    stroke='#e9ecef',
-                    'stroke-width'='1'
-                  )
-                  text(
-                    x=chart.padding.left - 8,
-                    y=tick.y + 4,
-                    'text-anchor'='end',
-                    'font-size'='11',
-                    fill='#6c757d'
-                  )= tick.label
-                line(
-                  x1=chart.padding.left,
-                  y1=chart.height - chart.padding.bottom,
-                  x2=chart.width - chart.padding.right,
-                  y2=chart.height - chart.padding.bottom,
-                  stroke='#adb5bd',
-                  'stroke-width'='1'
-                )
-                line(
-                  x1=chart.padding.left,
-                  y1=chart.padding.top,
-                  x2=chart.padding.left,
-                  y2=chart.height - chart.padding.bottom,
-                  stroke='#adb5bd',
-                  'stroke-width'='1'
-                )
-                each series in chart.series
-                  if series.polylinePoints
-                    polyline(
-                      points=series.polylinePoints,
-                      fill='none',
-                      stroke=series.color,
-                      'stroke-width'='3',
-                      'stroke-linejoin'='round',
-                      'stroke-linecap'='round'
-                    )
-                  if series.lastPoint
-                    circle(cx=series.lastPoint.x, cy=series.lastPoint.y, r='4', fill=series.color)
-              .d-flex.justify-content-between.mt-2.text-muted.small
-                span= chart.startLabel
-                span= chart.endLabel
+          +hostSampleChart(chart)
+
+  if pm2MemoryCharts.length > 0
+    .row.mb-2
+      .col
+        h4 PM2 process memory
+        p.text-muted.mb-0 Aggregated by PM2 process name across the displayed rows. A steady upward trend without settling back down can indicate a memory leak.
+    .row.mb-3
+      each chart in pm2MemoryCharts
+        .col-xl-6
+          +hostSampleChart(chart)
 
   if samples.length > 0
     .row

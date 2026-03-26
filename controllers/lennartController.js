@@ -12,6 +12,16 @@ const TMP_DIR = path.join(__dirname, '..', 'public', 'tmp');
 let zplRenderer = null;
 const DEFAULT_SAMPLE_LIMIT = 50;
 const MAX_SAMPLE_LIMIT = 200;
+const CHART_COLORS = [
+  '#c0392b',
+  '#2980b9',
+  '#8e44ad',
+  '#27ae60',
+  '#d35400',
+  '#16a085',
+  '#2c3e50',
+  '#f39c12',
+];
 
 async function getRenderer() {
   if (zplRenderer) {
@@ -115,6 +125,10 @@ function formatValue(value, decimals, suffix) {
   }
 
   return `${Number(value).toFixed(decimals)}${suffix || ''}`;
+}
+
+function getChartColor(index) {
+  return CHART_COLORS[index % CHART_COLORS.length];
 }
 
 function buildMetricRow(label, values, latestValue, options) {
@@ -392,6 +406,127 @@ function buildCharts(samples) {
   ];
 }
 
+function summarizePm2Processes(processes) {
+  const summary = {};
+  const processList = Array.isArray(processes) ? processes : [];
+
+  processList.forEach((processInfo) => {
+    if (!processInfo || typeof processInfo !== 'object' || processInfo.error) {
+      return;
+    }
+
+    const processName = typeof processInfo.name === 'string' ? processInfo.name.trim() : '';
+    if (!processName) {
+      return;
+    }
+
+    if (!summary[processName]) {
+      summary[processName] = {
+        memoryMb: 0,
+        cpuPct: 0,
+        restarts: 0,
+        unstableRestarts: 0,
+        statusSet: new Set(),
+        instances: 0,
+      };
+    }
+
+    summary[processName].memoryMb += Number(processInfo.memoryMb) || 0;
+    summary[processName].cpuPct += Number(processInfo.cpuPct) || 0;
+    summary[processName].restarts = Math.max(summary[processName].restarts, Number(processInfo.restarts) || 0);
+    summary[processName].unstableRestarts = Math.max(summary[processName].unstableRestarts, Number(processInfo.unstableRestarts) || 0);
+    summary[processName].statusSet.add(processInfo.status || 'unknown');
+    summary[processName].instances += 1;
+  });
+
+  Object.keys(summary).forEach((processName) => {
+    summary[processName].status = Array.from(summary[processName].statusSet).sort().join(', ');
+    delete summary[processName].statusSet;
+  });
+
+  return summary;
+}
+
+function buildPm2MemoryCharts(samples) {
+  if (!Array.isArray(samples) || samples.length === 0) {
+    return [];
+  }
+
+  const chronological = samples.slice().reverse();
+  const startLabel = `${formatTimestampShort(chronological[0].tsIso)} UTC`;
+  const endLabel = `${formatTimestampShort(chronological[chronological.length - 1].tsIso)} UTC`;
+  const perSampleSummary = chronological.map((sample) => summarizePm2Processes(sample.pm2Processes));
+  const processNames = Array.from(new Set(
+    perSampleSummary.flatMap((sampleSummary) => Object.keys(sampleSummary))
+  )).sort((left, right) => left.localeCompare(right));
+
+  return processNames.map((processName, index) => {
+    const values = perSampleSummary.map((sampleSummary) => {
+      return sampleSummary[processName] ? sampleSummary[processName].memoryMb : 0;
+    });
+    const observedValues = perSampleSummary
+      .map((sampleSummary) => (sampleSummary[processName] ? sampleSummary[processName].memoryMb : null))
+      .filter((value) => value !== null);
+    const observedCpuValues = perSampleSummary
+      .map((sampleSummary) => (sampleSummary[processName] ? sampleSummary[processName].cpuPct : null))
+      .filter((value) => value !== null);
+    const latest = perSampleSummary[perSampleSummary.length - 1][processName] || null;
+    const lastObserved = perSampleSummary
+      .slice()
+      .reverse()
+      .map((sampleSummary) => sampleSummary[processName] || null)
+      .find((sampleSummary) => sampleSummary !== null) || null;
+    const chart = buildChart({
+      key: `pm2-memory-${processName}`,
+      title: `PM2 memory: ${processName}`,
+      startLabel,
+      endLabel,
+      clampMinZero: true,
+      axisDecimals: 0,
+      unitSuffix: '',
+      series: [
+        {
+          label: 'Memory MB',
+          color: getChartColor(index),
+          values,
+        },
+      ],
+    });
+
+    chart.hideLegend = true;
+    chart.summaryItems = [
+      {
+        label: 'Memory',
+        text: [
+          `Latest ${formatValue(latest ? latest.memoryMb : 0, 0, ' MB')}`,
+          `Average ${formatValue(average(observedValues), 1, ' MB')}`,
+          `Max ${formatValue(maximum(observedValues), 0, ' MB')}`,
+        ].join(' | '),
+      },
+      {
+        label: 'CPU',
+        text: [
+          `Latest ${formatValue(latest ? latest.cpuPct : 0, 1, '%')}`,
+          `Average ${formatValue(average(observedCpuValues), 2, '%')}`,
+          `Max ${formatValue(maximum(observedCpuValues), 1, '%')}`,
+        ].join(' | '),
+      },
+      {
+        label: 'State',
+        text: [
+          `Seen ${observedValues.length}/${perSampleSummary.length} samples`,
+          `Status ${latest ? latest.status : 'not running'}`,
+          `Restarts ${lastObserved ? lastObserved.restarts : 0}`,
+          `Unstable ${lastObserved ? lastObserved.unstableRestarts : 0}`,
+          `Instances ${lastObserved ? lastObserved.instances : 0}`,
+        ].join(' | '),
+      },
+    ];
+
+    return chart;
+  });
+}
+
 function mapSampleForView(sample) {
   const plain = sample.get({ plain: true });
   const nodeProcesses = normalizeProcessList(plain.node_processes);
@@ -425,6 +560,7 @@ function mapSampleForView(sample) {
     processCount,
     nodeProcessCount: countNodeProcesses(nodeProcesses),
     pm2ProcessCount: countPm2Processes(pm2Processes),
+    pm2Processes,
     nodeProcessesText: JSON.stringify(nodeProcesses, null, 2),
     pm2ProcessesText: JSON.stringify(pm2Processes, null, 2),
   };
@@ -483,6 +619,7 @@ exports.hostSamples = async (req, res) => {
     const samples = sampleRows.map(mapSampleForView);
     const overview = buildOverview(samples, matchingRows);
     const charts = buildCharts(samples);
+    const pm2MemoryCharts = buildPm2MemoryCharts(samples);
 
     res.render('lennart_host_samples', {
       i18n: res.__,
@@ -494,6 +631,7 @@ exports.hostSamples = async (req, res) => {
       matchingRows,
       overview,
       charts,
+      pm2MemoryCharts,
       samples,
     });
   } catch (error) {
@@ -508,6 +646,7 @@ exports.hostSamples = async (req, res) => {
       matchingRows: 0,
       overview: null,
       charts: [],
+      pm2MemoryCharts: [],
       samples: [],
     });
   }
