@@ -31,30 +31,104 @@ block content
       .card
         .card-body
           h5.card-title Overview
-          if latestSample
+          if latestSample && overview
             p.mb-1
               b Latest sample:
-              |  #{latestSample.tsIso} UTC
+              |  #{overview.latestTsShort} UTC
             p.mb-1
               b Host:
               |  #{latestSample.hostname}
             p.mb-1
+              b Window:
+              |  #{overview.oldestTsShort} UTC to #{overview.latestTsShort} UTC (#{overview.windowDurationText})
+            p.mb-1
+              b Rows:
+              |  #{overview.displayedRows} shown of #{overview.matchingRows} matching rows
+            p.mb-1
               b Memory:
               |  #{latestSample.memUsedMb} / #{latestSample.memTotalMb} MB used, #{latestSample.memAvailableMb} MB available
             p.mb-1
-              b Swap:
-              |  #{latestSample.swapUsedMb} / #{latestSample.swapTotalMb} MB used
-            p.mb-1
-              b Load:
+              b Current load:
               |  #{latestSample.load}
-            p.mb-1
-              b Root disk:
-              |  #{latestSample.rootUsedPct}% used
-            p.mb-0
-              b Showing rows:
-              |  #{samples.length} of #{matchingRows}
+            p.text-muted.small.mb-3 Summary stats below are based on the displayed rows.
+            table.table.table-sm.table-bordered.mb-0
+              thead.thead-light
+                tr
+                  th Metric
+                  th Latest
+                  th Average
+                  th Max
+              tbody
+                each metric in overview.metrics
+                  tr
+                    td= metric.label
+                    td= metric.latest
+                    td= metric.average
+                    td= metric.max
           else
             p.mb-0 No samples found for the selected filter.
+
+  if charts.length > 0
+    .row.mb-3
+      each chart in charts
+        .col-xl-6
+          .card
+            .card-body
+              h5.card-title= chart.title
+              .mb-2
+                each series in chart.series
+                  span.badge.badge-light.mr-2.mb-2
+                    span(style=`display:inline-block;width:0.75rem;height:0.75rem;border-radius:50%;background-color:${series.color};margin-right:0.4rem;vertical-align:middle;`)
+                    | #{series.label}
+              svg(width=chart.width, height=chart.height, viewBox=`0 0 ${chart.width} ${chart.height}`, style='width:100%;height:auto;border:1px solid #ddd;border-radius:4px;')
+                rect(x='0', y='0', width=chart.width, height=chart.height, fill='#ffffff')
+                each tick in chart.ticks
+                  line(
+                    x1=chart.padding.left,
+                    y1=tick.y,
+                    x2=chart.width - chart.padding.right,
+                    y2=tick.y,
+                    stroke='#e9ecef',
+                    'stroke-width'='1'
+                  )
+                  text(
+                    x=chart.padding.left - 8,
+                    y=tick.y + 4,
+                    'text-anchor'='end',
+                    'font-size'='11',
+                    fill='#6c757d'
+                  )= tick.label
+                line(
+                  x1=chart.padding.left,
+                  y1=chart.height - chart.padding.bottom,
+                  x2=chart.width - chart.padding.right,
+                  y2=chart.height - chart.padding.bottom,
+                  stroke='#adb5bd',
+                  'stroke-width'='1'
+                )
+                line(
+                  x1=chart.padding.left,
+                  y1=chart.padding.top,
+                  x2=chart.padding.left,
+                  y2=chart.height - chart.padding.bottom,
+                  stroke='#adb5bd',
+                  'stroke-width'='1'
+                )
+                each series in chart.series
+                  if series.polylinePoints
+                    polyline(
+                      points=series.polylinePoints,
+                      fill='none',
+                      stroke=series.color,
+                      'stroke-width'='3',
+                      'stroke-linejoin'='round',
+                      'stroke-linecap'='round'
+                    )
+                  if series.lastPoint
+                    circle(cx=series.lastPoint.x, cy=series.lastPoint.y, r='4', fill=series.color)
+              .d-flex.justify-content-between.mt-2.text-muted.small
+                span= chart.startLabel
+                span= chart.endLabel
 
   if samples.length > 0
     .row

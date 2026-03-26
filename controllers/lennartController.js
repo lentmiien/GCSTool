@@ -71,23 +71,358 @@ function countPm2Processes(processes) {
   return processes.filter((processInfo) => processInfo && typeof processInfo === 'object' && !processInfo.error).length;
 }
 
+function formatTimestampShort(value) {
+  if (!value) {
+    return '';
+  }
+
+  return new Date(value).toISOString().slice(0, 16).replace('T', ' ');
+}
+
+function formatDuration(durationMs) {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return '0 min';
+  }
+  if (durationMs < 60 * 60 * 1000) {
+    return `${(durationMs / (60 * 1000)).toFixed(1)} min`;
+  }
+  if (durationMs < 24 * 60 * 60 * 1000) {
+    return `${(durationMs / (60 * 60 * 1000)).toFixed(1)} hr`;
+  }
+  return `${(durationMs / (24 * 60 * 60 * 1000)).toFixed(1)} days`;
+}
+
+function average(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return 0;
+  }
+
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return total / values.length;
+}
+
+function maximum(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return 0;
+  }
+
+  return Math.max(...values);
+}
+
+function formatValue(value, decimals, suffix) {
+  if (!Number.isFinite(value)) {
+    return `0${suffix || ''}`;
+  }
+
+  return `${Number(value).toFixed(decimals)}${suffix || ''}`;
+}
+
+function buildMetricRow(label, values, latestValue, options) {
+  const suffix = options && options.suffix ? options.suffix : '';
+  const latestDecimals = options && typeof options.latestDecimals === 'number' ? options.latestDecimals : 0;
+  const averageDecimals = options && typeof options.averageDecimals === 'number' ? options.averageDecimals : latestDecimals;
+  const maxDecimals = options && typeof options.maxDecimals === 'number' ? options.maxDecimals : latestDecimals;
+
+  return {
+    label,
+    latest: formatValue(latestValue, latestDecimals, suffix),
+    average: formatValue(average(values), averageDecimals, suffix),
+    max: formatValue(maximum(values), maxDecimals, suffix),
+  };
+}
+
+function buildOverview(samples, matchingRows) {
+  if (!Array.isArray(samples) || samples.length === 0) {
+    return null;
+  }
+
+  const latestSample = samples[0];
+  const oldestSample = samples[samples.length - 1];
+  const latestTime = new Date(latestSample.tsIso);
+  const oldestTime = new Date(oldestSample.tsIso);
+
+  const memoryUsedMb = samples.map((sample) => sample.memUsedMb);
+  const memoryUsedPct = samples.map((sample) => sample.memUsedPct);
+  const swapUsedMb = samples.map((sample) => sample.swapUsedMb);
+  const load1 = samples.map((sample) => sample.load1);
+  const rootUsedPct = samples.map((sample) => sample.rootUsedPct);
+  const nodeProcesses = samples.map((sample) => sample.processCount);
+  const pm2Processes = samples.map((sample) => sample.pm2ProcessCount);
+
+  return {
+    displayedRows: samples.length,
+    matchingRows,
+    latestTsIso: latestSample.tsIso,
+    oldestTsIso: oldestSample.tsIso,
+    latestTsShort: formatTimestampShort(latestSample.tsIso),
+    oldestTsShort: formatTimestampShort(oldestSample.tsIso),
+    windowDurationText: formatDuration(latestTime - oldestTime),
+    metrics: [
+      buildMetricRow('Memory used (MB)', memoryUsedMb, latestSample.memUsedMb, {
+        latestDecimals: 0,
+        averageDecimals: 1,
+        maxDecimals: 0,
+        suffix: ' MB',
+      }),
+      buildMetricRow('Memory used (%)', memoryUsedPct, latestSample.memUsedPct, {
+        latestDecimals: 1,
+        averageDecimals: 1,
+        maxDecimals: 1,
+        suffix: '%',
+      }),
+      buildMetricRow('Swap used (MB)', swapUsedMb, latestSample.swapUsedMb, {
+        latestDecimals: 0,
+        averageDecimals: 1,
+        maxDecimals: 0,
+        suffix: ' MB',
+      }),
+      buildMetricRow('Load 1m', load1, latestSample.load1, {
+        latestDecimals: 2,
+        averageDecimals: 2,
+        maxDecimals: 2,
+      }),
+      buildMetricRow('Root disk (%)', rootUsedPct, latestSample.rootUsedPct, {
+        latestDecimals: 0,
+        averageDecimals: 1,
+        maxDecimals: 0,
+        suffix: '%',
+      }),
+      buildMetricRow('Node processes', nodeProcesses, latestSample.processCount, {
+        latestDecimals: 0,
+        averageDecimals: 1,
+        maxDecimals: 0,
+      }),
+      buildMetricRow('PM2 processes', pm2Processes, latestSample.pm2ProcessCount, {
+        latestDecimals: 0,
+        averageDecimals: 1,
+        maxDecimals: 0,
+      }),
+    ],
+  };
+}
+
+function buildChart(config) {
+  const width = 640;
+  const height = 240;
+  const padding = { top: 16, right: 16, bottom: 30, left: 52 };
+  const innerWidth = width - padding.left - padding.right;
+  const innerHeight = height - padding.top - padding.bottom;
+  const seriesWithValues = config.series.map((series) => ({
+    color: series.color,
+    label: series.label,
+    values: Array.isArray(series.values) ? series.values.map((value) => Number(value) || 0) : [],
+  }));
+  const allValues = seriesWithValues.flatMap((series) => series.values);
+
+  let minValue = typeof config.minValue === 'number' ? config.minValue : Math.min(...allValues);
+  let maxValue = typeof config.maxValue === 'number' ? config.maxValue : Math.max(...allValues);
+
+  if (!Number.isFinite(minValue)) {
+    minValue = 0;
+  }
+  if (!Number.isFinite(maxValue)) {
+    maxValue = 1;
+  }
+
+  if (minValue === maxValue) {
+    const extra = maxValue === 0 ? 1 : Math.abs(maxValue) * 0.1;
+    if (typeof config.minValue !== 'number') {
+      minValue -= extra;
+    }
+    if (typeof config.maxValue !== 'number') {
+      maxValue += extra;
+    }
+  }
+
+  if (config.clampMinZero) {
+    minValue = Math.max(0, minValue);
+  }
+  if (maxValue <= minValue) {
+    maxValue = minValue + 1;
+  }
+
+  const valueRange = maxValue - minValue;
+  const xForIndex = (index, count) => {
+    if (count <= 1) {
+      return padding.left + (innerWidth / 2);
+    }
+    return padding.left + ((index / (count - 1)) * innerWidth);
+  };
+  const yForValue = (value) => {
+    const normalized = (value - minValue) / valueRange;
+    return padding.top + innerHeight - (normalized * innerHeight);
+  };
+  const tickCount = 5;
+  const axisDecimals = typeof config.axisDecimals === 'number'
+    ? config.axisDecimals
+    : maxValue <= 10
+      ? 1
+      : 0;
+  const ticks = Array.from({ length: tickCount }, (_, index) => {
+    const ratio = index / (tickCount - 1);
+    const value = maxValue - (ratio * valueRange);
+    return {
+      y: yForValue(value),
+      label: formatValue(value, axisDecimals, config.unitSuffix || ''),
+    };
+  });
+
+  return {
+    key: config.key,
+    title: config.title,
+    width,
+    height,
+    padding,
+    startLabel: config.startLabel,
+    endLabel: config.endLabel,
+    ticks,
+    series: seriesWithValues.map((series) => {
+      const points = series.values.map((value, index) => ({
+        x: xForIndex(index, series.values.length),
+        y: yForValue(value),
+      }));
+
+      return {
+        color: series.color,
+        label: series.label,
+        polylinePoints: points.map((point) => `${point.x},${point.y}`).join(' '),
+        lastPoint: points.length > 0 ? points[points.length - 1] : null,
+      };
+    }),
+  };
+}
+
+function buildCharts(samples) {
+  if (!Array.isArray(samples) || samples.length === 0) {
+    return [];
+  }
+
+  const chronological = samples.slice().reverse();
+  const startLabel = `${formatTimestampShort(chronological[0].tsIso)} UTC`;
+  const endLabel = `${formatTimestampShort(chronological[chronological.length - 1].tsIso)} UTC`;
+  const memTotals = chronological.map((sample) => sample.memTotalMb);
+
+  return [
+    buildChart({
+      key: 'memory',
+      title: 'Memory usage (MB)',
+      startLabel,
+      endLabel,
+      clampMinZero: true,
+      maxValue: maximum(memTotals),
+      axisDecimals: 0,
+      unitSuffix: '',
+      series: [
+        {
+          label: 'Used',
+          color: '#c0392b',
+          values: chronological.map((sample) => sample.memUsedMb),
+        },
+        {
+          label: 'Available',
+          color: '#2980b9',
+          values: chronological.map((sample) => sample.memAvailableMb),
+        },
+      ],
+    }),
+    buildChart({
+      key: 'load',
+      title: 'Load average',
+      startLabel,
+      endLabel,
+      clampMinZero: true,
+      axisDecimals: 2,
+      unitSuffix: '',
+      series: [
+        {
+          label: '1m',
+          color: '#d9534f',
+          values: chronological.map((sample) => sample.load1),
+        },
+        {
+          label: '5m',
+          color: '#f0ad4e',
+          values: chronological.map((sample) => sample.load5),
+        },
+        {
+          label: '15m',
+          color: '#5bc0de',
+          values: chronological.map((sample) => sample.load15),
+        },
+      ],
+    }),
+    buildChart({
+      key: 'disk',
+      title: 'Root disk used (%)',
+      startLabel,
+      endLabel,
+      minValue: 0,
+      maxValue: 100,
+      axisDecimals: 0,
+      unitSuffix: '%',
+      series: [
+        {
+          label: 'Root used',
+          color: '#8e44ad',
+          values: chronological.map((sample) => sample.rootUsedPct),
+        },
+      ],
+    }),
+    buildChart({
+      key: 'processes',
+      title: 'Process counts',
+      startLabel,
+      endLabel,
+      clampMinZero: true,
+      axisDecimals: 0,
+      unitSuffix: '',
+      series: [
+        {
+          label: 'Node',
+          color: '#27ae60',
+          values: chronological.map((sample) => sample.processCount),
+        },
+        {
+          label: 'PM2',
+          color: '#16a085',
+          values: chronological.map((sample) => sample.pm2ProcessCount),
+        },
+      ],
+    }),
+  ];
+}
+
 function mapSampleForView(sample) {
   const plain = sample.get({ plain: true });
   const nodeProcesses = normalizeProcessList(plain.node_processes);
   const pm2Processes = normalizeProcessList(plain.pm2_processes);
+  const memTotalMb = Number(plain.mem_total_mb) || 0;
+  const memUsedMb = Number(plain.mem_used_mb) || 0;
+  const memAvailableMb = Number(plain.mem_available_mb) || 0;
+  const swapTotalMb = Number(plain.swap_total_mb) || 0;
+  const swapUsedMb = Number(plain.swap_used_mb) || 0;
+  const load1 = Number(plain.load1) || 0;
+  const load5 = Number(plain.load5) || 0;
+  const load15 = Number(plain.load15) || 0;
+  const rootUsedPct = Number(plain.root_used_pct) || 0;
+  const processCount = Number(plain.process_count) || 0;
 
   return {
     id: plain.id,
     tsIso: plain.ts ? new Date(plain.ts).toISOString() : '',
     hostname: plain.hostname,
-    memTotalMb: plain.mem_total_mb,
-    memUsedMb: plain.mem_used_mb,
-    memAvailableMb: plain.mem_available_mb,
-    swapTotalMb: plain.swap_total_mb,
-    swapUsedMb: plain.swap_used_mb,
-    load: [plain.load1, plain.load5, plain.load15].map((value) => Number(value).toFixed(2)).join(' / '),
-    rootUsedPct: plain.root_used_pct,
-    processCount: plain.process_count,
+    memTotalMb,
+    memUsedMb,
+    memAvailableMb,
+    memUsedPct: memTotalMb > 0 ? (memUsedMb / memTotalMb) * 100 : 0,
+    swapTotalMb,
+    swapUsedMb,
+    load1,
+    load5,
+    load15,
+    load: [load1, load5, load15].map((value) => Number(value).toFixed(2)).join(' / '),
+    rootUsedPct,
+    processCount,
     nodeProcessCount: countNodeProcesses(nodeProcesses),
     pm2ProcessCount: countPm2Processes(pm2Processes),
     nodeProcessesText: JSON.stringify(nodeProcesses, null, 2),
@@ -146,6 +481,8 @@ exports.hostSamples = async (req, res) => {
     ]);
 
     const samples = sampleRows.map(mapSampleForView);
+    const overview = buildOverview(samples, matchingRows);
+    const charts = buildCharts(samples);
 
     res.render('lennart_host_samples', {
       i18n: res.__,
@@ -155,6 +492,8 @@ exports.hostSamples = async (req, res) => {
       latestSample: samples.length > 0 ? samples[0] : null,
       limit,
       matchingRows,
+      overview,
+      charts,
       samples,
     });
   } catch (error) {
@@ -167,6 +506,8 @@ exports.hostSamples = async (req, res) => {
       latestSample: null,
       limit,
       matchingRows: 0,
+      overview: null,
+      charts: [],
       samples: [],
     });
   }
