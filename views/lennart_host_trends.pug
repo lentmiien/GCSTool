@@ -71,7 +71,7 @@ block content
   .row.mb-3
     .col-lg-8
       h1 Host trends (30 days)
-      p.text-muted.mb-0 Long-term reporting dashboard focused on memory pressure, PM2 process behaviour, and supporting host diagnostics.
+      p.text-muted.mb-0 Long-term reporting dashboard focused on memory pressure, PM2 process behaviour, and supporting host diagnostics. All timestamps are shown in JST.
     .col-lg-4.text-md-right
       a.btn.btn-outline-secondary.mt-2.mt-md-0.mr-2(href='/lennart/host-samples') Short-term samples
       a.btn.btn-outline-secondary.mt-2.mt-md-0(href='/lennart') Back to Lennart tools
@@ -103,7 +103,7 @@ block content
           if overview
             p.mb-1
               b Window:
-              |  #{overview.oldestTsShort} UTC to #{overview.latestTsShort} UTC (#{overview.windowDurationText})
+              |  #{overview.oldestTsShort} JST to #{overview.latestTsShort} JST (#{overview.windowDurationText})
             p.mb-1
               b Rows:
               |  #{overview.matchingRows}

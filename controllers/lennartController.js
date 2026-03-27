@@ -16,6 +16,8 @@ const LONG_TERM_WINDOW_DAYS = 30;
 const LONG_TERM_WINDOW_MS = LONG_TERM_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 const DEFAULT_PROCESS_CHART_LIMIT = 8;
 const MAX_PROCESS_CHART_LIMIT = 20;
+const HOST_DASHBOARD_TIME_ZONE_LABEL = 'JST';
+const HOST_DASHBOARD_TIME_ZONE_OFFSET_MS = 9 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CHART_COLORS = [
@@ -100,7 +102,24 @@ function formatTimestampShort(value) {
     return '';
   }
 
-  return new Date(value).toISOString().slice(0, 16).replace('T', ' ');
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const jstDate = new Date(date.getTime() + HOST_DASHBOARD_TIME_ZONE_OFFSET_MS);
+  const year = jstDate.getUTCFullYear();
+  const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(jstDate.getUTCDate()).padStart(2, '0');
+  const hour = String(jstDate.getUTCHours()).padStart(2, '0');
+  const minute = String(jstDate.getUTCMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hour}:${minute}`;
+}
+
+function formatTimestampWithZone(value) {
+  const formatted = formatTimestampShort(value);
+  return formatted ? `${formatted} ${HOST_DASHBOARD_TIME_ZONE_LABEL}` : '';
 }
 
 function formatDuration(durationMs) {
@@ -383,8 +402,8 @@ function buildCharts(samples) {
   }
 
   const chronological = samples.slice().reverse();
-  const startLabel = `${formatTimestampShort(chronological[0].tsIso)} UTC`;
-  const endLabel = `${formatTimestampShort(chronological[chronological.length - 1].tsIso)} UTC`;
+  const startLabel = formatTimestampWithZone(chronological[0].tsIso);
+  const endLabel = formatTimestampWithZone(chronological[chronological.length - 1].tsIso);
   const memTotals = chronological.map((sample) => sample.memTotalMb);
 
   return [
@@ -524,8 +543,8 @@ function buildPm2MemoryCharts(samples) {
   }
 
   const chronological = samples.slice().reverse();
-  const startLabel = `${formatTimestampShort(chronological[0].tsIso)} UTC`;
-  const endLabel = `${formatTimestampShort(chronological[chronological.length - 1].tsIso)} UTC`;
+  const startLabel = formatTimestampWithZone(chronological[0].tsIso);
+  const endLabel = formatTimestampWithZone(chronological[chronological.length - 1].tsIso);
   const perSampleSummary = chronological.map((sample) => sample.pm2Summary || summarizePm2Processes(sample.pm2Processes));
   const processNames = Array.from(new Set(
     perSampleSummary.flatMap((sampleSummary) => Object.keys(sampleSummary))
@@ -609,6 +628,14 @@ function calculateWindowChange(values, windowSize) {
   return average(numbers.slice(-size)) - average(numbers.slice(0, size));
 }
 
+function getHostDashboardBucketStartMs(tsMs, bucketMs) {
+  if (!Number.isFinite(tsMs) || !Number.isFinite(bucketMs) || bucketMs <= 0) {
+    return 0;
+  }
+
+  return Math.floor((tsMs + HOST_DASHBOARD_TIME_ZONE_OFFSET_MS) / bucketMs) * bucketMs - HOST_DASHBOARD_TIME_ZONE_OFFSET_MS;
+}
+
 function buildTimeBuckets(samples, bucketMs) {
   const buckets = new Map();
 
@@ -617,7 +644,7 @@ function buildTimeBuckets(samples, bucketMs) {
       return;
     }
 
-    const startMs = Math.floor(sample.tsMs / bucketMs) * bucketMs;
+    const startMs = getHostDashboardBucketStartMs(sample.tsMs, bucketMs);
     if (!buckets.has(startMs)) {
       buckets.set(startMs, {
         startMs,
@@ -639,7 +666,7 @@ function buildObservationBuckets(observations, bucketMs) {
       return;
     }
 
-    const startMs = Math.floor(observation.tsMs / bucketMs) * bucketMs;
+    const startMs = getHostDashboardBucketStartMs(observation.tsMs, bucketMs);
     if (!buckets.has(startMs)) {
       buckets.set(startMs, {
         startMs,
@@ -663,8 +690,8 @@ function buildBucketChart(config) {
   const chart = buildChart({
     key: config.key,
     title: config.title,
-    startLabel: `${formatTimestampShort(firstBucket.startMs)} UTC`,
-    endLabel: `${formatTimestampShort(lastBucket.startMs)} UTC`,
+    startLabel: formatTimestampWithZone(firstBucket.startMs),
+    endLabel: formatTimestampWithZone(lastBucket.startMs),
     clampMinZero: config.clampMinZero,
     minValue: config.minValue,
     maxValue: config.maxValue,
@@ -1434,7 +1461,7 @@ function buildLongTermInsights(summary) {
 
   if (summary.largestGapRow) {
     insights.push(
-      `The longest collection gap was ${summary.largestGapRow.gapText} ending at ${summary.largestGapRow.toTsShort} UTC on ${summary.largestGapRow.hostname}.`
+      `The longest collection gap was ${summary.largestGapRow.gapText} ending at ${summary.largestGapRow.toTsShort} ${HOST_DASHBOARD_TIME_ZONE_LABEL} on ${summary.largestGapRow.hostname}.`
     );
   }
 
@@ -1510,13 +1537,13 @@ function buildLongTermOverview(samples, dailyBuckets, hostSummaries, memoryEvent
       {
         label: 'Latest memory',
         value: `${formatValue(latestSample.memUsedPct, 1, '%')} / ${formatValue(latestSample.memUsedMb, 0, ' MB')}`,
-        detail: `${formatValue(latestSample.memAvailableMb, 0, ' MB')} available on ${latestSample.hostname} at ${formatTimestampShort(latestSample.tsIso)} UTC.`,
+        detail: `${formatValue(latestSample.memAvailableMb, 0, ' MB')} available on ${latestSample.hostname} at ${formatTimestampWithZone(latestSample.tsIso)}.`,
       },
       {
         label: '30-day memory ceiling',
         value: peakMemorySample ? formatValue(peakMemorySample.memUsedPct, 1, '%') : '0%',
         detail: peakMemorySample
-          ? `${formatValue(peakMemorySample.memUsedMb, 0, ' MB')} used on ${peakMemorySample.hostname} at ${formatTimestampShort(peakMemorySample.tsIso)} UTC.`
+          ? `${formatValue(peakMemorySample.memUsedMb, 0, ' MB')} used on ${peakMemorySample.hostname} at ${formatTimestampWithZone(peakMemorySample.tsIso)}.`
           : 'No samples.',
       },
       {
@@ -1540,7 +1567,7 @@ function buildLongTermOverview(samples, dailyBuckets, hostSummaries, memoryEvent
         label: 'Swap activity',
         value: formatValue(maxSwapUsedMb, 0, ' MB'),
         detail: peakSwapSample && peakSwapSample.swapUsedMb > 0
-          ? `Seen on ${swapSampleCount} rows across ${swapDays} day buckets, peaking at ${formatTimestampShort(peakSwapSample.tsIso)} UTC.`
+          ? `Seen on ${swapSampleCount} rows across ${swapDays} day buckets, peaking at ${formatTimestampWithZone(peakSwapSample.tsIso)}.`
           : 'No swap use recorded in the selected window.',
       },
       {
@@ -1634,6 +1661,8 @@ function mapSampleForView(sample) {
   const plain = typeof sample.get === 'function' ? sample.get({ plain: true }) : sample;
   const nodeProcesses = normalizeProcessList(plain.node_processes);
   const pm2Processes = normalizeProcessList(plain.pm2_processes);
+  const tsDate = plain.ts ? new Date(plain.ts) : null;
+  const tsIso = tsDate && !Number.isNaN(tsDate.getTime()) ? tsDate.toISOString() : '';
   const memTotalMb = Number(plain.mem_total_mb) || 0;
   const memUsedMb = Number(plain.mem_used_mb) || 0;
   const memAvailableMb = Number(plain.mem_available_mb) || 0;
@@ -1647,11 +1676,12 @@ function mapSampleForView(sample) {
   const pm2TotalMemoryMb = sum(pm2Processes.map((processInfo) => processInfo && processInfo.memoryMb));
   const pm2TotalCpuPct = sum(pm2Processes.map((processInfo) => processInfo && processInfo.cpuPct));
   const nodeTotalRssMb = sum(nodeProcesses.map((processInfo) => processInfo && processInfo.rssMb));
-  const tsMs = plain.ts ? new Date(plain.ts).getTime() : 0;
+  const tsMs = tsDate && !Number.isNaN(tsDate.getTime()) ? tsDate.getTime() : 0;
 
   return {
     id: plain.id,
-    tsIso: plain.ts ? new Date(plain.ts).toISOString() : '',
+    tsIso,
+    tsShort: formatTimestampShort(tsIso),
     tsMs,
     hostname: plain.hostname,
     memTotalMb,

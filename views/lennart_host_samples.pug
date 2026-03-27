@@ -71,7 +71,7 @@ block content
   .row.mb-3
     .col-md-8
       h1 Host samples
-      p.text-muted.mb-0 Review host monitor samples stored in the GCS Tool database.
+      p.text-muted.mb-0 Review host monitor samples stored in the GCS Tool database. All timestamps are shown in JST.
     .col-md-4.text-md-right
       a.btn.btn-outline-secondary.mt-2.mt-md-0.mr-2(href='/lennart/host-trends') 30-day trends
       a.btn.btn-outline-secondary.mt-2.mt-md-0(href='/lennart') Back to Lennart tools
@@ -102,13 +102,13 @@ block content
           if latestSample && overview
             p.mb-1
               b Latest sample:
-              |  #{overview.latestTsShort} UTC
+              |  #{overview.latestTsShort} JST
             p.mb-1
               b Host:
               |  #{latestSample.hostname}
             p.mb-1
               b Window:
-              |  #{overview.oldestTsShort} UTC to #{overview.latestTsShort} UTC (#{overview.windowDurationText})
+              |  #{overview.oldestTsShort} JST to #{overview.latestTsShort} JST (#{overview.windowDurationText})
             p.mb-1
               b Rows:
               |  #{overview.displayedRows} shown of #{overview.matchingRows} matching rows
@@ -158,7 +158,7 @@ block content
         table.table.table-sm.table-striped.table-bordered
           thead.thead-dark
             tr
-              th Timestamp
+              th Timestamp (JST)
               th Hostname
               th Memory
               th Swap
@@ -168,7 +168,7 @@ block content
           tbody
             each sample in samples
               tr
-                td= sample.tsIso
+                td= sample.tsShort
                 td= sample.hostname
                 td #{sample.memUsedMb} / #{sample.memTotalMb} MB
                 td #{sample.swapUsedMb} / #{sample.swapTotalMb} MB
