@@ -35,37 +35,53 @@ block content
 
   .d-flex.justify-content-between.align-items-center.mb-3
     h2.h5.mb-0 Open Entries
-    span.badge.badge-secondary= openCount
+    span#openEntriesBadge.badge.badge-secondary= openCount
 
   if openEntries.length > 0
-    each entry in openEntries
-      .card.mb-3
-        .card-body.py-3
-          .row
-            .col-lg-4.mb-3.mb-lg-0
-              h3.h6.mb-1= entry.order_number
-              div.small.text-muted= `Tracking: ${entry.tracking_number}`
-              div.small.text-muted= `Amount: JPY ${entry.amount_label}`
-              if entry.expected_transaction_date
-                div.small.text-muted= `Estimated transaction date: ${entry.expected_transaction_date}`
-              else
-                div.small.text-warning Estimated transaction date not set yet.
-            .col-lg-4.mb-3.mb-lg-0
-              form(method='post', action=`/dhl-compensation/${entry.id}/estimate`)
-                .form-group.mb-2
-                  label.small.text-muted(for=`estimate_${entry.id}`) Set estimated transaction date
-                  input.form-control.form-control-sm(id=`estimate_${entry.id}`, type='date', name='expected_transaction_date', value=entry.expected_transaction_date || '', required=true)
-                button.btn.btn-outline-primary.btn-sm.btn-block(type='submit') Save estimate
-            .col-lg-4
-              form(method='post', action=`/dhl-compensation/${entry.id}/complete`)
-                .form-group.mb-2
-                  label.small.text-muted(for=`complete_${entry.id}`) Set transaction date and mark as completed
-                  input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
-                button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
-          hr.my-3
-          .small.text-muted
-            div= `Created by ${entry.created_by} on ${entry.created_at_label}`
-            div= `Last updated by ${entry.updated_by} on ${entry.updated_at_label}`
+    .card.mb-3
+      .card-body.py-3
+        .form-row.align-items-end
+          .col-lg-5.col-md-6.mb-2
+            label.small.text-muted(for='openEntriesTrackingFilter') Filter by tracking number
+            input#openEntriesTrackingFilter.form-control.form-control-sm(type='text', placeholder='Enter full or partial tracking number', autocomplete='off')
+          .col-lg-3.col-md-6.mb-2
+            label.small.text-muted(for='openEntriesAmountFilter') Filter by amount (JPY)
+            input#openEntriesAmountFilter.form-control.form-control-sm(type='text', placeholder='Enter amount', inputmode='numeric', autocomplete='off')
+          .col-lg-2.col-md-6.mb-2
+            button#openEntriesClearFilters.btn.btn-outline-secondary.btn-sm.btn-block(type='button') Clear filters
+          .col-lg-2.col-md-6.mb-2
+            div.small.text-muted.mb-1 Visible entries
+            div#openEntriesFilterSummary.small.font-weight-bold= `${openCount} entries shown`
+    #openEntriesList
+      each entry in openEntries
+        .card.mb-3.dhl-open-entry(data-tracking-number=entry.tracking_number, data-amount=entry.compensation_amount_jpy)
+          .card-body.py-3
+            .row
+              .col-lg-4.mb-3.mb-lg-0
+                h3.h6.mb-1= entry.order_number
+                div.small.text-muted= `Tracking: ${entry.tracking_number}`
+                div.small.text-muted= `Amount: JPY ${entry.amount_label}`
+                if entry.expected_transaction_date
+                  div.small.text-muted= `Estimated transaction date: ${entry.expected_transaction_date}`
+                else
+                  div.small.text-warning Estimated transaction date not set yet.
+              .col-lg-4.mb-3.mb-lg-0
+                form(method='post', action=`/dhl-compensation/${entry.id}/estimate`)
+                  .form-group.mb-2
+                    label.small.text-muted(for=`estimate_${entry.id}`) Set estimated transaction date
+                    input.form-control.form-control-sm(id=`estimate_${entry.id}`, type='date', name='expected_transaction_date', value=entry.expected_transaction_date || '', required=true)
+                  button.btn.btn-outline-primary.btn-sm.btn-block(type='submit') Save estimate
+              .col-lg-4
+                form(method='post', action=`/dhl-compensation/${entry.id}/complete`)
+                  .form-group.mb-2
+                    label.small.text-muted(for=`complete_${entry.id}`) Set transaction date and mark as completed
+                    input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
+                  button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
+            hr.my-3
+            .small.text-muted
+              div= `Created by ${entry.created_by} on ${entry.created_at_label}`
+              div= `Last updated by ${entry.updated_by} on ${entry.updated_at_label}`
+    .alert.alert-secondary.d-none#openEntriesNoMatches No open entries match the current filters.
   else
     .alert.alert-secondary No open DHL compensation entries exist right now.
 
@@ -107,3 +123,76 @@ block content
                       div.small.text-muted= entry.created_at_label
   else
     .alert.alert-secondary.mb-0 No completed DHL compensation transactions exist within the last 24 months.
+
+  if openEntries.length > 0
+    script.
+      (function() {
+        function normalizeTracking(value) {
+          return (value || '').toString().trim().toLowerCase().replace(/\s+/g, '');
+        }
+
+        function normalizeAmount(value) {
+          return (value || '').toString().replace(/[^\d]/g, '');
+        }
+
+        function formatSummary(count) {
+          return count === 1 ? '1 entry shown' : count + ' entries shown';
+        }
+
+        var trackingFilter = document.getElementById('openEntriesTrackingFilter');
+        var amountFilter = document.getElementById('openEntriesAmountFilter');
+        var clearButton = document.getElementById('openEntriesClearFilters');
+        var summary = document.getElementById('openEntriesFilterSummary');
+        var badge = document.getElementById('openEntriesBadge');
+        var noMatches = document.getElementById('openEntriesNoMatches');
+        var cards = Array.prototype.slice.call(document.querySelectorAll('.dhl-open-entry'));
+
+        if (!trackingFilter || !amountFilter || !clearButton || cards.length === 0) {
+          return;
+        }
+
+        var totalCount = cards.length;
+
+        function applyFilters() {
+          var trackingValue = normalizeTracking(trackingFilter.value);
+          var amountValue = normalizeAmount(amountFilter.value);
+          var visibleCount = 0;
+
+          cards.forEach(function(card) {
+            var trackingNumber = normalizeTracking(card.getAttribute('data-tracking-number'));
+            var amount = normalizeAmount(card.getAttribute('data-amount'));
+            var matchesTracking = !trackingValue || trackingNumber.indexOf(trackingValue) !== -1;
+            var matchesAmount = !amountValue || amount.indexOf(amountValue) !== -1;
+            var isVisible = matchesTracking && matchesAmount;
+
+            card.classList.toggle('d-none', !isVisible);
+
+            if (isVisible) {
+              visibleCount += 1;
+            }
+          });
+
+          if (summary) {
+            summary.textContent = formatSummary(visibleCount);
+          }
+
+          if (badge) {
+            badge.textContent = visibleCount === totalCount ? totalCount : visibleCount + ' / ' + totalCount;
+          }
+
+          if (noMatches) {
+            noMatches.classList.toggle('d-none', visibleCount !== 0);
+          }
+        }
+
+        trackingFilter.addEventListener('input', applyFilters);
+        amountFilter.addEventListener('input', applyFilters);
+        clearButton.addEventListener('click', function() {
+          trackingFilter.value = '';
+          amountFilter.value = '';
+          applyFilters();
+          trackingFilter.focus();
+        });
+
+        applyFilters();
+      })();
