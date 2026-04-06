@@ -27,6 +27,7 @@ const chatgptRouter = require('./routes/chatgpt');
 const ctRouter = require('./routes/ct');
 const pmtRouter = require('./routes/pmt');
 const imagePdfRouter = require('./routes/imagePdf');
+const dhlCompensationRouter = require('./routes/dhl_compensation');
 
 var app = express();
 
@@ -101,6 +102,7 @@ app.use('/chatgpt', requireAuthenticated, chatgptRouter);
 app.use('/ct', requireAuthenticated, ctRouter);
 app.use('/pmt', requireAuthenticated, pmtRouter);
 app.use('/image-pdf', requireAuthenticated, imagePdfRouter);
+app.use('/dhl-compensation', requireAuthenticated, dhlCompensationRouter);
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;

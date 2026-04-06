@@ -1,0 +1,109 @@
+extends ../layout
+
+block content
+  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
+    .mb-3.mb-lg-0
+      h1.mb-1 DHL Compensation
+      p.text-muted.mb-0 Admin-only tracker for DHL compensation entries and transaction confirmations.
+    .text-lg-right
+      div.small.text-muted= `Open entries: ${openCount}`
+      div.small.text-muted= `Completed entries shown: ${completedCount}`
+
+  if message
+    .alert.alert-info= message
+
+  if error
+    .alert.alert-danger= error
+
+  .card.mb-4
+    .card-body.py-3
+      h2.h5.mb-3 Add New Entry
+      form(method='post', action='/dhl-compensation/create')
+        .form-row.align-items-end
+          .col-lg-4.col-md-6.mb-2
+            label.small.text-muted(for='order_number') Order number
+            input#order_number.form-control.form-control-sm(type='text', name='order_number', value=newEntry.order_number, required=true)
+          .col-lg-4.col-md-6.mb-2
+            label.small.text-muted(for='tracking_number') Tracking number
+            input#tracking_number.form-control.form-control-sm(type='text', name='tracking_number', value=newEntry.tracking_number, required=true)
+          .col-lg-2.col-md-6.mb-2
+            label.small.text-muted(for='compensation_amount_jpy') Amount (JPY)
+            input#compensation_amount_jpy.form-control.form-control-sm(type='number', name='compensation_amount_jpy', min='1', step='1', value=newEntry.compensation_amount_jpy, required=true)
+          .col-lg-2.col-md-6.mb-2
+            button.btn.btn-primary.btn-sm.btn-block(type='submit') Add entry
+      p.small.text-muted.mb-0 Create the base entry first. Estimated and actual transaction dates can be updated later from the open list below.
+
+  .d-flex.justify-content-between.align-items-center.mb-3
+    h2.h5.mb-0 Open Entries
+    span.badge.badge-secondary= openCount
+
+  if openEntries.length > 0
+    each entry in openEntries
+      .card.mb-3
+        .card-body.py-3
+          .row
+            .col-lg-4.mb-3.mb-lg-0
+              h3.h6.mb-1= entry.order_number
+              div.small.text-muted= `Tracking: ${entry.tracking_number}`
+              div.small.text-muted= `Amount: JPY ${entry.amount_label}`
+              if entry.expected_transaction_date
+                div.small.text-muted= `Estimated transaction date: ${entry.expected_transaction_date}`
+              else
+                div.small.text-warning Estimated transaction date not set yet.
+            .col-lg-4.mb-3.mb-lg-0
+              form(method='post', action=`/dhl-compensation/${entry.id}/estimate`)
+                .form-group.mb-2
+                  label.small.text-muted(for=`estimate_${entry.id}`) Set estimated transaction date
+                  input.form-control.form-control-sm(id=`estimate_${entry.id}`, type='date', name='expected_transaction_date', value=entry.expected_transaction_date || '', required=true)
+                button.btn.btn-outline-primary.btn-sm.btn-block(type='submit') Save estimate
+            .col-lg-4
+              form(method='post', action=`/dhl-compensation/${entry.id}/complete`)
+                .form-group.mb-2
+                  label.small.text-muted(for=`complete_${entry.id}`) Set transaction date and mark as completed
+                  input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
+                button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
+          hr.my-3
+          .small.text-muted
+            div= `Created by ${entry.created_by} on ${entry.created_at_label}`
+            div= `Last updated by ${entry.updated_by} on ${entry.updated_at_label}`
+  else
+    .alert.alert-secondary No open DHL compensation entries exist right now.
+
+  .d-flex.justify-content-between.align-items-center.mt-5.mb-3
+    h2.h5.mb-0 Completed Transactions
+    span.small.text-muted= `Grouped by transaction month from ${completedCutoff}`
+
+  if completedGroups.length > 0
+    each group in completedGroups
+      .card.mb-4
+        .card-header.py-2.d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center
+          strong= group.label
+          span.small.text-muted= `${group.entry_count} entries / JPY ${group.total_amount_label}`
+        .card-body.p-0
+          .table-responsive
+            table.table.table-sm.table-striped.mb-0
+              thead.thead-light
+                tr
+                  th Order number
+                  th Tracking number
+                  th.text-right Amount (JPY)
+                  th Transaction date
+                  th Estimated date
+                  th Updated by
+                  th Created by
+              tbody
+                each entry in group.entries
+                  tr
+                    td= entry.order_number
+                    td= entry.tracking_number
+                    td.text-right= entry.amount_label
+                    td= entry.transaction_date
+                    td= entry.expected_transaction_date || '-'
+                    td
+                      div= entry.updated_by
+                      div.small.text-muted= entry.updated_at_label
+                    td
+                      div= entry.created_by
+                      div.small.text-muted= entry.created_at_label
+  else
+    .alert.alert-secondary.mb-0 No completed DHL compensation transactions exist within the last 24 months.

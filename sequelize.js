@@ -22,6 +22,7 @@ const OfficialCountryListModel = require('./models/OfficialCountryList');
 const InternalCountryListModel = require('./models/InternalCountryList');
 const JapanPostCountryListModel = require('./models/JapanPostCountryList');
 const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
+const DHLCompensationEntryModel = require('./models/dhl_compensation_entry');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -53,6 +54,13 @@ const sequelize_tracker = new Sequelize(process.env.DB_NAME_TRACK, process.env.D
   dialect: 'mysql',
   logging: false,
 });
+// Connect to DB: DHL compensation
+const dhlCompensationDatabase = process.env.DB_NAME_DHL_COMPENSATION || process.env.DB_NAME_GCS;
+const sequelize_dhl_compensation = new Sequelize(dhlCompensationDatabase, process.env.DB_USER, process.env.DB_PASS, {
+  host: process.env.DB_HOST,
+  dialect: 'mysql',
+  logging: false,
+});
 
 // Attach DB to model: GCS Tool
 const Entry = EntryModel(sequelize, Sequelize);
@@ -77,6 +85,7 @@ const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
 const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
 const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
+const DHLCompensationEntry = DHLCompensationEntryModel(sequelize_dhl_compensation, Sequelize);
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
 const Countrylist = CountrylistModel(sequelize_tracker, Sequelize);
@@ -113,11 +122,16 @@ sequelize.sync().then(() => {
 sequelize_tracker.sync().then(() => {
   console.log(`Database & tables syncronized! [Tracker]`);
 });
+// Create all necessary tables: DHL compensation
+sequelize_dhl_compensation.sync().then(() => {
+  console.log(`Database & tables syncronized! [DHL Compensation: ${dhlCompensationDatabase}]`);
+});
 
 // Export models
 module.exports = {
   sequelize,
   sequelize_tracker,
+  sequelize_dhl_compensation,
   Entry,
   Content,
   Staff,
@@ -143,6 +157,9 @@ module.exports = {
   Country,
   Countrylist,
   Tracking,
+  dhlCompensation: {
+    Entry: DHLCompensationEntry,
+  },
   Trackhist: {
     0: Trackhist0,
     1: Trackhist1,

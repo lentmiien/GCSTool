@@ -63,6 +63,8 @@ html(lang='en')
                 hr.dropdown-divider
                 a.dropdown-item(href='/ct') Cases
                 a.dropdown-item(href='/pmt') Policy - Manual - Template tool
+                if role === 'admin'
+                  a.dropdown-item(href='/dhl-compensation') DHL compensation
                 a.dropdown-item(href='/image-pdf') Image grid PDF
             if name === "Lennart"
               li.nav-item.dropdown
