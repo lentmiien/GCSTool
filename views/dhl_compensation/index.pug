@@ -1,6 +1,133 @@
 extends ../layout
 
 block content
+  - var isLennart = name === 'Lennart';
+  - var prefersCompleteTab = name === 'Yokoyama';
+  - var hasNewEntryDraft = newEntry && (newEntry.order_number || newEntry.tracking_number || newEntry.compensation_amount_jpy);
+  - var isNewEntryOpen = isLennart || hasNewEntryDraft;
+
+  style.
+    .dhl-new-entry-card .card-header {
+      background-color: rgb(33, 33, 40);
+      border-bottom: 1px solid rgb(78, 78, 90);
+    }
+    .dhl-new-entry-card .card-body {
+      background-color: rgb(26, 26, 31);
+      color: rgb(252, 255, 214);
+    }
+    .dhl-new-entry-card label,
+    .dhl-entry-tab-content label {
+      color: rgb(216, 216, 216);
+    }
+    .dhl-new-entry-card .text-muted,
+    .dhl-entry-tabs .text-muted,
+    .dhl-entry-tab-content .text-muted {
+      color: rgb(184, 188, 200) !important;
+    }
+    .dhl-open-entry {
+      border-left: 4px solid #c8d5de;
+    }
+    .dhl-entry-summary {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .dhl-entry-details {
+      flex: 1 1 240px;
+      min-width: 0;
+    }
+    .dhl-entry-amount-wrap {
+      flex: 0 0 auto;
+      min-width: 220px;
+      text-align: right;
+    }
+    .dhl-entry-amount-label {
+      margin-bottom: 0.35rem;
+      color: #6c757d;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .dhl-entry-amount {
+      display: inline-block;
+      padding: 0.55rem 0.9rem;
+      border: 1px solid #b9dcc3;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, #eef8ef 0%, #d8efdc 100%);
+      box-shadow: 0 0.35rem 0.85rem rgba(19, 82, 44, 0.12);
+      color: #13522c;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .dhl-entry-tabs .nav-link {
+      color: rgb(184, 188, 200);
+      font-size: 0.9rem;
+      background-color: rgb(33, 33, 40);
+      border: 1px solid rgb(78, 78, 90);
+      border-bottom: 0;
+    }
+    .dhl-entry-tabs .nav-link:hover,
+    .dhl-entry-tabs .nav-link:focus {
+      color: rgb(252, 255, 214);
+      background-color: rgb(36, 36, 44);
+      border-color: rgb(78, 78, 90);
+    }
+    .dhl-entry-tabs .nav-link.active,
+    .dhl-entry-tabs .nav-link.active:hover,
+    .dhl-entry-tabs .nav-link.active:focus {
+      color: rgb(252, 255, 214);
+      background-color: rgb(26, 26, 31);
+      border-color: rgb(78, 78, 90);
+      border-bottom-color: rgb(26, 26, 31);
+    }
+    .dhl-entry-tab-content {
+      padding: 1rem;
+      border: 1px solid rgb(78, 78, 90);
+      border-top: 0;
+      border-radius: 0 0 0.25rem 0.25rem;
+      background: rgb(26, 26, 31);
+      color: rgb(252, 255, 214);
+    }
+    .dhl-new-entry-toggle,
+    .dhl-new-entry-toggle:hover,
+    .dhl-new-entry-toggle:focus {
+      color: rgb(252, 255, 214) !important;
+      text-decoration: none !important;
+    }
+    .dhl-new-entry-toggle:focus {
+      box-shadow: 0 0 0 0.2rem rgba(255, 200, 47, 0.2);
+    }
+    .dhl-new-entry-card .form-control,
+    .dhl-entry-tab-content .form-control {
+      background-color: rgb(39, 39, 0);
+      border-color: rgb(92, 92, 56);
+      color: rgb(230, 227, 255);
+    }
+    .dhl-new-entry-card .form-control:focus,
+    .dhl-entry-tab-content .form-control:focus {
+      background-color: rgb(39, 39, 0);
+      border-color: rgb(190, 164, 79);
+      color: rgb(255, 255, 255);
+      box-shadow: 0 0 0 0.2rem rgba(255, 200, 47, 0.2);
+    }
+    .dhl-new-entry-card .form-control::placeholder,
+    .dhl-entry-tab-content .form-control::placeholder {
+      color: rgb(180, 180, 150);
+    }
+    @media (max-width: 991.98px) {
+      .dhl-entry-amount-wrap {
+        min-width: 0;
+        text-align: left;
+      }
+      .dhl-entry-amount {
+        font-size: 1.75rem;
+      }
+    }
+
   .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
     .mb-3.mb-lg-0
       h1.mb-1 DHL Compensation
@@ -15,23 +142,35 @@ block content
   if error
     .alert.alert-danger= error
 
-  .card.mb-4
-    .card-body.py-3
-      h2.h5.mb-3 Add New Entry
-      form(method='post', action='/dhl-compensation/create')
-        .form-row.align-items-end
-          .col-lg-4.col-md-6.mb-2
-            label.small.text-muted(for='order_number') Order number
-            input#order_number.form-control.form-control-sm(type='text', name='order_number', value=newEntry.order_number, required=true)
-          .col-lg-4.col-md-6.mb-2
-            label.small.text-muted(for='tracking_number') Tracking number
-            input#tracking_number.form-control.form-control-sm(type='text', name='tracking_number', value=newEntry.tracking_number, required=true)
-          .col-lg-2.col-md-6.mb-2
-            label.small.text-muted(for='compensation_amount_jpy') Amount (JPY)
-            input#compensation_amount_jpy.form-control.form-control-sm(type='number', name='compensation_amount_jpy', min='1', step='1', value=newEntry.compensation_amount_jpy, required=true)
-          .col-lg-2.col-md-6.mb-2
-            button.btn.btn-primary.btn-sm.btn-block(type='submit') Add entry
-      p.small.text-muted.mb-0 Create the base entry first. Estimated and actual transaction dates can be updated later from the open list below.
+  .card.mb-4.dhl-new-entry-card
+    .card-header.py-3
+      button.btn.btn-link.btn-block.text-left.text-dark.p-0.d-flex.justify-content-between.align-items-center.dhl-new-entry-toggle(
+        type='button',
+        data-toggle='collapse',
+        data-target='#dhlNewEntryCollapse',
+        aria-expanded=isNewEntryOpen ? 'true' : 'false',
+        aria-controls='dhlNewEntryCollapse'
+      )
+        span
+          span.h5.d-block.mb-1 Add New Entry
+          span.small.text-muted= isLennart ? 'Visible by default for you.' : 'Click to expand the form.'
+        span.small.text-muted.ml-3 Show / hide
+    #dhlNewEntryCollapse.collapse(class=isNewEntryOpen ? 'show' : '')
+      .card-body.py-3
+        form(method='post', action='/dhl-compensation/create')
+          .form-row.align-items-end
+            .col-lg-4.col-md-6.mb-2
+              label.small.text-muted(for='order_number') Order number
+              input#order_number.form-control.form-control-sm(type='text', name='order_number', value=newEntry.order_number, required=true)
+            .col-lg-4.col-md-6.mb-2
+              label.small.text-muted(for='tracking_number') Tracking number
+              input#tracking_number.form-control.form-control-sm(type='text', name='tracking_number', value=newEntry.tracking_number, required=true)
+            .col-lg-2.col-md-6.mb-2
+              label.small.text-muted(for='compensation_amount_jpy') Amount (JPY)
+              input#compensation_amount_jpy.form-control.form-control-sm(type='number', name='compensation_amount_jpy', min='1', step='1', value=newEntry.compensation_amount_jpy, required=true)
+            .col-lg-2.col-md-6.mb-2
+              button.btn.btn-primary.btn-sm.btn-block(type='submit') Add entry
+        p.small.text-muted.mb-0 Create the base entry first. Estimated and actual transaction dates can be updated later from the open list below.
 
   .d-flex.justify-content-between.align-items-center.mb-3
     h2.h5.mb-0 Open Entries
@@ -54,29 +193,69 @@ block content
             div#openEntriesFilterSummary.small.font-weight-bold= `${openCount} entries shown`
     #openEntriesList
       each entry in openEntries
+        - var showCompleteTab = prefersCompleteTab;
+        - var showEstimateTab = !showCompleteTab;
         .card.mb-3.dhl-open-entry(data-tracking-number=entry.tracking_number, data-amount=entry.compensation_amount_jpy)
           .card-body.py-3
-            .row
-              .col-lg-4.mb-3.mb-lg-0
+            .dhl-entry-summary.mb-3
+              .dhl-entry-details
                 h3.h6.mb-1= entry.order_number
-                div.small.text-muted= `Tracking: ${entry.tracking_number}`
-                div.small.text-muted= `Amount: JPY ${entry.amount_label}`
+                div.small.text-muted.mb-1= `Tracking: ${entry.tracking_number}`
                 if entry.expected_transaction_date
                   div.small.text-muted= `Estimated transaction date: ${entry.expected_transaction_date}`
                 else
                   div.small.text-warning Estimated transaction date not set yet.
-              .col-lg-4.mb-3.mb-lg-0
+              .dhl-entry-amount-wrap
+                div.dhl-entry-amount-label Amount
+                div.dhl-entry-amount= `JPY ${entry.amount_label}`
+            ul.nav.nav-tabs.dhl-entry-tabs(role='tablist')
+              li.nav-item
+                a.nav-link(
+                  class=showEstimateTab ? 'active' : '',
+                  id=`estimate_tab_${entry.id}`,
+                  data-toggle='tab',
+                  href=`#estimate_panel_${entry.id}`,
+                  role='tab',
+                  aria-controls=`estimate_panel_${entry.id}`,
+                  aria-selected=showEstimateTab ? 'true' : 'false'
+                ) Set estimated transaction date
+              li.nav-item
+                a.nav-link(
+                  class=showCompleteTab ? 'active' : '',
+                  id=`complete_tab_${entry.id}`,
+                  data-toggle='tab',
+                  href=`#complete_panel_${entry.id}`,
+                  role='tab',
+                  aria-controls=`complete_panel_${entry.id}`,
+                  aria-selected=showCompleteTab ? 'true' : 'false'
+                ) Set transaction date and mark as completed
+            .tab-content.dhl-entry-tab-content
+              .tab-pane.fade(
+                class=showEstimateTab ? 'show active' : '',
+                id=`estimate_panel_${entry.id}`,
+                role='tabpanel',
+                aria-labelledby=`estimate_tab_${entry.id}`
+              )
                 form(method='post', action=`/dhl-compensation/${entry.id}/estimate`)
-                  .form-group.mb-2
-                    label.small.text-muted(for=`estimate_${entry.id}`) Set estimated transaction date
-                    input.form-control.form-control-sm(id=`estimate_${entry.id}`, type='date', name='expected_transaction_date', value=entry.expected_transaction_date || '', required=true)
-                  button.btn.btn-outline-primary.btn-sm.btn-block(type='submit') Save estimate
-              .col-lg-4
+                  .form-row.align-items-end
+                    .col-lg-8.col-md-7.mb-2
+                      label.small.text-muted(for=`estimate_${entry.id}`) Estimated transaction date
+                      input.form-control.form-control-sm(id=`estimate_${entry.id}`, type='date', name='expected_transaction_date', value=entry.expected_transaction_date || '', required=true)
+                    .col-lg-4.col-md-5.mb-2
+                      button.btn.btn-outline-primary.btn-sm.btn-block(type='submit') Save estimate
+              .tab-pane.fade(
+                class=showCompleteTab ? 'show active' : '',
+                id=`complete_panel_${entry.id}`,
+                role='tabpanel',
+                aria-labelledby=`complete_tab_${entry.id}`
+              )
                 form(method='post', action=`/dhl-compensation/${entry.id}/complete`)
-                  .form-group.mb-2
-                    label.small.text-muted(for=`complete_${entry.id}`) Set transaction date and mark as completed
-                    input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
-                  button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
+                  .form-row.align-items-end
+                    .col-lg-8.col-md-7.mb-2
+                      label.small.text-muted(for=`complete_${entry.id}`) Transaction date
+                      input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
+                    .col-lg-4.col-md-5.mb-2
+                      button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
             hr.my-3
             .small.text-muted
               div= `Created by ${entry.created_by} on ${entry.created_at_label}`
