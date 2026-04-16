@@ -1,6 +1,12 @@
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { dhlCompensation, Op } = require('../sequelize');
 
 const DHLCompensationEntry = dhlCompensation.Entry;
+const PDF_FIELD_NAME = 'pdf_file';
+const PDF_SIGNATURE = '%PDF-';
+const PDF_STORAGE_DIR = path.join(__dirname, '..', 'data', 'dhl_compensation_pdfs');
 
 function setLayoutLocals(req, res) {
   res.locals.role = req.user && req.user.role ? req.user.role : 'guest';
@@ -69,6 +75,87 @@ function parsePositiveInteger(value) {
   return parsed > 0 ? parsed : null;
 }
 
+function sanitizePdfFileName(value) {
+  const baseName = path.basename(typeof value === 'string' ? value : '');
+  const sanitized = baseName.replace(/[\r\n"]/g, '').trim();
+
+  if (!sanitized) {
+    return 'document.pdf';
+  }
+
+  return path.extname(sanitized).toLowerCase() === '.pdf' ? sanitized : `${sanitized}.pdf`;
+}
+
+function getUploadedPdf(req) {
+  if (!req.files || !Object.prototype.hasOwnProperty.call(req.files, PDF_FIELD_NAME)) {
+    return null;
+  }
+
+  return req.files[PDF_FIELD_NAME];
+}
+
+function validatePdfUpload(upload) {
+  if (!upload) {
+    return null;
+  }
+
+  if (Array.isArray(upload)) {
+    return 'Please upload only one PDF file per entry.';
+  }
+
+  if (!Buffer.isBuffer(upload.data) || upload.data.length === 0) {
+    return 'The uploaded PDF file is empty.';
+  }
+
+  if (upload.data.slice(0, PDF_SIGNATURE.length).toString('ascii') !== PDF_SIGNATURE) {
+    return 'Please upload a valid PDF file.';
+  }
+
+  return null;
+}
+
+function createPdfStorageName() {
+  return `${Date.now()}_${crypto.randomBytes(8).toString('hex')}.pdf`;
+}
+
+function getPdfFilePath(storageName) {
+  return path.join(PDF_STORAGE_DIR, storageName);
+}
+
+async function saveUploadedPdf(upload) {
+  const storageName = createPdfStorageName();
+
+  await fs.promises.mkdir(PDF_STORAGE_DIR, { recursive: true });
+  await fs.promises.writeFile(getPdfFilePath(storageName), upload.data);
+
+  return {
+    pdf_original_name: sanitizePdfFileName(upload.name),
+    pdf_storage_name: storageName,
+  };
+}
+
+async function deleteStoredPdf(storageName) {
+  if (!storageName) {
+    return;
+  }
+
+  try {
+    await fs.promises.unlink(getPdfFilePath(storageName));
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+}
+
+async function deletePdfForEntry(entry) {
+  if (!entry || !entry.pdf_storage_name) {
+    return;
+  }
+
+  await deleteStoredPdf(entry.pdf_storage_name);
+}
+
 function formatMonthLabel(monthKey) {
   if (!monthKey || !/^\d{4}-\d{2}$/.test(monthKey)) {
     return monthKey;
@@ -98,6 +185,7 @@ function mapEntry(entry) {
 
   return {
     ...data,
+    has_pdf: Boolean(data.pdf_storage_name && data.pdf_original_name),
     amount_label: formatAmount(data.compensation_amount_jpy),
     created_at_label: formatTimestamp(data.createdAt),
     updated_at_label: formatTimestamp(data.updatedAt),
@@ -235,10 +323,14 @@ exports.index = async (req, res, next) => {
 };
 
 exports.create = async (req, res, next) => {
+  let storedPdf = null;
+
   try {
     const orderNumber = typeof req.body.order_number === 'string' ? req.body.order_number.trim() : '';
     const trackingNumber = typeof req.body.tracking_number === 'string' ? req.body.tracking_number.trim() : '';
     const compensationAmount = parsePositiveInteger(req.body.compensation_amount_jpy);
+    const pdfUpload = getUploadedPdf(req);
+    const pdfValidationError = validatePdfUpload(pdfUpload);
 
     if (!orderNumber || !trackingNumber || compensationAmount === null) {
       return await renderIndex(req, res, {
@@ -247,16 +339,90 @@ exports.create = async (req, res, next) => {
       }, 400);
     }
 
+    if (pdfValidationError) {
+      return await renderIndex(req, res, {
+        error: pdfValidationError,
+        newEntry: getNewEntryDraft(req.body),
+      }, 400);
+    }
+
+    if (pdfUpload) {
+      try {
+        storedPdf = await saveUploadedPdf(pdfUpload);
+      } catch (error) {
+        console.error('Failed to save DHL compensation PDF:', error);
+        return await renderIndex(req, res, {
+          error: 'Failed to save the uploaded PDF file. Please try again.',
+          newEntry: getNewEntryDraft(req.body),
+        }, 500);
+      }
+    }
+
     const user = getCurrentUser(req);
-    await DHLCompensationEntry.create({
-      order_number: orderNumber,
-      tracking_number: trackingNumber,
-      compensation_amount_jpy: compensationAmount,
-      created_by: user,
-      updated_by: user,
-    });
+    try {
+      await DHLCompensationEntry.create({
+        order_number: orderNumber,
+        tracking_number: trackingNumber,
+        compensation_amount_jpy: compensationAmount,
+        pdf_original_name: storedPdf ? storedPdf.pdf_original_name : null,
+        pdf_storage_name: storedPdf ? storedPdf.pdf_storage_name : null,
+        created_by: user,
+        updated_by: user,
+      });
+    } catch (error) {
+      if (storedPdf) {
+        try {
+          await deleteStoredPdf(storedPdf.pdf_storage_name);
+        } catch (cleanupError) {
+          console.error('Failed to clean up stored DHL compensation PDF after DB error:', cleanupError);
+        }
+      }
+
+      throw error;
+    }
 
     res.redirect('/dhl-compensation?message=' + encodeURIComponent('DHL compensation entry created.'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.downloadPdf = async (req, res, next) => {
+  try {
+    const entryId = parseInt(req.params.id, 10);
+
+    if (!Number.isInteger(entryId)) {
+      return await renderIndex(req, res, { error: 'Invalid entry id.' }, 400);
+    }
+
+    const entry = await DHLCompensationEntry.findOne({
+      where: {
+        id: entryId,
+        completed: false,
+      },
+    });
+
+    if (!entry) {
+      return await renderIndex(req, res, { error: 'Open DHL compensation entry not found.' }, 404);
+    }
+
+    if (!entry.pdf_storage_name || !entry.pdf_original_name) {
+      return await renderIndex(req, res, { error: 'No PDF file is attached to this entry.' }, 404);
+    }
+
+    const pdfPath = getPdfFilePath(entry.pdf_storage_name);
+
+    try {
+      await fs.promises.access(pdfPath, fs.constants.F_OK);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return await renderIndex(req, res, { error: 'Uploaded PDF file not found.' }, 404);
+      }
+
+      throw error;
+    }
+
+    res.download(pdfPath, entry.pdf_original_name);
   } catch (error) {
     next(error);
   }
@@ -321,13 +487,60 @@ exports.complete = async (req, res, next) => {
       return await renderIndex(req, res, { error: 'Open DHL compensation entry not found.' }, 404);
     }
 
+    try {
+      await deletePdfForEntry(entry);
+    } catch (error) {
+      console.error('Failed to delete DHL compensation PDF during completion:', error);
+      return await renderIndex(req, res, {
+        error: 'Failed to delete the uploaded PDF file. The entry was not marked as completed.',
+      }, 500);
+    }
+
     await entry.update({
       transaction_date: transactionDate,
       completed: true,
+      pdf_original_name: null,
+      pdf_storage_name: null,
       updated_by: getCurrentUser(req),
     });
 
     res.redirect('/dhl-compensation?message=' + encodeURIComponent('Entry marked as completed.'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const entryId = parseInt(req.params.id, 10);
+
+    if (!Number.isInteger(entryId)) {
+      return await renderIndex(req, res, { error: 'Invalid entry id.' }, 400);
+    }
+
+    const entry = await DHLCompensationEntry.findOne({
+      where: {
+        id: entryId,
+        completed: false,
+      },
+    });
+
+    if (!entry) {
+      return await renderIndex(req, res, { error: 'Open DHL compensation entry not found.' }, 404);
+    }
+
+    try {
+      await deletePdfForEntry(entry);
+    } catch (error) {
+      console.error('Failed to delete DHL compensation PDF during entry deletion:', error);
+      return await renderIndex(req, res, {
+        error: 'Failed to delete the uploaded PDF file. The entry was not deleted.',
+      }, 500);
+    }
+
+    await entry.destroy();
+
+    res.redirect('/dhl-compensation?message=' + encodeURIComponent('Entry deleted.'));
   } catch (error) {
     next(error);
   }

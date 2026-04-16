@@ -8,4 +8,5 @@ data/DHL_return_request.pdf
 test_data/
 temp/
 data/case/
+data/dhl_compensation_pdfs/
 public/tmp/

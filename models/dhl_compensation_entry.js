@@ -12,6 +12,14 @@ module.exports = (sequelize, type) => {
       type: type.INTEGER,
       allowNull: false,
     },
+    pdf_original_name: {
+      type: type.STRING,
+      allowNull: true,
+    },
+    pdf_storage_name: {
+      type: type.STRING,
+      allowNull: true,
+    },
     expected_transaction_date: {
       type: type.DATEONLY,
       allowNull: true,

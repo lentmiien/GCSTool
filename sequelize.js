@@ -114,6 +114,29 @@ const Op = Sequelize.Op;
 const fn = Sequelize.fn;
 const literal = Sequelize.literal;
 
+async function ensureDhlCompensationEntrySchema() {
+  const queryInterface = sequelize_dhl_compensation.getQueryInterface();
+  const tableName = DHLCompensationEntry.getTableName();
+  const columns = await queryInterface.describeTable(tableName);
+  const requiredColumns = {
+    pdf_original_name: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    pdf_storage_name: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+  };
+
+  for (const [columnName, definition] of Object.entries(requiredColumns)) {
+    if (!columns[columnName]) {
+      await queryInterface.addColumn(tableName, columnName, definition);
+      console.log(`Added column "${columnName}" to ${tableName}.`);
+    }
+  }
+}
+
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(() => {
   console.log(`Database & tables syncronized! [GCS Tool]`);
@@ -123,9 +146,14 @@ sequelize_tracker.sync().then(() => {
   console.log(`Database & tables syncronized! [Tracker]`);
 });
 // Create all necessary tables: DHL compensation
-sequelize_dhl_compensation.sync().then(() => {
-  console.log(`Database & tables syncronized! [DHL Compensation: ${dhlCompensationDatabase}]`);
-});
+sequelize_dhl_compensation.sync()
+  .then(async () => {
+    console.log(`Database & tables syncronized! [DHL Compensation: ${dhlCompensationDatabase}]`);
+    await ensureDhlCompensationEntrySchema();
+  })
+  .catch((error) => {
+    console.error('Failed to synchronize DHL compensation database:', error);
+  });
 
 // Export models
 module.exports = {

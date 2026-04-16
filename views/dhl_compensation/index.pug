@@ -157,7 +157,7 @@ block content
         span.small.text-muted.ml-3 Show / hide
     #dhlNewEntryCollapse.collapse(class=isNewEntryOpen ? 'show' : '')
       .card-body.py-3
-        form(method='post', action='/dhl-compensation/create')
+        form(method='post', action='/dhl-compensation/create', enctype='multipart/form-data')
           .form-row.align-items-end
             .col-lg-4.col-md-6.mb-2
               label.small.text-muted(for='order_number') Order number
@@ -168,9 +168,13 @@ block content
             .col-lg-2.col-md-6.mb-2
               label.small.text-muted(for='compensation_amount_jpy') Amount (JPY)
               input#compensation_amount_jpy.form-control.form-control-sm(type='number', name='compensation_amount_jpy', min='1', step='1', value=newEntry.compensation_amount_jpy, required=true)
-            .col-lg-2.col-md-6.mb-2
+          .form-row.align-items-end
+            .col-lg-8.col-md-8.mb-2
+              label.small.text-muted(for='pdf_file') PDF file (optional)
+              input#pdf_file.form-control.form-control-sm(type='file', name='pdf_file', accept='application/pdf,.pdf')
+            .col-lg-4.col-md-4.mb-2
               button.btn.btn-primary.btn-sm.btn-block(type='submit') Add entry
-        p.small.text-muted.mb-0 Create the base entry first. Estimated and actual transaction dates can be updated later from the open list below.
+        p.small.text-muted.mb-0 Optionally attach a PDF file. Uploaded PDFs are stored locally, available from the open-entry list, and deleted automatically when the entry is completed or manually deleted.
 
   .d-flex.justify-content-between.align-items-center.mb-3
     h2.h5.mb-0 Open Entries
@@ -205,6 +209,10 @@ block content
                   div.small.text-muted= `Estimated transaction date: ${entry.expected_transaction_date}`
                 else
                   div.small.text-warning Estimated transaction date not set yet.
+                if entry.has_pdf
+                  .mt-2
+                    a.btn.btn-outline-secondary.btn-sm(href=`/dhl-compensation/${entry.id}/pdf`) Download PDF
+                    span.small.text-muted.ml-2= entry.pdf_original_name
               .dhl-entry-amount-wrap
                 div.dhl-entry-amount-label Amount
                 div.dhl-entry-amount= `JPY ${entry.amount_label}`
@@ -229,6 +237,15 @@ block content
                   aria-controls=`complete_panel_${entry.id}`,
                   aria-selected=showCompleteTab ? 'true' : 'false'
                 ) Set transaction date and mark as completed
+              li.nav-item
+                a.nav-link(
+                  id=`delete_tab_${entry.id}`,
+                  data-toggle='tab',
+                  href=`#delete_panel_${entry.id}`,
+                  role='tab',
+                  aria-controls=`delete_panel_${entry.id}`,
+                  aria-selected='false'
+                ) Delete entry
             .tab-content.dhl-entry-tab-content
               .tab-pane.fade(
                 class=showEstimateTab ? 'show active' : '',
@@ -256,6 +273,15 @@ block content
                       input.form-control.form-control-sm(id=`complete_${entry.id}`, type='date', name='transaction_date', required=true)
                     .col-lg-4.col-md-5.mb-2
                       button.btn.btn-success.btn-sm.btn-block(type='submit') Mark completed
+                p.small.text-muted.mb-0 Any uploaded PDF will be deleted when this entry is marked as completed.
+              .tab-pane.fade(
+                id=`delete_panel_${entry.id}`,
+                role='tabpanel',
+                aria-labelledby=`delete_tab_${entry.id}`
+              )
+                p.small.text-muted.mb-3 Delete this entry only if it was added by mistake. Any uploaded PDF will also be removed.
+                form(method='post', action=`/dhl-compensation/${entry.id}/delete`, onsubmit="return confirm('Delete this entry and its uploaded PDF, if any?');")
+                  button.btn.btn-outline-danger.btn-sm.btn-block(type='submit') Delete entry
             hr.my-3
             .small.text-muted
               div= `Created by ${entry.created_by} on ${entry.created_at_label}`
