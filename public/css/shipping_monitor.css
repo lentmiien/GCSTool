@@ -1,0 +1,525 @@
+.shipping-monitor {
+  --shipping-monitor-color-destination: #39b86d;
+  --shipping-monitor-color-destination-line: #177a43;
+  --shipping-monitor-color-destination-soft: #e6f7ec;
+  --shipping-monitor-color-return: #ea7568;
+  --shipping-monitor-color-return-line: #b04338;
+  --shipping-monitor-color-return-soft: #fdeceb;
+  --shipping-monitor-color-transit: #4d8ff7;
+  --shipping-monitor-color-transit-line: #1f63cb;
+  --shipping-monitor-color-transit-soft: #e6f0ff;
+  --shipping-monitor-chart-surface:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(238, 245, 251, 0.98));
+  --shipping-monitor-chart-border: #d4e2ed;
+  --shipping-monitor-grid-color: rgba(44, 78, 108, 0.14);
+  --shipping-monitor-axis-text-color: #496072;
+  --shipping-monitor-axis-line-color: rgba(71, 97, 120, 0.24);
+  --shipping-monitor-axis-halo-color: rgba(255, 255, 255, 0.96);
+  --shipping-monitor-plot-surface: rgba(255, 255, 255, 0.32);
+  --shipping-monitor-plot-border: rgba(108, 141, 168, 0.16);
+  --shipping-monitor-point-ring: rgba(255, 255, 255, 0.94);
+  color: #173247;
+}
+
+.shipping-monitor .card {
+  border-radius: 0.9rem;
+}
+
+.shipping-monitor .btn-outline-secondary {
+  border-color: #aebecb;
+  color: #365062;
+}
+
+.shipping-monitor .btn-outline-secondary:hover,
+.shipping-monitor .btn-outline-secondary:focus {
+  background-color: #365062;
+  border-color: #365062;
+  color: #fff;
+}
+
+.shipping-monitor .btn-outline-secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(54, 80, 98, 0.18);
+}
+
+.shipping-monitor .gap-2 {
+  gap: 0.5rem;
+}
+
+.shipping-monitor .gap-3 {
+  gap: 1rem;
+}
+
+.shipping-monitor .fw-semibold {
+  font-weight: 600;
+}
+
+.shipping-monitor .row.g-3 {
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+.shipping-monitor .row.g-3 > [class*='col-'] {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.shipping-monitor-shortcut-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid #d7e3ec;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.shipping-monitor-shortcut-link:hover,
+.shipping-monitor-shortcut-link:focus {
+  color: inherit;
+  text-decoration: none;
+  border-color: #b6cad8;
+  transform: translateY(-1px);
+  box-shadow: 0 0.65rem 1.5rem rgba(23, 50, 71, 0.08);
+}
+
+.shipping-monitor-meta-badge {
+  background: #edf3f7;
+  color: #365062;
+  border: 1px solid #c9d7e1;
+  font-weight: 600;
+}
+
+.shipping-monitor-kpi {
+  border: 1px solid #d7e3ec;
+  background:
+    radial-gradient(circle at top right, rgba(255, 214, 165, 0.7), transparent 40%),
+    linear-gradient(145deg, #f6fbff, #eef5fb);
+}
+
+.shipping-monitor-kpi-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5c7285;
+}
+
+.shipping-monitor-kpi-value {
+  margin-top: 0.35rem;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #173247;
+}
+
+.shipping-monitor-table th,
+.shipping-monitor-table td {
+  vertical-align: middle;
+}
+
+.shipping-monitor-table thead th {
+  color: #496072;
+  border-bottom-color: #d7e3ec;
+}
+
+.shipping-monitor-table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(95, 129, 154, 0.05);
+}
+
+.shipping-monitor-table.table-hover tbody tr:hover {
+  background-color: rgba(100, 131, 204, 0.08);
+}
+
+.shipping-monitor-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.shipping-monitor-badge--destination {
+  background: var(--shipping-monitor-color-destination-soft);
+  color: var(--shipping-monitor-color-destination-line);
+}
+
+.shipping-monitor-badge--return {
+  background: var(--shipping-monitor-color-return-soft);
+  color: var(--shipping-monitor-color-return-line);
+}
+
+.shipping-monitor-badge--other {
+  background: #eef2ff;
+  color: #344db2;
+}
+
+.shipping-monitor-badge--unknown {
+  background: #f2f4f7;
+  color: #4c5563;
+}
+
+.shipping-monitor-badge--progress {
+  background: var(--shipping-monitor-color-transit-soft);
+  color: var(--shipping-monitor-color-transit-line);
+}
+
+.shipping-monitor-badge--neutral {
+  background: #f3f3f3;
+  color: #555;
+}
+
+.shipping-monitor-manual-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 14rem;
+}
+
+.shipping-monitor-manual-actions form {
+  margin: 0;
+}
+
+.shipping-monitor-action-btn {
+  width: 100%;
+}
+
+.shipping-monitor-compare-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.shipping-monitor-selection-summary {
+  font-size: 0.92rem;
+}
+
+.shipping-monitor-selected-row td {
+  background: rgba(23, 50, 71, 0.04);
+}
+
+.shipping-monitor-chart {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  width: 100%;
+  min-height: 16rem;
+  padding: 0.5rem 0.65rem 0.35rem;
+  border: 1px solid var(--shipping-monitor-chart-border);
+  border-radius: 1rem;
+  background: var(--shipping-monitor-chart-surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 30px rgba(57, 88, 116, 0.08);
+}
+
+.shipping-monitor-chart::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.42), transparent 38%),
+    radial-gradient(circle at 92% 8%, rgba(77, 143, 247, 0.1), transparent 28%);
+  pointer-events: none;
+}
+
+.shipping-monitor-chart svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  background: transparent !important;
+  overflow: visible;
+}
+
+.shipping-monitor-chart--small {
+  min-height: 12rem;
+  padding-top: 0.35rem;
+}
+
+.shipping-monitor-plot-surface {
+  fill: var(--shipping-monitor-plot-surface);
+  stroke: var(--shipping-monitor-plot-border);
+  stroke-width: 1;
+}
+
+.shipping-monitor-grid line {
+  stroke: var(--shipping-monitor-grid-color);
+  stroke-dasharray: 4 6;
+  stroke-linecap: round;
+}
+
+.shipping-monitor-axis text,
+.shipping-monitor-chart-label {
+  fill: var(--shipping-monitor-axis-text-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  paint-order: stroke;
+  stroke: var(--shipping-monitor-axis-halo-color);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.shipping-monitor-axis line,
+.shipping-monitor-axis path,
+.shipping-monitor-baseline {
+  stroke: var(--shipping-monitor-axis-line-color);
+}
+
+.shipping-monitor-axis .tick line {
+  stroke-opacity: 0;
+}
+
+.shipping-monitor-area {
+  opacity: 0.9;
+}
+
+.shipping-monitor-area-line {
+  opacity: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.18));
+}
+
+.shipping-monitor-point {
+  stroke: var(--shipping-monitor-point-ring);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 2px 6px rgba(18, 34, 49, 0.18));
+}
+
+.shipping-monitor-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.shipping-monitor-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #405566;
+  font-size: 0.9rem;
+}
+
+.shipping-monitor-legend-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+}
+
+.shipping-monitor-legend-swatch--return {
+  background: var(--shipping-monitor-color-return);
+}
+
+.shipping-monitor-legend-swatch--transit {
+  background: var(--shipping-monitor-color-transit);
+}
+
+.shipping-monitor-legend-swatch--destination {
+  background: var(--shipping-monitor-color-destination);
+}
+
+.shipping-monitor-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.shipping-monitor-method-card {
+  border: 1px solid #d7e3ec;
+  background:
+    radial-gradient(circle at top left, rgba(180, 219, 243, 0.35), transparent 45%),
+    linear-gradient(160deg, #ffffff, #f4f9fd);
+}
+
+html[data-color-mode='dark'] .shipping-monitor {
+  --shipping-monitor-color-destination: #42d986;
+  --shipping-monitor-color-destination-line: #9df0bf;
+  --shipping-monitor-color-destination-soft: rgba(66, 217, 134, 0.16);
+  --shipping-monitor-color-return: #ff8b7a;
+  --shipping-monitor-color-return-line: #ffc1b7;
+  --shipping-monitor-color-return-soft: rgba(255, 139, 122, 0.16);
+  --shipping-monitor-color-transit: #68a8ff;
+  --shipping-monitor-color-transit-line: #c0d8ff;
+  --shipping-monitor-color-transit-soft: rgba(104, 168, 255, 0.16);
+  --shipping-monitor-chart-surface:
+    linear-gradient(180deg, rgba(24, 31, 40, 0.98), rgba(16, 22, 30, 0.98));
+  --shipping-monitor-chart-border: #344657;
+  --shipping-monitor-grid-color: rgba(201, 218, 233, 0.18);
+  --shipping-monitor-axis-text-color: #d4e2ec;
+  --shipping-monitor-axis-line-color: rgba(201, 218, 233, 0.22);
+  --shipping-monitor-axis-halo-color: rgba(13, 18, 24, 0.96);
+  --shipping-monitor-plot-surface: rgba(255, 255, 255, 0.025);
+  --shipping-monitor-plot-border: rgba(139, 165, 189, 0.12);
+  --shipping-monitor-point-ring: #16212b;
+  color: #e6edf3;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .card {
+  background: linear-gradient(180deg, rgba(27, 35, 44, 0.98), rgba(21, 28, 36, 0.98));
+  border-color: #2d3a48;
+  color: #e6edf3;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .btn-outline-secondary {
+  background: rgba(24, 32, 42, 0.65);
+  border-color: #53687a;
+  color: #d6e1ea;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .btn-outline-secondary:hover,
+html[data-color-mode='dark'] .shipping-monitor .btn-outline-secondary:focus {
+  background: #d6e1ea;
+  border-color: #d6e1ea;
+  color: #0f1720;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .btn-outline-secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(183, 203, 255, 0.18);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link,
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link:hover,
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link:focus {
+  color: #e6edf3;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link {
+  border-color: #2d3a48;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link:hover,
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-shortcut-link:focus {
+  border-color: #4d6477;
+  box-shadow: 0 0.85rem 2rem rgba(0, 0, 0, 0.28);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-meta-badge {
+  background: #233241;
+  color: #dbe8f1;
+  border-color: #3d5164;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-kpi {
+  border-color: #2d3a48;
+  background:
+    radial-gradient(circle at top right, rgba(224, 161, 86, 0.18), transparent 40%),
+    linear-gradient(145deg, #1b2430, #141c26);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-kpi-label {
+  color: #9fb1c1;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-kpi-value {
+  color: #f3f7fb;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-badge--other {
+  background: rgba(104, 124, 255, 0.18);
+  color: #c5d0ff;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-badge--unknown {
+  background: rgba(159, 177, 193, 0.14);
+  color: #c6d1da;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-badge--neutral {
+  background: rgba(214, 225, 234, 0.12);
+  color: #d6e1ea;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-selected-row td {
+  background: rgba(126, 163, 255, 0.08);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-chart {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 18px 32px rgba(0, 0, 0, 0.3);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-chart::before {
+  background:
+    radial-gradient(circle at top left, rgba(104, 168, 255, 0.14), transparent 40%),
+    radial-gradient(circle at 88% 10%, rgba(66, 217, 134, 0.08), transparent 30%);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-axis text,
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-chart-label {
+  fill: var(--shipping-monitor-axis-text-color);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-legend-item {
+  color: #cad7e1;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-method-card {
+  border-color: #2d3a48;
+  background:
+    radial-gradient(circle at top left, rgba(86, 126, 164, 0.16), transparent 48%),
+    linear-gradient(160deg, #1b2430, #141c26);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table,
+html[data-color-mode='dark'] .shipping-monitor .table {
+  color: #e6edf3;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table th,
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table td {
+  border-top-color: #31404f;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table thead th {
+  color: #d6e1ea;
+  border-bottom-color: #425463;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .shipping-monitor-table.table-hover tbody tr:hover {
+  color: #f5f9fc;
+  background-color: rgba(126, 163, 255, 0.08);
+}
+
+html[data-color-mode='dark'] .shipping-monitor .alert-light {
+  background: #1b2530;
+  border-color: #2d3a48;
+  color: #d6e1ea;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .alert-warning {
+  background: #4a3d00;
+  border-color: #6b5a00;
+  color: #ffe38f;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .alert-danger {
+  background: #4a1f24;
+  border-color: #7a3238;
+  color: #ffc9cc;
+}
+
+html[data-color-mode='dark'] .shipping-monitor .text-muted,
+html[data-color-mode='dark'] .shipping-monitor .form-text.text-muted {
+  color: #9fb1c1 !important;
+}
+
+@media (max-width: 767px) {
+  .shipping-monitor-compare-form {
+    align-items: stretch;
+  }
+
+  .shipping-monitor-chart {
+    min-height: 14rem;
+  }
+
+  .shipping-monitor-chart--small {
+    min-height: 11rem;
+  }
+}

@@ -1,0 +1,41 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/shipping_monitor.css')
+
+block content
+  - const shortcutList = shortcuts || [];
+  .container.mt-4.shipping-monitor
+    .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-start.gap-3.mb-4
+      div
+        h1.mb-2 Shipping Monitor Compare
+        p.text-muted.mb-1 Open an existing saved shortcut to compare monitor groups in read-only mode.
+        p.text-muted.small.mb-0 This page only reads the shared tracking-monitor tables. It does not refresh cache snapshots, update last-viewed timestamps, or edit saved shortcuts.
+      a.btn.btn-outline-secondary(href='/tracker') Tracker
+
+    if error
+      .alert.alert-danger(role='alert')= error
+
+    if shortcutList.length
+      .row.g-3
+        each shortcut in shortcutList
+          - const groupText = Array.isArray(shortcut.groups) ? shortcut.groups.map((group) => `#${group.selectionIndex} ${group.label}`).join(' -> ') : '';
+          .col-lg-6
+            a.card.shadow-sm.shipping-monitor-shortcut-link.shipping-monitor-method-card.h-100(
+              href=`/shipping-monitor-compare/${shortcut.id}`
+            )
+              .card-body
+                .d-flex.justify-content-between.align-items-start.gap-2.mb-3
+                  div
+                    h2.h5.mb-1= shortcut.label
+                    if groupText
+                      p.text-muted.small.mb-0= groupText
+                  span.badge.shipping-monitor-meta-badge= `${shortcut.groupCount || 0} groups`
+                if shortcut.missingGroupCount > 0
+                  .alert.alert-warning.py-2.px-3.mb-0.small
+                    | #{shortcut.missingGroupCount} linked group#{shortcut.missingGroupCount === 1 ? '' : 's'} no longer exist. Open the original monitor tool to repair the saved selection.
+                else
+                  p.text-muted.small.mb-0 Open the saved comparison report.
+    else
+      .alert.alert-light.border(role='alert')
+        | No saved shipping monitor comparison shortcuts were found.

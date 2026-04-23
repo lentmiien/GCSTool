@@ -1,7 +1,7 @@
 doctype html
 html(lang='en')
   head
-    title GCS Support Tool
+    title= typeof pagetitle !== 'undefined' && pagetitle ? pagetitle : 'GCS Support Tool'
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous")
@@ -9,6 +9,7 @@ html(lang='en')
     link(rel="stylesheet", href="https://uicdn.toast.com/editor/latest/theme/toastui-editor-dark.min.css")
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
+    block styles
   body(onload='Loaded()')
     div(class='container-fluid')
       nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
@@ -32,6 +33,8 @@ html(lang='en')
                 a.nav-link(href='/admin', lg_language='_admin_')
             li.nav-item
               a.nav-link(href='/tracker', lg_language='_tracker_')
+            li.nav-item
+              a.nav-link(href='/shipping-monitor-compare') Shipping Monitor Compare
             li.nav-item.dropdown
               a#navbarDropdownExp.nav-link.dropdown-toggle(href="#", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", lg_language='_other_')
               .dropdown-menu(aria-labelledby="navbarDropdownExp")
@@ -155,3 +158,4 @@ html(lang='en')
     script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous")
     script(src="/socket.io/socket.io.js")
     script(src='/javascripts/socket_io_client.js')
+    block scripts

@@ -32,6 +32,14 @@ const month_names = [
   'december',
 ];
 
+function GetColorModeName() {
+  return my_settings.colormode === 'Style_dark.css' ? 'dark' : 'light';
+}
+
+function ApplyColorModeDataAttribute() {
+  document.documentElement.setAttribute('data-color-mode', GetColorModeName());
+}
+
 /**********************************************
  *
  *                SETTINGS
@@ -72,6 +80,7 @@ function Loaded() {
   if (dom_cmode) {
     dom_cmode.value = my_settings.colormode;
   }
+  ApplyColorModeDataAttribute();
   // Load css file for selected color mode
   let head = document.getElementsByTagName('head')[0];
   let link = document.createElement('link');

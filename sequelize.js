@@ -27,6 +27,9 @@ const DHLCompensationEntryModel = require('./models/dhl_compensation_entry');
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
 const TrackingModel = require('./models/tracking');
+const TrackingMonitorGroupModel = require('./models/trackingMonitorGroup');
+const TrackingMonitorEntryModel = require('./models/trackingMonitorEntry');
+const TrackingMonitorShortcutModel = require('./models/trackingMonitorShortcut');
 const Trackhist0Model = require('./models/trackhist0');
 const Trackhist1Model = require('./models/trackhist1');
 const Trackhist2Model = require('./models/trackhist2');
@@ -90,6 +93,9 @@ const DHLCompensationEntry = DHLCompensationEntryModel(sequelize_dhl_compensatio
 const Country = CountryModel(sequelize_tracker, Sequelize);
 const Countrylist = CountrylistModel(sequelize_tracker, Sequelize);
 const Tracking = TrackingModel(sequelize_tracker, Sequelize);
+const TrackingMonitorGroup = TrackingMonitorGroupModel(sequelize_tracker, Sequelize);
+const TrackingMonitorEntry = TrackingMonitorEntryModel(sequelize_tracker, Sequelize);
+const TrackingMonitorShortcut = TrackingMonitorShortcutModel(sequelize_tracker, Sequelize);
 const Trackhist0 = Trackhist0Model(sequelize_tracker, Sequelize);
 const Trackhist1 = Trackhist1Model(sequelize_tracker, Sequelize);
 const Trackhist2 = Trackhist2Model(sequelize_tracker, Sequelize);
@@ -185,6 +191,14 @@ module.exports = {
   Country,
   Countrylist,
   Tracking,
+  TrackingMonitorGroup,
+  TrackingMonitorEntry,
+  TrackingMonitorShortcut,
+  Trackhist0,
+  Trackhist1,
+  Trackhist2,
+  Trackhist3,
+  Trackhist4,
   dhlCompensation: {
     Entry: DHLCompensationEntry,
   },

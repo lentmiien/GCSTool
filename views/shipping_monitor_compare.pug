@@ -1,0 +1,192 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/shipping_monitor.css')
+
+block content
+  - const groups = report.groups || [];
+  - const summary = report.summary || {};
+  - const methodSections = report.methodSections || [];
+  - const uncachedGroups = report.uncachedGroups || [];
+  - const formatDateTime = (value) => { if (!value) return '-'; const date = value instanceof Date ? value : new Date(Number(value) || value); return Number.isNaN(date.getTime()) ? '-' : date.toISOString().replace('T', ' ').slice(0, 16); };
+  - const shortcutSelectionText = shortcut && Array.isArray(shortcut.groups) ? shortcut.groups.map((group) => `#${group.selectionIndex} ${group.label}`).join(' -> ') : '';
+  .container.mt-4.shipping-monitor
+    .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-start.gap-3.mb-4
+      div
+        h1.mb-2 Saved Group Comparison
+        p.text-muted.mb-1 Compare the selected monitor groups in the exact order they were chosen.
+        p.text-muted.small.mb-0 This page does not write cache updates. Cached outcomes are reused, and uncached entries are treated as in transit; current tracking rows are only read when needed to place uncached entries into shipping methods.
+      .d-flex.gap-2
+        a.btn.btn-outline-secondary(href='/shipping-monitor-compare') Saved comparisons
+        a.btn.btn-outline-secondary(href='/tracker') Tracker
+
+    if error
+      .alert.alert-danger(role='alert')= error
+
+    if shortcut
+      .alert.alert-light.border(role='alert')
+        .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-start.gap-2
+          div
+            .d-flex.align-items-center.flex-wrap.gap-2.mb-1
+              strong= shortcut.label
+              span.badge.shipping-monitor-meta-badge= `${shortcut.groupCount || 0} saved group${Number(shortcut.groupCount || 0) === 1 ? '' : 's'}`
+            if shortcutSelectionText
+              div.text-muted.small= shortcutSelectionText
+          div.text-muted.small Opened from a saved shortcut. Cache writes remain disabled on this page.
+
+    if uncachedGroups.length
+      .alert.alert-warning(role='alert')
+        strong Cached snapshot incomplete.
+        |  These uncached entries are counted as in transit on this page. Open the individual reports only if you want to refresh and classify them:
+        |  #{uncachedGroups.map((group) => `${group.label} (${group.uncachedEntryCount}/${group.totalEntries} uncached)`).join(', ')}
+
+    .row.g-3.mb-4
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Groups selected
+            .shipping-monitor-kpi-value= summary.groupCount || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Total entries
+            .shipping-monitor-kpi-value= summary.totalEntries || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Cached entries
+            .shipping-monitor-kpi-value= summary.cachedEntryCount || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Uncached entries
+            .shipping-monitor-kpi-value= summary.uncachedEntryCount || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Destination delivered
+            .shipping-monitor-kpi-value= summary.destinationDeliveredEntries || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Return delivered
+            .shipping-monitor-kpi-value= summary.returnDeliveredEntries || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label In transit
+            .shipping-monitor-kpi-value= summary.inTransitEntries || 0
+      .col-6.col-lg-3
+        .card.shipping-monitor-kpi.shadow-sm
+          .card-body
+            .shipping-monitor-kpi-label Cached coverage
+            .shipping-monitor-kpi-value= `${summary.cachedCoveragePercent || 0}%`
+
+    .card.shadow-sm.mb-4
+      .card-body
+        h2.h4.mb-2 Outcome Mix
+        p.text-muted.small.mb-3
+          | 100% stacked area of destination delivered, return delivered, and in transit across the selected groups. Any entry without a cached resolved outcome is folded into in transit here.
+        .shipping-monitor-legend.mb-3
+          span.shipping-monitor-legend-item
+            span.shipping-monitor-legend-swatch.shipping-monitor-legend-swatch--return
+            | Return delivered
+          span.shipping-monitor-legend-item
+            span.shipping-monitor-legend-swatch.shipping-monitor-legend-swatch--transit
+            | In transit
+          span.shipping-monitor-legend-item
+            span.shipping-monitor-legend-swatch.shipping-monitor-legend-swatch--destination
+            | Destination delivered
+        #shippingMonitorOverallChart.shipping-monitor-chart
+
+    if methodSections.length
+      .card.shadow-sm.mb-4
+        .card-body
+          h2.h4.mb-2 Shipping Method Trends
+          p.text-muted.small.mb-4
+            | Each chart uses the same compare-only outcome mix. Uncached entries with a current tracking match are counted as in transit for that shipping method; if a selected group still has no rows resolving to a shipping method, it is omitted from that method's x-axis.
+          .shipping-monitor-method-grid
+            each section in methodSections
+              .card.shipping-monitor-method-card
+                .card-body
+                  .d-flex.justify-content-between.align-items-center.gap-2.mb-2
+                    h3.h6.mb-0= section.shippingMethodName
+                    span.text-muted.small= `${section.points.length} group${section.points.length === 1 ? '' : 's'}`
+                  div.shipping-monitor-chart.shipping-monitor-chart--small(
+                    id=`shippingMonitorMethodChart-${section.grouplabel}`
+                  )
+    else
+      .alert.alert-light.border.mb-4(role='alert')
+        | No shipping-method data could be resolved for the selected groups.
+
+    .card.shadow-sm.mb-4
+      .card-body
+        h2.h4.mb-3 Group Summary
+        .table-responsive
+          table.table.table-striped.align-middle.shipping-monitor-table
+            thead
+              tr
+                th Order
+                th Group
+                th Total
+                th Cached
+                th Uncached
+                th Destination
+                th Return
+                th In transit
+                th Avg transit days
+                th Last opened
+            tbody
+              each group in groups
+                - const groupSummary = group.summary || {};
+                tr
+                  td= `#${group.selectionIndex}`
+                  td
+                    div.fw-semibold= group.label
+                    if group.note
+                      div.text-muted.small= group.note
+                  td= groupSummary.totalEntries || 0
+                  td
+                    div= groupSummary.cachedEntryCount || 0
+                    div.text-muted.small= `${groupSummary.cachedCoveragePercent || 0}%`
+                  td= groupSummary.uncachedEntryCount || 0
+                  td= groupSummary.destinationDeliveredEntries || 0
+                  td= groupSummary.returnDeliveredEntries || 0
+                  td= groupSummary.inTransitEntries || 0
+                  td= groupSummary.averageTransitDays !== null ? groupSummary.averageTransitDays : '-'
+                  td= formatDateTime(group.lastViewedAt > 0 ? new Date(Number(group.lastViewedAt)) : null)
+
+    .card.shadow-sm
+      .card-body
+        h2.h4.mb-3 Shipping Method Data
+        .table-responsive
+          table.table.table-hover.align-middle.shipping-monitor-table
+            thead
+              tr
+                th Method
+                th Group
+                th Entries
+                th Destination
+                th Return
+                th In transit
+                th Avg transit days
+            tbody
+              each section in methodSections
+                each point in section.points
+                  - const stat = point.summary || {};
+                  tr
+                    td
+                      div.fw-semibold= section.shippingMethodName
+                      div.text-muted.small= `Group ${section.grouplabel}`
+                    td= `#${point.selectionIndex} ${point.groupLabel}`
+                    td= stat.totalEntries || 0
+                    td= stat.destinationDeliveredEntries || 0
+                    td= stat.returnDeliveredEntries || 0
+                    td= stat.inTransitEntries || 0
+                    td= stat.averageTransitDays !== null ? stat.averageTransitDays : '-'
+
+block scripts
+  script(src='https://d3js.org/d3.v7.min.js')
+  script.
+    window.shippingMonitorCompareReport = !{JSON.stringify(report)};
+  script(src='/js/shipping_monitor_compare.js')
