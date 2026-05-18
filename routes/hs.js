@@ -19,6 +19,8 @@ router.get('/v2', controller.index_v2);
 // Ireland CSV editor
 router.get('/ireland', controller.ireland_editor);
 router.post('/ireland/save-mappings', controller.ireland_save_mappings);
+router.get('/ireland/taric-explanations', controller.ireland_taric_explanations);
+router.post('/ireland/taric-explanations', controller.ireland_save_taric_explanations);
 
 // For the orders with HS codes in separate file
 router.get('/manualedit', controller.manual_edit);

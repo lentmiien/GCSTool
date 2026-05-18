@@ -2,7 +2,7 @@
 const csv = require('csvtojson');
 
 // Require necessary database models
-const { HSCodeList, IrelandTaricMapping, Op } = require('../sequelize');
+const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, Op } = require('../sequelize');
 const {
   collapseWhitespace,
   sanitizeMappingCode,
@@ -309,6 +309,146 @@ async function saveIrelandTaricMappings(entries) {
   };
 }
 
+function toArray(value) {
+  if (value == null) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
+}
+
+function truncateText(value, maxLength) {
+  const text = collapseWhitespace(value);
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 1)}...`;
+}
+
+function addUniqueText(list, value, limit) {
+  const text = collapseWhitespace(value);
+  if (!text || list.indexOf(text) !== -1 || list.length >= limit) {
+    return;
+  }
+  list.push(text);
+}
+
+function buildTaricExplanationLookup(taricExplanations) {
+  const lookup = {};
+  taricExplanations.forEach((entry) => {
+    const data = entry.toJSON ? entry.toJSON() : entry;
+    const taricCode = sanitizeMappingCode(data.taricCode);
+    if (taricCode) {
+      lookup[taricCode] = collapseWhitespace(data.explanation);
+    }
+  });
+  return lookup;
+}
+
+function buildTaricMappingsForEditor(taricMappings, taricExplanations) {
+  const explanationLookup = buildTaricExplanationLookup(taricExplanations);
+  return taricMappings.map((entry) => {
+    const data = entry.toJSON ? entry.toJSON() : entry;
+    const taricCode = sanitizeMappingCode(data.taricCode);
+    return Object.assign({}, data, {
+      explanation: taricCode ? explanationLookup[taricCode] || '' : '',
+    });
+  });
+}
+
+function buildTaricExplanationRows(taricMappings, taricExplanations) {
+  const explanationLookup = buildTaricExplanationLookup(taricExplanations);
+  const codeState = new Map();
+
+  taricMappings.forEach((entry) => {
+    const data = entry.toJSON ? entry.toJSON() : entry;
+    const taricCode = sanitizeMappingCode(data.taricCode);
+    if (!taricCode) {
+      return;
+    }
+
+    if (!codeState.has(taricCode)) {
+      codeState.set(taricCode, {
+        taricCode,
+        uses: 0,
+        mappingCount: 0,
+        sourceHsCodes: [],
+        examples: [],
+        explanation: explanationLookup[taricCode] || '',
+      });
+    }
+
+    const state = codeState.get(taricCode);
+    state.uses += Number(data.uses || 0);
+    state.mappingCount += 1;
+    addUniqueText(state.sourceHsCodes, sanitizeMappingCode(data.sourceHsCode), 8);
+    addUniqueText(state.examples, truncateText(cleanIrelandItemName(data.itemName || data.itemNameNormalized), 70), 5);
+  });
+
+  return Array.from(codeState.values())
+    .map((entry) => Object.assign({}, entry, {
+      hasExplanation: Boolean(collapseWhitespace(entry.explanation)),
+      sourceHsCodesText: entry.sourceHsCodes.join(', '),
+      examplesText: entry.examples.join(', '),
+    }))
+    .sort((a, b) => {
+      if (a.hasExplanation !== b.hasExplanation) {
+        return a.hasExplanation ? 1 : -1;
+      }
+      if (a.uses !== b.uses) {
+        return b.uses - a.uses;
+      }
+      return a.taricCode.localeCompare(b.taricCode);
+    });
+}
+
+async function saveIrelandTaricExplanations(codes, explanations) {
+  const taricCodes = toArray(codes);
+  const explanationValues = toArray(explanations);
+  let created = 0;
+  let updated = 0;
+  let deleted = 0;
+
+  for (let i = 0; i < taricCodes.length; i++) {
+    const taricCode = sanitizeMappingCode(taricCodes[i]);
+    const explanation = collapseWhitespace(explanationValues[i]);
+    if (!taricCode) {
+      continue;
+    }
+
+    const existing = await IrelandTaricExplanation.findOne({
+      where: { taricCode },
+    });
+
+    if (!explanation) {
+      if (existing) {
+        await existing.destroy();
+        deleted += 1;
+      }
+      continue;
+    }
+
+    if (existing) {
+      if (existing.explanation !== explanation) {
+        await existing.update({ explanation });
+        updated += 1;
+      }
+    } else {
+      await IrelandTaricExplanation.create({
+        taricCode,
+        explanation,
+      });
+      created += 1;
+    }
+  }
+
+  return {
+    created,
+    updated,
+    deleted,
+    saved: created + updated,
+  };
+}
+
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
 //---------------------------------------------//
@@ -459,11 +599,16 @@ exports.index_v2 = (req, res) => {
 // Ireland CSV editor (client-side)
 exports.ireland_editor = async (req, res, next) => {
   try {
-    const taricMappings = await IrelandTaricMapping.findAll({
-      order: [['uses', 'DESC'], ['updatedAt', 'DESC']],
-    });
+    const [taricMappings, taricExplanations] = await Promise.all([
+      IrelandTaricMapping.findAll({
+        order: [['uses', 'DESC'], ['updatedAt', 'DESC']],
+      }),
+      IrelandTaricExplanation.findAll({
+        order: [['taricCode', 'ASC']],
+      }),
+    ]);
     res.render('hs_ireland_editor', {
-      taricMappings: taricMappings.map((entry) => entry.toJSON()),
+      taricMappings: buildTaricMappingsForEditor(taricMappings, taricExplanations),
     });
   } catch (err) {
     next(err);
@@ -481,6 +626,35 @@ exports.ireland_save_mappings = async (req, res, next) => {
       deleted: result.deleted,
       saved: result.saved,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.ireland_taric_explanations = async (req, res, next) => {
+  try {
+    const [taricMappings, taricExplanations] = await Promise.all([
+      IrelandTaricMapping.findAll({
+        order: [['uses', 'DESC'], ['updatedAt', 'DESC']],
+      }),
+      IrelandTaricExplanation.findAll({
+        order: [['taricCode', 'ASC']],
+      }),
+    ]);
+    res.render('hs_ireland_taric_explanations', {
+      entries: buildTaricExplanationRows(taricMappings, taricExplanations),
+      saved: Number(req.query.saved || 0),
+      deleted: Number(req.query.deleted || 0),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.ireland_save_taric_explanations = async (req, res, next) => {
+  try {
+    const result = await saveIrelandTaricExplanations(req.body.taricCodes, req.body.explanations);
+    res.redirect(`/hs/ireland/taric-explanations?saved=${result.saved}&deleted=${result.deleted}`);
   } catch (err) {
     next(err);
   }

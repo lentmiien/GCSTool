@@ -19,6 +19,7 @@ block content
       button#review-taric-btn.btn.btn-warning.mr-2.mb-2(type='button', disabled) HS to TARIC manual
       button#copy-summary-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Copy work summary
       button#export-btn.btn.btn-primary.mb-2(type='button', disabled) Export CSV
+      a.btn.btn-secondary.ml-md-2.mb-2(href='/hs/ireland/taric-explanations') TARIC explanations
 
     div#ie-rows.mt-3
 
@@ -27,7 +28,7 @@ block content
         .card-header.ie-editor-card-header.d-flex.justify-content-between.align-items-center
           span TARIC review
           button#review-close-btn.btn.btn-sm.btn-secondary(type='button') Close
-        .card-body.ie-editor-card-body
+        .card-body.ie-editor-card-body.ie-review-body
           p#review-progress.mb-3
           .form-row
             .form-group.col-md-4
@@ -55,7 +56,13 @@ block content
           .form-group
             label(for='review-input') TARIC code
             input#review-input.form-control.ie-dark-input(type='text')
-          .d-flex.justify-content-end
+          .form-group.ie-taric-suggestions
+            .d-flex.justify-content-between.align-items-center.mb-2
+              label.mb-0 Suggested TARIC
+              a.small(href='/hs/ireland/taric-explanations', target='_blank') Manage explanations
+            p#review-suggestions-empty.ie-dark-muted.mb-0
+            div#review-suggestions-list
+          .d-flex.justify-content-end.ie-review-actions
             button#review-next-btn.btn.btn-primary(type='button') Next
 
     pre#taric-mappings.hidden= JSON.stringify(taricMappings || [])
@@ -82,6 +89,62 @@ block content
     .ie-review-card {
       width: 100%;
       max-width: 780px;
+      max-height: calc(100vh - 2rem);
+      display: flex;
+      flex-direction: column;
+    }
+    .ie-review-body {
+      overflow-y: auto;
+      padding-bottom: 0;
+    }
+    .ie-review-actions {
+      position: sticky;
+      bottom: 0;
+      padding: 0.75rem 0;
+      background: #1f1f1f;
+      border-top: 1px solid #333;
+    }
+    .ie-taric-suggestions {
+      border: 1px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      background: #222;
+    }
+    .ie-taric-suggestion-section {
+      margin-top: 0.35rem;
+      margin-bottom: 0.2rem;
+      color: #f1f1f1;
+      font-weight: 700;
+    }
+    .ie-taric-exact-list {
+      max-height: 11rem;
+      overflow-y: auto;
+      border-top: 1px solid #333;
+    }
+    .ie-taric-suggestion-row {
+      display: flex;
+      align-items: center;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #333;
+    }
+    .ie-taric-suggestion-code {
+      flex: 0 0 6.5rem;
+      margin-right: 0.5rem;
+    }
+    .ie-taric-suggestion-meta {
+      flex: 1 1 auto;
+      color: #cfcfcf;
+      font-size: 0.85rem;
+      line-height: 1.25;
+    }
+    .ie-taric-suggestion-explanation {
+      color: #ffffff;
+    }
+    .ie-taric-partial-detail {
+      margin-top: 0.35rem;
+      color: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.25;
     }
 
   script(src='/javascripts/FileSaver.js', defer)

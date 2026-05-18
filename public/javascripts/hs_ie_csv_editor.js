@@ -24,6 +24,8 @@
   const reviewCurrentHs = document.getElementById('review-current-hs');
   const reviewMatchStatus = document.getElementById('review-match-status');
   const reviewInput = document.getElementById('review-input');
+  const reviewSuggestionsEmpty = document.getElementById('review-suggestions-empty');
+  const reviewSuggestionsList = document.getElementById('review-suggestions-list');
   const taricMappingsEl = document.getElementById('taric-mappings');
 
   let initialTaricMappings = [];
@@ -48,6 +50,7 @@
     jan: new Map(),
     nameHs: new Map(),
   };
+  let taricExplanationLookup = new Map();
   let blockedNameHsKeys = new Set();
 
   const janPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
@@ -141,8 +144,14 @@
       jan: new Map(),
       nameHs: new Map(),
     };
+    taricExplanationLookup = new Map();
     blockedNameHsKeys = new Set();
     initialTaricMappings.forEach((entry) => {
+      const taricCode = sanitizeCode(entry.taricCode);
+      const explanation = collapseWhitespace(entry.explanation);
+      if (taricCode && explanation && !taricExplanationLookup.has(taricCode)) {
+        taricExplanationLookup.set(taricCode, explanation);
+      }
       upsertTaricLookup(entry, false);
     });
   };
@@ -188,6 +197,8 @@
     rowsContainer.innerHTML = '';
     closeReviewModal();
     reviewInput.value = '';
+    reviewSuggestionsEmpty.textContent = '';
+    reviewSuggestionsList.innerHTML = '';
     setStatus('');
     setToolStatus('');
     refreshButtons();
@@ -711,6 +722,227 @@
     return 'Not run';
   };
 
+  const getMappingItemNameNormalized = (entry) => {
+    return normalizeItemName(entry.itemNameNormalized || entry.itemName);
+  };
+
+  const getTaricExplanation = (taricCode) => {
+    return taricExplanationLookup.get(sanitizeCode(taricCode)) || '';
+  };
+
+  const addTaricSuggestion = (lookup, entry, matchLabels) => {
+    const taricCode = sanitizeCode(entry.taricCode);
+    if (!taricCode) {
+      return;
+    }
+
+    if (!lookup.has(taricCode)) {
+      lookup.set(taricCode, {
+        taricCode,
+        uses: 0,
+        matchLabels: new Set(),
+        examples: [],
+        explanation: getTaricExplanation(taricCode) || collapseWhitespace(entry.explanation),
+      });
+    }
+
+    const suggestion = lookup.get(taricCode);
+    suggestion.uses += Number(entry.uses || 0);
+    matchLabels.forEach((label) => {
+      suggestion.matchLabels.add(label);
+    });
+
+    const exampleName = cleanItemName(entry.itemName || entry.itemNameNormalized);
+    if (exampleName && suggestion.examples.indexOf(exampleName) === -1 && suggestion.examples.length < 3) {
+      suggestion.examples.push(exampleName);
+    }
+
+    if (!suggestion.explanation) {
+      suggestion.explanation = collapseWhitespace(entry.explanation);
+    }
+  };
+
+  const sortTaricSuggestions = (lookup) => Array.from(lookup.values()).sort((a, b) => {
+    if (a.uses !== b.uses) {
+      return b.uses - a.uses;
+    }
+    return a.taricCode.localeCompare(b.taricCode);
+  });
+
+  const buildReviewTaricSuggestions = (item) => {
+    const targetName = normalizeItemName(item.currentProductName);
+    const targetSourceHs = sanitizeCode(item.originalHsCode);
+    const exactLookup = new Map();
+    const partialLookup = new Map();
+
+    initialTaricMappings.forEach((entry) => {
+      const entryName = getMappingItemNameNormalized(entry);
+      const entrySourceHs = sanitizeCode(entry.sourceHsCode);
+      const nameMatches = targetName && entryName && entryName === targetName;
+      const hsMatches = targetSourceHs && entrySourceHs && entrySourceHs === targetSourceHs;
+      if (nameMatches && hsMatches) {
+        addTaricSuggestion(exactLookup, entry, ['item name', 'original HS']);
+      }
+    });
+
+    initialTaricMappings.forEach((entry) => {
+      const taricCode = sanitizeCode(entry.taricCode);
+      if (!taricCode || exactLookup.has(taricCode)) {
+        return;
+      }
+
+      const entryName = getMappingItemNameNormalized(entry);
+      const entrySourceHs = sanitizeCode(entry.sourceHsCode);
+      const nameMatches = targetName && entryName && entryName === targetName;
+      const hsMatches = targetSourceHs && entrySourceHs && entrySourceHs === targetSourceHs;
+      if (!nameMatches && !hsMatches) {
+        return;
+      }
+
+      addTaricSuggestion(partialLookup, entry, [
+        ...(nameMatches ? ['item name'] : []),
+        ...(hsMatches ? ['original HS'] : []),
+      ]);
+    });
+
+    return {
+      exact: sortTaricSuggestions(exactLookup),
+      partial: sortTaricSuggestions(partialLookup),
+    };
+  };
+
+  const selectReviewTaricSuggestion = (taricCode) => {
+    reviewInput.value = taricCode;
+    reviewInput.focus();
+    reviewInput.select();
+  };
+
+  const appendTaricSuggestionHeading = (title) => {
+    const heading = document.createElement('div');
+    heading.classList.add('ie-taric-suggestion-section');
+    heading.textContent = title;
+    reviewSuggestionsList.appendChild(heading);
+  };
+
+  const getSuggestionExplanationText = (suggestion) => {
+    return suggestion.explanation || 'No explanation saved yet.';
+  };
+
+  const getSuggestionDetailText = (suggestion) => {
+    const parts = [
+      `Used ${suggestion.uses} time(s)`,
+      `matched ${Array.from(suggestion.matchLabels).join(' + ')}`,
+      getSuggestionExplanationText(suggestion),
+    ];
+    if (suggestion.examples.length) {
+      parts.push(`Example: ${suggestion.examples.join(', ')}`);
+    }
+    return parts.join('. ');
+  };
+
+  const truncateSuggestionText = (value, maxLength) => {
+    const text = collapseWhitespace(value);
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 1)}...`;
+  };
+
+  const appendExactTaricSuggestions = (suggestions) => {
+    if (!suggestions.length) {
+      return;
+    }
+
+    appendTaricSuggestionHeading(`Matching item name + original HS (${suggestions.length})`);
+    const list = document.createElement('div');
+    list.classList.add('ie-taric-exact-list');
+
+    suggestions.forEach((suggestion) => {
+      const row = document.createElement('div');
+      row.classList.add('ie-taric-suggestion-row');
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'ie-taric-suggestion-code');
+      button.textContent = suggestion.taricCode;
+      button.title = 'Use this TARIC code';
+      button.addEventListener('click', () => {
+        selectReviewTaricSuggestion(suggestion.taricCode);
+      });
+
+      const meta = document.createElement('div');
+      meta.classList.add('ie-taric-suggestion-meta');
+
+      const explanation = document.createElement('div');
+      explanation.classList.add('ie-taric-suggestion-explanation');
+      explanation.textContent = `${getSuggestionExplanationText(suggestion)} (${suggestion.uses} use${suggestion.uses === 1 ? '' : 's'})`;
+      meta.appendChild(explanation);
+
+      row.appendChild(button);
+      row.appendChild(meta);
+      list.appendChild(row);
+    });
+
+    reviewSuggestionsList.appendChild(list);
+  };
+
+  const appendPartialTaricSuggestions = (suggestions) => {
+    if (!suggestions.length) {
+      return;
+    }
+
+    appendTaricSuggestionHeading(`Matching item name or original HS (${suggestions.length})`);
+
+    const select = document.createElement('select');
+    select.classList.add('form-control', 'form-control-sm', 'ie-dark-input');
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select a less-specific TARIC match';
+    select.appendChild(placeholder);
+
+    suggestions.forEach((suggestion, index) => {
+      const option = document.createElement('option');
+      option.value = suggestion.taricCode;
+      option.dataset.index = String(index);
+      option.textContent = truncateSuggestionText(`${suggestion.taricCode} - ${suggestion.uses} use${suggestion.uses === 1 ? '' : 's'} - ${Array.from(suggestion.matchLabels).join(' + ')} - ${getSuggestionExplanationText(suggestion)}`, 140);
+      select.appendChild(option);
+    });
+
+    const detail = document.createElement('div');
+    detail.classList.add('ie-taric-partial-detail', 'ie-dark-muted');
+    detail.textContent = 'Choose a code to fill the TARIC field.';
+
+    select.addEventListener('change', () => {
+      const selectedOption = select.selectedOptions[0];
+      if (!selectedOption || !selectedOption.value) {
+        detail.textContent = 'Choose a code to fill the TARIC field.';
+        return;
+      }
+
+      const suggestion = suggestions[Number(selectedOption.dataset.index)];
+      selectReviewTaricSuggestion(selectedOption.value);
+      detail.textContent = suggestion ? getSuggestionDetailText(suggestion) : '';
+    });
+
+    reviewSuggestionsList.appendChild(select);
+    reviewSuggestionsList.appendChild(detail);
+  };
+
+  const renderReviewTaricSuggestions = (item) => {
+    reviewSuggestionsList.innerHTML = '';
+    const suggestions = buildReviewTaricSuggestions(item);
+
+    if (!suggestions.exact.length && !suggestions.partial.length) {
+      reviewSuggestionsEmpty.textContent = 'No previous TARIC codes matched this item name or original HS.';
+      return;
+    }
+
+    reviewSuggestionsEmpty.textContent = '';
+    appendExactTaricSuggestions(suggestions.exact);
+    appendPartialTaricSuggestions(suggestions.partial);
+  };
+
   const showReviewItem = () => {
     if (!reviewQueue.length || reviewIndex < 0 || reviewIndex >= reviewQueue.length) {
       closeReviewModal();
@@ -728,6 +960,7 @@
     reviewCurrentHs.value = item.currentHsCode;
     reviewMatchStatus.value = getMatchLabel(item);
     reviewInput.value = item.currentHsCode;
+    renderReviewTaricSuggestions(item);
     reviewNextBtn.textContent = reviewIndex === reviewQueue.length - 1 ? 'Finish' : 'Next';
     reviewOverlay.classList.remove('d-none');
     reviewInput.focus();
@@ -877,8 +1110,16 @@
     const timestamp = new Date().toISOString();
 
     savedItems.forEach((entry) => {
+      const addLocalMapping = (mapping) => {
+        const localMapping = Object.assign({
+          explanation: getTaricExplanation(mapping.taricCode),
+        }, mapping);
+        initialTaricMappings.push(localMapping);
+        upsertTaricLookup(localMapping, true);
+      };
+
       if (entry.janCode) {
-        upsertTaricLookup({
+        addLocalMapping({
           mappingType: 'jan',
           janCode: entry.janCode,
           itemName: cleanItemName(entry.itemName),
@@ -887,11 +1128,11 @@
           taricCode: entry.taricCode,
           uses: 1,
           updatedAt: timestamp,
-        }, true);
+        });
       }
 
       if (entry.itemNameNormalized) {
-        upsertTaricLookup({
+        addLocalMapping({
           mappingType: 'name_hs',
           itemName: cleanItemName(entry.itemName),
           itemNameNormalized: entry.itemNameNormalized,
@@ -899,7 +1140,7 @@
           taricCode: entry.taricCode,
           uses: 1,
           updatedAt: timestamp,
-        }, true);
+        });
       }
     });
   };

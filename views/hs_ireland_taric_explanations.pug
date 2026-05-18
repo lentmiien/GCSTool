@@ -1,0 +1,57 @@
+extends layout
+
+block content
+  .ie-editor
+    h1 Ireland TARIC explanations
+    p Add short explanations for TARIC codes already saved from Ireland CSV edits.
+    .mb-3
+      a.btn.btn-secondary.mr-2(href='/hs/ireland') Back to Ireland CSV editor
+      button.btn.btn-primary(type='submit', form='taric-explanations-form', disabled=!entries.length) Save explanations
+
+    if saved || deleted
+      .alert.alert-success
+        span Saved #{saved} explanation update(s).
+        if deleted
+          span  Removed #{deleted} blank explanation(s).
+
+    if !entries.length
+      .alert.alert-warning No Ireland TARIC mapping records were found.
+    else
+      form#taric-explanations-form(method='post', action='/hs/ireland/taric-explanations')
+        .table-responsive
+          table.table.table-dark.table-striped.table-sm.ie-explanation-table
+            thead
+              tr
+                th TARIC code
+                th Uses
+                th Source HS
+                th Example item names
+                th Explanation
+            tbody
+              each entry in entries
+                tr(class=!entry.hasExplanation ? 'ie-missing-explanation' : '')
+                  td
+                    input(type='hidden', name='taricCodes', value=entry.taricCode)
+                    code= entry.taricCode
+                    if !entry.hasExplanation
+                      div.badge.badge-warning.mt-2 Missing explanation
+                  td= entry.uses
+                  td= entry.sourceHsCodesText || '-'
+                  td.text-left= entry.examplesText || '-'
+                  td
+                    textarea.form-control.ie-dark-input(name='explanations', rows='2', maxlength='500')= entry.explanation
+
+        button.btn.btn-primary(type='submit') Save explanations
+
+  style.
+    .ie-explanation-table th,
+    .ie-explanation-table td {
+      vertical-align: top;
+    }
+    .ie-missing-explanation td {
+      border-top: 2px solid #a67c00;
+      border-bottom: 2px solid #a67c00;
+    }
+    .ie-missing-explanation td:first-child {
+      border-left: 4px solid #ffc107;
+    }
