@@ -3,7 +3,7 @@ const axios = require('axios');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2 } = require('../sequelize');
+const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2, VersionHistory } = require('../sequelize');
 
 const timekeeper = [];
 
@@ -187,8 +187,30 @@ exports.index = function (req, res) {
   });
 };
 
-exports.about = function (req, res) {
-  res.render('about', {});
+function parseVersionHistoryItems(entry) {
+  try {
+    const items = JSON.parse(entry.changesJson || '[]');
+    return Array.isArray(items) ? items : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+exports.about = async function (req, res, next) {
+  try {
+    const entries = await VersionHistory.findAll({
+      order: [['sortOrder', 'ASC'], ['version', 'DESC']],
+    });
+    const updates = entries.map((entry) => ({
+      version: entry.version,
+      releaseDate: entry.releaseDate,
+      updateDate: entry.updateDate,
+      items: parseVersionHistoryItems(entry),
+    }));
+    res.render('about', { updates });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.admin_get = async function (req, res) {

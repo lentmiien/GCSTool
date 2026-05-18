@@ -18,6 +18,7 @@ const MeetingCommentModel = require('./models/meeting_comment');
 const FormV2Model = require('./models/form_v2');
 const FormFormatModel = require('./models/form_format');
 const UpdatenoticeModel = require('./models/updatenotice');
+const VersionHistoryModel = require('./models/versionhistory');
 const HostSampleModel = require('./models/host_sample');
 const OfficialCountryListModel = require('./models/OfficialCountryList');
 const InternalCountryListModel = require('./models/InternalCountryList');
@@ -85,6 +86,7 @@ const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
 const FormV2 = FormV2Model(sequelize, Sequelize);
 const FormFormat = FormFormatModel(sequelize, Sequelize);
 const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
+const VersionHistory = VersionHistoryModel(sequelize, Sequelize);
 const HostSample = HostSampleModel(sequelize, Sequelize);
 const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
@@ -145,8 +147,34 @@ async function ensureDhlCompensationEntrySchema() {
   }
 }
 
+async function seedVersionHistoryData() {
+  const versionHistoryData = require('./data/versionHistory');
+
+  for (let i = 0; i < versionHistoryData.length; i++) {
+    const update = versionHistoryData[i];
+    const payload = {
+      version: update.version,
+      releaseDate: update.releaseDate,
+      updateDate: update.updateDate,
+      sortOrder: i,
+      changesJson: JSON.stringify(update.items),
+    };
+
+    const existing = await VersionHistory.findOne({
+      where: { version: update.version },
+    });
+
+    if (existing) {
+      await existing.update(payload);
+    } else {
+      await VersionHistory.create(payload);
+    }
+  }
+}
+
 // Create all necessary tables: GCS Tool
-sequelize.sync().then(() => {
+sequelize.sync().then(async () => {
+  await seedVersionHistoryData();
   console.log(`Database & tables syncronized! [GCS Tool]`);
 });
 // Create all necessary tables: Tracker
@@ -186,6 +214,7 @@ module.exports = {
   FormV2,
   FormFormat,
   Updatenotice,
+  VersionHistory,
   HostSample,
   OfficialCountryList,
   InternalCountryList,
