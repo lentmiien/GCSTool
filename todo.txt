@@ -1,7 +1,32 @@
-Please recreate the functionality described in `README.shipping-monitor-compare-readonly.md`, add a new route and necessary pages. If any instructions conflict with existing code in this project, make sure that you don't introduce any breaking changes in this project, and adjust the recreation approach accordingly.
+The data is saved in the TRACK database table:
 
-For the database connections, the added model files (database tables) belong to `sequelize_tracker` in `sequelize.js`, and the tables already exist with all necessary data, don't ever modify any of the data in the added database tables.
+return_shipping_cost_analytics
 
-I've already copy-pasted the recommended files from the original project, so use these files, with appropriate modification.
+It is also exported from sequelize.js:144 as ReturnShippingCostAnalytics.
 
-Also add a link to the shipping-monitor-compare top page in the navbar.
+Example service/query:
+
+const { ReturnShippingCostAnalytics } = require('../sequelize');
+
+async function getReturnShippingCostRows() {
+return ReturnShippingCostAnalytics.findAll({
+    where: { category: 'Refund' },
+    order: [
+    ['country', 'ASC'],
+    ['intervalStartKg', 'ASC'],
+    ],
+    raw: true,
+});
+}
+
+Useful fields for a view-only table/graph:
+
+- country
+- currency
+- weightInterval such as 0-1 kg
+- entryCount
+- p95AmountDisplay for display, or p95Amount for chart values
+- guardrail such as Raised from 2,400 JPY
+- generatedAt
+
+Each time the Return shipping cost analytics tool runs, it deletes the old Refund rows and inserts the newly generated rows. So the table represents the latest generated snapshot, not historical runs.

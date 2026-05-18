@@ -10,6 +10,7 @@ var controller = require('../controllers/trackerController');
 //-------------------------------------------//
 
 router.get('/', controller.index);
+router.get('/return-shipping-cost-analytics', controller.returnShippingCostAnalytics);
 router.post('/getdata', controller.getdata);
 
 // For adding tracking numbers to database

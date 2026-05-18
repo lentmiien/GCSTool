@@ -33,6 +33,7 @@ const TrackingModel = require('./models/tracking');
 const TrackingMonitorGroupModel = require('./models/trackingMonitorGroup');
 const TrackingMonitorEntryModel = require('./models/trackingMonitorEntry');
 const TrackingMonitorShortcutModel = require('./models/trackingMonitorShortcut');
+const ReturnShippingCostAnalyticsModel = require('./models/returnShippingCostAnalytics');
 const Trackhist0Model = require('./models/trackhist0');
 const Trackhist1Model = require('./models/trackhist1');
 const Trackhist2Model = require('./models/trackhist2');
@@ -102,6 +103,7 @@ const Tracking = TrackingModel(sequelize_tracker, Sequelize);
 const TrackingMonitorGroup = TrackingMonitorGroupModel(sequelize_tracker, Sequelize);
 const TrackingMonitorEntry = TrackingMonitorEntryModel(sequelize_tracker, Sequelize);
 const TrackingMonitorShortcut = TrackingMonitorShortcutModel(sequelize_tracker, Sequelize);
+const ReturnShippingCostAnalytics = ReturnShippingCostAnalyticsModel(sequelize_tracker, Sequelize);
 const Trackhist0 = Trackhist0Model(sequelize_tracker, Sequelize);
 const Trackhist1 = Trackhist1Model(sequelize_tracker, Sequelize);
 const Trackhist2 = Trackhist2Model(sequelize_tracker, Sequelize);
@@ -229,6 +231,7 @@ module.exports = {
   TrackingMonitorGroup,
   TrackingMonitorEntry,
   TrackingMonitorShortcut,
+  ReturnShippingCostAnalytics,
   Trackhist0,
   Trackhist1,
   Trackhist2,

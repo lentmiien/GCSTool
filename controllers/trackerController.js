@@ -12,7 +12,7 @@
 // Require used packages
 
 // Require necessary database models
-const { InternalCountryList, Tracking, Trackhist } = require('../sequelize');
+const { InternalCountryList, Tracking, Trackhist, ReturnShippingCostAnalytics, Op } = require('../sequelize');
 
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
@@ -24,6 +24,112 @@ exports.index = (req, res) => {
   // Tracking numbers is stored in local storage (JS)
   // 
   res.render('tracker');
+};
+
+function parseAmount(value) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const amountText = String(value).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+  if (!amountText) {
+    return null;
+  }
+
+  const amount = Number(amountText[0]);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function formatAmountWithCurrency(row) {
+  const amount = row.p95AmountDisplay || '';
+  const currency = row.currency || '';
+
+  if (amount && currency) {
+    const escapedCurrency = currency.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const currencyPattern = new RegExp(`(^|\\s)${escapedCurrency}(\\s|$)`, 'i');
+
+    if (currencyPattern.test(amount)) {
+      return amount;
+    }
+  }
+
+  if (amount && currency) {
+    return `${amount} ${currency}`;
+  }
+
+  return amount || currency || '-';
+}
+
+function buildReturnShippingCostSections(rows) {
+  const sectionsByCountry = {};
+
+  rows.forEach((row) => {
+    const country = row.country || 'Unknown';
+
+    if (!sectionsByCountry[country]) {
+      sectionsByCountry[country] = {
+        country,
+        currencies: [],
+        rows: [],
+      };
+    }
+
+    const section = sectionsByCountry[country];
+    if (row.currency && section.currencies.indexOf(row.currency) === -1) {
+      section.currencies.push(row.currency);
+    }
+
+    const p95Amount = parseAmount(row.p95Amount);
+
+    section.rows.push({
+      weightInterval: row.weightInterval || '',
+      axisLabel: row.weightInterval || '',
+      entryCount: row.entryCount || 0,
+      p95Amount: p95Amount !== null ? p95Amount : parseAmount(row.p95AmountDisplay),
+      p95AmountDisplay: row.p95AmountDisplay || '',
+      p95AmountWithCurrency: formatAmountWithCurrency(row),
+      currency: row.currency || '',
+      guardrail: row.guardrail || '',
+      generatedAt: row.generatedAt,
+    });
+  });
+
+  return Object.values(sectionsByCountry).map((section) => {
+    section.totalEntryCount = section.rows.reduce((total, row) => total + Number(row.entryCount || 0), 0);
+
+    if (section.currencies.length > 1) {
+      section.rows = section.rows.map((row) => Object.assign({}, row, {
+        axisLabel: row.currency ? `${row.weightInterval} ${row.currency}`.trim() : row.weightInterval,
+      }));
+    }
+
+    return section;
+  }).sort((left, right) => right.totalEntryCount - left.totalEntryCount || left.country.localeCompare(right.country));
+}
+
+exports.returnShippingCostAnalytics = async (req, res, next) => {
+  try {
+    const rows = await ReturnShippingCostAnalytics.findAll({
+      where: { category: 'Refund' },
+      order: [
+        ['country', 'ASC'],
+        ['intervalStartKg', 'ASC'],
+      ],
+      raw: true,
+    });
+
+    const sections = buildReturnShippingCostSections(rows);
+
+    res.render('return_shipping_cost_analytics', {
+      pagetitle: 'Return shipping cost analytics',
+      sections,
+      sectionsJson: JSON.stringify(sections).replace(/</g, '\\u003c'),
+      hasRows: sections.length > 0,
+      rowCount: rows.length,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const database_cache = {};

@@ -1,0 +1,50 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/return_shipping_cost_analytics.css')
+
+block content
+  .container-fluid.return-shipping-cost
+    .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-start.mb-4
+      div
+        h1.mb-2 Return shipping cost analytics
+        if hasRows
+          p.return-shipping-muted.mb-0= `${rowCount} Refund rows across ${sections.length} countries`
+      a.btn.btn-outline-secondary.mt-3.mt-md-0(href='/tracker') Tracker
+
+    if !hasRows
+      .alert.alert-light.border(role='alert')
+        | No Refund return shipping cost analytics rows are available.
+    else
+      each section, sectionIndex in sections
+        section.return-shipping-section
+          h2.h4.mb-3= section.country
+          .row
+            .col-lg-7.mb-3.mb-lg-0
+              .return-shipping-chart(
+                id=`returnShippingCostChart-${sectionIndex}`,
+                data-return-shipping-chart,
+                data-section-index=sectionIndex
+              )
+            .col-lg-5
+              .table-responsive
+                table.table.table-sm.table-striped.table-hover.return-shipping-table
+                  thead.thead-light
+                    tr
+                      th weightInterval
+                      th entryCount
+                      th p95AmountDisplay + currency
+                      th guardrail
+                  tbody
+                    each row in section.rows
+                      tr
+                        td= row.weightInterval || '-'
+                        td= row.entryCount
+                        td= row.p95AmountWithCurrency
+                        td= row.guardrail || '-'
+
+block scripts
+  script(src='https://d3js.org/d3.v7.min.js')
+  script.
+    window.returnShippingCostAnalytics = !{sectionsJson};
+  script(src='/js/return_shipping_cost_analytics.js')

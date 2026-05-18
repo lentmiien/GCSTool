@@ -16,6 +16,9 @@ module.exports = [
       item('About', [
         item('Moved version history to a database-backed update log and seeded existing entries'),
       ]),
+      item('Tracker', [
+        item('Return shipping cost analytics - Added country sections with p95 amount bar charts and detail tables sorted by total entry count'),
+      ]),
     ],
   },
   {
