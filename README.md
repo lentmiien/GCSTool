@@ -1,112 +1,193 @@
 # GCS Tool
 
-GCS Tool is the internal platform used by the Oh-ami Global Customer Support team to centralize knowledge, plan staffing, and streamline day-to-day operations. The app combines a knowledge base, scheduling board, CT/PMT workflows, and lightweight file utilities inside a single Express + MySQL stack.
+GCS Tool is an internal web application for the Oh-ami Global Customer Support team. It brings support knowledge, staff scheduling, shipping/tracking tools, case tracking, policy/manual/template management, PDF utilities, and a few operational dashboards into one Express + MySQL application.
 
-## Feature Highlights
-- **Knowledge Hub:** Templates, manuals, and company contact snippets that agents can search, localize, and copy quickly.
-- **Scheduler:** Staff, holiday, and shift data synchronized through Sequelize models, rendered as an at-a-glance staffing board.
-- **CT / PMT modules:** Task-specific screens that guide case handling, including form validation and OpenAI-assisted helpers.
-- **File & entry management:** CSV/XML importers, PDF generation, and file uploads for distributing collateral.
-- **Localization & personalization:** Locale switching and browser-saved personal settings (`json_personal`) to tailor the UI per agent.
-- **Real-time collaboration:** Socket.IO sessions keep dashboards fresh and relay notifications between connected agents.
+The app is server-rendered with Pug and Bootstrap-era static assets. Most features follow a route -> controller -> Sequelize model flow, with newer modules moving heavier business logic into `services/`.
 
 ## Tech Stack
-- **Runtime:** Node.js 16.20.2
-- **Server:** Express 4 with Socket.IO and Passport for session-based auth
-- **Views:** Pug templates served with SCSS/vanilla JS assets under `public/`
-- **Data:** MySQL + Sequelize (`sequelize.js` wires models and relations)
-- **Utilities:** Express-validator, express-fileupload, csvtojson, pdf-lib, OpenAI SDK, and localized content under `locales/`
+
+- **Runtime:** Node.js `16.20.2` (`package.json` engines and Volta pin)
+- **Server:** Express 4, Passport local auth, Express sessions, Socket.IO
+- **Views:** Pug templates under `views/`
+- **Client assets:** CSS and vanilla browser JavaScript under `public/`
+- **Data:** MySQL through Sequelize 6
+- **Utilities:** `express-fileupload`, `express-validator`, `csvtojson`, `pdf-lib`, `jimp`, `marked`, OpenAI SDK, and `zpl-renderer-js`
+
+## Feature Areas
+
+| Area | Mounted Path | Purpose |
+| --- | --- | --- |
+| Login/auth | `/login`, `/logout` | Passport local login with session-backed authentication. |
+| Home/admin/about | `/`, `/admin`, `/about`, `/timekeeper` | Recent content, user administration, version history, and a lightweight in-memory timekeeper. |
+| Knowledge entries | `/entry` | Team-scoped support content with master/personal entries, multi-part content, backup, and restore. |
+| Scheduler | `/scheduler` | Staff defaults, holidays, day-by-day schedules, personal schedules, CSV exports, schedule analysis, and admin settings. |
+| Meeting board | `/meeting` | Meeting/comment board with Socket.IO updates. |
+| Country/shipping status | `/country` | Official/internal/Japan Post country list imports, shipping status views, update history, and country-code linking. |
+| API/PDF documents | `/api` | DHL return/tax PDF generation and invoice generation. |
+| Bin packing | `/binpack` | Box packing helpers using `binpackingjs`. |
+| HS tools | `/hs` | HS code suggestions, history lookup, Ireland TARIC mapping/explanations, manifest checking, and DB editing. |
+| Tracker | `/tracker` | Tracking-data lookup and tracking-number upload tasks against the tracker database. |
+| Shipping monitor compare | `/shipping-monitor-compare`, `/shipping-monitor-shortcuts` | Read-only saved comparisons over shipping monitor groups and shortcuts. |
+| Shipping costs | `/shipcost` | Shipping cost import and view pages. |
+| Feedback forms | `/form` | Feedback form formats and CSV export. |
+| ChatGPT/language tools | `/chatgpt` | Chat history, generation helpers, and item-name shortening/language tools. |
+| Case tracker | `/ct` | Open/support case workflow, complaint/solution lookup administration, validation, and analytics. |
+| PMT | `/pmt` | Policy/Manual/Template document repository with Markdown, versions, dependency links, logs, and review flags. |
+| Image grid PDF | `/image-pdf` | CSV upload -> product/image lookup -> generated image grid PDF. |
+| DHL compensation | `/dhl-compensation` | DHL compensation entry tracking, uploaded PDF storage, estimated/completed dates, and PDF download. |
+| Lennart tools | `/lennart` | ZPL conversion, host samples/trends, and AIT content update helper. |
+
+## Project Structure
+
+```text
+app.js                 Express app setup, middleware, auth gates, and route mounting
+bin/www                Runtime entry point; loads .env, starts HTTP + Socket.IO
+passport_init.js       Passport local strategy and login router
+socket_io_controller.js Authenticated Socket.IO meeting/comment events
+sequelize.js           Sequelize connections, model registration, relations, sync, seed helpers
+routes/                Thin Express routers for each feature area
+controllers/           Request handlers; older features keep most business logic here
+services/              Newer business logic modules (CT, PMT, tracking monitor, image PDF)
+models/                Sequelize model factories, including ct/ and pmt/ submodules
+views/                 Pug templates, usually named after routes/features
+public/                CSS, browser JavaScript, sounds, and static assets
+data/                  CSV/JSON/PDF/image reference data used by controllers and services
+scripts/               Seed, host-monitor, cleanup, and maintenance scripts
+utils/                 Reusable helpers such as OpenAI wrappers and temp cleanup
+locales/               i18n JSON bundles for en/jp/sv
+env_sample             Template for required and optional environment variables
+```
+
+## Database Layout
+
+`sequelize.js` creates and exports multiple Sequelize connections:
+
+- `DB_NAME_GCS`: primary application data, including users, entries/content, scheduler data, country lists, HS data, CT, PMT, forms, meetings, host samples, version history, and session storage.
+- `DB_NAME_TRACK`: tracking data, tracker history tables, and shipping monitor group/entry/shortcut data.
+- `DB_NAME_DHL_COMPENSATION`: optional DHL compensation database. If omitted, DHL compensation entries use `DB_NAME_GCS`.
+
+Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.sync()` for the configured databases, seeds version history from `data/versionHistory.js`, and applies a small DHL compensation schema check for PDF columns.
 
 ## Prerequisites
-- Node.js 16.20.2 (match the `.nvmrc` / `package.json` `engines`)
-- MySQL 8+ (or compatible) with two schemas: `DB_NAME_GCS` and `DB_NAME_TRACK`
-- A `.env` file based on `env_sample`
-## Database seed script
-- Copy `env_sample` to `.env` and fill in the required DB variables.
-- Optional: override defaults for the initial admin with `SEED_ADMIN_USER`, `SEED_ADMIN_PASS`, `SEED_ADMIN_NAME`, and `SEED_ADMIN_TEAM` (defaults: admin / changeme / same as user id / gcs).
-- Run `npm run seed` to sync the databases and create the first user, matching username display entry, and scheduler staff record if they do not exist.
 
-## Handled data
-- Templates
+- Node.js `16.20.2`
+- MySQL 8+ or a compatible MySQL server
+- A MySQL user with DDL and DML privileges on the configured schemas
+- A `.env` file based on `env_sample`
+
+## Environment Variables
+
+Required for a normal local run:
+
+- `SESSION_SECRET`
+- `DB_HOST`
+- `DB_USER`
+- `DB_PASS`
+- `DB_NAME_GCS`
+- `DB_NAME_TRACK`
+
+Common optional values:
+
+- `DB_NAME_DHL_COMPENSATION`: separate DHL compensation schema; defaults to `DB_NAME_GCS` if blank.
+- `COMPANY_DHL_ACCOUNT`, `COMPANY_COMPANY`, `COMPANY_CONTACT`, `COMPANY_PHONE`, `COMPANY_EMAIL`, `COMPANY_ADDRESS`: used by document/PDF generation.
+- `OPENAI_API_KEY`, `OPENAI_API_KEY2`: used by ChatGPT/language helper flows.
+- `LENTMIIEN_API_KEY` or `PRODUCT_DETAILS_API_KEY`: used by the image-grid PDF product details lookup.
+- `HOSTNAME_OVERRIDE`, `PM2_BIN`, `HOST_SAMPLE_RETENTION_DAYS`: host sample collection and retention settings.
+- `LINK_1` ... `LINK_5`: quick-access UI links.
+- `AIT_UPDATES_CONTENT_ID`: content entry used by the Lennart AIT update helper.
+- `SEED_ADMIN_USER`, `SEED_ADMIN_PASS`, `SEED_ADMIN_TEAM`, `SEED_ADMIN_NAME`: optional seed admin overrides.
 
 ## Getting Started
-1. **Clone and install**
+
+1. Install dependencies.
+
    ```powershell
-   git clone <repo-url>
-   cd GCSTool
    npm install
    ```
-2. **Configure environment**
+
+2. Create a local environment file.
+
    ```powershell
-   copy env_sample .env   # PowerShell: Copy-Item env_sample .env
+   copy env_sample .env
    ```
-   Fill in:
-   - `SESSION_SECRET`: random string used by Express sessions
-   - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME_GCS`, `DB_NAME_TRACK`
-   - Company profile fields (`COMPANY_*`) for headers and document templates
-   - Optional OpenAI keys (`OPENAI_API_KEY`, `OPENAI_API_KEY2`) for AI helpers
-   - Optional host monitor settings: `HOSTNAME_OVERRIDE`, `PM2_BIN`, and `HOST_SAMPLE_RETENTION_DAYS` (defaults to `30`)
-   - `LINK_1` ... `LINK_5` to wire quick-access resources in the UI
-3. **Prepare databases**
-   - Create both schemas manually (`CREATE DATABASE ...`)
-   - Ensure the configured MySQL user has DDL + DML permissions
-   - `sequelize.sync()` runs on startup and will create missing tables
-4. **Run the app**
+
+   Fill in the required DB/session values and any optional integrations needed for the flows you use.
+
+3. Create the MySQL schemas.
+
+   Create at least the schemas named by `DB_NAME_GCS` and `DB_NAME_TRACK`. Create `DB_NAME_DHL_COMPENSATION` too if you want DHL compensation data in a separate schema.
+
+4. Seed the first admin user.
+
+   ```powershell
+   npm run seed
+   ```
+
+   The seed script syncs the GCS/tracker schemas and creates the initial admin user, matching username display row, and scheduler staff row if they do not already exist.
+
+5. Start the app.
+
    ```powershell
    npm start
    ```
-   The server boots via `bin/www`, loads `.env`, and listens on `PORT` (defaults to `3000`). Socket.IO rides on the same HTTP server.
 
-## Project Structure
-```
-app.js                # Core Express app (middleware, routes, i18n)
-bin/www               # Entry point that starts HTTP + Socket.IO
-controllers/          # Request handlers (e.g., ctController.js)
-routes/               # Express routers mounted in app.js
-models/               # Sequelize models for users, entries, schedule, etc.
-views/                # Pug templates rendered by controllers
-public/               # Static assets (stylesheets, javascripts, js/)
-services/             # Higher-level helpers (e.g., file + AI utilities)
-utils/                # Reusable helpers such as ChatGPT wrappers
-locales/              # i18n resource bundles
-sequelize.js          # Model registration and relation setup
-env_sample            # Template for required configuration
-```
+   `bin/www` loads `.env`, starts temp cleanup, attaches Socket.IO to the HTTP server, and listens on `PORT` or `3000`.
 
-## Data Domains
-- `user`: Authenticated agents; access to all other data is gated by this table.
-- `entry` / `content`: Separate structures for structured metadata and rich text bodies.
-- `staff`, `schedule`, `holiday`: Power the scheduler, associating shifts with people and blackout dates.
-- `json_personal` (browser local storage): Stores per-user UI preferences and filters.
-- Additional domain modules (CT, PMT, uploads, localization) read/write auxiliary tables in `DB_NAME_TRACK`.
+## Scripts
+
+```text
+npm start                    Start the Express + Socket.IO server
+npm run seed                 Sync DBs and create the initial admin/user/staff records
+npm run collect:host-sample  Insert one host sample row
+npm run cleanup:host-samples Delete host samples older than HOST_SAMPLE_RETENTION_DAYS
+npm run repair:ireland-barcode Repair Ireland barcode/TARIC mappings
+npm run codex-todo           Ask Codex to work through todo.txt
+npm run codex-commit         Ask Codex to draft a commit message for pending changes
+```
 
 ## Development Notes
-- Follow the existing 2-space, single-quote, CommonJS style; mirror nearby patterns in controllers/routes.
-- There is no automated test suite yet; smoke test authentication, Entries, Scheduler, CT, PMT, file upload, and locale switching before shipping changes.
-- When adding dependencies or scripts, keep `package-lock.json` in sync.
 
-## Host Monitor Cron Jobs (EC2)
-- The host monitor uses two standalone scripts:
-  - `npm run collect:host-sample` inserts one row into `host_samples`.
-  - `npm run cleanup:host-samples` removes rows older than `HOST_SAMPLE_RETENTION_DAYS` days. The default is `30`.
-- On Amazon EC2, cron usually runs with a very small `PATH`. Use absolute paths for both `node` and the project files.
-- If PM2 was installed through `nvm`, set `PM2_BIN` in `.env` to the full binary path, for example `/home/ec2-user/.nvm/versions/node/v16.20.2/bin/pm2`.
-- Test both jobs once before enabling cron:
-  ```bash
-  /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js
-  /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js
-  ```
-- Edit the crontab with `crontab -e` and add entries like these. Replace `/home/ec2-user/GCSTool` and the `node` path to match your instance. You can find the correct node path with `which node`.
-  ```cron
-  * * * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js >> /home/ec2-user/GCSTool/temp/collect_host_sample.log 2>&1
-  15 0 * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js >> /home/ec2-user/GCSTool/temp/cleanup_host_samples.log 2>&1
-  ```
-- The first job collects one sample every minute. The second job runs once per day at `00:15` server time and trims the table back to the last 30 days.
+- Follow the existing JavaScript style: CommonJS modules, 2-space indent, single quotes, semicolons.
+- Keep route files thin when possible. Newer code generally belongs in a service under `services/`, with controllers handling request/response mapping.
+- Use existing Sequelize exports from `sequelize.js`; model factories under `models/` are wired there.
+- `views/layout.pug` is the shared shell for nav, user status, common scripts, Socket.IO client setup, and content blocks.
+- There is no automated test suite configured. Before shipping changes, smoke-test affected routes plus auth, Entries, Scheduler, CT, PMT, uploads, locale switching, and any DB migrations/sync behavior you touched.
+- When dependencies or scripts change, keep `package-lock.json` in sync.
+
+## Host Monitor Cron Jobs
+
+The host monitor is implemented as standalone scripts:
+
+- `npm run collect:host-sample` inserts one row into `host_samples`.
+- `npm run cleanup:host-samples` removes rows older than `HOST_SAMPLE_RETENTION_DAYS` days. The default is `30`.
+
+On EC2 or similar hosts, cron usually has a minimal `PATH`. Use absolute paths for both Node and project files. If PM2 was installed through `nvm`, set `PM2_BIN` in `.env` to the full binary path, for example:
+
+```text
+/home/ec2-user/.nvm/versions/node/v16.20.2/bin/pm2
+```
+
+Example cron entries:
+
+```cron
+* * * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js >> /home/ec2-user/GCSTool/temp/collect_host_sample.log 2>&1
+15 0 * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js >> /home/ec2-user/GCSTool/temp/cleanup_host_samples.log 2>&1
+```
+
+Test both commands manually on the host before enabling cron.
 
 ## Troubleshooting
-- **Cannot connect to DB:** Verify `.env` values and that the MySQL user has privileges on both schemas.
-- **Session/login issues:** Ensure `SESSION_SECRET` is set and the `sessions` table exists (created by `connect-session-sequelize`).
-- **Static assets not updating:** Clear browser cache; Express serves from `public/` with long cache headers in production.
-- **Locale strings missing:** Add translations under `locales/` and ensure the keys match the usage in Pug templates and controllers.
 
-For questions or operational playbooks, reach out to the GCS engineering contact or log an issue in your internal tracker.
+- **Cannot connect to DB:** Verify `.env`, schema existence, network access, and MySQL privileges. The app needs permission to create expected tables because `sequelize.sync()` runs on startup; the DHL compensation schema helper can also add expected PDF columns.
+- **Cannot log in:** Ensure `SESSION_SECRET` is set, the `sessions` table exists, and at least one user exists. Run `npm run seed` for a first admin.
+- **Missing generated PDFs or uploads:** Check required company/API environment variables and the writable `temp/` directory.
+- **OpenAI helpers fail:** Confirm the relevant `OPENAI_API_KEY` or `OPENAI_API_KEY2` value is set.
+- **Locale strings missing:** Update the JSON bundles under `locales/` and confirm the keys match Pug/controller usage.
+- **Static files appear stale:** Clear browser cache and verify the expected file under `public/` is being served.
+
+## Security Notes
+
+- Never commit `.env` or real credentials.
+- Use a non-root MySQL user with only the privileges this app needs.
+- Back up databases before schema-affecting changes. Startup sync can create or alter expected tables.
+- Avoid logging credentials, uploaded file contents, personal data, or API responses that may contain sensitive support information.
