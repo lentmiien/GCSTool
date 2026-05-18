@@ -2,7 +2,7 @@
 const csv = require('csvtojson');
 
 // Require necessary database models
-const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, Op } = require('../sequelize');
+const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSummary, Op } = require('../sequelize');
 const {
   collapseWhitespace,
   sanitizeMappingCode,
@@ -449,6 +449,120 @@ async function saveIrelandTaricExplanations(codes, explanations) {
   };
 }
 
+function getJstDateString(date) {
+  const jstDate = new Date((date ? date.getTime() : Date.now()) + (9 * 60 * 60 * 1000));
+  return jstDate.toISOString().slice(0, 10);
+}
+
+function getJstMonthString(date) {
+  return getJstDateString(date).slice(0, 7);
+}
+
+function normalizeMonth(value) {
+  const month = collapseWhitespace(value);
+  return /^\d{4}-\d{2}$/.test(month) ? month : getJstMonthString();
+}
+
+function parseTextLines(value) {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n');
+}
+
+function parseCount(value) {
+  const count = Number.parseInt(value, 10);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+async function saveIrelandWorkSummaries(summaries) {
+  const addedDate = getJstDateString();
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const summary of summaries) {
+    const orderNumber = collapseWhitespace(summary.orderNumber);
+    if (!orderNumber) {
+      skipped += 1;
+      continue;
+    }
+
+    const payload = {
+      toyRemovedCount: parseCount(summary.toyRemovedCount),
+      taricUpdateCount: parseCount(summary.taricUpdateCount),
+      uneditedCount: parseCount(summary.uneditedCount),
+    };
+
+    const existing = await IrelandWorkSummary.findOne({
+      where: { orderNumber },
+    });
+
+    if (existing) {
+      await existing.update(payload);
+      updated += 1;
+    } else {
+      await IrelandWorkSummary.create(Object.assign({
+        orderNumber,
+        trackingNumber: '',
+        addedDate,
+      }, payload));
+      created += 1;
+    }
+  }
+
+  return {
+    created,
+    updated,
+    skipped,
+    saved: created + updated,
+  };
+}
+
+async function saveIrelandTrackingNumbers(orderNumbersText, trackingNumbersText) {
+  const orderLines = parseTextLines(orderNumbersText);
+  const trackingLines = parseTextLines(trackingNumbersText);
+  const addedDate = getJstDateString();
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (let i = 0; i < orderLines.length; i++) {
+    const orderNumber = collapseWhitespace(orderLines[i]);
+    const trackingNumber = collapseWhitespace(trackingLines[i]);
+    if (!orderNumber) {
+      skipped += 1;
+      continue;
+    }
+
+    const existing = await IrelandWorkSummary.findOne({
+      where: { orderNumber },
+    });
+
+    if (existing) {
+      await existing.update({ trackingNumber });
+      updated += 1;
+    } else {
+      await IrelandWorkSummary.create({
+        orderNumber,
+        trackingNumber,
+        addedDate,
+        toyRemovedCount: 0,
+        taricUpdateCount: 0,
+        uneditedCount: 0,
+      });
+      created += 1;
+    }
+  }
+
+  return {
+    created,
+    updated,
+    skipped,
+    saved: created + updated,
+  };
+}
+
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
 //---------------------------------------------//
@@ -609,6 +723,8 @@ exports.ireland_editor = async (req, res, next) => {
     ]);
     res.render('hs_ireland_editor', {
       taricMappings: buildTaricMappingsForEditor(taricMappings, taricExplanations),
+      trackingUpdated: Number(req.query.trackingUpdated || 0),
+      trackingCreated: Number(req.query.trackingCreated || 0),
     });
   } catch (err) {
     next(err);
@@ -626,6 +742,31 @@ exports.ireland_save_mappings = async (req, res, next) => {
       deleted: result.deleted,
       saved: result.saved,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.ireland_save_work_summary = async (req, res, next) => {
+  try {
+    const summaries = Array.isArray(req.body.summaries) ? req.body.summaries : [];
+    const result = await saveIrelandWorkSummaries(summaries);
+    res.json({
+      status: 'OK',
+      created: result.created,
+      updated: result.updated,
+      skipped: result.skipped,
+      saved: result.saved,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.ireland_save_tracking_numbers = async (req, res, next) => {
+  try {
+    const result = await saveIrelandTrackingNumbers(req.body.orderNumbers, req.body.trackingNumbers);
+    res.redirect(`/hs/ireland?trackingUpdated=${result.updated}&trackingCreated=${result.created}`);
   } catch (err) {
     next(err);
   }
@@ -655,6 +796,28 @@ exports.ireland_save_taric_explanations = async (req, res, next) => {
   try {
     const result = await saveIrelandTaricExplanations(req.body.taricCodes, req.body.explanations);
     res.redirect(`/hs/ireland/taric-explanations?saved=${result.saved}&deleted=${result.deleted}`);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.ireland_work_summary = async (req, res, next) => {
+  try {
+    const month = normalizeMonth(req.query.month);
+    const entries = await IrelandWorkSummary.findAll({
+      where: {
+        addedDate: {
+          [Op.like]: `${month}-%`,
+        },
+      },
+      order: [['addedDate', 'ASC'], ['orderNumber', 'ASC']],
+    });
+    res.render('hs_ireland_work_summary', {
+      month,
+      entries,
+      orderNumbersText: entries.map((entry) => entry.orderNumber).join('\n'),
+      trackingNumbersText: entries.map((entry) => entry.trackingNumber || '').join('\n'),
+    });
   } catch (err) {
     next(err);
   }

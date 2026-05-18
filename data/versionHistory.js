@@ -10,6 +10,8 @@ module.exports = [
         item('Ireland CSV editor - Added suggested TARIC quick selection from previous mappings, ranked by exact item + HS matches and partial matches'),
         item('Ireland CSV editor - Added TARIC explanation database and management page for codes missing explanations'),
         item('Ireland CSV editor - Added barcode search links in manual review for AmiAmi COM, AmiAmi JP, and Google'),
+        item('Ireland CSV editor - Save work summaries to the database instead of copying CSV text to the clipboard'),
+        item('Ireland CSV editor - Added tracking number import and monthly order/tracking export pages for saved work summaries'),
       ]),
       item('About', [
         item('Moved version history to a database-backed update log and seeded existing entries'),

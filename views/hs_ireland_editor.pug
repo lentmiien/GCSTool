@@ -12,16 +12,35 @@ block content
     input#inputfile.form-control.ie-dark-input(type='file', name='inputfile', accept='.csv')
     p#file-status.ie-dark-muted.mt-2
     p#tool-status.ie-dark-muted.mt-1
+    if trackingUpdated || trackingCreated
+      .alert.alert-success
+        span Tracking numbers saved. Updated #{trackingUpdated || 0} existing row(s).
+        if trackingCreated
+          span  Created #{trackingCreated} new row(s).
 
     .ie-editor-tools.mt-3
       button#remove-toy-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Remove Toy
       button#auto-taric-btn.btn.btn-info.mr-2.mb-2(type='button', disabled) HS to TARIC auto
       button#review-taric-btn.btn.btn-warning.mr-2.mb-2(type='button', disabled) HS to TARIC manual
-      button#copy-summary-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Copy work summary
+      button#copy-summary-btn.btn.btn-secondary.mr-2.mb-2(type='button', disabled) Save work summary
       button#export-btn.btn.btn-primary.mb-2(type='button', disabled) Export CSV
       a.btn.btn-secondary.ml-md-2.mb-2(href='/hs/ireland/taric-explanations') TARIC explanations
+      a.btn.btn-secondary.ml-md-2.mb-2(href='/hs/ireland/work-summary') Work summary export
 
     div#ie-rows.mt-3
+
+    .card.ie-editor-card.mt-4
+      .card-header.ie-editor-card-header Tracking numbers
+      .card-body.ie-editor-card-body
+        form(method='post', action='/hs/ireland/work-summary/tracking')
+          .form-row
+            .form-group.col-md-6
+              label(for='tracking-order-numbers') Order numbers
+              textarea#tracking-order-numbers.form-control.ie-dark-input(name='orderNumbers', rows='8', placeholder='One order number per line')
+            .form-group.col-md-6
+              label(for='tracking-numbers') Tracking numbers
+              textarea#tracking-numbers.form-control.ie-dark-input(name='trackingNumbers', rows='8', placeholder='Same line number as the order number')
+          button.btn.btn-primary(type='submit') Save tracking numbers
 
     #review-overlay.ie-review-overlay.d-none
       .card.ie-review-card

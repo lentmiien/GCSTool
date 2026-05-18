@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .ie-editor
+    h1 Ireland work summary
+    p Export saved order numbers and tracking numbers for a given month.
+
+    form.form-inline.mb-3(method='get', action='/hs/ireland/work-summary')
+      label.mr-2(for='summary-month') Month
+      input#summary-month.form-control.ie-dark-input.mr-2(type='month', name='month', value=month)
+      button.btn.btn-primary.mr-2(type='submit') Load
+      a.btn.btn-secondary(href='/hs/ireland') Back to Ireland CSV editor
+
+    p.ie-dark-muted Loaded #{entries.length} row(s) for #{month}.
+
+    .form-row
+      .form-group.col-md-6
+        label(for='summary-order-numbers') Order numbers
+        textarea#summary-order-numbers.form-control.ie-dark-input(rows='18', readonly)= orderNumbersText
+      .form-group.col-md-6
+        label(for='summary-tracking-numbers') Tracking numbers
+        textarea#summary-tracking-numbers.form-control.ie-dark-input(rows='18', readonly)= trackingNumbersText

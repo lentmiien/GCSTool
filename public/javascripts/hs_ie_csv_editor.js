@@ -49,6 +49,7 @@
   let reviewQueue = [];
   let reviewIndex = -1;
   let exportInFlight = false;
+  let workSummaryInFlight = false;
   let automationHasRun = false;
   let taricLookup = {
     jan: new Map(),
@@ -178,7 +179,7 @@
     removeToyBtn.disabled = !hasItems;
     autoTaricBtn.disabled = !hasItems;
     reviewTaricBtn.disabled = !hasItems;
-    copySummaryBtn.disabled = !hasItems;
+    copySummaryBtn.disabled = !hasItems || workSummaryInFlight;
     exportBtn.disabled = !hasItems || exportInFlight;
   };
 
@@ -197,6 +198,7 @@
     reviewQueue = [];
     reviewIndex = -1;
     exportInFlight = false;
+    workSummaryInFlight = false;
     automationHasRun = false;
     rowsContainer.innerHTML = '';
     closeReviewModal();
@@ -1060,7 +1062,7 @@
     showReviewItem();
   };
 
-  const buildSummaryText = () => {
+  const buildSummaryRows = () => {
     const orderSummary = new Map();
 
     items.forEach((item) => {
@@ -1089,43 +1091,47 @@
       }
     });
 
-    return Array.from(orderSummary.values())
-      .map((summary) => `${summary.orderNumber},${summary.itemNameEdits},${summary.taricEdits},${summary.nonEditCount}`)
-      .join('\n');
+    return Array.from(orderSummary.values()).map((summary) => ({
+      orderNumber: summary.orderNumber,
+      toyRemovedCount: summary.itemNameEdits,
+      taricUpdateCount: summary.taricEdits,
+      uneditedCount: summary.nonEditCount,
+    }));
   };
 
-  const copyTextToClipboard = async (text) => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-
-    const listener = (event) => {
-      event.clipboardData.setData('text/plain', text);
-      event.preventDefault();
-    };
-    document.addEventListener('copy', listener);
-    document.execCommand('copy');
-    document.removeEventListener('copy', listener);
-  };
-
-  const copyWorkSummary = async () => {
+  const saveWorkSummary = async () => {
     if (!items.length) {
       alert('Select a CSV file first.');
       return;
     }
 
-    const summaryText = buildSummaryText();
-    if (!summaryText) {
-      setToolStatus('No Ireland items available for summary copy.');
+    const summaries = buildSummaryRows();
+    if (!summaries.length) {
+      setToolStatus('No Ireland items available for work summary save.');
       return;
     }
 
+    workSummaryInFlight = true;
+    refreshButtons();
     try {
-      await copyTextToClipboard(summaryText);
-      setToolStatus('Copied work summary to the clipboard.');
+      const response = await fetch('/hs/ireland/save-work-summary', {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({ summaries }),
+      });
+      if (!response.ok) {
+        throw new Error('work summary save failed');
+      }
+      const result = await response.json();
+      setToolStatus(`Saved ${result.saved} work summary row(s). ${result.created} new, ${result.updated} updated.`);
     } catch (err) {
-      setToolStatus('Could not copy the work summary.');
+      setToolStatus('Could not save the work summary.');
+    } finally {
+      workSummaryInFlight = false;
+      refreshButtons();
     }
   };
 
@@ -1272,7 +1278,7 @@
   removeToyBtn.addEventListener('click', applyRemoveToy);
   autoTaricBtn.addEventListener('click', runTaricAutomation);
   reviewTaricBtn.addEventListener('click', openReviewModal);
-  copySummaryBtn.addEventListener('click', copyWorkSummary);
+  copySummaryBtn.addEventListener('click', saveWorkSummary);
   exportBtn.addEventListener('click', () => {
     exportCsv();
   });

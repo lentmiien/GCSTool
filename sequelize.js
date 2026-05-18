@@ -11,6 +11,7 @@ const UsernameModel = require('./models/username');
 const HSCodeListModel = require('./models/hscodelist');
 const IrelandTaricMappingModel = require('./models/irelandtaricmapping');
 const IrelandTaricExplanationModel = require('./models/irelandtaricexplanation');
+const IrelandWorkSummaryModel = require('./models/irelandworksummary');
 const ShipcostModel = require('./models/shipcost');
 const ChatmsgModel = require('./models/chatmsg');
 const MeetingModel = require('./models/meeting');
@@ -79,6 +80,7 @@ const Username = UsernameModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const IrelandTaricMapping = IrelandTaricMappingModel(sequelize, Sequelize);
 const IrelandTaricExplanation = IrelandTaricExplanationModel(sequelize, Sequelize);
+const IrelandWorkSummary = IrelandWorkSummaryModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
 const Chatmsg = ChatmsgModel(sequelize, Sequelize);
 const Meeting = MeetingModel(sequelize, Sequelize);
@@ -207,6 +209,7 @@ module.exports = {
   HSCodeList,
   IrelandTaricMapping,
   IrelandTaricExplanation,
+  IrelandWorkSummary,
   Shipcost,
   Chatmsg,
   Meeting,
