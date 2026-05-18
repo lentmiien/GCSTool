@@ -20,6 +20,10 @@
   const reviewRow = document.getElementById('review-row');
   const reviewItemNumber = document.getElementById('review-item-number');
   const reviewItemName = document.getElementById('review-item-name');
+  const reviewAmiAmiEngLink = document.getElementById('review-amiami-eng-link');
+  const reviewAmiAmiJpLink = document.getElementById('review-amiami-jp-link');
+  const reviewGoogleLink = document.getElementById('review-google-link');
+  const reviewBarcodeLinks = document.getElementById('review-barcode-links');
   const reviewOriginalHs = document.getElementById('review-original-hs');
   const reviewCurrentHs = document.getElementById('review-current-hs');
   const reviewMatchStatus = document.getElementById('review-match-status');
@@ -722,6 +726,38 @@
     return 'Not run';
   };
 
+  const updateReviewBarcodeLinks = (itemName) => {
+    const barcode = extractJanCode(itemName);
+    reviewBarcodeLinks.classList.toggle('d-none', !barcode);
+    if (!barcode) {
+      return;
+    }
+
+    const encodedBarcode = encodeURIComponent(barcode);
+    const links = [
+      {
+        element: reviewAmiAmiEngLink,
+        url: `https://www.amiami.com/eng/search/list/?s_keywords=${encodedBarcode}`,
+        label: 'AmiAmi COM',
+      },
+      {
+        element: reviewAmiAmiJpLink,
+        url: `https://slist.amiami.jp/top/search/list?s_keywords=${encodedBarcode}`,
+        label: 'AmiAmi JP',
+      },
+      {
+        element: reviewGoogleLink,
+        url: `https://www.google.com/search?q=${encodedBarcode}`,
+        label: 'Google',
+      },
+    ];
+
+    links.forEach((link) => {
+      link.element.href = link.url;
+      link.element.textContent = link.label;
+    });
+  };
+
   const getMappingItemNameNormalized = (entry) => {
     return normalizeItemName(entry.itemNameNormalized || entry.itemName);
   };
@@ -956,6 +992,7 @@
     reviewRow.value = String(item.csvRowNumber);
     reviewItemNumber.value = String(item.itemNumber);
     reviewItemName.value = item.currentProductName;
+    updateReviewBarcodeLinks(item.currentProductName);
     reviewOriginalHs.value = item.originalHsCode;
     reviewCurrentHs.value = item.currentHsCode;
     reviewMatchStatus.value = getMatchLabel(item);

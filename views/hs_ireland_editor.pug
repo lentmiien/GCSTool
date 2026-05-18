@@ -42,7 +42,11 @@ block content
               input#review-item-number.form-control.ie-dark-input(type='text', readonly)
           .form-group
             label(for='review-item-name') Item name
-            textarea#review-item-name.form-control.ie-dark-input(rows='2', readonly)
+            input#review-item-name.form-control.ie-dark-input(type='text', readonly)
+            #review-barcode-links.ie-review-item-links.mt-2.d-none
+              a#review-amiami-eng-link(href='#', target='_blank', rel='noopener') AmiAmi COM
+              a#review-amiami-jp-link(href='#', target='_blank', rel='noopener') AmiAmi JP
+              a#review-google-link(href='#', target='_blank', rel='noopener') Google
           .form-row
             .form-group.col-md-4
               label(for='review-original-hs') Original HS
@@ -103,6 +107,13 @@ block content
       padding: 0.75rem 0;
       background: #1f1f1f;
       border-top: 1px solid #333;
+    }
+    .ie-review-item-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      line-height: 1.25;
     }
     .ie-taric-suggestions {
       border: 1px solid #3a3a3a;
