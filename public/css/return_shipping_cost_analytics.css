@@ -21,6 +21,47 @@
   color: #b8c2cc;
 }
 
+.return-shipping-warning-note,
+.return-shipping-chart-warning-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffd27a;
+}
+
+.return-shipping-warning-note {
+  border: 1px solid rgba(247, 185, 85, 0.45);
+  border-radius: 4px;
+  background: rgba(247, 185, 85, 0.1);
+  padding: 10px 12px;
+}
+
+.return-shipping-chart-warning-note {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.return-shipping-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #1f252d;
+  background: #f7b955;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.return-shipping-section-warning,
+.return-shipping-low-count-badge {
+  color: #1f252d;
+  background-color: #f7b955;
+}
+
 .return-shipping-chart {
   min-height: 360px;
   border: 1px solid #3d4652;
@@ -61,6 +102,23 @@
   fill: #f7b955;
 }
 
+.return-shipping-chart .chart-bar-warning {
+  fill: #f7b955;
+  stroke: #ffd27a;
+  stroke-width: 1;
+}
+
+.return-shipping-chart .chart-bar-warning:hover {
+  fill: #ffd27a;
+}
+
+.return-shipping-chart .chart-warning-marker {
+  fill: #1f252d;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 .return-shipping-chart .chart-value-label {
   fill: #f1f5f9;
   font-size: 11px;
@@ -75,9 +133,19 @@
   background-color: rgba(255, 255, 255, 0.04);
 }
 
+.return-shipping-table tbody tr.return-shipping-low-count-row,
+.return-shipping-table.table-striped tbody tr.return-shipping-low-count-row:nth-of-type(odd) {
+  background-color: rgba(247, 185, 85, 0.12);
+}
+
 .return-shipping-table.table-hover tbody tr:hover {
   color: #ffffff;
   background-color: rgba(77, 163, 199, 0.2);
+}
+
+.return-shipping-table.table-hover tbody tr.return-shipping-low-count-row:hover {
+  color: #ffffff;
+  background-color: rgba(247, 185, 85, 0.22);
 }
 
 .return-shipping-table .thead-light th {
@@ -95,6 +163,19 @@
 
 .return-shipping-table th {
   white-space: nowrap;
+}
+
+.return-shipping-table tbody tr.return-shipping-low-count-row td:first-child {
+  box-shadow: inset 3px 0 0 #f7b955;
+}
+
+.return-shipping-entry-count-low {
+  color: #ffd27a;
+  font-weight: 700;
+}
+
+.return-shipping-low-count-badge {
+  vertical-align: middle;
 }
 
 @media (max-width: 991.98px) {

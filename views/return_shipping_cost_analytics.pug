@@ -16,9 +16,16 @@ block content
       .alert.alert-light.border(role='alert')
         | No Refund return shipping cost analytics rows are available.
     else
+      if hasLowEntryCountRows
+        .return-shipping-warning-note.mb-4(role='note')
+          span.return-shipping-warning-icon(aria-hidden='true') !
+          span Data points with entryCount below 10 are marked as low sample warnings.
       each section, sectionIndex in sections
         section.return-shipping-section
-          h2.h4.mb-3= section.country
+          .d-flex.align-items-center.justify-content-between.flex-wrap.mb-3
+            h2.h4.mb-0= section.country
+            if section.lowEntryCountRows
+              span.badge.badge-warning.return-shipping-section-warning= section.lowEntryCountRows === 1 ? '1 low sample' : `${section.lowEntryCountRows} low samples`
           .row
             .col-lg-7.mb-3.mb-lg-0
               .return-shipping-chart(
@@ -37,9 +44,12 @@ block content
                       th guardrail
                   tbody
                     each row in section.rows
-                      tr
+                      tr(class=row.lowEntryCount ? 'return-shipping-low-count-row' : null)
                         td= row.weightInterval || '-'
-                        td= row.entryCount
+                        td.return-shipping-entry-count(class=row.lowEntryCount ? 'return-shipping-entry-count-low' : null)
+                          span= row.entryCount
+                          if row.lowEntryCount
+                            span.badge.badge-warning.return-shipping-low-count-badge.ml-2(title='Entry count below 10; this data point may be less reliable') Low sample
                         td= row.p95AmountWithCurrency
                         td= row.guardrail || '-'
 

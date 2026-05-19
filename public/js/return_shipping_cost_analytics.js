@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.push(`guardrail: ${row.guardrail}`);
     }
 
+    if (row.lowEntryCount) {
+      lines.push('warning: entryCount below 10');
+    }
+
     return lines.join('\n');
   }
 
@@ -46,6 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
       emptyState.textContent = 'No numeric p95 amount is available for this country.';
       container.appendChild(emptyState);
       return;
+    }
+
+    const hasLowEntryCountRows = chartRows.some((row) => row.lowEntryCount);
+    if (hasLowEntryCountRows) {
+      const warningNote = document.createElement('div');
+      warningNote.className = 'return-shipping-chart-warning-note';
+
+      const warningIcon = document.createElement('span');
+      warningIcon.className = 'return-shipping-warning-icon';
+      warningIcon.setAttribute('aria-hidden', 'true');
+      warningIcon.textContent = '!';
+
+      const warningText = document.createElement('span');
+      warningText.textContent = 'Low sample bars have entryCount below 10.';
+
+      warningNote.appendChild(warningIcon);
+      warningNote.appendChild(warningText);
+      container.appendChild(warningNote);
     }
 
     const width = Math.max(420, container.clientWidth || 420);
@@ -67,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('width', '100%')
       .attr('height', height)
       .attr('role', 'img')
-      .attr('aria-label', `${section.country} p95 return shipping cost by weight interval`);
+      .attr('aria-label', `${section.country} p95 return shipping cost by weight interval${hasLowEntryCountRows ? '; low sample warnings are marked' : ''}`);
 
     svg.append('rect')
       .attr('x', 0)
@@ -138,13 +160,23 @@ document.addEventListener('DOMContentLoaded', () => {
       .data(chartRows)
       .enter()
       .append('rect')
-      .attr('class', 'chart-bar')
+      .attr('class', (row) => row.lowEntryCount ? 'chart-bar chart-bar-warning' : 'chart-bar')
       .attr('x', (row) => x(row.axisLabel || row.weightInterval || '-'))
       .attr('y', (row) => y(row.p95Amount))
       .attr('width', x.bandwidth())
       .attr('height', (row) => innerHeight - y(row.p95Amount))
       .append('title')
       .text((row) => buildTooltip(row, section));
+
+    chart.selectAll('.chart-warning-marker')
+      .data(chartRows.filter((row) => row.lowEntryCount))
+      .enter()
+      .append('text')
+      .attr('class', 'chart-warning-marker')
+      .attr('x', (row) => (x(row.axisLabel || row.weightInterval || '-') || 0) + x.bandwidth() / 2)
+      .attr('y', (row) => Math.min(innerHeight - 6, y(row.p95Amount) + 16))
+      .attr('text-anchor', 'middle')
+      .text('!');
 
     chart.selectAll('.chart-value-label-top')
       .data(chartRows)

@@ -60,6 +60,11 @@ function formatAmountWithCurrency(row) {
   return amount || currency || '-';
 }
 
+function parseEntryCount(value) {
+  const count = Number(value || 0);
+  return Number.isFinite(count) ? count : 0;
+}
+
 function buildReturnShippingCostSections(rows) {
   const sectionsByCountry = {};
 
@@ -80,11 +85,13 @@ function buildReturnShippingCostSections(rows) {
     }
 
     const p95Amount = parseAmount(row.p95Amount);
+    const entryCount = parseEntryCount(row.entryCount);
 
     section.rows.push({
       weightInterval: row.weightInterval || '',
       axisLabel: row.weightInterval || '',
-      entryCount: row.entryCount || 0,
+      entryCount,
+      lowEntryCount: entryCount < 10,
       p95Amount: p95Amount !== null ? p95Amount : parseAmount(row.p95AmountDisplay),
       p95AmountDisplay: row.p95AmountDisplay || '',
       p95AmountWithCurrency: formatAmountWithCurrency(row),
@@ -96,6 +103,7 @@ function buildReturnShippingCostSections(rows) {
 
   return Object.values(sectionsByCountry).map((section) => {
     section.totalEntryCount = section.rows.reduce((total, row) => total + Number(row.entryCount || 0), 0);
+    section.lowEntryCountRows = section.rows.filter((row) => row.lowEntryCount).length;
 
     if (section.currencies.length > 1) {
       section.rows = section.rows.map((row) => Object.assign({}, row, {
@@ -125,6 +133,7 @@ exports.returnShippingCostAnalytics = async (req, res, next) => {
       sections,
       sectionsJson: JSON.stringify(sections).replace(/</g, '\\u003c'),
       hasRows: sections.length > 0,
+      hasLowEntryCountRows: sections.some((section) => section.lowEntryCountRows > 0),
       rowCount: rows.length,
     });
   } catch (error) {
