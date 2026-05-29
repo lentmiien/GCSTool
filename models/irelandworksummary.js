@@ -1,5 +1,10 @@
 module.exports = (sequelize, type) => {
   return sequelize.define('irelandworksummary', {
+    countryCode: {
+      type: type.STRING(2),
+      allowNull: false,
+      defaultValue: 'IE',
+    },
     orderNumber: {
       type: type.STRING,
       allowNull: false,
@@ -28,17 +33,5 @@ module.exports = (sequelize, type) => {
       type: type.STRING,
       allowNull: false,
     },
-  }, {
-    indexes: [
-      {
-        name: 'idx_ire_work_summary_order',
-        unique: true,
-        fields: ['orderNumber'],
-      },
-      {
-        name: 'idx_ire_work_summary_added_date',
-        fields: ['addedDate'],
-      },
-    ],
   });
 };

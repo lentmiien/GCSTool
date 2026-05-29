@@ -151,6 +151,55 @@ async function ensureDhlCompensationEntrySchema() {
   }
 }
 
+async function ensureIrelandWorkSummarySchema() {
+  const queryInterface = sequelize.getQueryInterface();
+  const tableName = IrelandWorkSummary.getTableName();
+  const columns = await queryInterface.describeTable(tableName);
+
+  if (!columns.countryCode) {
+    await queryInterface.addColumn(tableName, 'countryCode', {
+      type: Sequelize.STRING(2),
+      allowNull: false,
+      defaultValue: 'IE',
+    });
+    console.log(`Added column "countryCode" to ${tableName}.`);
+  }
+
+  await IrelandWorkSummary.update({
+    countryCode: 'IE',
+  }, {
+    where: {
+      [Op.or]: [
+        { countryCode: null },
+        { countryCode: '' },
+      ],
+    },
+  });
+
+  const indexes = await queryInterface.showIndex(tableName);
+  const hasIndex = (name) => indexes.some((index) => index.name === name);
+
+  if (hasIndex('idx_ire_work_summary_order')) {
+    await queryInterface.removeIndex(tableName, 'idx_ire_work_summary_order');
+    console.log(`Removed order-only unique index from ${tableName}.`);
+  }
+
+  if (!hasIndex('idx_ire_work_summary_country_order')) {
+    await queryInterface.addIndex(tableName, ['countryCode', 'orderNumber'], {
+      name: 'idx_ire_work_summary_country_order',
+      unique: true,
+    });
+    console.log(`Added country/order unique index to ${tableName}.`);
+  }
+
+  if (!hasIndex('idx_ire_work_summary_added_date')) {
+    await queryInterface.addIndex(tableName, ['addedDate'], {
+      name: 'idx_ire_work_summary_added_date',
+    });
+    console.log(`Added addedDate index to ${tableName}.`);
+  }
+}
+
 async function seedVersionHistoryData() {
   const versionHistoryData = require('./data/versionHistory');
 
@@ -178,6 +227,7 @@ async function seedVersionHistoryData() {
 
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(async () => {
+  await ensureIrelandWorkSummarySchema();
   await seedVersionHistoryData();
   console.log(`Database & tables syncronized! [GCS Tool]`);
 });

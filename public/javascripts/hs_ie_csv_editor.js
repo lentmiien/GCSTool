@@ -50,6 +50,9 @@
   let reviewIndex = -1;
   let exportInFlight = false;
   let workSummaryInFlight = false;
+  let automatedWorkflowInProgress = false;
+  let automatedWorkflowFinalizing = false;
+  let automatedWorkflowToken = 0;
   let automationHasRun = false;
   let taricLookup = {
     jan: new Map(),
@@ -59,6 +62,7 @@
   let blockedNameHsKeys = new Set();
 
   const janPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
+  const editableCountryCodes = new Set(['IE', 'GR']);
 
   const setStatus = (text) => {
     statusEl.textContent = text || '';
@@ -68,9 +72,26 @@
     toolStatusEl.textContent = text || '';
   };
 
+  const cancelAutomatedWorkflow = (message) => {
+    if (!automatedWorkflowInProgress && !automatedWorkflowFinalizing) {
+      return;
+    }
+    automatedWorkflowToken += 1;
+    automatedWorkflowInProgress = false;
+    automatedWorkflowFinalizing = false;
+    if (message) {
+      setToolStatus(message);
+    }
+    refreshButtons();
+  };
+
   const collapseWhitespace = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
   const sanitizeCode = (value) => collapseWhitespace(value);
+
+  const normalizeEditableCountryCode = (value) => collapseWhitespace(value).toUpperCase();
+
+  const isEditableCountryCode = (value) => editableCountryCodes.has(normalizeEditableCountryCode(value));
 
   const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*[\[(]\s*barcode\s*[0-9]{8,14}\s*[\])]\s*$/i, ' '));
 
@@ -176,11 +197,12 @@
 
   const refreshButtons = () => {
     const hasItems = items.length > 0;
-    removeToyBtn.disabled = !hasItems;
-    autoTaricBtn.disabled = !hasItems;
-    reviewTaricBtn.disabled = !hasItems;
-    copySummaryBtn.disabled = !hasItems || workSummaryInFlight;
-    exportBtn.disabled = !hasItems || exportInFlight;
+    const workflowLocksTools = automatedWorkflowInProgress || automatedWorkflowFinalizing;
+    removeToyBtn.disabled = !hasItems || workflowLocksTools;
+    autoTaricBtn.disabled = !hasItems || workflowLocksTools;
+    reviewTaricBtn.disabled = !hasItems || workflowLocksTools;
+    copySummaryBtn.disabled = !hasItems || workSummaryInFlight || workflowLocksTools;
+    exportBtn.disabled = !hasItems || exportInFlight || workflowLocksTools;
   };
 
   const closeReviewModal = () => {
@@ -199,6 +221,9 @@
     reviewIndex = -1;
     exportInFlight = false;
     workSummaryInFlight = false;
+    automatedWorkflowInProgress = false;
+    automatedWorkflowFinalizing = false;
+    automatedWorkflowToken += 1;
     automationHasRun = false;
     rowsContainer.innerHTML = '';
     closeReviewModal();
@@ -214,6 +239,7 @@
     if (!automationHasRun) {
       return;
     }
+    cancelAutomatedWorkflow();
     automationHasRun = false;
     reviewQueue = [];
     reviewIndex = -1;
@@ -335,11 +361,12 @@
     });
   };
 
-  const registerItem = ({ rowIndex, orderNumber, itemNumber, productIndex, hsIndex, productValue, hsValue }) => {
+  const registerItem = ({ rowIndex, countryCode, orderNumber, itemNumber, productIndex, hsIndex, productValue, hsValue }) => {
     const item = {
       id: `${rowIndex}_${productIndex}`,
       rowIndex,
       csvRowNumber: rowIndex + 1,
+      countryCode: normalizeEditableCountryCode(countryCode),
       orderNumber,
       itemNumber,
       productIndex,
@@ -399,8 +426,9 @@
     let itemCountTotal = 0;
 
     rows.forEach((row, rowIndex) => {
-      if (row.length > 12 && row[12].trim() === 'IE') {
+      if (row.length > 12 && isEditableCountryCode(row[12])) {
         irelandCount += 1;
+        const countryCode = normalizeEditableCountryCode(row[12]);
         const orderNumber = row[0] || '(missing order)';
 
         const card = document.createElement('div');
@@ -408,7 +436,7 @@
 
         const header = document.createElement('div');
         header.classList.add('card-header', 'ie-editor-card-header');
-        header.textContent = `Order ${orderNumber}`;
+        header.textContent = `Order ${orderNumber} (${countryCode})`;
         card.appendChild(header);
 
         const body = document.createElement('div');
@@ -435,6 +463,7 @@
           itemCountTotal += 1;
           const item = registerItem({
             rowIndex,
+            countryCode,
             orderNumber,
             itemNumber: itemIndex,
             productIndex,
@@ -482,11 +511,11 @@
     rowsContainer.appendChild(fragment);
 
     if (irelandCount === 0) {
-      setStatus('No Ireland (IE) rows found in this file.');
+      setStatus('No Ireland (IE) or Greece (GR) rows found in this file.');
       return;
     }
 
-    setStatus(`Detected ${label} CSV. Loaded ${rows.length} rows. Showing ${irelandCount} Ireland row(s) with ${itemCountTotal} item(s).`);
+    setStatus(`Detected ${label} CSV. Loaded ${rows.length} rows. Showing ${irelandCount} IE/GR row(s) with ${itemCountTotal} item(s).`);
   };
 
   const buildDhlEditor = () => {
@@ -495,9 +524,9 @@
     let irelandCount = 0;
     let itemCountTotal = 0;
 
-    const getOrderCard = (orderNumber) => {
-      if (orderMap.has(orderNumber)) {
-        return orderMap.get(orderNumber);
+    const getOrderCard = (orderKey, orderNumber, countryCode) => {
+      if (orderMap.has(orderKey)) {
+        return orderMap.get(orderKey);
       }
 
       const card = document.createElement('div');
@@ -505,7 +534,7 @@
 
       const header = document.createElement('div');
       header.classList.add('card-header', 'ie-editor-card-header');
-      header.textContent = `Order ${orderNumber}`;
+      header.textContent = `Order ${orderNumber} (${countryCode})`;
       card.appendChild(header);
 
       const body = document.createElement('div');
@@ -513,16 +542,17 @@
       card.appendChild(body);
 
       const orderState = { card, body, itemIndex: 0 };
-      orderMap.set(orderNumber, orderState);
+      orderMap.set(orderKey, orderState);
       fragment.appendChild(card);
       return orderState;
     };
 
     rows.forEach((row, rowIndex) => {
-      if (row.length > 14 && row[14].trim() === 'IE') {
+      if (row.length > 14 && isEditableCountryCode(row[14])) {
         irelandCount += 1;
+        const countryCode = normalizeEditableCountryCode(row[14]);
         const orderNumber = row[0] || '(missing order)';
-        const orderState = getOrderCard(orderNumber);
+        const orderState = getOrderCard(`${countryCode}__${orderNumber}`, orderNumber, countryCode);
         orderState.itemIndex += 1;
 
         const productIndex = 17;
@@ -536,6 +566,7 @@
         itemCountTotal += 1;
         const item = registerItem({
           rowIndex,
+          countryCode,
           orderNumber,
           itemNumber: orderState.itemIndex,
           productIndex,
@@ -572,11 +603,11 @@
     rowsContainer.appendChild(fragment);
 
     if (irelandCount === 0) {
-      setStatus('No Ireland (IE) rows found in this file.');
+      setStatus('No Ireland (IE) or Greece (GR) rows found in this file.');
       return;
     }
 
-    setStatus(`Detected DHL CSV. Loaded ${rows.length} rows. Showing ${irelandCount} Ireland row(s) with ${itemCountTotal} item(s).`);
+    setStatus(`Detected DHL CSV. Loaded ${rows.length} rows. Showing ${irelandCount} IE/GR row(s) with ${itemCountTotal} item(s).`);
   };
 
   const buildEditor = () => {
@@ -1055,6 +1086,9 @@
     if (reviewIndex >= reviewQueue.length - 1) {
       closeReviewModal();
       setToolStatus(`Reviewed ${reviewQueue.length} TARIC item(s).`);
+      if (automatedWorkflowInProgress) {
+        finishAutomatedWorkflow(automatedWorkflowToken);
+      }
       return;
     }
 
@@ -1066,9 +1100,12 @@
     const orderSummary = new Map();
 
     items.forEach((item) => {
+      const countryCode = item.countryCode || 'IE';
       const orderNumber = item.orderNumber || '(missing order)';
-      if (!orderSummary.has(orderNumber)) {
-        orderSummary.set(orderNumber, {
+      const summaryKey = `${countryCode}__${orderNumber}`;
+      if (!orderSummary.has(summaryKey)) {
+        orderSummary.set(summaryKey, {
+          countryCode,
           orderNumber,
           itemNameEdits: 0,
           taricEdits: 0,
@@ -1076,7 +1113,7 @@
         });
       }
 
-      const summary = orderSummary.get(orderNumber);
+      const summary = orderSummary.get(summaryKey);
       const itemNameEdited = item.currentProductName !== item.originalProductName;
       const taricEdited = sanitizeCode(item.currentHsCode) !== sanitizeCode(item.originalHsCode);
 
@@ -1092,6 +1129,7 @@
     });
 
     return Array.from(orderSummary.values()).map((summary) => ({
+      countryCode: summary.countryCode,
       orderNumber: summary.orderNumber,
       toyRemovedCount: summary.itemNameEdits,
       taricUpdateCount: summary.taricEdits,
@@ -1099,16 +1137,31 @@
     }));
   };
 
-  const saveWorkSummary = async () => {
+  const saveWorkSummary = async (options = {}) => {
+    const showAlert = options.showAlert !== false;
+    const updateStatus = options.updateStatus !== false;
+
     if (!items.length) {
-      alert('Select a CSV file first.');
-      return;
+      const message = 'Select a CSV file first.';
+      if (showAlert) {
+        alert(message);
+      }
+      return {
+        ok: false,
+        message,
+      };
     }
 
     const summaries = buildSummaryRows();
     if (!summaries.length) {
-      setToolStatus('No Ireland items available for work summary save.');
-      return;
+      const message = 'No IE/GR items available for work summary save.';
+      if (updateStatus) {
+        setToolStatus(message);
+      }
+      return {
+        ok: true,
+        message,
+      };
     }
 
     workSummaryInFlight = true;
@@ -1126,9 +1179,23 @@
         throw new Error('work summary save failed');
       }
       const result = await response.json();
-      setToolStatus(`Saved ${result.saved} work summary row(s). ${result.created} new, ${result.updated} updated.`);
+      const message = `Saved ${result.saved} work summary row(s). ${result.created} new, ${result.updated} updated.`;
+      if (updateStatus) {
+        setToolStatus(message);
+      }
+      return {
+        ok: true,
+        message,
+      };
     } catch (err) {
-      setToolStatus('Could not save the work summary.');
+      const message = 'Could not save the work summary.';
+      if (updateStatus) {
+        setToolStatus(message);
+      }
+      return {
+        ok: false,
+        message,
+      };
     } finally {
       workSummaryInFlight = false;
       refreshButtons();
@@ -1229,30 +1296,141 @@
     }).join(rowDelimiter);
   };
 
-  const exportCsv = async () => {
+  const exportCsv = async (options = {}) => {
+    const showAlert = options.showAlert !== false;
+    const updateStatus = options.updateStatus !== false;
+
     if (!rows.length || !fileName) {
-      alert('Select a CSV file first.');
-      return;
+      const message = 'Select a CSV file first.';
+      if (showAlert) {
+        alert(message);
+      }
+      return {
+        ok: false,
+        message,
+      };
     }
 
     exportInFlight = true;
     refreshButtons();
 
     let mappingMessage = 'No TARIC edits to save to the mapping database.';
+    let mappingSaved = true;
     try {
       const saveResult = await saveMappings();
       mappingMessage = saveResult.message;
     } catch (err) {
+      mappingSaved = false;
       mappingMessage = 'CSV exported, but TARIC mappings could not be saved.';
     }
 
-    const output = buildCsvOutput();
-    const blob = new Blob([output], { type: 'text/csv;charset=utf-8' });
-    saveAs(blob, fileName);
-    setToolStatus(mappingMessage);
+    try {
+      const output = buildCsvOutput();
+      const blob = new Blob([output], { type: 'text/csv;charset=utf-8' });
+      saveAs(blob, fileName);
+      if (updateStatus) {
+        setToolStatus(mappingMessage);
+      }
+      return {
+        ok: true,
+        mappingSaved,
+        message: mappingMessage,
+      };
+    } catch (err) {
+      const message = 'Could not export the CSV.';
+      if (updateStatus) {
+        setToolStatus(message);
+      }
+      return {
+        ok: false,
+        mappingSaved,
+        message,
+      };
+    } finally {
+      exportInFlight = false;
+      refreshButtons();
+    }
+  };
 
-    exportInFlight = false;
+  const finishAutomatedWorkflow = async (token) => {
+    if (automatedWorkflowFinalizing) {
+      return;
+    }
+
+    automatedWorkflowFinalizing = true;
     refreshButtons();
+    setToolStatus('Saving work summary and exporting CSV...');
+
+    try {
+      const summaryResult = await saveWorkSummary({
+        showAlert: false,
+        updateStatus: false,
+      });
+      if (token !== automatedWorkflowToken) {
+        return;
+      }
+
+      const exportResult = await exportCsv({
+        showAlert: false,
+        updateStatus: false,
+      });
+      if (token !== automatedWorkflowToken) {
+        return;
+      }
+
+      const messages = ['Automated workflow complete.'];
+      if (summaryResult && summaryResult.message) {
+        messages.push(summaryResult.message);
+      }
+      if (exportResult && exportResult.ok && exportResult.mappingSaved !== false) {
+        messages.push('CSV exported.');
+      }
+      if (exportResult && exportResult.message) {
+        messages.push(exportResult.message);
+      }
+      setToolStatus(messages.join(' '));
+    } finally {
+      if (token === automatedWorkflowToken) {
+        automatedWorkflowInProgress = false;
+        automatedWorkflowFinalizing = false;
+        refreshButtons();
+      }
+    }
+  };
+
+  const startAutomatedWorkflow = () => {
+    if (!items.length) {
+      return;
+    }
+
+    automatedWorkflowToken += 1;
+    const token = automatedWorkflowToken;
+    automatedWorkflowInProgress = true;
+    automatedWorkflowFinalizing = false;
+    refreshButtons();
+    setToolStatus('Automated workflow started. Removing Toy prefixes and running TARIC automation...');
+
+    applyRemoveToy();
+    if (token !== automatedWorkflowToken) {
+      return;
+    }
+
+    runTaricAutomation();
+    if (token !== automatedWorkflowToken) {
+      return;
+    }
+
+    reviewQueue = items.filter((item) => item.requiresReview);
+    if (!reviewQueue.length) {
+      setToolStatus('No TARIC review needed. Saving work summary and exporting CSV...');
+      finishAutomatedWorkflow(token);
+      return;
+    }
+
+    const firstPending = reviewQueue.findIndex((item) => !item.reviewCompleted);
+    reviewIndex = firstPending >= 0 ? firstPending : 0;
+    setToolStatus(`Review ${reviewQueue.length} TARIC item(s). After the last item, the work summary will save and the CSV will export automatically.`);
+    showReviewItem();
   };
 
   fileInput.addEventListener('change', () => {
@@ -1262,11 +1440,13 @@
       return;
     }
 
+    cancelAutomatedWorkflow();
     fileName = file.name;
     const reader = new FileReader();
     reader.onload = () => {
       parseCsv(reader.result || '');
       buildEditor();
+      startAutomatedWorkflow();
     };
     reader.onerror = () => {
       resetState();
@@ -1282,7 +1462,10 @@
   exportBtn.addEventListener('click', () => {
     exportCsv();
   });
-  reviewCloseBtn.addEventListener('click', closeReviewModal);
+  reviewCloseBtn.addEventListener('click', () => {
+    closeReviewModal();
+    cancelAutomatedWorkflow('TARIC review closed. Automated workflow stopped.');
+  });
   reviewNextBtn.addEventListener('click', advanceReview);
   reviewInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -1293,6 +1476,7 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !reviewOverlay.classList.contains('d-none')) {
       closeReviewModal();
+      cancelAutomatedWorkflow('TARIC review closed. Automated workflow stopped.');
     }
   });
 

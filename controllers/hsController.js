@@ -475,6 +475,14 @@ function parseCount(value) {
   return Number.isFinite(count) && count > 0 ? count : 0;
 }
 
+function normalizeWorkSummaryCountryCode(value) {
+  const countryCode = collapseWhitespace(value).toUpperCase();
+  if (countryCode === 'GR') {
+    return 'GR';
+  }
+  return 'IE';
+}
+
 async function saveIrelandWorkSummaries(summaries) {
   const addedDate = getJstDateString();
   let created = 0;
@@ -482,6 +490,7 @@ async function saveIrelandWorkSummaries(summaries) {
   let skipped = 0;
 
   for (const summary of summaries) {
+    const countryCode = normalizeWorkSummaryCountryCode(summary.countryCode);
     const orderNumber = collapseWhitespace(summary.orderNumber);
     if (!orderNumber) {
       skipped += 1;
@@ -495,7 +504,10 @@ async function saveIrelandWorkSummaries(summaries) {
     };
 
     const existing = await IrelandWorkSummary.findOne({
-      where: { orderNumber },
+      where: {
+        countryCode,
+        orderNumber,
+      },
     });
 
     if (existing) {
@@ -503,6 +515,7 @@ async function saveIrelandWorkSummaries(summaries) {
       updated += 1;
     } else {
       await IrelandWorkSummary.create(Object.assign({
+        countryCode,
         orderNumber,
         trackingNumber: '',
         addedDate,
@@ -522,8 +535,6 @@ async function saveIrelandWorkSummaries(summaries) {
 async function saveIrelandTrackingNumbers(orderNumbersText, trackingNumbersText) {
   const orderLines = parseTextLines(orderNumbersText);
   const trackingLines = parseTextLines(trackingNumbersText);
-  const addedDate = getJstDateString();
-  let created = 0;
   let updated = 0;
   let skipped = 0;
 
@@ -535,31 +546,23 @@ async function saveIrelandTrackingNumbers(orderNumbersText, trackingNumbersText)
       continue;
     }
 
-    const existing = await IrelandWorkSummary.findOne({
+    const existingRows = await IrelandWorkSummary.findAll({
       where: { orderNumber },
     });
-
-    if (existing) {
-      await existing.update({ trackingNumber });
-      updated += 1;
-    } else {
-      await IrelandWorkSummary.create({
-        orderNumber,
-        trackingNumber,
-        addedDate,
-        toyRemovedCount: 0,
-        taricUpdateCount: 0,
-        uneditedCount: 0,
-      });
-      created += 1;
+    if (!existingRows.length) {
+      skipped += 1;
+      continue;
     }
+
+    await Promise.all(existingRows.map((entry) => entry.update({ trackingNumber })));
+    updated += existingRows.length;
   }
 
   return {
-    created,
+    created: 0,
     updated,
     skipped,
-    saved: created + updated,
+    saved: updated,
   };
 }
 
@@ -810,11 +813,12 @@ exports.ireland_work_summary = async (req, res, next) => {
           [Op.like]: `${month}-%`,
         },
       },
-      order: [['addedDate', 'ASC'], ['orderNumber', 'ASC']],
+      order: [['addedDate', 'ASC'], ['countryCode', 'ASC'], ['orderNumber', 'ASC']],
     });
     res.render('hs_ireland_work_summary', {
       month,
       entries,
+      countryCodesText: entries.map((entry) => entry.countryCode || 'IE').join('\n'),
       orderNumbersText: entries.map((entry) => entry.orderNumber).join('\n'),
       trackingNumbersText: entries.map((entry) => entry.trackingNumber || '').join('\n'),
     });
