@@ -2,6 +2,22 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.9.11',
+    releaseDate: '2026-06-15',
+    updateDate: '2026-06-15',
+    items: [
+      item('HS', [
+        item('Ireland/Greece CSV editor - Expanded the Ireland CSV workflow to process Greece (GR) rows alongside Ireland (IE) rows'),
+        item('Ireland/Greece CSV editor - Start the streamlined workflow automatically after upload: remove Toy prefixes, run HS-to-TARIC automation, open review when needed, save the work summary, and export the CSV'),
+        item('Ireland/Greece work summary - Store and export country codes so IE and GR orders can be tracked separately'),
+      ]),
+      item('DHL Compensation', [
+        item('Use safe generated PDF filenames based on order and tracking details, and prevent uploaded PDFs from overwriting existing files'),
+        item('Keep PDF download names safe while showing the stored PDF name in the open-entry list'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.10',
     releaseDate: '2026-05-22',
     updateDate: '2026-05-22',
