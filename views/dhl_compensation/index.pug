@@ -212,7 +212,7 @@ block content
                 if entry.has_pdf
                   .mt-2
                     a.btn.btn-outline-secondary.btn-sm(href=`/dhl-compensation/${entry.id}/pdf`) Download PDF
-                    span.small.text-muted.ml-2= entry.pdf_original_name
+                    span.small.text-muted.ml-2= entry.pdf_display_name
               .dhl-entry-amount-wrap
                 div.dhl-entry-amount-label Amount
                 div.dhl-entry-amount= `JPY ${entry.amount_label}`

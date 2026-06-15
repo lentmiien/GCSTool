@@ -7,6 +7,8 @@ const DHLCompensationEntry = dhlCompensation.Entry;
 const PDF_FIELD_NAME = 'pdf_file';
 const PDF_SIGNATURE = '%PDF-';
 const PDF_STORAGE_DIR = path.join(__dirname, '..', 'data', 'dhl_compensation_pdfs');
+const PDF_FILENAME_PREFIX = 'dhl-compensation';
+const PDF_FILENAME_SEGMENT_MAX_LENGTH = 48;
 
 function setLayoutLocals(req, res) {
   res.locals.role = req.user && req.user.role ? req.user.role : 'guest';
@@ -75,15 +77,16 @@ function parsePositiveInteger(value) {
   return parsed > 0 ? parsed : null;
 }
 
-function sanitizePdfFileName(value) {
-  const baseName = path.basename(typeof value === 'string' ? value : '');
-  const sanitized = baseName.replace(/[\r\n"]/g, '').trim();
+function toSafeFilenameSegment(value, fallback) {
+  const normalized = typeof value === 'string' ? value.normalize('NFKD') : '';
+  const safeSegment = normalized
+    .replace(/[^\x00-\x7F]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, PDF_FILENAME_SEGMENT_MAX_LENGTH)
+    .replace(/-+$/g, '');
 
-  if (!sanitized) {
-    return 'document.pdf';
-  }
-
-  return path.extname(sanitized).toLowerCase() === '.pdf' ? sanitized : `${sanitized}.pdf`;
+  return safeSegment || fallback;
 }
 
 function getUploadedPdf(req) {
@@ -114,22 +117,42 @@ function validatePdfUpload(upload) {
   return null;
 }
 
-function createPdfStorageName() {
-  return `${Date.now()}_${crypto.randomBytes(8).toString('hex')}.pdf`;
+function createPdfStorageName(orderNumber, trackingNumber) {
+  const safeOrderNumber = toSafeFilenameSegment(orderNumber, 'order');
+  const safeTrackingNumber = toSafeFilenameSegment(trackingNumber, 'tracking');
+  const randomSuffix = crypto.randomBytes(8).toString('hex');
+
+  return `${PDF_FILENAME_PREFIX}_${safeOrderNumber}_${safeTrackingNumber}_${Date.now()}_${randomSuffix}.pdf`;
+}
+
+function isSafePdfFileName(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/i.test(value);
+}
+
+function getPdfDownloadName(entry) {
+  if (isSafePdfFileName(entry.pdf_original_name)) {
+    return entry.pdf_original_name;
+  }
+
+  if (isSafePdfFileName(entry.pdf_storage_name)) {
+    return entry.pdf_storage_name;
+  }
+
+  return `${PDF_FILENAME_PREFIX}.pdf`;
 }
 
 function getPdfFilePath(storageName) {
   return path.join(PDF_STORAGE_DIR, storageName);
 }
 
-async function saveUploadedPdf(upload) {
-  const storageName = createPdfStorageName();
+async function saveUploadedPdf(upload, orderNumber, trackingNumber) {
+  const storageName = createPdfStorageName(orderNumber, trackingNumber);
 
   await fs.promises.mkdir(PDF_STORAGE_DIR, { recursive: true });
-  await fs.promises.writeFile(getPdfFilePath(storageName), upload.data);
+  await fs.promises.writeFile(getPdfFilePath(storageName), upload.data, { flag: 'wx' });
 
   return {
-    pdf_original_name: sanitizePdfFileName(upload.name),
+    pdf_original_name: storageName,
     pdf_storage_name: storageName,
   };
 }
@@ -185,7 +208,8 @@ function mapEntry(entry) {
 
   return {
     ...data,
-    has_pdf: Boolean(data.pdf_storage_name && data.pdf_original_name),
+    has_pdf: Boolean(data.pdf_storage_name),
+    pdf_display_name: getPdfDownloadName(data),
     amount_label: formatAmount(data.compensation_amount_jpy),
     created_at_label: formatTimestamp(data.createdAt),
     updated_at_label: formatTimestamp(data.updatedAt),
@@ -348,7 +372,7 @@ exports.create = async (req, res, next) => {
 
     if (pdfUpload) {
       try {
-        storedPdf = await saveUploadedPdf(pdfUpload);
+        storedPdf = await saveUploadedPdf(pdfUpload, orderNumber, trackingNumber);
       } catch (error) {
         console.error('Failed to save DHL compensation PDF:', error);
         return await renderIndex(req, res, {
@@ -406,7 +430,7 @@ exports.downloadPdf = async (req, res, next) => {
       return await renderIndex(req, res, { error: 'Open DHL compensation entry not found.' }, 404);
     }
 
-    if (!entry.pdf_storage_name || !entry.pdf_original_name) {
+    if (!entry.pdf_storage_name) {
       return await renderIndex(req, res, { error: 'No PDF file is attached to this entry.' }, 404);
     }
 
@@ -422,7 +446,7 @@ exports.downloadPdf = async (req, res, next) => {
       throw error;
     }
 
-    res.download(pdfPath, entry.pdf_original_name);
+    res.download(pdfPath, getPdfDownloadName(entry));
   } catch (error) {
     next(error);
   }
