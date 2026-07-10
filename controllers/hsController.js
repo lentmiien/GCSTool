@@ -6,6 +6,7 @@ const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSum
 const {
   collapseWhitespace,
   sanitizeMappingCode,
+  sanitizeIrelandJanCode,
   cleanIrelandItemName,
   normalizeIrelandItemName,
   extractIrelandJanCode,
@@ -74,11 +75,9 @@ async function saveIrelandTaricMappings(entries) {
     const rawItemName = collapseWhitespace(entry.itemName || entry.itemNameNormalized);
     const itemName = cleanIrelandItemName(rawItemName);
     const itemNameNormalized = normalizeIrelandItemName(rawItemName);
-    const janCode = sanitizeMappingCode(
-      entry.janCode
+    const janCode = sanitizeIrelandJanCode(entry.janCode)
       || extractIrelandJanCode(rawItemName)
-      || extractIrelandJanCode(entry.itemNameNormalized)
-    );
+      || extractIrelandJanCode(entry.itemNameNormalized);
 
     if (!sourceHsCode || !taricCode) {
       return;

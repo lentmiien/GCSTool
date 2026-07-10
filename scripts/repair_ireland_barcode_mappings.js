@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 const {
   collapseWhitespace,
   sanitizeMappingCode,
+  sanitizeIrelandJanCode,
   cleanIrelandItemName,
   normalizeIrelandItemName,
   extractIrelandJanCode,
@@ -57,12 +58,10 @@ function buildReplacementRows(rows) {
     const itemNameNormalized = normalizeIrelandItemName(rawItemName);
     const sourceHsCode = sanitizeMappingCode(row.sourceHsCode);
     const taricCode = sanitizeMappingCode(row.taricCode);
-    const janCode = sanitizeMappingCode(
-      row.janCode
+    const janCode = sanitizeIrelandJanCode(row.janCode)
       || extractIrelandJanCode(row.itemName)
       || extractIrelandJanCode(row.itemNameNormalized)
-      || extractIrelandJanCode(rawItemName)
-    );
+      || extractIrelandJanCode(rawItemName);
     const uses = Number(row.uses || 0);
     const createdAt = row.createdAt || new Date();
     const updatedAt = row.updatedAt || createdAt;

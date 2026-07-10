@@ -61,7 +61,8 @@
   let taricExplanationLookup = new Map();
   let blockedNameHsKeys = new Set();
 
-  const janPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
+  const legacyJanPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
+  const numericJanPattern = /^[0-9]+$/;
   const editableCountryCodes = new Set(['IE', 'GR']);
 
   const setStatus = (text) => {
@@ -93,7 +94,35 @@
 
   const isEditableCountryCode = (value) => editableCountryCodes.has(normalizeEditableCountryCode(value));
 
-  const stripJanSuffix = (value) => collapseWhitespace(String(value || '').replace(/\s*[\[(]\s*barcode\s*[0-9]{8,14}\s*[\])]\s*$/i, ' '));
+  const splitItemBarcode = (value) => {
+    const itemName = String(value || '');
+    const lastSlashIndex = itemName.lastIndexOf('/');
+
+    if (lastSlashIndex !== -1) {
+      const janCode = itemName.slice(lastSlashIndex + 1).trim();
+      if (numericJanPattern.test(janCode)) {
+        return {
+          itemName: itemName.slice(0, lastSlashIndex),
+          janCode,
+        };
+      }
+    }
+
+    const legacyMatch = itemName.match(legacyJanPattern);
+    if (legacyMatch) {
+      return {
+        itemName: itemName.slice(0, legacyMatch.index),
+        janCode: legacyMatch[1],
+      };
+    }
+
+    return {
+      itemName,
+      janCode: '',
+    };
+  };
+
+  const stripJanSuffix = (value) => collapseWhitespace(splitItemBarcode(value).itemName);
 
   const stripToyPrefix = (value) => collapseWhitespace(String(value || '').replace(/^toy\b[\s-]*/i, ' '));
 
@@ -107,10 +136,7 @@
 
   const normalizeItemName = (value) => stripToyPrefix(stripJanSuffix(value)).toLowerCase();
 
-  const extractJanCode = (value) => {
-    const match = String(value || '').match(janPattern);
-    return match ? match[1] : '';
-  };
+  const extractJanCode = (value) => splitItemBarcode(value).janCode;
 
   const buildNameKey = (normalizedName, sourceHsCode) => `${normalizedName}__${sourceHsCode}`;
 
