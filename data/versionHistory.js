@@ -2,6 +2,16 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.9.12',
+    releaseDate: '2026-07-10',
+    updateDate: '2026-07-10',
+    items: [
+      item('HS', [
+        item('Ireland/Greece CSV editor - Added support for new barcode input format'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.11',
     releaseDate: '2026-06-15',
     updateDate: '2026-06-15',
