@@ -1,17 +1,268 @@
 extends ../layout
 
-block content
-  .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
-    .mb-3.mb-lg-0
-      h1.mb-1 Case Analytics
-      p.text-muted.mb-0 Placeholder page while data starts accumulating.
-    .btn-group
-      a.btn.btn-outline-secondary(href='/ct') Cases
-      if role === 'admin'
-        a.btn.btn-outline-secondary(href='/ct/admin') Admin
+mixin columnChart(rows, compact, ariaLabel)
+  if rows && rows.length > 0
+    .ct-column-chart(class=compact ? 'ct-column-chart--compact' : '', role='img', aria-label=ariaLabel)
+      .ct-column-chart-inner
+        each row in rows
+          .ct-column-entry(title=`${row.label}: ${row.count} complaint${row.count === 1 ? '' : 's'}`)
+            .ct-column-value= row.count
+            .ct-column-track
+              .ct-column-fill(
+                class=row.count === 0 ? 'ct-column-fill--empty' : '',
+                style=`height: ${row.relativePercent}%`
+              )
+            .ct-column-label= row.shortLabel
+  else
+    .ct-empty-inline No dated cases are available for this chart.
 
-  .card.text-center
-    .card-body.py-5
-      p.text-muted.text-uppercase.mb-2 Total cases
-      h2.display-4.mb-3= totalCases
-      p.text-muted.mb-0 More analytics can be added once enough case data has been collected.
+mixin horizontalChart(rows, emptyMessage)
+  if rows && rows.length > 0
+    .ct-horizontal-chart
+      each row in rows
+        .ct-horizontal-row
+          .ct-horizontal-heading
+            span.ct-horizontal-label= row.label
+            span.ct-horizontal-value= `${row.count} · ${row.percent}%`
+          .ct-meter(aria-hidden='true')
+            .ct-meter-fill(style=`width: ${row.percent}%`)
+  else
+    .ct-empty-inline= emptyMessage
+
+mixin durationPanel(title, description, analysis)
+  .ct-panel.h-100
+    .ct-panel-heading
+      div
+        h2.ct-panel-title= title
+        p.ct-panel-subtitle= description
+      span.ct-sample-badge= `n=${analysis.sampleSize}`
+    if analysis.sampleSize > 0
+      .ct-stat-grid
+        .ct-mini-stat
+          span Average
+          strong= `${analysis.average} d`
+        .ct-mini-stat
+          span Median
+          strong= `${analysis.median} d`
+        .ct-mini-stat
+          span 90th percentile
+          strong= `${analysis.p90} d`
+        .ct-mini-stat
+          span Range
+          strong= `${analysis.minimum}–${analysis.maximum} d`
+      .ct-horizontal-chart.ct-duration-chart
+        each bucket in analysis.distribution
+          .ct-horizontal-row
+            .ct-horizontal-heading
+              span.ct-horizontal-label= bucket.label
+              span.ct-horizontal-value= `${bucket.count} · ${bucket.percent}%`
+            .ct-meter(aria-hidden='true')
+              .ct-meter-fill(style=`width: ${bucket.percent}%`)
+      if analysis.missingCount > 0 || analysis.invalidOrderCount > 0
+        p.ct-data-note.mb-0
+          if analysis.missingCount > 0
+            | #{analysis.missingCount} incomplete date pair#{analysis.missingCount === 1 ? '' : 's'} excluded.
+          if analysis.missingCount > 0 && analysis.invalidOrderCount > 0
+            | &nbsp;
+          if analysis.invalidOrderCount > 0
+            | #{analysis.invalidOrderCount} negative interval#{analysis.invalidOrderCount === 1 ? '' : 's'} excluded.
+    else
+      .ct-empty-inline There are no complete, valid date pairs for this measure yet.
+
+block styles
+  link(rel='stylesheet', href='/css/ct/analytics.css')
+
+block content
+  .ct-analytics
+    .ct-page-header
+      div
+        .ct-eyebrow Case tracker
+        h1.mb-2 Analytics dashboard
+        p.ct-page-subtitle.mb-0
+          | All recorded cases · #{summary.dateRange}
+      .btn-group.mt-3.mt-lg-0
+        a.btn.btn-outline-secondary(href='/ct') Cases
+        if role === 'admin'
+          a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
+    if totalCases === 0
+      .ct-panel.ct-empty-state
+        .ct-empty-icon(aria-hidden='true') ∿
+        h2.h4 No case data yet
+        p.mb-0 The dashboard will populate automatically after cases are recorded.
+    else
+      .ct-kpi-grid
+        .ct-kpi
+          span.ct-kpi-label Total cases
+          strong.ct-kpi-value= summary.totalCases
+          span.ct-kpi-detail= `${summary.classifiedCases} classified`
+        .ct-kpi
+          span.ct-kpi-label Open cases
+          strong.ct-kpi-value= summary.openCases
+          span.ct-kpi-detail= `${summary.solvedCases} solved`
+        .ct-kpi
+          span.ct-kpi-label Solved rate
+          strong.ct-kpi-value= `${summary.solvedRate}%`
+          span.ct-kpi-detail Complaint to solved date
+        .ct-kpi
+          span.ct-kpi-label Median processing
+          strong.ct-kpi-value= processingTime.median !== null ? `${processingTime.median} d` : '—'
+          span.ct-kpi-detail= `${processingTime.sampleSize} solved case${processingTime.sampleSize === 1 ? '' : 's'}`
+        .ct-kpi
+          span.ct-kpi-label Median report delay
+          strong.ct-kpi-value= customerReportDelay.median !== null ? `${customerReportDelay.median} d` : '—'
+          span.ct-kpi-detail Shipment to complaint
+        .ct-kpi
+          span.ct-kpi-label Repeat customers
+          strong.ct-kpi-value= repeatCustomers.repeatCustomerCount
+          span.ct-kpi-detail= `${repeatCustomers.repeatCaseCount} cases · ${repeatCustomers.repeatCasePercent}% of all`
+
+      .row
+        .col-xl-8.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Complaints per month
+                p.ct-panel-subtitle Zero-count months between the first and latest complaint remain visible.
+              span.ct-sample-badge= `${summary.totalCases} total`
+            +columnChart(monthlyComplaints, false, 'Complaint counts by month')
+        .col-xl-4.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Day-of-month frequency
+                p.ct-panel-subtitle Raw complaint counts by calendar day; treat early patterns cautiously while the sample is small.
+            +columnChart(dayOfMonthComplaints, true, 'Complaint counts by day of month')
+
+      .row
+        .col-lg-5.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Current complaint type
+                p.ct-panel-subtitle Uses the complaint edit when present; otherwise the original complaint type.
+            +horizontalChart(complaintTypes, 'No complaint types have been recorded.')
+        .col-lg-7.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Shipping-related complaints
+                p.ct-panel-subtitle
+                  | Cases whose current complaint type is configured to require a shipping method. Shipment-month values are case counts, not failure rates.
+              span.ct-sample-badge= `${summary.shippingCases} cases`
+            if summary.shippingCases > 0
+              .row
+                .col-xl-5.mb-4.mb-xl-0
+                  h3.ct-section-label Shipping method
+                  +horizontalChart(shippingMethods, 'No shipping methods are recorded.')
+                .col-xl-7
+                  h3.ct-section-label Complaint count by shipment month
+                  +columnChart(shippingMonths, false, 'Shipping-related complaint counts by shipment month')
+              if shippingComplaintRows.length > 0
+                .table-responsive.mt-4
+                  table.table.ct-table.ct-table--compact.mb-0
+                    thead
+                      tr
+                        th Complaint type
+                        th Cases
+                        th Leading method
+                        th Missing method
+                        th Missing ship date
+                    tbody
+                      each row in shippingComplaintRows
+                        tr
+                          td= row.complaintType
+                          td= row.totalCases
+                          td= row.leadingMethodCount > 0 ? `${row.leadingMethod} (${row.leadingMethodCount})` : row.leadingMethod
+                          td(class=row.missingMethods > 0 ? 'ct-warning-cell' : '')= row.missingMethods
+                          td(class=row.missingDates > 0 ? 'ct-warning-cell' : '')= row.missingDates
+            else
+              .ct-empty-inline
+                | No cases match the #{shippingComplaintTypeCount} complaint type#{shippingComplaintTypeCount === 1 ? '' : 's'} currently configured to require a shipping method.
+
+      .row
+        .col-lg-6.mb-4
+          +durationPanel('Processing time', 'Calendar days from complaint date to solved date.', processingTime)
+        .col-lg-6.mb-4
+          +durationPanel('Customer report delay', 'Calendar days from shipment to complaint for shipping-eligible cases.', customerReportDelay)
+
+      .ct-panel.mb-4
+        .ct-panel-heading
+          div
+            h2.ct-panel-title Complaint / claim type × solution
+            p.ct-panel-subtitle Includes open cases without a selected solution so the outcome mix is not overstated.
+          span.ct-sample-badge= `${summary.totalCases} cases`
+        if claimSolutionMatrix.rows.length > 0
+          .table-responsive
+            table.table.ct-table.ct-matrix-table.mb-0
+              thead
+                tr
+                  th Complaint / claim type
+                  each column in claimSolutionMatrix.columns
+                    th
+                      span= column.label
+                      small= `${column.total} total`
+                  th Row total
+              tbody
+                each row in claimSolutionMatrix.rows
+                  tr
+                    th(scope='row')= row.complaintType
+                    each cell in row.cells
+                      td(class=cell.count === 0 ? 'ct-zero-cell' : '')
+                        strong= cell.count
+                        if cell.count > 0
+                          small= `${cell.percent}%`
+                    td.ct-total-cell= row.total
+        else
+          .ct-empty-inline No complaint and solution combinations are available.
+
+      .row
+        .col-xl-8.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Repeated item summary
+                p.ct-panel-subtitle Real item codes appearing in at least two separate cases; placeholder items are excluded.
+              span.ct-sample-badge= `${itemSummary.totalRepeatedItems} repeated`
+            if itemSummary.rows.length > 0
+              .table-responsive
+                table.table.ct-table.mb-0
+                  thead
+                    tr
+                      th Item code
+                      th Cases
+                      th Entries
+                      th Complaint types
+                      th Latest complaint
+                  tbody
+                    each item in itemSummary.rows
+                      tr
+                        th(scope='row')= item.itemCode
+                        td= item.caseCount
+                        td= item.occurrenceCount
+                        td.ct-wrap-cell= item.complaintTypes
+                        td= item.latestComplaintDate || '—'
+              if itemSummary.totalRepeatedItems > itemSummary.rows.length
+                p.ct-data-note.mt-3.mb-0 Showing the 25 items with the most affected cases.
+            else
+              .ct-empty-inline No real item code currently appears in more than one case.
+        .col-xl-4.mb-4
+          .ct-panel.h-100
+            .ct-panel-heading
+              div
+                h2.ct-panel-title Data coverage
+                p.ct-panel-subtitle Missing values reduce the sample behind individual statistics.
+            .ct-coverage-list
+              each row in coverage
+                .ct-coverage-row
+                  .ct-horizontal-heading
+                    span.ct-horizontal-label= row.label
+                    span.ct-horizontal-value
+                      if row.total > 0
+                        | #{row.count} / #{row.total} · #{row.percent}%
+                      else
+                        | —
+                  .ct-meter(aria-hidden='true')
+                    .ct-meter-fill.ct-meter-fill--coverage(style=`width: ${row.total > 0 ? row.percent : 0}%`)
+            p.ct-data-note.mt-4.mb-0
+              | All statistics use the complete stored dataset. Period and quarter filters can be added later once the sample is large enough for stable comparisons.

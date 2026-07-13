@@ -14,6 +14,23 @@ const PLACEHOLDER_ITEM = {
   placeholder: true,
 };
 const MAX_DEFECT_ITEMS = 25;
+const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const UNCLASSIFIED_COMPLAINT = 'Unclassified';
+const MISSING_SHIPPING_METHOD = 'Not recorded';
 
 function sanitizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -49,6 +66,379 @@ function normalizeDate(value) {
   }
 
   return sanitized;
+}
+
+function parseDateOnly(value) {
+  let sanitized = '';
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    sanitized = [
+      value.getUTCFullYear(),
+      String(value.getUTCMonth() + 1).padStart(2, '0'),
+      String(value.getUTCDate()).padStart(2, '0'),
+    ].join('-');
+  } else if (typeof value === 'string') {
+    sanitized = value.trim().slice(0, 10);
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(sanitized)) {
+    return null;
+  }
+
+  const [year, month, day] = sanitized.split('-').map(Number);
+  const timestamp = Date.UTC(year, month - 1, day);
+  const date = new Date(timestamp);
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return {
+    day,
+    key: sanitized,
+    month,
+    monthIndex: year * 12 + month - 1,
+    timestamp,
+    year,
+  };
+}
+
+function roundToOneDecimal(value) {
+  return Math.round(value * 10) / 10;
+}
+
+function percentage(count, total) {
+  return total > 0 ? roundToOneDecimal((count / total) * 100) : 0;
+}
+
+function percentile(sortedValues, percentileValue) {
+  if (sortedValues.length === 0) {
+    return null;
+  }
+
+  const position = (sortedValues.length - 1) * percentileValue;
+  const lowerIndex = Math.floor(position);
+  const upperIndex = Math.ceil(position);
+  if (lowerIndex === upperIndex) {
+    return sortedValues[lowerIndex];
+  }
+
+  const weight = position - lowerIndex;
+  return sortedValues[lowerIndex] + (sortedValues[upperIndex] - sortedValues[lowerIndex]) * weight;
+}
+
+function withRelativeBarSize(rows) {
+  const maximum = rows.reduce((highest, row) => Math.max(highest, row.count), 0);
+  return rows.map((row) => ({
+    ...row,
+    relativePercent: maximum > 0 ? roundToOneDecimal((row.count / maximum) * 100) : 0,
+  }));
+}
+
+function buildBreakdown(values) {
+  const counts = new Map();
+  values.forEach((value) => {
+    const label = sanitizeText(value) || UNCLASSIFIED_COMPLAINT;
+    counts.set(label, (counts.get(label) || 0) + 1);
+  });
+
+  const rows = Array.from(counts.entries())
+    .map(([label, count]) => ({
+      count,
+      label,
+      percent: percentage(count, values.length),
+    }))
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
+
+  return rows;
+}
+
+function buildMonthSeries(caseRows, fieldName) {
+  const counts = new Map();
+  const parsedDates = [];
+
+  caseRows.forEach((caseRow) => {
+    const parsed = parseDateOnly(caseRow[fieldName]);
+    if (!parsed) {
+      return;
+    }
+
+    parsedDates.push(parsed);
+    counts.set(parsed.monthIndex, (counts.get(parsed.monthIndex) || 0) + 1);
+  });
+
+  if (parsedDates.length === 0) {
+    return [];
+  }
+
+  const firstMonth = parsedDates.reduce(
+    (earliest, date) => Math.min(earliest, date.monthIndex),
+    parsedDates[0].monthIndex
+  );
+  const lastMonth = parsedDates.reduce(
+    (latest, date) => Math.max(latest, date.monthIndex),
+    parsedDates[0].monthIndex
+  );
+  const rows = [];
+
+  for (let monthIndex = firstMonth; monthIndex <= lastMonth; monthIndex += 1) {
+    const year = Math.floor(monthIndex / 12);
+    const month = monthIndex % 12;
+    rows.push({
+      count: counts.get(monthIndex) || 0,
+      key: `${year}-${String(month + 1).padStart(2, '0')}`,
+      label: `${MONTH_NAMES[month]} ${year}`,
+      shortLabel: `${MONTH_NAMES[month].slice(0, 3)} '${String(year).slice(-2)}`,
+    });
+  }
+
+  return withRelativeBarSize(rows);
+}
+
+function buildDayOfMonthSeries(caseRows) {
+  const counts = Array(31).fill(0);
+  let datedCases = 0;
+
+  caseRows.forEach((caseRow) => {
+    const parsed = parseDateOnly(caseRow.complaint_date);
+    if (parsed) {
+      counts[parsed.day - 1] += 1;
+      datedCases += 1;
+    }
+  });
+
+  return withRelativeBarSize(counts.map((count, index) => ({
+    count,
+    day: index + 1,
+    label: `Day ${index + 1}`,
+    percent: percentage(count, datedCases),
+    shortLabel: String(index + 1),
+  })));
+}
+
+function buildDurationAnalysis(caseRows, startField, endField, buckets) {
+  const durations = [];
+  let missingCount = 0;
+  let invalidOrderCount = 0;
+
+  caseRows.forEach((caseRow) => {
+    const startDate = parseDateOnly(caseRow[startField]);
+    const endDate = parseDateOnly(caseRow[endField]);
+    if (!startDate || !endDate) {
+      missingCount += 1;
+      return;
+    }
+
+    const duration = Math.round((endDate.timestamp - startDate.timestamp) / DAY_IN_MILLISECONDS);
+    if (duration < 0) {
+      invalidOrderCount += 1;
+      return;
+    }
+
+    durations.push(duration);
+  });
+
+  durations.sort((left, right) => left - right);
+  const distribution = buckets.map((bucket) => {
+    const count = durations.filter((duration) => duration >= bucket.minimum && duration <= bucket.maximum).length;
+    return {
+      count,
+      label: bucket.label,
+      percent: percentage(count, durations.length),
+    };
+  });
+
+  return {
+    average: durations.length > 0
+      ? roundToOneDecimal(durations.reduce((total, duration) => total + duration, 0) / durations.length)
+      : null,
+    distribution,
+    invalidOrderCount,
+    maximum: durations.length > 0 ? durations[durations.length - 1] : null,
+    median: durations.length > 0 ? roundToOneDecimal(percentile(durations, 0.5)) : null,
+    minimum: durations.length > 0 ? durations[0] : null,
+    missingCount,
+    p90: durations.length > 0 ? roundToOneDecimal(percentile(durations, 0.9)) : null,
+    sampleSize: durations.length,
+  };
+}
+
+function buildClaimSolutionMatrix(caseRows) {
+  const matrix = new Map();
+  const solutionTotals = new Map();
+
+  caseRows.forEach((caseRow) => {
+    const complaintType = getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT;
+    const solution = sanitizeText(caseRow.solution)
+      || (parseDateOnly(caseRow.solved_date) ? 'Solution not recorded' : 'Open / no solution');
+
+    if (!matrix.has(complaintType)) {
+      matrix.set(complaintType, { cells: new Map(), total: 0 });
+    }
+
+    const complaintRow = matrix.get(complaintType);
+    complaintRow.total += 1;
+    complaintRow.cells.set(solution, (complaintRow.cells.get(solution) || 0) + 1);
+    solutionTotals.set(solution, (solutionTotals.get(solution) || 0) + 1);
+  });
+
+  const columns = Array.from(solutionTotals.entries())
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([label, total]) => ({ label, total }));
+
+  const rows = Array.from(matrix.entries())
+    .map(([complaintType, row]) => ({
+      cells: columns.map((column) => {
+        const count = row.cells.get(column.label) || 0;
+        return {
+          count,
+          percent: percentage(count, row.total),
+        };
+      }),
+      complaintType,
+      total: row.total,
+    }))
+    .sort((left, right) => right.total - left.total || left.complaintType.localeCompare(right.complaintType));
+
+  return { columns, rows };
+}
+
+function buildItemSummary(caseRows) {
+  const items = new Map();
+  let itemizedCases = 0;
+
+  caseRows.forEach((caseRow, caseIndex) => {
+    const itemRows = parseStoredDefectItems(caseRow.defect_items, caseRow.defect_description)
+      .filter((item) => (
+        item.itemCode
+        && !item.placeholder
+        && item.itemCode.toUpperCase() !== PLACEHOLDER_ITEM.itemCode
+      ));
+    if (itemRows.length === 0) {
+      return;
+    }
+
+    itemizedCases += 1;
+    const complaintType = getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT;
+    const complaintDate = parseDateOnly(caseRow.complaint_date);
+
+    itemRows.forEach((item) => {
+      const normalizedCode = item.itemCode.toUpperCase();
+      if (!items.has(normalizedCode)) {
+        items.set(normalizedCode, {
+          caseIndexes: new Set(),
+          complaintTypes: new Set(),
+          itemCode: item.itemCode,
+          latestComplaintDate: '',
+          occurrenceCount: 0,
+        });
+      }
+
+      const summary = items.get(normalizedCode);
+      summary.caseIndexes.add(caseIndex);
+      summary.complaintTypes.add(complaintType);
+      summary.occurrenceCount += 1;
+      if (complaintDate && complaintDate.key > summary.latestComplaintDate) {
+        summary.latestComplaintDate = complaintDate.key;
+      }
+    });
+  });
+
+  const repeatedItems = Array.from(items.values())
+    .map((item) => ({
+      caseCount: item.caseIndexes.size,
+      complaintTypes: Array.from(item.complaintTypes).sort((left, right) => left.localeCompare(right)).join(', '),
+      itemCode: item.itemCode,
+      latestComplaintDate: item.latestComplaintDate,
+      occurrenceCount: item.occurrenceCount,
+    }))
+    .filter((item) => item.caseCount >= 2)
+    .sort((left, right) => (
+      right.caseCount - left.caseCount
+      || right.occurrenceCount - left.occurrenceCount
+      || right.latestComplaintDate.localeCompare(left.latestComplaintDate)
+      || left.itemCode.localeCompare(right.itemCode)
+    ));
+
+  return {
+    itemizedCases,
+    rows: repeatedItems.slice(0, 25),
+    totalRepeatedItems: repeatedItems.length,
+  };
+}
+
+function buildRepeatCustomerSummary(caseRows) {
+  const customerCounts = new Map();
+  caseRows.forEach((caseRow) => {
+    const customerId = sanitizeText(caseRow.customer_id);
+    if (customerId) {
+      customerCounts.set(customerId, (customerCounts.get(customerId) || 0) + 1);
+    }
+  });
+
+  const repeatCounts = Array.from(customerCounts.values()).filter((count) => count >= 2);
+  const repeatCaseCount = repeatCounts.reduce((total, count) => total + count, 0);
+  return {
+    customerCount: customerCounts.size,
+    repeatCaseCount,
+    repeatCasePercent: percentage(repeatCaseCount, caseRows.length),
+    repeatCustomerCount: repeatCounts.length,
+  };
+}
+
+function buildShippingComplaintRows(shippingCases) {
+  const complaintRows = new Map();
+
+  shippingCases.forEach((caseRow) => {
+    const complaintType = getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT;
+    if (!complaintRows.has(complaintType)) {
+      complaintRows.set(complaintType, {
+        complaintType,
+        methods: new Map(),
+        missingDates: 0,
+        missingMethods: 0,
+        totalCases: 0,
+      });
+    }
+
+    const summary = complaintRows.get(complaintType);
+    const method = sanitizeText(caseRow.shipping_method);
+    summary.totalCases += 1;
+    if (method) {
+      summary.methods.set(method, (summary.methods.get(method) || 0) + 1);
+    } else {
+      summary.missingMethods += 1;
+    }
+    if (!parseDateOnly(caseRow.shipping_date)) {
+      summary.missingDates += 1;
+    }
+  });
+
+  return Array.from(complaintRows.values())
+    .map((row) => {
+      const leadingMethod = Array.from(row.methods.entries())
+        .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))[0];
+      return {
+        complaintType: row.complaintType,
+        leadingMethod: leadingMethod ? leadingMethod[0] : MISSING_SHIPPING_METHOD,
+        leadingMethodCount: leadingMethod ? leadingMethod[1] : 0,
+        missingDates: row.missingDates,
+        missingMethods: row.missingMethods,
+        totalCases: row.totalCases,
+      };
+    })
+    .sort((left, right) => right.totalCases - left.totalCases || left.complaintType.localeCompare(right.complaintType));
+}
+
+function buildCoverageRow(label, count, total) {
+  return {
+    count,
+    label,
+    percent: percentage(count, total),
+    total,
+  };
 }
 
 function formatDateTime(value) {
@@ -665,8 +1055,106 @@ class CaseTrackerService {
   }
 
   async getAnalyticsView() {
-    const totalCases = await ct.Case.count();
-    return { totalCases };
+    const [caseRows, complaintTypeRows] = await Promise.all([
+      ct.Case.findAll({
+        attributes: [
+          'customer_id',
+          'customer_complaint',
+          'customer_complaint_edit',
+          'shipping_method',
+          'shipping_date',
+          'complaint_date',
+          'defect_items',
+          'defect_description',
+          'solution',
+          'solved_date',
+        ],
+        order: [['complaint_date', 'ASC']],
+        raw: true,
+      }),
+      ct.ComplaintType.findAll({
+        attributes: ['name', 'required_fields'],
+        raw: true,
+      }),
+    ]);
+
+    const totalCases = caseRows.length;
+    const solvedCases = caseRows.filter((caseRow) => Boolean(parseDateOnly(caseRow.solved_date)));
+    const openCases = totalCases - solvedCases.length;
+    const classifiedCases = caseRows.filter((caseRow) => Boolean(getEffectiveComplaint(caseRow))).length;
+    const complaintTypes = buildBreakdown(caseRows.map((caseRow) => (
+      getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT
+    )));
+    const shippingComplaintTypes = new Set(
+      complaintTypeRows
+        .filter((complaintType) => normalizeRequiredFields(complaintType.required_fields).includes('shipping_method'))
+        .map((complaintType) => complaintType.name)
+    );
+    const shippingCases = caseRows.filter((caseRow) => shippingComplaintTypes.has(getEffectiveComplaint(caseRow)));
+    const shippingMethods = buildBreakdown(shippingCases.map((caseRow) => (
+      sanitizeText(caseRow.shipping_method) || MISSING_SHIPPING_METHOD
+    )));
+    const itemSummary = buildItemSummary(caseRows);
+    const repeatCustomers = buildRepeatCustomerSummary(caseRows);
+    const processingTime = buildDurationAnalysis(solvedCases, 'complaint_date', 'solved_date', [
+      { label: '0–2 days', minimum: 0, maximum: 2 },
+      { label: '3–7 days', minimum: 3, maximum: 7 },
+      { label: '8–14 days', minimum: 8, maximum: 14 },
+      { label: '15–30 days', minimum: 15, maximum: 30 },
+      { label: '31+ days', minimum: 31, maximum: Infinity },
+    ]);
+    const customerReportDelay = buildDurationAnalysis(shippingCases, 'shipping_date', 'complaint_date', [
+      { label: '0–3 days', minimum: 0, maximum: 3 },
+      { label: '4–7 days', minimum: 4, maximum: 7 },
+      { label: '8–14 days', minimum: 8, maximum: 14 },
+      { label: '15–30 days', minimum: 15, maximum: 30 },
+      { label: '31–60 days', minimum: 31, maximum: 60 },
+      { label: '61+ days', minimum: 61, maximum: Infinity },
+    ]);
+    const complaintDates = caseRows
+      .map((caseRow) => parseDateOnly(caseRow.complaint_date))
+      .filter(Boolean)
+      .sort((left, right) => left.timestamp - right.timestamp);
+    const shippingMethodRecorded = shippingCases.filter((caseRow) => sanitizeText(caseRow.shipping_method)).length;
+    const shippingDateRecorded = shippingCases.filter((caseRow) => Boolean(parseDateOnly(caseRow.shipping_date))).length;
+    const solvedWithSolution = solvedCases.filter((caseRow) => sanitizeText(caseRow.solution)).length;
+    const customerIdRecorded = caseRows.filter((caseRow) => sanitizeText(caseRow.customer_id)).length;
+
+    return {
+      claimSolutionMatrix: buildClaimSolutionMatrix(caseRows),
+      complaintTypes,
+      coverage: [
+        buildCoverageRow('Current complaint type', classifiedCases, totalCases),
+        buildCoverageRow('Customer ID', customerIdRecorded, totalCases),
+        buildCoverageRow('Shipping method (eligible cases)', shippingMethodRecorded, shippingCases.length),
+        buildCoverageRow('Shipping date (eligible cases)', shippingDateRecorded, shippingCases.length),
+        buildCoverageRow('Solution (solved cases)', solvedWithSolution, solvedCases.length),
+        buildCoverageRow('Defect item details', itemSummary.itemizedCases, totalCases),
+      ],
+      customerReportDelay,
+      dayOfMonthComplaints: buildDayOfMonthSeries(caseRows),
+      itemSummary,
+      monthlyComplaints: buildMonthSeries(caseRows, 'complaint_date'),
+      pagetitle: 'Case analytics',
+      processingTime,
+      repeatCustomers,
+      shippingComplaintRows: buildShippingComplaintRows(shippingCases),
+      shippingComplaintTypeCount: shippingComplaintTypes.size,
+      shippingMethods,
+      shippingMonths: buildMonthSeries(shippingCases, 'shipping_date'),
+      summary: {
+        classifiedCases,
+        dateRange: complaintDates.length > 0
+          ? `${complaintDates[0].key} – ${complaintDates[complaintDates.length - 1].key}`
+          : 'No complaint dates recorded',
+        openCases,
+        shippingCases: shippingCases.length,
+        solvedCases: solvedCases.length,
+        solvedRate: percentage(solvedCases.length, totalCases),
+        totalCases,
+      },
+      totalCases,
+    };
   }
 }
 
