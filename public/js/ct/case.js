@@ -81,7 +81,7 @@
       codeCell.textContent = row.itemCode;
       if (row.placeholder) {
         const badge = document.createElement('span');
-        badge.className = 'badge badge-info ml-2';
+        badge.className = 'badge ct-placeholder-badge ml-2';
         badge.textContent = 'Placeholder';
         codeCell.appendChild(badge);
       }

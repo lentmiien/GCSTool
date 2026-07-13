@@ -21,7 +21,7 @@ block content
         .card-body
           h2.h4.mb-2 Complaint Types
           p.text-muted Define which fields become required when each complaint type is selected.
-          form.border.rounded.bg-light.p-3.mb-4(method='post', action='/ct/admin/complaints')
+          form.ct-admin-form.border.rounded.p-3.mb-4(method='post', action='/ct/admin/complaints')
             .form-group
               label(for='new-complaint-type') Complaint type name
               input#new-complaint-type.form-control(type='text', name='name', placeholder='Add complaint type', required=true)

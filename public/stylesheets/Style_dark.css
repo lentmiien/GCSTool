@@ -222,6 +222,39 @@ select {
   background-color: rgb(48, 38, 56);
 }
 
+/* Case tracker */
+.ct-defect-item-panel,
+.ct-admin-form {
+  background-color: rgb(33, 33, 40);
+  border-color: rgb(78, 78, 90) !important;
+}
+
+.ct-defect-item-table,
+.ct-defect-item-table thead th {
+  background-color: rgb(26, 26, 31);
+  color: rgb(252, 255, 214);
+}
+
+.ct-defect-item-table thead th {
+  background-color: rgb(39, 39, 46);
+  border-bottom-color: rgb(110, 110, 110);
+}
+
+.ct-defect-item-table td,
+.ct-defect-item-table th {
+  border-color: rgb(88, 88, 88);
+}
+
+.ct-placeholder-row,
+.ct-placeholder-row:nth-of-type(odd) {
+  background-color: rgb(32, 57, 66) !important;
+}
+
+.ct-placeholder-badge {
+  background-color: rgb(39, 125, 143);
+  color: rgb(235, 251, 255);
+}
+
 /* Debug */
 .debug {
   background-color: rgb(148, 78, 21);

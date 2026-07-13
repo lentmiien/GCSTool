@@ -423,6 +423,24 @@ svg {
   background-color: #e8f4f8;
 }
 
+.ct-defect-item-panel,
+.ct-admin-form {
+  background-color: #f8f9fa;
+}
+
+.ct-defect-item-table {
+  background-color: #ffffff;
+}
+
+.ct-defect-item-table thead th {
+  background-color: #e9ecef;
+}
+
+.ct-placeholder-badge {
+  background-color: #17a2b8;
+  color: #ffffff;
+}
+
 .ct-required-section > .border {
   border-color: #dc3545 !important;
 }

@@ -107,7 +107,7 @@ block content
                 span.text-danger.ml-1(data-required-marker='defect_items', class=requirements.requiredFields.indexOf('defect_items') >= 0 ? '' : 'd-none') *
               small.form-text.text-muted.mb-3 Add each item together with its specific defect description.
               input#defect_items(type='hidden', name='defect_items', value=caseDetails.defect_items_json)
-              .border.rounded.p-3.bg-light
+              .ct-defect-item-panel.border.rounded.p-3
                 .form-row.align-items-end
                   .form-group.col-md-4
                     label(for='defect_item_code') Item code
@@ -126,8 +126,8 @@ block content
                   ) Item not confirmed yet
                 #defect-item-empty.text-muted No defect items added yet.
                 .table-responsive
-                  table#defect-item-table.table.table-sm.table-bordered.bg-white.mb-0.d-none
-                    thead.thead-light
+                  table#defect-item-table.table.table-sm.table-bordered.ct-defect-item-table.mb-0.d-none
+                    thead
                       tr
                         th(scope='col') Item code
                         th(scope='col') Defect description
