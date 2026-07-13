@@ -1,0 +1,126 @@
+extends ../layout
+
+mixin columnChart(rows, ariaLabel)
+  if rows && rows.length > 0
+    .ct-column-chart(role='img', aria-label=ariaLabel)
+      .ct-column-chart-inner
+        each row in rows
+          .ct-column-entry(title=`${row.label}: ${row.count} claim${row.count === 1 ? '' : 's'}`)
+            .ct-column-value= row.count
+            .ct-column-track
+              .ct-column-fill(
+                class=row.count === 0 ? 'ct-column-fill--empty' : '',
+                style=`height: ${row.relativePercent}%`
+              )
+            .ct-column-label= row.shortLabel
+  else
+    .ct-empty-inline No dated cases are available for this chart.
+
+mixin horizontalChart(rows, emptyMessage)
+  if rows && rows.length > 0
+    .ct-horizontal-chart
+      each row in rows
+        .ct-horizontal-row
+          .ct-horizontal-heading
+            span.ct-horizontal-label= row.label
+            span.ct-horizontal-value= `${row.count} · ${row.percent}%`
+          .ct-meter(aria-hidden='true')
+            .ct-meter-fill(style=`width: ${row.percent}%`)
+  else
+    .ct-empty-inline= emptyMessage
+
+block styles
+  link(rel='stylesheet', href='/css/ct/analytics.css')
+
+block content
+  .ct-analytics
+    .ct-page-header
+      div
+        .ct-eyebrow Item analytics
+        h1.mb-2= itemCode
+        p.ct-page-subtitle.mb-0
+          | All recorded defect entries · #{summary.dateRange}
+      .btn-group.mt-3.mt-lg-0
+        a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
+        a.btn.btn-outline-secondary(href='/ct') Cases
+        if role === 'admin'
+          a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
+    .ct-kpi-grid
+      .ct-kpi
+        span.ct-kpi-label Affected cases
+        strong.ct-kpi-value= summary.caseCount
+        span.ct-kpi-detail Unique cases containing this item
+      .ct-kpi
+        span.ct-kpi-label Item entries
+        strong.ct-kpi-value= summary.entryCount
+        span.ct-kpi-detail Includes multiple descriptions in one case
+      .ct-kpi
+        span.ct-kpi-label Last six months
+        strong.ct-kpi-value= summary.recentCaseCount
+        span.ct-kpi-detail= `${recentWindow.startDate} – ${recentWindow.endDate}`
+      .ct-kpi
+        span.ct-kpi-label Open cases
+        strong.ct-kpi-value= summary.openCaseCount
+        span.ct-kpi-detail= `${summary.solvedCaseCount} solved · ${summary.solvedRate}% solved rate`
+      .ct-kpi
+        span.ct-kpi-label Latest complaint
+        strong.ct-kpi-value.ct-kpi-value--compact= summary.latestComplaintDate || '—'
+        span.ct-kpi-detail Most recent recorded complaint date
+      .ct-kpi
+        span.ct-kpi-label Peak claim month
+        strong.ct-kpi-value.ct-kpi-value--compact= summary.peakMonth ? summary.peakMonth.label : '—'
+        span.ct-kpi-detail
+          if summary.peakMonth
+            | #{summary.peakMonth.count} case#{summary.peakMonth.count === 1 ? '' : 's'}
+            if summary.peakMonthTieCount > 1
+              |  · latest of #{summary.peakMonthTieCount} tied months
+          else
+            | No dated cases
+
+    .row
+      .col-xl-8.mb-4
+        .ct-panel.h-100
+          .ct-panel-heading
+            div
+              h2.ct-panel-title Claims by month
+              p.ct-panel-subtitle Unique case counts across the complete history for this item; zero-count months remain visible.
+            span.ct-sample-badge= `${summary.caseCount} cases`
+          +columnChart(monthlyClaims, `Claim counts by month for ${itemCode}`)
+      .col-xl-4.mb-4
+        .ct-panel.h-100
+          .ct-panel-heading
+            div
+              h2.ct-panel-title Complaint types
+              p.ct-panel-subtitle Uses the current complaint type for each affected case.
+          +horizontalChart(complaintTypes, 'No complaint types have been recorded.')
+
+    .ct-panel.mb-4
+      .ct-panel-heading
+        div
+          h2.ct-panel-title Item descriptions and cases
+          p.ct-panel-subtitle Every stored item-description entry for this item, including multiple entries from the same case.
+        span.ct-sample-badge= `${summary.entryCount} entries`
+      .table-responsive
+        table.table.ct-table.mb-0
+          thead
+            tr
+              th Complaint date
+              th Order
+              th Description
+              th Complaint type
+              th Status
+              th Solution
+          tbody
+            each entry in entries
+              tr
+                td= entry.complaintDate || '—'
+                th(scope='row')
+                  a.ct-table-link(href=entry.caseUrl)= entry.orderNumber
+                td.ct-description-cell= entry.description
+                td.ct-wrap-cell= entry.complaintType
+                td
+                  span.ct-status(class=entry.isOpen ? 'ct-status--open' : 'ct-status--solved')= entry.status
+                  if entry.solvedDate
+                    small.ct-status-date= entry.solvedDate
+                td.ct-wrap-cell= entry.solution

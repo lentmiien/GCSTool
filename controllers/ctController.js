@@ -198,3 +198,21 @@ exports.analytics = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.itemAnalytics = async (req, res, next) => {
+  try {
+    setLayoutLocals(req, res);
+    const analytics = await caseTracker.getItemAnalyticsView(req.params.itemCode);
+    if (!analytics) {
+      return res.status(404).render('error', {
+        message: 'No analytics entries were found for this item.',
+        request: req.body,
+        error: { status: 404 },
+      });
+    }
+
+    res.render('ct/itemAnalytics', analytics);
+  } catch (error) {
+    next(error);
+  }
+};

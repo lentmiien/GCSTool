@@ -105,6 +105,42 @@ function parseDateOnly(value) {
   };
 }
 
+function shiftDateByMonths(value, monthOffset) {
+  const parsed = parseDateOnly(value);
+  if (!parsed) {
+    return null;
+  }
+
+  const targetMonthIndex = parsed.year * 12 + parsed.month - 1 + monthOffset;
+  const targetYear = Math.floor(targetMonthIndex / 12);
+  const targetMonth = targetMonthIndex - targetYear * 12;
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const targetDay = Math.min(parsed.day, lastDayOfTargetMonth);
+
+  return [
+    targetYear,
+    String(targetMonth + 1).padStart(2, '0'),
+    String(targetDay).padStart(2, '0'),
+  ].join('-');
+}
+
+function buildRecentComplaintWindow(monthCount) {
+  const endDate = todayDate();
+  return {
+    endDate,
+    startDate: shiftDateByMonths(endDate, -monthCount),
+  };
+}
+
+function filterCasesByComplaintWindow(caseRows, window) {
+  return caseRows.filter((caseRow) => {
+    const complaintDate = parseDateOnly(caseRow.complaint_date);
+    return complaintDate
+      && complaintDate.key >= window.startDate
+      && complaintDate.key <= window.endDate;
+  });
+}
+
 function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
 }
@@ -305,17 +341,19 @@ function buildClaimSolutionMatrix(caseRows) {
   return { columns, rows };
 }
 
+function isRealDefectItem(item) {
+  return item.itemCode
+    && !item.placeholder
+    && item.itemCode.toUpperCase() !== PLACEHOLDER_ITEM.itemCode;
+}
+
 function buildItemSummary(caseRows) {
   const items = new Map();
   let itemizedCases = 0;
 
   caseRows.forEach((caseRow, caseIndex) => {
     const itemRows = parseStoredDefectItems(caseRow.defect_items, caseRow.defect_description)
-      .filter((item) => (
-        item.itemCode
-        && !item.placeholder
-        && item.itemCode.toUpperCase() !== PLACEHOLDER_ITEM.itemCode
-      ));
+      .filter(isRealDefectItem);
     if (itemRows.length === 0) {
       return;
     }
@@ -353,6 +391,7 @@ function buildItemSummary(caseRows) {
       itemCode: item.itemCode,
       latestComplaintDate: item.latestComplaintDate,
       occurrenceCount: item.occurrenceCount,
+      url: `/ct/analytics/item/${encodeURIComponent(item.itemCode)}`,
     }))
     .filter((item) => item.caseCount >= 2)
     .sort((left, right) => (
@@ -366,6 +405,100 @@ function buildItemSummary(caseRows) {
     itemizedCases,
     rows: repeatedItems.slice(0, 25),
     totalRepeatedItems: repeatedItems.length,
+  };
+}
+
+function buildItemAnalytics(caseRows, requestedItemCode) {
+  const normalizedItemCode = sanitizeText(requestedItemCode).toUpperCase();
+  if (!normalizedItemCode || normalizedItemCode === PLACEHOLDER_ITEM.itemCode) {
+    return null;
+  }
+
+  const entries = [];
+  const matchingCases = [];
+
+  caseRows.forEach((caseRow) => {
+    const matchingItems = parseStoredDefectItems(caseRow.defect_items, caseRow.defect_description)
+      .filter((item) => isRealDefectItem(item) && item.itemCode.toUpperCase() === normalizedItemCode);
+    if (matchingItems.length === 0) {
+      return;
+    }
+
+    const complaintDate = parseDateOnly(caseRow.complaint_date);
+    const solvedDate = parseDateOnly(caseRow.solved_date);
+    const orderNumber = sanitizeText(caseRow.order_number);
+    matchingCases.push(caseRow);
+
+    matchingItems.forEach((item) => {
+      entries.push({
+        caseUrl: `/ct/case/${encodeURIComponent(orderNumber)}`,
+        complaintDate: complaintDate ? complaintDate.key : '',
+        complaintType: getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT,
+        description: item.description || 'No description recorded.',
+        isOpen: !solvedDate,
+        itemCode: item.itemCode,
+        orderNumber,
+        solution: sanitizeText(caseRow.solution) || (solvedDate ? 'Not recorded' : '—'),
+        solvedDate: solvedDate ? solvedDate.key : '',
+        status: solvedDate ? 'Solved' : 'Open',
+      });
+    });
+  });
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  entries.sort((left, right) => (
+    right.complaintDate.localeCompare(left.complaintDate)
+    || left.orderNumber.localeCompare(right.orderNumber)
+    || left.description.localeCompare(right.description)
+  ));
+
+  const complaintTypes = buildBreakdown(matchingCases.map((caseRow) => (
+    getEffectiveComplaint(caseRow) || UNCLASSIFIED_COMPLAINT
+  )));
+  const complaintDates = matchingCases
+    .map((caseRow) => parseDateOnly(caseRow.complaint_date))
+    .filter(Boolean)
+    .sort((left, right) => left.timestamp - right.timestamp);
+  const monthlyClaims = buildMonthSeries(matchingCases, 'complaint_date');
+  const peakMonth = monthlyClaims.reduce((peak, month) => (
+    !peak
+    || month.count > peak.count
+    || (month.count === peak.count && month.key > peak.key)
+      ? month
+      : peak
+  ), null);
+  const peakMonthTieCount = peakMonth
+    ? monthlyClaims.filter((month) => month.count === peakMonth.count).length
+    : 0;
+  const recentWindow = buildRecentComplaintWindow(6);
+  const recentCases = filterCasesByComplaintWindow(matchingCases, recentWindow);
+  const solvedCaseCount = matchingCases.filter((caseRow) => Boolean(parseDateOnly(caseRow.solved_date))).length;
+
+  return {
+    complaintTypes,
+    entries,
+    itemCode: entries[0].itemCode,
+    monthlyClaims,
+    recentWindow,
+    summary: {
+      caseCount: matchingCases.length,
+      dateRange: complaintDates.length > 0
+        ? `${complaintDates[0].key} – ${complaintDates[complaintDates.length - 1].key}`
+        : 'No complaint dates recorded',
+      entryCount: entries.length,
+      latestComplaintDate: complaintDates.length > 0
+        ? complaintDates[complaintDates.length - 1].key
+        : '',
+      openCaseCount: matchingCases.length - solvedCaseCount,
+      peakMonth,
+      peakMonthTieCount,
+      recentCaseCount: recentCases.length,
+      solvedCaseCount,
+      solvedRate: percentage(solvedCaseCount, matchingCases.length),
+    },
   };
 }
 
@@ -1094,7 +1227,14 @@ class CaseTrackerService {
     const shippingMethods = buildBreakdown(shippingCases.map((caseRow) => (
       sanitizeText(caseRow.shipping_method) || MISSING_SHIPPING_METHOD
     )));
-    const itemSummary = buildItemSummary(caseRows);
+    const itemWindow = buildRecentComplaintWindow(6);
+    const recentItemCases = filterCasesByComplaintWindow(caseRows, itemWindow);
+    const itemCoverageSummary = buildItemSummary(caseRows);
+    const itemSummary = {
+      ...buildItemSummary(recentItemCases),
+      periodEnd: itemWindow.endDate,
+      periodStart: itemWindow.startDate,
+    };
     const repeatCustomers = buildRepeatCustomerSummary(caseRows);
     const processingTime = buildDurationAnalysis(solvedCases, 'complaint_date', 'solved_date', [
       { label: '0–2 days', minimum: 0, maximum: 2 },
@@ -1129,7 +1269,7 @@ class CaseTrackerService {
         buildCoverageRow('Shipping method (eligible cases)', shippingMethodRecorded, shippingCases.length),
         buildCoverageRow('Shipping date (eligible cases)', shippingDateRecorded, shippingCases.length),
         buildCoverageRow('Solution (solved cases)', solvedWithSolution, solvedCases.length),
-        buildCoverageRow('Defect item details', itemSummary.itemizedCases, totalCases),
+        buildCoverageRow('Defect item details', itemCoverageSummary.itemizedCases, totalCases),
       ],
       customerReportDelay,
       dayOfMonthComplaints: buildDayOfMonthSeries(caseRows),
@@ -1154,6 +1294,32 @@ class CaseTrackerService {
         totalCases,
       },
       totalCases,
+    };
+  }
+
+  async getItemAnalyticsView(itemCode) {
+    const caseRows = await ct.Case.findAll({
+      attributes: [
+        'order_number',
+        'customer_complaint',
+        'customer_complaint_edit',
+        'complaint_date',
+        'defect_items',
+        'defect_description',
+        'solution',
+        'solved_date',
+      ],
+      order: [['complaint_date', 'ASC'], ['order_number', 'ASC']],
+      raw: true,
+    });
+    const analytics = buildItemAnalytics(caseRows, itemCode);
+    if (!analytics) {
+      return null;
+    }
+
+    return {
+      ...analytics,
+      pagetitle: `Item analytics: ${analytics.itemCode}`,
     };
   }
 }

@@ -19,5 +19,6 @@ router.post('/admin/solutions', controller.addSolutionType);
 router.post('/admin/solutions/:id/delete', controller.deleteSolutionType);
 
 router.get('/analytics', controller.analytics);
+router.get('/analytics/item/:itemCode', controller.itemAnalytics);
 
 module.exports = router;

@@ -222,7 +222,8 @@ block content
             .ct-panel-heading
               div
                 h2.ct-panel-title Repeated item summary
-                p.ct-panel-subtitle Real item codes appearing in at least two separate cases; placeholder items are excluded.
+                p.ct-panel-subtitle
+                  | Real item codes appearing in at least two separate cases dated #{itemSummary.periodStart}–#{itemSummary.periodEnd}; placeholder items are excluded.
               span.ct-sample-badge= `${itemSummary.totalRepeatedItems} repeated`
             if itemSummary.rows.length > 0
               .table-responsive
@@ -237,7 +238,8 @@ block content
                   tbody
                     each item in itemSummary.rows
                       tr
-                        th(scope='row')= item.itemCode
+                        th(scope='row')
+                          a.ct-table-link(href=item.url)= item.itemCode
                         td= item.caseCount
                         td= item.occurrenceCount
                         td.ct-wrap-cell= item.complaintTypes
@@ -245,7 +247,7 @@ block content
               if itemSummary.totalRepeatedItems > itemSummary.rows.length
                 p.ct-data-note.mt-3.mb-0 Showing the 25 items with the most affected cases.
             else
-              .ct-empty-inline No real item code currently appears in more than one case.
+              .ct-empty-inline No real item code appears in more than one case during the last six months.
         .col-xl-4.mb-4
           .ct-panel.h-100
             .ct-panel-heading
@@ -265,4 +267,4 @@ block content
                   .ct-meter(aria-hidden='true')
                     .ct-meter-fill.ct-meter-fill--coverage(style=`width: ${row.total > 0 ? row.percent : 0}%`)
             p.ct-data-note.mt-4.mb-0
-              | All statistics use the complete stored dataset. Period and quarter filters can be added later once the sample is large enough for stable comparisons.
+              | Data coverage and the other dashboard statistics use the complete stored dataset. The repeated item summary uses only the latest six months so inactive items drop off automatically.
