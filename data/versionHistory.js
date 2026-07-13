@@ -3,11 +3,16 @@ const item = (text, children = []) => ({ text, children });
 module.exports = [
   {
     version: '2.9.12',
-    releaseDate: '2026-07-10',
-    updateDate: '2026-07-10',
+    releaseDate: '2026-07-13',
+    updateDate: '2026-07-13',
     items: [
       item('HS', [
         item('Ireland/Greece CSV editor - Added support for new barcode input format'),
+      ]),
+      item('Case tracker', [
+        item('Case entry - Added a structured defect item and description editor, including a placeholder item option for cases awaiting clarification'),
+        item('Case entry - Added complaint-comment guidance and required-field indicators'),
+        item('Admin - Added configurable shipping methods and complaint-type required fields'),
       ]),
     ],
   },
