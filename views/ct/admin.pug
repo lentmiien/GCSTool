@@ -4,7 +4,7 @@ block content
   .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
     .mb-3.mb-lg-0
       h1.mb-1 Case Admin
-      p.text-muted.mb-0 Manage complaint and solution lookup values.
+      p.text-muted.mb-0 Manage complaint requirements and case lookup values.
     .btn-group
       a.btn.btn-outline-secondary(href='/ct') Cases
       a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
@@ -13,29 +13,76 @@ block content
     .alert.alert-info= message
 
   .alert.alert-secondary
-    | Cases store plain text values for complaints and solutions, so deleting a type here will not change existing case records.
+    | Cases store their selected lookup values as text. Deleting an option here will not change existing cases; an existing value remains available on the case where it was used.
 
   .row
-    .col-lg-6
+    .col-xl-7
       .card.mb-4
         .card-body
-          h2.h4.mb-3 Complaint Types
-          form(method='post', action='/ct/admin/complaints')
-            .input-group.mb-3
-              input.form-control(type='text', name='name', placeholder='Add complaint type', required=true)
-              .input-group-append
-                button.btn.btn-primary(type='submit') Add
+          h2.h4.mb-2 Complaint Types
+          p.text-muted Define which fields become required when each complaint type is selected.
+          form.border.rounded.bg-light.p-3.mb-4(method='post', action='/ct/admin/complaints')
+            .form-group
+              label(for='new-complaint-type') Complaint type name
+              input#new-complaint-type.form-control(type='text', name='name', placeholder='Add complaint type', required=true)
+            fieldset.form-group.mb-2
+              legend.h6 Required fields
+              .row
+                each field in requiredFieldDefinitions
+                  .col-md-6
+                    .custom-control.custom-checkbox.mb-2
+                      input.custom-control-input(type='checkbox', name='required_fields', value=field.key, id=`new-${field.key}`)
+                      label.custom-control-label(for=`new-${field.key}`)= field.label
+            button.btn.btn-primary(type='submit') Add complaint type
+
           if complaintTypes.length > 0
-            ul.list-group
+            .list-group
               each complaintType in complaintTypes
-                li.list-group-item.d-flex.justify-content-between.align-items-center
-                  span= complaintType.name
-                  form(method='post', action=`/ct/admin/complaints/${complaintType.id}/delete`)
-                    button.btn.btn-outline-danger.btn-sm(type='submit') Delete
+                .list-group-item
+                  .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center.mb-2
+                    strong= complaintType.name
+                    form(method='post', action=`/ct/admin/complaints/${complaintType.id}/delete`)
+                      button.btn.btn-outline-danger.btn-sm(type='submit') Delete
+                  form(method='post', action=`/ct/admin/complaints/${complaintType.id}`)
+                    fieldset
+                      legend.small.font-weight-bold.mb-2 Required fields
+                      .row
+                        each field in requiredFieldDefinitions
+                          .col-md-6
+                            .custom-control.custom-checkbox.mb-2
+                              - const checkboxId = `complaint-${complaintType.id}-${field.key}`
+                              input.custom-control-input(
+                                type='checkbox',
+                                name='required_fields',
+                                value=field.key,
+                                id=checkboxId,
+                                checked=complaintType.requiredFields.indexOf(field.key) >= 0
+                              )
+                              label.custom-control-label(for=checkboxId)= field.label
+                    button.btn.btn-outline-primary.btn-sm.mt-1(type='submit') Save requirements
           else
             p.text-muted.mb-0 No complaint types configured yet.
 
-    .col-lg-6
+    .col-xl-5
+      .card.mb-4
+        .card-body
+          h2.h4.mb-2 Shipping Methods
+          p.text-muted Cases use this list to avoid spelling variations.
+          form(method='post', action='/ct/admin/shipping-methods')
+            .input-group.mb-3
+              input.form-control(type='text', name='name', placeholder='Add shipping method', required=true)
+              .input-group-append
+                button.btn.btn-primary(type='submit') Add
+          if shippingMethods.length > 0
+            ul.list-group
+              each shippingMethod in shippingMethods
+                li.list-group-item.d-flex.justify-content-between.align-items-center
+                  span= shippingMethod.name
+                  form(method='post', action=`/ct/admin/shipping-methods/${shippingMethod.id}/delete`)
+                    button.btn.btn-outline-danger.btn-sm(type='submit') Delete
+          else
+            p.text-muted.mb-0 No shipping methods configured yet.
+
       .card.mb-4
         .card-body
           h2.h4.mb-3 Solution Types

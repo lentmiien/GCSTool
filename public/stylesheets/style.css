@@ -413,6 +413,20 @@ svg {
   color: gray;
 }
 
+/* Case tracker */
+.defect-item-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.ct-placeholder-row {
+  background-color: #e8f4f8;
+}
+
+.ct-required-section > .border {
+  border-color: #dc3545 !important;
+}
+
 /* Shipping method manager */
 .updated_cell {
   background-color: rgb(0, 59, 0);

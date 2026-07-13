@@ -43,6 +43,7 @@ const Trackhist4Model = require('./models/trackhist4');
 const CaseModel = require('./models/ct/caseRecord');
 const ComplaintTypeModel = require('./models/ct/complaintType');
 const SolutionTypeModel = require('./models/ct/solutionType');
+const ShippingMethodModel = require('./models/ct/shippingMethod');
 // Policy/Manual/Template
 const PMTEntryModel = require('./models/pmt/pmt_entry');
 const PMTDependenciesModel = require('./models/pmt/pmt_dependencies');
@@ -113,6 +114,7 @@ const Trackhist4 = Trackhist4Model(sequelize_tracker, Sequelize);
 const Case = CaseModel(sequelize, Sequelize);
 const ComplaintType = ComplaintTypeModel(sequelize, Sequelize);
 const SolutionType = SolutionTypeModel(sequelize, Sequelize);
+const ShippingMethod = ShippingMethodModel(sequelize, Sequelize);
 // Policy/Manual/Template
 const PMTEntry = PMTEntryModel(sequelize, Sequelize);
 const PMTDependencies = PMTDependenciesModel(sequelize, Sequelize);
@@ -225,8 +227,51 @@ async function seedVersionHistoryData() {
   }
 }
 
+async function ensureCaseTrackerSchema() {
+  const queryInterface = sequelize.getQueryInterface();
+  const caseTable = Case.getTableName();
+  const complaintTypeTable = ComplaintType.getTableName();
+  const caseColumns = await queryInterface.describeTable(caseTable);
+  const complaintTypeColumns = await queryInterface.describeTable(complaintTypeTable);
+
+  if (caseColumns.defect_items && !caseColumns.defect_items.type.toUpperCase().includes('TEXT')) {
+    await queryInterface.changeColumn(caseTable, 'defect_items', {
+      type: Sequelize.TEXT,
+      allowNull: true,
+    });
+    console.log(`Changed "defect_items" to TEXT in ${caseTable}.`);
+  }
+
+  if (!complaintTypeColumns.required_fields) {
+    await queryInterface.addColumn(complaintTypeTable, 'required_fields', {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: '[]',
+    });
+
+    // Preserve the old keyword-based behavior once, then use only the saved configuration.
+    const complaintTypes = await ComplaintType.findAll();
+    for (const complaintType of complaintTypes) {
+      const name = complaintType.name.toLowerCase();
+      const requiredFields = [];
+      if (['ship', 'shipment', 'shipping', 'lost', 'stuck', 'damage', 'damaged'].some((keyword) => name.includes(keyword))) {
+        requiredFields.push('shipping_method');
+      }
+      if (['lost', 'stuck'].some((keyword) => name.includes(keyword))) {
+        requiredFields.push('shipping_date');
+      }
+      if (name.includes('defect')) {
+        requiredFields.push('defect_items');
+      }
+      await complaintType.update({ required_fields: JSON.stringify(requiredFields) });
+    }
+    console.log(`Added "required_fields" to ${complaintTypeTable}.`);
+  }
+}
+
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(async () => {
+  await ensureCaseTrackerSchema();
   await ensureIrelandWorkSummarySchema();
   await seedVersionHistoryData();
   console.log(`Database & tables syncronized! [GCS Tool]`);
@@ -301,6 +346,7 @@ module.exports = {
     Case,
     ComplaintType,
     SolutionType,
+    ShippingMethod,
   },
   pmt: {
     PMTEntry,

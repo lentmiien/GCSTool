@@ -34,7 +34,7 @@ module.exports = (sequelize, type) => {
       allowNull: false,
     },
     defect_items: {
-      type: type.STRING,
+      type: type.TEXT,
       allowNull: true,
     },
     defect_description: {

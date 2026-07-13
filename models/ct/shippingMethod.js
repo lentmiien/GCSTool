@@ -1,17 +1,12 @@
 module.exports = (sequelize, type) => {
-  return sequelize.define('complaint_type', {
+  return sequelize.define('shipping_method', {
     name: {
       type: type.STRING,
       allowNull: false,
       unique: true,
     },
-    required_fields: {
-      type: type.STRING,
-      allowNull: false,
-      defaultValue: '[]',
-    },
   }, {
-    tableName: 'complaint_types',
+    tableName: 'shipping_methods',
     indexes: [
       {
         unique: true,

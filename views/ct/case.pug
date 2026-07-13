@@ -23,7 +23,7 @@ block content
 
   .row
     .col-lg-8
-      form(method='post', action=`/ct/case/${encodeURIComponent(caseDetails.order_number)}`)
+      form#case-form(method='post', action=`/ct/case/${encodeURIComponent(caseDetails.order_number)}`, data-original-complaint=caseDetails.customer_complaint)
         .card.mb-4
           .card-body
             h2.h4.mb-3 Case Details
@@ -32,12 +32,16 @@ block content
                 label Order number
                 input.form-control(type='text', value=caseDetails.order_number, readonly=true)
               .form-group.col-md-6
-                label Customer ID
-                input.form-control(type='text', name='customer_id', value=caseDetails.customer_id)
+                label(for='customer_id')
+                  | Customer ID
+                  span.text-danger.ml-1(data-required-marker='customer_id', class=requirements.requiredFields.indexOf('customer_id') >= 0 ? '' : 'd-none') *
+                input#customer_id.form-control(type='text', name='customer_id', value=caseDetails.customer_id, required=requirements.requiredFields.indexOf('customer_id') >= 0)
             .form-row
               .form-group.col-md-6
-                label Complaint date
-                input.form-control(type='date', name='complaint_date', value=caseDetails.complaint_date, required=true)
+                label(for='complaint_date')
+                  | Complaint date
+                  span.text-danger.ml-1 *
+                input#complaint_date.form-control(type='date', name='complaint_date', value=caseDetails.complaint_date, required=true)
               .form-group.col-md-6
                 label Status
                 if caseDetails.is_open
@@ -55,39 +59,86 @@ block content
                 select#customer_complaint_edit.form-control(name='customer_complaint_edit')
                   option(value='') No override
                   each complaintType in complaintTypes
-                    option(value=complaintType, selected=caseDetails.customer_complaint_edit === complaintType)= complaintType
+                    option(value=complaintType.name, data-required-fields=JSON.stringify(complaintType.requiredFields), selected=caseDetails.customer_complaint_edit === complaintType.name)= complaintType.name
             else
               .form-group
                 label(for='customer_complaint') Customer complaint
                 select#customer_complaint.form-control(name='customer_complaint')
-                  option(value='') Select complaint
+                  option(value='', data-required-fields='[]') Select complaint
                   each complaintType in complaintTypes
-                    option(value=complaintType, selected=caseDetails.customer_complaint === complaintType)= complaintType
+                    option(value=complaintType.name, data-required-fields=JSON.stringify(complaintType.requiredFields), selected=caseDetails.customer_complaint === complaintType.name)= complaintType.name
                 if !hasComplaintTypes
                   small.form-text.text-warning Add complaint types on the admin page before assigning one here.
 
             .form-group
-              label(for='customer_complaint_comment') Complaint comment
-              textarea#customer_complaint_comment.form-control(name='customer_complaint_comment', rows='3')= caseDetails.customer_complaint_comment
+              label(for='customer_complaint_comment')
+                | Complaint comment
+                span.text-danger.ml-1(data-required-marker='customer_complaint_comment', class=requirements.requiredFields.indexOf('customer_complaint_comment') >= 0 ? '' : 'd-none') *
+              textarea#customer_complaint_comment.form-control(
+                name='customer_complaint_comment',
+                rows='4',
+                required=requirements.requiredFields.indexOf('customer_complaint_comment') >= 0,
+                aria-describedby='complaint-comment-help',
+                placeholder='Summarize the complaint and why this case needs review.'
+              )= caseDetails.customer_complaint_comment
+              small#complaint-comment-help.form-text.text-muted
+                | Give the overall case context: what the customer is complaining about, why we decided to review the case, and relevant history—for example, whether this concerns a replacement from an earlier exchange.
 
             .form-row
               .form-group.col-md-6
-                label(for='shipping_method') Shipping method
-                input#shipping_method.form-control(type='text', name='shipping_method', value=caseDetails.shipping_method)
+                label(for='shipping_method')
+                  | Shipping method
+                  span.text-danger.ml-1(data-required-marker='shipping_method', class=requirements.requiredFields.indexOf('shipping_method') >= 0 ? '' : 'd-none') *
+                select#shipping_method.form-control(name='shipping_method', required=requirements.requiredFields.indexOf('shipping_method') >= 0)
+                  option(value='') Select shipping method
+                  each method in shippingMethods
+                    option(value=method, selected=caseDetails.shipping_method === method)= method
+                if !hasShippingMethods
+                  small.form-text.text-warning No shipping methods are configured. An administrator can add them on the CT admin page.
               .form-group.col-md-6
-                label(for='shipping_date') Shipping date
-                input#shipping_date.form-control(type='date', name='shipping_date', value=caseDetails.shipping_date)
+                label(for='shipping_date')
+                  | Shipping date
+                  span.text-danger.ml-1(data-required-marker='shipping_date', class=requirements.requiredFields.indexOf('shipping_date') >= 0 ? '' : 'd-none') *
+                input#shipping_date.form-control(type='date', name='shipping_date', value=caseDetails.shipping_date, required=requirements.requiredFields.indexOf('shipping_date') >= 0)
 
-            .form-group
-              label(for='defect_items') Defect items
-              input#defect_items.form-control(type='text', name='defect_items', value=caseDetails.defect_items, placeholder='Example: ITEM-001, ITEM-002')
-            .form-group
-              label(for='defect_description') Defect description
-              textarea#defect_description.form-control(name='defect_description', rows='3')= caseDetails.defect_description
+            .form-group#defect-item-editor(data-placeholder-item=JSON.stringify(placeholderItem))
+              label.d-block
+                | Defect items
+                span.text-danger.ml-1(data-required-marker='defect_items', class=requirements.requiredFields.indexOf('defect_items') >= 0 ? '' : 'd-none') *
+              small.form-text.text-muted.mb-3 Add each item together with its specific defect description.
+              input#defect_items(type='hidden', name='defect_items', value=caseDetails.defect_items_json)
+              .border.rounded.p-3.bg-light
+                .form-row.align-items-end
+                  .form-group.col-md-4
+                    label(for='defect_item_code') Item code
+                    input#defect_item_code.form-control(type='text', maxlength='255', autocomplete='off', placeholder='Example: ITEM-001')
+                  .form-group.col-md-8
+                    label(for='defect_item_description') Defect description
+                    textarea#defect_item_description.form-control(rows='2', maxlength='1000', placeholder='Describe the defect for this item')
+                #defect-item-error.alert.alert-danger.py-2.d-none(role='alert')
+                .d-flex.flex-wrap.mb-3
+                  button#defect-item-add.btn.btn-primary.mr-2.mb-2(type='button') Add item
+                  button#defect-item-cancel.btn.btn-outline-secondary.mr-2.mb-2.d-none(type='button') Cancel edit
+                  button#defect-item-placeholder.btn.btn-outline-info.mb-2(
+                    type='button',
+                    data-required-only='defect_items',
+                    class=requirements.requiredFields.indexOf('defect_items') >= 0 ? '' : 'd-none'
+                  ) Item not confirmed yet
+                #defect-item-empty.text-muted No defect items added yet.
+                .table-responsive
+                  table#defect-item-table.table.table-sm.table-bordered.bg-white.mb-0.d-none
+                    thead.thead-light
+                      tr
+                        th(scope='col') Item code
+                        th(scope='col') Defect description
+                        th.defect-item-actions(scope='col') Actions
+                    tbody
 
             .form-row
               .form-group.col-md-6
-                label(for='solution') Solution
+                label(for='solution')
+                  | Solution
+                  span.text-danger.ml-1.d-none(data-solved-required-marker) *
                 select#solution.form-control(name='solution')
                   option(value='') Select solution
                   each solutionType in solutionTypes
@@ -97,8 +148,9 @@ block content
               .form-group.col-md-6
                 label(for='solved_date') Solved date
                 input#solved_date.form-control(type='date', name='solved_date', value=caseDetails.solved_date)
-                small.form-text.text-muted Setting a solved date closes the case.
+                small.form-text.text-muted Setting a solved date closes the case and requires a solution.
 
+            p.small.text-muted Fields marked with #[span.text-danger *] are required.
             button.btn.btn-primary(type='submit') Save case
 
     .col-lg-4
@@ -118,19 +170,11 @@ block content
       .card.mb-4
         .card-body
           h2.h5.mb-3 Required For Current Complaint
-          if caseDetails.effective_complaint
-            ul.mb-0
-              if requirements.needsShippingMethod
-                li Shipping method
-              if requirements.needsShippingDate
-                li Shipping date
-              if requirements.needsDefectFields
-                li Defect items
-                li Defect description
-              if !requirements.needsShippingMethod && !requirements.needsShippingDate && !requirements.needsDefectFields
-                li No extra required fields for this complaint.
-          else
-            p.text-muted.mb-0 Set a complaint to see conditional field requirements.
+          ul#complaint-required-list.mb-0(class=caseDetails.effective_complaint ? '' : 'd-none')
+            each field in requiredFieldDefinitions
+              li(data-required-summary=field.key, class=requirements.requiredFields.indexOf(field.key) >= 0 ? '' : 'd-none')= field.label
+            li.text-muted(data-no-extra-requirements, class=requirements.requiredFields.length === 0 ? '' : 'd-none') No extra required fields for this complaint.
+          p#complaint-required-empty.text-muted.mb-0(class=caseDetails.effective_complaint ? 'd-none' : '') Set a complaint to see conditional field requirements.
 
       .card
         .card-body
@@ -149,3 +193,6 @@ block content
               p.text-muted.mb-0 No other cases found for this customer ID.
           else
             p.text-muted.mb-0 Add a customer ID to track repeat cases.
+
+block scripts
+  script(src='/js/ct/case.js')

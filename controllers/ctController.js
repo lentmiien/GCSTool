@@ -104,7 +104,20 @@ exports.addComplaintType = async (req, res, next) => {
       return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
     }
 
-    const result = await caseTracker.addComplaintType(req.body.name);
+    const result = await caseTracker.addComplaintType(req.body);
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateComplaintType = async (req, res, next) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
+    }
+
+    const result = await caseTracker.updateComplaintType(parseInt(req.params.id, 10), req.body);
     res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
   } catch (error) {
     next(error);
@@ -118,6 +131,32 @@ exports.deleteComplaintType = async (req, res, next) => {
     }
 
     const result = await caseTracker.deleteComplaintType(parseInt(req.params.id, 10));
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.addShippingMethod = async (req, res, next) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
+    }
+
+    const result = await caseTracker.addShippingMethod(req.body.name);
+    res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteShippingMethod = async (req, res, next) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.redirect('/ct?message=' + encodeURIComponent('Admin access required.'));
+    }
+
+    const result = await caseTracker.deleteShippingMethod(parseInt(req.params.id, 10));
     res.redirect('/ct/admin?message=' + encodeURIComponent(result.message));
   } catch (error) {
     next(error);

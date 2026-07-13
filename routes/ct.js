@@ -11,7 +11,10 @@ router.post('/case/:orderNumber', controller.updateCase);
 
 router.get('/admin', controller.admin);
 router.post('/admin/complaints', controller.addComplaintType);
+router.post('/admin/complaints/:id', controller.updateComplaintType);
 router.post('/admin/complaints/:id/delete', controller.deleteComplaintType);
+router.post('/admin/shipping-methods', controller.addShippingMethod);
+router.post('/admin/shipping-methods/:id/delete', controller.deleteShippingMethod);
 router.post('/admin/solutions', controller.addSolutionType);
 router.post('/admin/solutions/:id/delete', controller.deleteSolutionType);
 

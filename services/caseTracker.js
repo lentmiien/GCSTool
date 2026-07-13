@@ -1,8 +1,19 @@
 const { ct, Op } = require('../sequelize');
 
-const SHIPPING_METHOD_KEYWORDS = ['ship', 'shipment', 'shipping', 'lost', 'stuck', 'damage', 'damaged'];
-const SHIPPING_DATE_KEYWORDS = ['lost', 'stuck'];
-const DEFECT_KEYWORDS = ['defect'];
+const REQUIRED_FIELD_DEFINITIONS = [
+  { key: 'customer_id', label: 'Customer ID' },
+  { key: 'customer_complaint_comment', label: 'Complaint comment' },
+  { key: 'shipping_method', label: 'Shipping method' },
+  { key: 'shipping_date', label: 'Shipping date' },
+  { key: 'defect_items', label: 'Defect items and descriptions' },
+];
+const REQUIRED_FIELD_KEYS = REQUIRED_FIELD_DEFINITIONS.map((field) => field.key);
+const PLACEHOLDER_ITEM = {
+  itemCode: 'ITEM-NOT-CONFIRMED',
+  description: 'Customer has not confirmed which item is defective yet.',
+  placeholder: true,
+};
+const MAX_DEFECT_ITEMS = 25;
 
 function sanitizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -23,11 +34,7 @@ function todayDate() {
 
 function normalizeDate(value) {
   const sanitized = sanitizeText(value);
-  if (!sanitized) {
-    return null;
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(sanitized)) {
+  if (!sanitized || !/^\d{4}-\d{2}-\d{2}$/.test(sanitized)) {
     return null;
   }
 
@@ -63,25 +70,178 @@ function formatDateTime(value) {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-function containsKeyword(value, keywords) {
-  const normalizedValue = sanitizeText(value).toLowerCase();
-  if (!normalizedValue) {
-    return false;
-  }
-
-  return keywords.some((keyword) => normalizedValue.indexOf(keyword) >= 0);
-}
-
 function getEffectiveComplaint(caseData) {
   return sanitizeText(caseData.customer_complaint_edit) || sanitizeText(caseData.customer_complaint);
 }
 
-function getRequirementFlags(complaintText) {
+function normalizeRequiredFields(value) {
+  let values = value;
+  if (!Array.isArray(values)) {
+    const sanitized = sanitizeText(values);
+    if (!sanitized) {
+      values = [];
+    } else if (sanitized.startsWith('[')) {
+      try {
+        values = JSON.parse(sanitized);
+      } catch (error) {
+        values = [];
+      }
+    } else {
+      values = [sanitized];
+    }
+  }
+
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return REQUIRED_FIELD_KEYS.filter((key) => values.indexOf(key) >= 0);
+}
+
+function toComplaintType(row) {
+  const data = row.toJSON ? row.toJSON() : { ...row };
   return {
-    needsShippingMethod: containsKeyword(complaintText, SHIPPING_METHOD_KEYWORDS),
-    needsShippingDate: containsKeyword(complaintText, SHIPPING_DATE_KEYWORDS),
-    needsDefectFields: containsKeyword(complaintText, DEFECT_KEYWORDS),
+    ...data,
+    requiredFields: normalizeRequiredFields(data.required_fields),
   };
+}
+
+function buildComplaintOptions(rows, extraValues) {
+  const options = rows.map((row) => toComplaintType(row));
+  extraValues.forEach((value) => {
+    const sanitized = sanitizeText(value);
+    if (sanitized && !options.some((option) => option.name === sanitized)) {
+      options.unshift({ name: sanitized, requiredFields: [] });
+    }
+  });
+  return options;
+}
+
+function buildValueOptions(rows, extraValues) {
+  const values = rows.map((row) => row.name);
+  extraValues.forEach((value) => {
+    const sanitized = sanitizeText(value);
+    if (sanitized && values.indexOf(sanitized) === -1) {
+      values.unshift(sanitized);
+    }
+  });
+  return values;
+}
+
+function buildRequirements(complaintText, complaintTypes) {
+  const complaint = sanitizeText(complaintText);
+  const match = complaintTypes.find((row) => row.name === complaint);
+  return {
+    requiredFields: match ? normalizeRequiredFields(match.required_fields) : [],
+  };
+}
+
+function normalizeDefectItem(row) {
+  if (!row || typeof row !== 'object') {
+    return { itemCode: '', description: '', placeholder: false };
+  }
+
+  const itemCode = sanitizeText(row.itemCode || row.item_code).slice(0, 255);
+  const description = sanitizeText(row.description || row.defect).slice(0, 1000);
+  const placeholder = row.placeholder === true && itemCode === PLACEHOLDER_ITEM.itemCode;
+
+  if (placeholder) {
+    return { ...PLACEHOLDER_ITEM };
+  }
+
+  return { itemCode, description, placeholder: false };
+}
+
+function parseLegacyDefectItems(value, legacyDescription) {
+  const description = sanitizeText(legacyDescription);
+  return sanitizeText(value)
+    .split(/[,\n]/)
+    .map((itemCode) => sanitizeText(itemCode))
+    .filter(Boolean)
+    .map((itemCode) => ({ itemCode, description, placeholder: false }));
+}
+
+function parseStoredDefectItems(value, legacyDescription) {
+  const sanitized = sanitizeText(value);
+  if (!sanitized) {
+    return [];
+  }
+
+  if (sanitized.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(sanitized);
+      if (Array.isArray(parsed)) {
+        return parsed.map(normalizeDefectItem).filter((row) => row.itemCode || row.description);
+      }
+    } catch (error) {
+      // Fall through to the legacy comma-separated representation.
+    }
+  }
+
+  return parseLegacyDefectItems(sanitized, legacyDescription);
+}
+
+function parseSubmittedDefectItems(value, legacyDescription) {
+  const sanitized = sanitizeText(value);
+  if (!sanitized) {
+    return { rows: [], errors: [] };
+  }
+
+  let submittedRows;
+  if (sanitized.startsWith('[')) {
+    try {
+      submittedRows = JSON.parse(sanitized);
+    } catch (error) {
+      return { rows: [], errors: ['Defect item data is invalid. Please add the items again.'] };
+    }
+    if (!Array.isArray(submittedRows)) {
+      return { rows: [], errors: ['Defect item data is invalid. Please add the items again.'] };
+    }
+  } else {
+    submittedRows = parseLegacyDefectItems(sanitized, legacyDescription);
+  }
+
+  const errors = [];
+  let rows = submittedRows.slice(0, MAX_DEFECT_ITEMS).map(normalizeDefectItem);
+  if (submittedRows.length > MAX_DEFECT_ITEMS) {
+    errors.push(`A case can contain no more than ${MAX_DEFECT_ITEMS} defect items.`);
+  }
+
+  rows = rows.filter((row, index) => {
+    if (!row.itemCode || !row.description) {
+      errors.push(`Defect item ${index + 1} needs both an item code and a description.`);
+      return false;
+    }
+    return true;
+  });
+
+  const hasRealItem = rows.some((row) => !row.placeholder);
+  if (hasRealItem) {
+    rows = rows.filter((row) => !row.placeholder);
+  } else if (rows.length > 1) {
+    rows = [rows[0]];
+  }
+
+  return { rows, errors };
+}
+
+function serializeDefectItems(rows) {
+  return JSON.stringify(rows.map((row) => ({
+    itemCode: row.itemCode,
+    description: row.description,
+    placeholder: row.placeholder === true,
+  })));
+}
+
+function buildDefectDescription(rows) {
+  return rows.map((row) => `${row.itemCode}: ${row.description}`).join('\n');
+}
+
+function hydrateCaseDefectItems(caseData) {
+  const rows = parseStoredDefectItems(caseData.defect_items, caseData.defect_description);
+  caseData.defect_item_rows = rows;
+  caseData.defect_items_json = serializeDefectItems(rows);
+  return caseData;
 }
 
 function toPlainCase(caseEntry) {
@@ -101,20 +261,7 @@ function toPlainCase(caseEntry) {
   data.is_open = !data.solved_date;
   data.created_at_display = formatDateTime(data.createdAt);
   data.updated_at_display = formatDateTime(data.updatedAt);
-  return data;
-}
-
-function buildValueOptions(rows, extraValues) {
-  const values = rows.map((row) => row.name);
-
-  extraValues.forEach((value) => {
-    const sanitized = sanitizeText(value);
-    if (sanitized && values.indexOf(sanitized) === -1) {
-      values.unshift(sanitized);
-    }
-  });
-
-  return values;
+  return hydrateCaseDefectItems(data);
 }
 
 class CaseTrackerService {
@@ -123,12 +270,13 @@ class CaseTrackerService {
   }
 
   async getLookupRows() {
-    const [complaintTypes, solutionTypes] = await Promise.all([
+    const [complaintTypes, solutionTypes, shippingMethods] = await Promise.all([
       ct.ComplaintType.findAll({ order: [['name', 'ASC']] }),
       ct.SolutionType.findAll({ order: [['name', 'ASC']] }),
+      ct.ShippingMethod.findAll({ order: [['name', 'ASC']] }),
     ]);
 
-    return { complaintTypes, solutionTypes };
+    return { complaintTypes, solutionTypes, shippingMethods };
   }
 
   async getDashboard() {
@@ -207,10 +355,10 @@ class CaseTrackerService {
     }
 
     const storedCase = toPlainCase(caseEntry);
-    const caseDetails = {
+    const caseDetails = hydrateCaseDefectItems({
       ...storedCase,
       ...(draftCase || {}),
-    };
+    });
 
     caseDetails.effective_complaint = getEffectiveComplaint(caseDetails);
     caseDetails.is_open = !caseDetails.solved_date;
@@ -232,20 +380,25 @@ class CaseTrackerService {
       relatedCases = relatedRows.map((entry) => toPlainCase(entry));
     }
 
-    const complaintOptions = buildValueOptions(lookupRows.complaintTypes, [
+    const complaintOptions = buildComplaintOptions(lookupRows.complaintTypes, [
       caseDetails.customer_complaint,
       caseDetails.customer_complaint_edit,
     ]);
     const solutionOptions = buildValueOptions(lookupRows.solutionTypes, [caseDetails.solution]);
+    const shippingMethodOptions = buildValueOptions(lookupRows.shippingMethods, [caseDetails.shipping_method]);
 
     return {
       caseDetails,
       relatedCases,
       complaintTypes: complaintOptions,
       solutionTypes: solutionOptions,
-      requirements: getRequirementFlags(caseDetails.effective_complaint),
+      shippingMethods: shippingMethodOptions,
+      requirements: buildRequirements(caseDetails.effective_complaint, lookupRows.complaintTypes),
+      requiredFieldDefinitions: REQUIRED_FIELD_DEFINITIONS,
+      placeholderItem: PLACEHOLDER_ITEM,
       hasComplaintTypes: lookupRows.complaintTypes.length > 0,
       hasSolutionTypes: lookupRows.solutionTypes.length > 0,
+      hasShippingMethods: lookupRows.shippingMethods.length > 0,
       errors: extras && extras.errors ? extras.errors : [],
       message: extras && extras.message ? extras.message : null,
     };
@@ -270,12 +423,14 @@ class CaseTrackerService {
     const originalComplaint = sanitizeText(caseEntry.customer_complaint);
     const currentComplaintEdit = sanitizeText(caseEntry.customer_complaint_edit);
     const currentSolution = sanitizeText(caseEntry.solution);
+    const currentShippingMethod = sanitizeText(caseEntry.shipping_method);
 
     const allowedComplaintValues = buildValueOptions(lookupRows.complaintTypes, [
       originalComplaint,
       currentComplaintEdit,
     ]);
     const allowedSolutionValues = buildValueOptions(lookupRows.solutionTypes, [currentSolution]);
+    const allowedShippingMethods = buildValueOptions(lookupRows.shippingMethods, [currentShippingMethod]);
 
     let nextOriginalComplaint = originalComplaint || null;
     const requestedOriginalComplaint = sanitizeText(payload.customer_complaint);
@@ -309,6 +464,11 @@ class CaseTrackerService {
       }
     }
 
+    const shippingMethod = sanitizeText(payload.shipping_method);
+    if (shippingMethod && allowedShippingMethods.indexOf(shippingMethod) === -1) {
+      errors.push('Select a valid shipping method.');
+    }
+
     const complaintDateInput = sanitizeText(payload.complaint_date);
     const complaintDate = complaintDateInput
       ? normalizeDate(complaintDateInput)
@@ -332,36 +492,41 @@ class CaseTrackerService {
       errors.push('Solved date must be a valid date.');
     }
 
+    const defectItemsResult = parseSubmittedDefectItems(payload.defect_items, payload.defect_description);
+    errors.push(...defectItemsResult.errors);
+
     const nextCase = {
       order_number: caseEntry.order_number,
       customer_id: sanitizeText(payload.customer_id),
       customer_complaint: nextOriginalComplaint || '',
       customer_complaint_edit: nextComplaintEdit || '',
       customer_complaint_comment: sanitizeText(payload.customer_complaint_comment),
-      shipping_method: sanitizeText(payload.shipping_method),
+      shipping_method: shippingMethod,
       shipping_date: shippingDateInput || '',
       complaint_date: complaintDateInput || complaintDate || '',
-      defect_items: sanitizeText(payload.defect_items),
-      defect_description: sanitizeText(payload.defect_description),
+      defect_items: serializeDefectItems(defectItemsResult.rows),
+      defect_description: buildDefectDescription(defectItemsResult.rows),
       solution: nextSolution || '',
       solved_date: solvedDateInput || '',
     };
 
     const effectiveComplaint = getEffectiveComplaint(nextCase);
-    const requirements = getRequirementFlags(effectiveComplaint);
+    const requirements = buildRequirements(effectiveComplaint, lookupRows.complaintTypes);
+    const requiredValues = {
+      customer_id: nextCase.customer_id,
+      customer_complaint_comment: nextCase.customer_complaint_comment,
+      shipping_method: nextCase.shipping_method,
+      shipping_date: shippingDate,
+      defect_items: defectItemsResult.rows.length > 0,
+    };
 
-    if (requirements.needsShippingMethod && !nextCase.shipping_method) {
-      errors.push('Shipping method is required for shipping-related complaints.');
-    }
-    if (requirements.needsShippingDate && !shippingDate) {
-      errors.push('Shipping date is required for lost or stuck shipment complaints.');
-    }
-    if (requirements.needsDefectFields && !nextCase.defect_items) {
-      errors.push('Defect items are required for defect complaints.');
-    }
-    if (requirements.needsDefectFields && !nextCase.defect_description) {
-      errors.push('Defect description is required for defect complaints.');
-    }
+    REQUIRED_FIELD_DEFINITIONS.forEach((field) => {
+      if (requirements.requiredFields.indexOf(field.key) >= 0 && !requiredValues[field.key]) {
+        const verb = field.key === 'defect_items' ? 'are' : 'is';
+        errors.push(`${field.label} ${verb} required for this complaint type.`);
+      }
+    });
+
     if (solvedDate && !nextSolution) {
       errors.push('Solution is required when a case is marked as solved.');
     }
@@ -384,7 +549,7 @@ class CaseTrackerService {
       shipping_method: emptyToNull(nextCase.shipping_method),
       shipping_date: shippingDate,
       complaint_date: complaintDate,
-      defect_items: emptyToNull(nextCase.defect_items),
+      defect_items: defectItemsResult.rows.length > 0 ? nextCase.defect_items : null,
       defect_description: emptyToNull(nextCase.defect_description),
       solution: emptyToNull(nextCase.solution),
       solved_date: solvedDate,
@@ -394,15 +559,17 @@ class CaseTrackerService {
   }
 
   async getAdminView() {
-    const { complaintTypes, solutionTypes } = await this.getLookupRows();
+    const { complaintTypes, solutionTypes, shippingMethods } = await this.getLookupRows();
     return {
-      complaintTypes: complaintTypes.map((row) => row.toJSON()),
+      complaintTypes: complaintTypes.map((row) => toComplaintType(row)),
       solutionTypes: solutionTypes.map((row) => row.toJSON()),
+      shippingMethods: shippingMethods.map((row) => row.toJSON()),
+      requiredFieldDefinitions: REQUIRED_FIELD_DEFINITIONS,
     };
   }
 
-  async addComplaintType(name) {
-    const sanitized = sanitizeText(name);
+  async addComplaintType(payload) {
+    const sanitized = sanitizeText(payload && payload.name);
     if (!sanitized) {
       return { ok: false, message: 'Complaint type name is required.' };
     }
@@ -413,7 +580,10 @@ class CaseTrackerService {
     }
 
     try {
-      await ct.ComplaintType.create({ name: sanitized });
+      await ct.ComplaintType.create({
+        name: sanitized,
+        required_fields: JSON.stringify(normalizeRequiredFields(payload.required_fields)),
+      });
     } catch (error) {
       if (error && error.name === 'SequelizeUniqueConstraintError') {
         return { ok: false, message: 'Complaint type already exists.' };
@@ -423,9 +593,48 @@ class CaseTrackerService {
     return { ok: true, message: 'Complaint type added.' };
   }
 
+  async updateComplaintType(id, payload) {
+    const complaintType = await ct.ComplaintType.findByPk(id);
+    if (!complaintType) {
+      return { ok: false, message: 'Complaint type not found.' };
+    }
+
+    await complaintType.update({
+      required_fields: JSON.stringify(normalizeRequiredFields(payload.required_fields)),
+    });
+    return { ok: true, message: 'Complaint type requirements saved.' };
+  }
+
   async deleteComplaintType(id) {
     await ct.ComplaintType.destroy({ where: { id } });
     return { ok: true, message: 'Complaint type deleted.' };
+  }
+
+  async addShippingMethod(name) {
+    const sanitized = sanitizeText(name);
+    if (!sanitized) {
+      return { ok: false, message: 'Shipping method name is required.' };
+    }
+
+    const existing = await ct.ShippingMethod.findOne({ where: { name: sanitized } });
+    if (existing) {
+      return { ok: false, message: 'Shipping method already exists.' };
+    }
+
+    try {
+      await ct.ShippingMethod.create({ name: sanitized });
+    } catch (error) {
+      if (error && error.name === 'SequelizeUniqueConstraintError') {
+        return { ok: false, message: 'Shipping method already exists.' };
+      }
+      throw error;
+    }
+    return { ok: true, message: 'Shipping method added.' };
+  }
+
+  async deleteShippingMethod(id) {
+    await ct.ShippingMethod.destroy({ where: { id } });
+    return { ok: true, message: 'Shipping method deleted.' };
   }
 
   async addSolutionType(name) {
