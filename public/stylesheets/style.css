@@ -436,6 +436,10 @@ svg {
   background-color: #e9ecef;
 }
 
+.ct-defect-item-link {
+  font-weight: 600;
+}
+
 .ct-placeholder-badge {
   background-color: #17a2b8;
   color: #ffffff;

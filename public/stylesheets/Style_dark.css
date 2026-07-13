@@ -245,6 +245,15 @@ select {
   border-color: rgb(88, 88, 88);
 }
 
+.ct-defect-item-link {
+  color: rgb(115, 202, 255);
+}
+
+.ct-defect-item-link:hover,
+.ct-defect-item-link:focus {
+  color: rgb(168, 226, 255);
+}
+
 .ct-placeholder-row,
 .ct-placeholder-row:nth-of-type(odd) {
   background-color: rgb(32, 57, 66) !important;

@@ -78,12 +78,19 @@
       if (row.placeholder) tableRow.classList.add('ct-placeholder-row');
 
       const codeCell = document.createElement('td');
-      codeCell.textContent = row.itemCode;
       if (row.placeholder) {
+        codeCell.textContent = row.itemCode;
         const badge = document.createElement('span');
         badge.className = 'badge ct-placeholder-badge ml-2';
         badge.textContent = 'Placeholder';
         codeCell.appendChild(badge);
+      } else {
+        const itemLink = document.createElement('a');
+        itemLink.href = `/ct/analytics/item/${encodeURIComponent(row.itemCode)}`;
+        itemLink.className = 'ct-defect-item-link';
+        itemLink.textContent = row.itemCode;
+        itemLink.title = `View analytics for ${row.itemCode}`;
+        codeCell.appendChild(itemLink);
       }
 
       const descriptionCell = document.createElement('td');
