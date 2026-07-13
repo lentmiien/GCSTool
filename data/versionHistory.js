@@ -2,6 +2,18 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.9.13',
+    releaseDate: '2026-08-13',
+    updateDate: '2026-07-13',
+    items: [
+      item('Case tracker', [
+        item('Analytics - Added an item details page with claim history, descriptions, and trend statistics for individual item codes'),
+        item('Analytics - Limited the repeated item summary to claims from the last six months, with links to item details'),
+        item('Case details - Made real defect item codes link directly to their item analytics page'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.12',
     releaseDate: '2026-07-13',
     updateDate: '2026-07-13',
