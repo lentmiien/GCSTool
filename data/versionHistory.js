@@ -4,12 +4,20 @@ module.exports = [
   {
     version: '2.9.13',
     releaseDate: '2026-08-13',
-    updateDate: '2026-07-13',
+    updateDate: '2026-07-15',
     items: [
       item('Case tracker', [
         item('Analytics - Added an item details page with claim history, descriptions, and trend statistics for individual item codes'),
         item('Analytics - Limited the repeated item summary to claims from the last six months, with links to item details'),
         item('Case details - Made real defect item codes link directly to their item analytics page'),
+      ]),
+      item('ChatGPT', [
+        item('Shorten item names tool - Changed the default model to gpt-5.6-luna and added configurable reasoning effort'),
+        item('Moved the model and reasoning effort into database-backed app settings'),
+        item('Updated the OpenAI SDK to the latest version while retaining Node 16 compatibility'),
+      ]),
+      item('Admin', [
+        item('Added an app settings page for updating settings and adding new key-value pairs'),
       ]),
     ],
   },

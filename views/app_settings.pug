@@ -1,0 +1,55 @@
+extends layout
+
+block content
+  .d-flex.justify-content-between.align-items-center.mb-3
+    div
+      h1 App settings
+      p.text-muted.mb-0 Changes take effect on the next request that uses the setting.
+    a.btn.btn-outline-secondary(href='/admin') Back to user administration
+
+  if message
+    .alert.alert-success= message
+  if error
+    .alert.alert-danger= error
+
+  .card.mb-4
+    .card-header
+      h2.h5.mb-0 Existing settings
+    .card-body
+      if settings.length === 0
+        p.mb-0 No app settings have been added yet.
+      else
+        each setting in settings
+          form.border.rounded.p-3.mb-3(method='post', action=`/admin/app-settings/${setting.id}`)
+            .form-row.align-items-end
+              .col-md-5.mb-2
+                label.mb-1(for=`setting_${setting.id}`)
+                  code= setting.key
+                if descriptions[setting.key]
+                  small.form-text.text-muted= descriptions[setting.key]
+              .col-md-5.mb-2
+                label.sr-only(for=`setting_${setting.id}`) Value
+                if setting.key === reasoningEffortKey
+                  select.form-control(id=`setting_${setting.id}`, name='value')
+                    each effort in reasoningEfforts
+                      option(value=effort, selected=setting.value === effort)= effort
+                else
+                  input.form-control(id=`setting_${setting.id}`, type='text', name='value', value=setting.value)
+              .col-md-2.mb-2
+                button.btn.btn-primary.btn-block(type='submit') Save
+
+  .card
+    .card-header
+      h2.h5.mb-0 Add a setting
+    .card-body
+      form(method='post', action='/admin/app-settings')
+        .form-row.align-items-end
+          .col-md-5.mb-2
+            label(for='new_setting_key') Key
+            input#new_setting_key.form-control(type='text', name='key', placeholder='SETTING_NAME', pattern='[A-Z][A-Z0-9_]*', maxlength='128', required)
+            small.form-text.text-muted Use uppercase letters, numbers, and underscores.
+          .col-md-5.mb-2
+            label(for='new_setting_value') Value
+            input#new_setting_value.form-control(type='text', name='value')
+          .col-md-2.mb-2
+            button.btn.btn-success.btn-block(type='submit') Add setting

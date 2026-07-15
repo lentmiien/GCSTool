@@ -205,6 +205,10 @@ async function Process() {
         body: JSON.stringify({title, thread_id, messages}) // body data type must match "Content-Type" header
       });
       let response_data = await response.json();
+      if (!response.ok) {
+        alert(response_data.error || 'Failed to get a response from OpenAI.');
+        return;
+      }
       thread_id = response_data.thread_id;
       messages.push(response_data.messages[response_data.messages.length-1]);
 

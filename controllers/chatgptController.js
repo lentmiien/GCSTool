@@ -1,5 +1,6 @@
 const { chatGPT, embedding } = require('../utils/ChatGPT');
-const { Chatmsg } = require('../sequelize');
+const { AppSetting, Chatmsg } = require('../sequelize');
+const { getShortenItemNamesSettings } = require('../services/appSettings');
 
 // Monthly token limit 2500000 = $5
 // I'm setting this limit as it's a trial
@@ -303,13 +304,20 @@ exports.update_checked = (req, res) => {
  * }
  */
 exports.language_send = async (req, res) => {
-  const tid = req.body.thread_id != 0 ? req.body.thread_id : Date.now();
-  const ts = Date.now();
-  const db_data = [];
-  const messages = req.body.messages;
+  try {
+    const tid = req.body.thread_id != 0 ? req.body.thread_id : Date.now();
+    const ts = Date.now();
+    const db_data = [];
+    const messages = req.body.messages;
+    const { model, reasoningEffort } = await getShortenItemNamesSettings(AppSetting);
+    const response = await chatGPT(messages, model, 0, {
+      reasoning_effort: reasoningEffort,
+    });
 
-  const response = await chatGPT(messages, "gpt-4o", 0);
-  if (response) {
+    if (!response) {
+      return res.status(502).json({ error: 'OpenAI did not return a response.' });
+    }
+
     messages.push({ role: 'assistant', content: response.choices[0].message.content });
     // Save to database
     for (let i = req.body.thread_id != 0 ? messages.length - 2 : 0; i < messages.length; i++) {
@@ -327,9 +335,12 @@ exports.language_send = async (req, res) => {
     db_data[db_data.length - 2].tokens = response.usage.prompt_tokens;
     db_data[db_data.length - 1].tokens = response.usage.completion_tokens;
     await Chatmsg.bulkCreate(db_data);
+
+    lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
+
+    return res.json({thread_id: tid, messages});
+  } catch (error) {
+    console.error('Failed to process language-tools request:', error);
+    return res.status(500).json({ error: 'Failed to process the language-tools request.' });
   }
-
-  lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
-
-  res.json({thread_id: tid, messages});
 };

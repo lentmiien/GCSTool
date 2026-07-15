@@ -3,6 +3,7 @@ var router = express.Router();
 
 // Require controller modules.
 var index_controller = require('../controllers/indexController');
+var app_settings_controller = require('../controllers/appSettingsController');
 
 router.all('*', index_controller.all);
 
@@ -14,6 +15,10 @@ router.get('/timekeeper', index_controller.view_timekeeper);
 router.get('/about', index_controller.about);
 
 router.get('/admin', index_controller.admin_get);
+
+router.get('/admin/app-settings', app_settings_controller.index);
+router.post('/admin/app-settings', app_settings_controller.create);
+router.post('/admin/app-settings/:id', app_settings_controller.update);
 
 router.post('/adduser', index_controller.adduser);
 

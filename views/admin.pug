@@ -1,6 +1,9 @@
 ﻿extends layout
 
 block content
+    if role === 'admin'
+        .mb-3
+            a.btn.btn-outline-info(href='/admin/app-settings') Manage app settings
     h1(lg_language='_users_')
     if error
       .alert.alert-danger= error

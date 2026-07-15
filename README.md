@@ -18,7 +18,7 @@ The app is server-rendered with Pug and Bootstrap-era static assets. Most featur
 | Area | Mounted Path | Purpose |
 | --- | --- | --- |
 | Login/auth | `/login`, `/logout` | Passport local login with session-backed authentication. |
-| Home/admin/about | `/`, `/admin`, `/about`, `/timekeeper` | Recent content, user administration, version history, and a lightweight in-memory timekeeper. |
+| Home/admin/about | `/`, `/admin`, `/admin/app-settings`, `/about`, `/timekeeper` | Recent content, user and app-settings administration, version history, and a lightweight in-memory timekeeper. |
 | Knowledge entries | `/entry` | Team-scoped support content with master/personal entries, multi-part content, backup, and restore. |
 | Scheduler | `/scheduler` | Staff defaults, holidays, day-by-day schedules, personal schedules, CSV exports, schedule analysis, and admin settings. |
 | Meeting board | `/meeting` | Meeting/comment board with Socket.IO updates. |
@@ -62,11 +62,11 @@ env_sample             Template for required and optional environment variables
 
 `sequelize.js` creates and exports multiple Sequelize connections:
 
-- `DB_NAME_GCS`: primary application data, including users, entries/content, scheduler data, country lists, HS data, CT, PMT, forms, meetings, host samples, version history, and session storage.
+- `DB_NAME_GCS`: primary application data, including users, app settings, entries/content, scheduler data, country lists, HS data, CT, PMT, forms, meetings, host samples, version history, and session storage.
 - `DB_NAME_TRACK`: tracking data, tracker history tables, and shipping monitor group/entry/shortcut data.
 - `DB_NAME_DHL_COMPENSATION`: optional DHL compensation database. If omitted, DHL compensation entries use `DB_NAME_GCS`.
 
-Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.sync()` for the configured databases, seeds version history from `data/versionHistory.js`, and applies a small DHL compensation schema check for PDF columns.
+Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.sync()` for the configured databases, seeds default app settings and version history, and applies a small DHL compensation schema check for PDF columns.
 
 ## Prerequisites
 

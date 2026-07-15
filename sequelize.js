@@ -21,6 +21,7 @@ const FormFormatModel = require('./models/form_format');
 const UpdatenoticeModel = require('./models/updatenotice');
 const VersionHistoryModel = require('./models/versionhistory');
 const HostSampleModel = require('./models/host_sample');
+const AppSettingModel = require('./models/appSetting');
 const OfficialCountryListModel = require('./models/OfficialCountryList');
 const InternalCountryListModel = require('./models/InternalCountryList');
 const JapanPostCountryListModel = require('./models/JapanPostCountryList');
@@ -49,6 +50,7 @@ const PMTEntryModel = require('./models/pmt/pmt_entry');
 const PMTDependenciesModel = require('./models/pmt/pmt_dependencies');
 const PMTVersionModel = require('./models/pmt/pmt_version');
 const PMTLogModel = require('./models/pmt/pmt_log');
+const { seedAppSettings } = require('./services/appSettings');
 
 // Connect to DB: GCS Tool
 const sequelize = new Sequelize(process.env.DB_NAME_GCS, process.env.DB_USER, process.env.DB_PASS, {
@@ -92,6 +94,7 @@ const FormFormat = FormFormatModel(sequelize, Sequelize);
 const Updatenotice = UpdatenoticeModel(sequelize, Sequelize);
 const VersionHistory = VersionHistoryModel(sequelize, Sequelize);
 const HostSample = HostSampleModel(sequelize, Sequelize);
+const AppSetting = AppSettingModel(sequelize, Sequelize);
 const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
 const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
@@ -271,6 +274,7 @@ async function ensureCaseTrackerSchema() {
 
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(async () => {
+  await seedAppSettings(AppSetting);
   await ensureCaseTrackerSchema();
   await ensureIrelandWorkSummarySchema();
   await seedVersionHistoryData();
@@ -316,6 +320,7 @@ module.exports = {
   Updatenotice,
   VersionHistory,
   HostSample,
+  AppSetting,
   OfficialCountryList,
   InternalCountryList,
   JapanPostCountryList,
