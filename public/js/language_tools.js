@@ -135,6 +135,47 @@ const csvToJson = (string) => {
   return output;
 };
 
+function parseLanguageToolResponse(content) {
+  const responseText = typeof content === 'string' ? content.trim() : '';
+  if (!responseText) {
+    throw new Error('OpenAI returned an empty response.');
+  }
+
+  const fencedMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  let jsonText = fencedMatch ? fencedMatch[1].trim() : responseText;
+  let parsed;
+
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch (error) {
+    // Allow a short explanation before or after an otherwise valid JSON array.
+    const arrayStart = jsonText.indexOf('[');
+    const arrayEnd = jsonText.lastIndexOf(']');
+    if (arrayStart === -1 || arrayEnd <= arrayStart) {
+      throw new Error('OpenAI response did not contain a valid JSON array.');
+    }
+
+    jsonText = jsonText.slice(arrayStart, arrayEnd + 1);
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (arrayError) {
+      throw new Error('OpenAI response contained invalid JSON.');
+    }
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('OpenAI response must be a JSON array.');
+  }
+
+  parsed.forEach((entry, index) => {
+    if (!entry || typeof entry.id !== 'string' || typeof entry.short_name !== 'string') {
+      throw new Error(`OpenAI response item ${index + 1} is missing a valid id or short_name.`);
+    }
+  });
+
+  return parsed;
+}
+
 async function Process() {
   // Get input
   const inputs = document.getElementsByName("input");
@@ -214,28 +255,27 @@ async function Process() {
 
       // Process response
       const msg = response_data.messages[response_data.messages.length-1].content;
-      // Use data inbetween '```json' and '```'
-      let row_delimiter = '\n';
-      if (msg.indexOf('\r\n') >= 0) row_delimiter = '\r\n';
-      const msg_rows = msg.split(row_delimiter);
-      const JSON_rows = [];
-      let use_row = false;
-      for (let x = 0; x < msg_rows.length; x++) {
-        if (msg_rows[x].indexOf('```') >= 0) {
-          use_row = !use_row;
-        } else if (use_row) {
-          JSON_rows.push(msg_rows[x]);
-        }
-      }
-      const JSON_raw = JSON_rows.join('\n');
-      const JSON_data = JSON.parse(JSON_raw);
+      try {
+        const JSON_data = parseLanguageToolResponse(msg);
 
-      JSON_data.forEach(d => {
-        const index = batch_lookup.indexOf(d.id);
-        if (index >= 0) {
-          batch[index]["short_name"] = d.short_name.split(',').join('').slice(0, parseInt(length));
+        JSON_data.forEach(d => {
+          const index = batch_lookup.indexOf(d.id);
+          if (index >= 0) {
+            batch[index]["short_name"] = d.short_name.split(',').join('').slice(0, parseInt(length));
+          }
+        });
+
+        const missingIds = batch
+          .filter(entry => typeof entry.short_name !== 'string')
+          .map(entry => entry.id);
+        if (missingIds.length > 0) {
+          throw new Error(`OpenAI response did not include shortened names for: ${missingIds.join(', ')}.`);
         }
-      });
+      } catch (error) {
+        console.error('Failed to process OpenAI response:', error);
+        alert(`Failed to process the OpenAI response: ${error.message}`);
+        return;
+      }
 
       batch.forEach(entry => {
         completed.push(entry);
