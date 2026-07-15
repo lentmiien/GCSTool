@@ -1,5 +1,29 @@
 extends ../layout
 
+mixin openCaseTable(caseRows, showStaff)
+  .table-responsive
+    table.table.table-striped.table-hover.mb-0
+      thead
+        tr
+          th Order number
+          if showStaff
+            th Staff in charge
+          th Customer ID
+          th Current complaint
+          th Complaint date
+          th Last updated
+      tbody
+        each caseEntry in caseRows
+          tr
+            td
+              a(href=`/ct/case/${encodeURIComponent(caseEntry.order_number)}`)= caseEntry.order_number
+            if showStaff
+              td= caseEntry.staff_in_charge || 'Unassigned'
+            td= caseEntry.customer_id || '—'
+            td= caseEntry.effective_complaint || '—'
+            td= caseEntry.complaint_date || '—'
+            td= caseEntry.updated_at_display || '—'
+
 block content
   .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
     .mb-3.mb-lg-0
@@ -30,30 +54,26 @@ block content
           .form-group.col-md-4.mb-0
             button.btn.btn-primary.btn-block(type='submit') Open case
 
-  .card
+  .card.mb-4
     .card-body
       .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center.mb-3
         div
-          h2.h4.mb-1 Open Cases
-          p.text-muted.mb-0= `${openCases.length} open / ${totalCases} total`
-      if openCases.length > 0
-        .table-responsive
-          table.table.table-striped.table-hover.mb-0
-            thead
-              tr
-                th Order number
-                th Customer ID
-                th Current complaint
-                th Complaint date
-                th Last updated
-            tbody
-              each caseEntry in openCases
-                tr
-                  td
-                    a(href=`/ct/case/${encodeURIComponent(caseEntry.order_number)}`)= caseEntry.order_number
-                  td= caseEntry.customer_id || '—'
-                  td= caseEntry.effective_complaint || '—'
-                  td= caseEntry.complaint_date || '—'
-                  td= caseEntry.updated_at_display || '—'
+          h2.h4.mb-1 My Open Cases
+          p.text-muted.mb-0= `${myCases.length} assigned to you · ${totalOpenCases} open overall · ${totalCases} total recorded`
+      if myCases.length > 0
+        +openCaseTable(myCases, false)
       else
-        p.text-muted.mb-0 No open cases yet.
+        p.text-muted.mb-0 You have no open cases assigned to you.
+
+  details.card.ct-case-disclosure
+    summary.card-header.d-flex.justify-content-between.align-items-center
+      span
+        span.ct-disclosure-indicator.mr-2(aria-hidden='true') ▶
+        strong Other Staff and Unassigned Cases
+        small.text-muted.ml-2 Oldest updates first
+      span.badge.badge-secondary= otherCases.length
+    .card-body.p-0
+      if otherCases.length > 0
+        +openCaseTable(otherCases, true)
+      else
+        p.text-muted.m-3 No other open cases.

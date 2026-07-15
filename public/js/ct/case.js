@@ -18,9 +18,79 @@
   const solvedDate = document.getElementById('solved_date');
   const solution = document.getElementById('solution');
   const solutionMarker = document.querySelector('[data-solved-required-marker]');
+  const staffSelect = document.getElementById('staff_in_charge');
+  const takeCaseButton = document.getElementById('take-case');
+  const staffStatus = document.getElementById('staff-in-charge-status');
+  const staffSummary = document.querySelector('[data-staff-in-charge-summary]');
+  const deleteCaseForm = document.getElementById('delete-case-form');
   let editIndex = null;
   let rows = [];
   let activeRequiredFields = [];
+
+  if (staffSelect && takeCaseButton && staffStatus) {
+    const currentUser = takeCaseButton.dataset.currentUser || '';
+    let assignedStaff = takeCaseButton.dataset.assignedStaff || '';
+
+    const setStaffStatus = (message, className) => {
+      staffStatus.textContent = message;
+      staffStatus.classList.remove('text-muted', 'text-success', 'text-danger');
+      staffStatus.classList.add(className);
+    };
+
+    const updateTakeCaseButton = () => {
+      takeCaseButton.disabled = !currentUser
+        || (assignedStaff === currentUser && staffSelect.value === currentUser);
+    };
+
+    staffSelect.addEventListener('change', () => {
+      updateTakeCaseButton();
+      setStaffStatus('Select “Save case” to apply this assignment.', 'text-muted');
+    });
+
+    takeCaseButton.addEventListener('click', async () => {
+      takeCaseButton.disabled = true;
+      takeCaseButton.textContent = 'Taking…';
+      setStaffStatus('Updating staff in charge…', 'text-muted');
+
+      try {
+        const response = await fetch(takeCaseButton.dataset.url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || 'Unable to take this case.');
+        }
+
+        if (!Array.from(staffSelect.options).some((option) => option.value === result.staffInCharge)) {
+          staffSelect.add(new Option(result.staffInCharge, result.staffInCharge));
+        }
+        staffSelect.value = result.staffInCharge;
+        assignedStaff = result.staffInCharge;
+        takeCaseButton.dataset.assignedStaff = assignedStaff;
+        if (staffSummary) staffSummary.textContent = ` ${assignedStaff}`;
+        setStaffStatus(result.message, 'text-success');
+      } catch (error) {
+        setStaffStatus(error.message || 'Unable to take this case.', 'text-danger');
+      } finally {
+        takeCaseButton.textContent = 'Take case';
+        updateTakeCaseButton();
+      }
+    });
+
+    updateTakeCaseButton();
+  }
+
+  if (deleteCaseForm) {
+    deleteCaseForm.addEventListener('submit', (event) => {
+      const orderNumber = deleteCaseForm.dataset.orderNumber || 'this order';
+      const confirmed = window.confirm(
+        `Permanently delete case ${orderNumber}? This cannot be undone.`
+      );
+      if (!confirmed) event.preventDefault();
+    });
+  }
 
   try {
     const parsedRows = JSON.parse(hiddenField.value || '[]');

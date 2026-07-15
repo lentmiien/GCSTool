@@ -264,6 +264,18 @@ select {
   color: rgb(235, 251, 255);
 }
 
+.ct-danger-zone {
+  border-color: rgb(139, 64, 69) !important;
+}
+
+.ct-case-disclosure > summary:focus {
+  outline-color: rgba(255, 200, 47, 0.55);
+}
+
+.ct-disclosure-indicator {
+  color: rgb(115, 202, 255);
+}
+
 /* Debug */
 .debug {
   background-color: rgb(148, 78, 21);

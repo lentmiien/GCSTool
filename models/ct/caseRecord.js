@@ -49,6 +49,10 @@ module.exports = (sequelize, type) => {
       type: type.DATEONLY,
       allowNull: true,
     },
+    staff_in_charge: {
+      type: type.STRING,
+      allowNull: true,
+    },
   }, {
     tableName: 'cases',
     indexes: [

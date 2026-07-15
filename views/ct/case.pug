@@ -49,6 +49,27 @@ block content
                 else
                   input.form-control(type='text', value=`Solved on ${caseDetails.solved_date}`, readonly=true)
 
+            .form-group
+              label(for='staff_in_charge') Staff in charge
+              .input-group
+                select#staff_in_charge.form-control(name='staff_in_charge')
+                  option(value='', selected=!caseDetails.staff_in_charge) Unassigned
+                  each staff in staffOptions
+                    option(value=staff, selected=caseDetails.staff_in_charge === staff)= staff
+                .input-group-append
+                  button#take-case.btn.btn-outline-info(
+                    type='button',
+                    data-url=`/ct/case/${encodeURIComponent(caseDetails.order_number)}/take`,
+                    data-current-user=currentUser,
+                    data-assigned-staff=caseDetails.staff_in_charge,
+                    disabled=!currentUser || caseDetails.staff_in_charge === currentUser
+                  ) Take case
+              small#staff-in-charge-status.form-text.text-muted(role='status', aria-live='polite')
+                if caseDetails.staff_in_charge === currentUser
+                  | This case is assigned to you.
+                else
+                  | Select another staff member and save, or take the case yourself immediately.
+
             if caseDetails.customer_complaint
               .form-group
                 label Original customer complaint
@@ -79,10 +100,10 @@ block content
                 rows='4',
                 required=requirements.requiredFields.indexOf('customer_complaint_comment') >= 0,
                 aria-describedby='complaint-comment-help',
-                placeholder='Summarize the complaint and why this case needs review.'
+                placeholder='Optional: add unusual circumstances or other useful context.'
               )= caseDetails.customer_complaint_comment
               small#complaint-comment-help.form-text.text-muted
-                | Give the overall case context: what the customer is complaining about, why we decided to review the case, and relevant history—for example, whether this concerns a replacement from an earlier exchange.
+                | Optional. Use this for special circumstances or context that is not already clear from the complaint type and item descriptions.
 
             .form-row
               .form-group.col-md-6
@@ -105,7 +126,7 @@ block content
               label.d-block
                 | Defect items
                 span.text-danger.ml-1(data-required-marker='defect_items', class=requirements.requiredFields.indexOf('defect_items') >= 0 ? '' : 'd-none') *
-              small.form-text.text-muted.mb-3 Add each item together with its specific defect description.
+              small.form-text.text-muted.mb-3 Only needed for defect cases. Add each affected item together with a short description so recurring item problems can be identified.
               input#defect_items(type='hidden', name='defect_items', value=caseDetails.defect_items_json)
               .ct-defect-item-panel.border.rounded.p-3
                 .form-row.align-items-end
@@ -148,7 +169,7 @@ block content
               .form-group.col-md-6
                 label(for='solved_date') Solved date
                 input#solved_date.form-control(type='date', name='solved_date', value=caseDetails.solved_date)
-                small.form-text.text-muted Setting a solved date closes the case and requires a solution.
+                small.form-text.text-muted Setting a solved date closes the case and requires a solution. Entering it later during downtime is fine.
 
             p.small.text-muted Fields marked with #[span.text-danger *] are required.
             button.btn.btn-primary(type='submit') Save case
@@ -163,6 +184,9 @@ block content
           p.mb-2
             strong Customer ID:
             |  #{caseDetails.customer_id || '—'}
+          p.mb-2
+            strong Staff in charge:
+            span(data-staff-in-charge-summary)  #{caseDetails.staff_in_charge || 'Unassigned'}
           p.mb-0
             strong State:
             |  #{caseDetails.is_open ? 'Open' : 'Solved'}
@@ -176,7 +200,7 @@ block content
             li.text-muted(data-no-extra-requirements, class=requirements.requiredFields.length === 0 ? '' : 'd-none') No extra required fields for this complaint.
           p#complaint-required-empty.text-muted.mb-0(class=caseDetails.effective_complaint ? 'd-none' : '') Set a complaint to see conditional field requirements.
 
-      .card
+      .card.mb-4
         .card-body
           h2.h5.mb-3 Repeat Cases
           if caseDetails.customer_id
@@ -193,6 +217,13 @@ block content
               p.text-muted.mb-0 No other cases found for this customer ID.
           else
             p.text-muted.mb-0 Add a customer ID to track repeat cases.
+
+      .card.border-danger.ct-danger-zone
+        .card-body
+          h2.h5.text-danger.mb-2 Delete Case
+          p.text-muted Delete this case only if it was created with the wrong order number or by mistake. This permanently removes it from analytics.
+          form#delete-case-form(method='post', action=`/ct/case/${encodeURIComponent(caseDetails.order_number)}/delete`, data-order-number=caseDetails.order_number)
+            button.btn.btn-outline-danger(type='submit') Delete case
 
 block scripts
   script(src='/js/ct/case.js')

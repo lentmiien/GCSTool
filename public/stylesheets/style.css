@@ -449,6 +449,33 @@ svg {
   border-color: #dc3545 !important;
 }
 
+.ct-case-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.ct-case-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ct-disclosure-indicator {
+  display: inline-block;
+  transition: transform 0.15s ease-in-out;
+}
+
+.ct-case-disclosure[open] .ct-disclosure-indicator {
+  transform: rotate(90deg);
+}
+
+.ct-case-disclosure > summary:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.ct-danger-zone {
+  border-color: #dc3545 !important;
+}
+
 /* Shipping method manager */
 .updated_cell {
   background-color: rgb(0, 59, 0);

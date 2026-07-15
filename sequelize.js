@@ -245,6 +245,22 @@ async function ensureCaseTrackerSchema() {
     console.log(`Changed "defect_items" to TEXT in ${caseTable}.`);
   }
 
+  if (!caseColumns.staff_in_charge) {
+    await queryInterface.addColumn(caseTable, 'staff_in_charge', {
+      type: Sequelize.STRING,
+      allowNull: true,
+    });
+    console.log(`Added "staff_in_charge" to ${caseTable}.`);
+  }
+
+  const caseIndexes = await queryInterface.showIndex(caseTable);
+  if (!caseIndexes.some((index) => index.name === 'cases_staff_in_charge')) {
+    await queryInterface.addIndex(caseTable, ['staff_in_charge'], {
+      name: 'cases_staff_in_charge',
+    });
+    console.log(`Added "cases_staff_in_charge" index to ${caseTable}.`);
+  }
+
   if (!complaintTypeColumns.required_fields) {
     await queryInterface.addColumn(complaintTypeTable, 'required_fields', {
       type: Sequelize.STRING,

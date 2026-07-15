@@ -8,6 +8,8 @@ router.post('/open', controller.openCase);
 
 router.get('/case/:orderNumber', controller.caseDetail);
 router.post('/case/:orderNumber', controller.updateCase);
+router.post('/case/:orderNumber/take', controller.takeCase);
+router.post('/case/:orderNumber/delete', controller.deleteCase);
 
 router.get('/admin', controller.admin);
 router.post('/admin/complaints', controller.addComplaintType);

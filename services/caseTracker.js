@@ -1,4 +1,4 @@
-const { ct, Op } = require('../sequelize');
+const { ct, Op, User } = require('../sequelize');
 
 const REQUIRED_FIELD_DEFINITIONS = [
   { key: 'customer_id', label: 'Customer ID' },
@@ -651,6 +651,23 @@ function buildValueOptions(rows, extraValues) {
   return values;
 }
 
+function buildStaffOptions(rows, extraValues) {
+  const values = [];
+  rows.forEach((row) => {
+    const sanitized = sanitizeText(row.userid);
+    if (sanitized && values.indexOf(sanitized) === -1) {
+      values.push(sanitized);
+    }
+  });
+  extraValues.forEach((value) => {
+    const sanitized = sanitizeText(value);
+    if (sanitized && values.indexOf(sanitized) === -1) {
+      values.unshift(sanitized);
+    }
+  });
+  return values;
+}
+
 function buildRequirements(complaintText, complaintTypes) {
   const complaint = sanitizeText(complaintText);
   const match = complaintTypes.find((row) => row.name === complaint);
@@ -780,6 +797,7 @@ function toPlainCase(caseEntry) {
   data.defect_description = data.defect_description || '';
   data.solution = data.solution || '';
   data.solved_date = data.solved_date || '';
+  data.staff_in_charge = data.staff_in_charge || '';
   data.effective_complaint = getEffectiveComplaint(data);
   data.is_open = !data.solved_date;
   data.created_at_display = formatDateTime(data.createdAt);
@@ -793,16 +811,18 @@ class CaseTrackerService {
   }
 
   async getLookupRows() {
-    const [complaintTypes, solutionTypes, shippingMethods] = await Promise.all([
+    const [complaintTypes, solutionTypes, shippingMethods, users] = await Promise.all([
       ct.ComplaintType.findAll({ order: [['name', 'ASC']] }),
       ct.SolutionType.findAll({ order: [['name', 'ASC']] }),
       ct.ShippingMethod.findAll({ order: [['name', 'ASC']] }),
+      User.findAll({ attributes: ['userid'], order: [['userid', 'ASC']] }),
     ]);
 
-    return { complaintTypes, solutionTypes, shippingMethods };
+    return { complaintTypes, solutionTypes, shippingMethods, users };
   }
 
-  async getDashboard() {
+  async getDashboard(currentUser) {
+    const normalizedCurrentUser = sanitizeText(currentUser);
     const [openCases, complaintTypes, solutionTypes, totalCases] = await Promise.all([
       ct.Case.findAll({
         where: {
@@ -810,23 +830,34 @@ class CaseTrackerService {
             [Op.is]: null,
           },
         },
-        order: [['complaint_date', 'ASC'], ['updatedAt', 'ASC']],
+        order: [['updatedAt', 'ASC'], ['complaint_date', 'ASC'], ['order_number', 'ASC']],
       }),
       ct.ComplaintType.findAll({ order: [['name', 'ASC']] }),
       ct.SolutionType.findAll({ order: [['name', 'ASC']] }),
       ct.Case.count(),
     ]);
 
+    const caseRows = openCases.map((entry) => toPlainCase(entry));
+    const myCases = caseRows.filter((caseEntry) => (
+      normalizedCurrentUser && caseEntry.staff_in_charge === normalizedCurrentUser
+    ));
+    const otherCases = caseRows.filter((caseEntry) => (
+      !normalizedCurrentUser || caseEntry.staff_in_charge !== normalizedCurrentUser
+    ));
+
     return {
-      openCases: openCases.map((entry) => toPlainCase(entry)),
+      myCases,
+      otherCases,
       complaintTypes,
       solutionTypes,
+      totalOpenCases: caseRows.length,
       totalCases,
     };
   }
 
-  async openCase(orderNumber) {
+  async openCase(orderNumber, currentUser) {
     const normalizedOrderNumber = this.normalizeOrderNumber(orderNumber);
+    const normalizedCurrentUser = sanitizeText(currentUser);
     if (!normalizedOrderNumber) {
       throw new Error('Order number is required.');
     }
@@ -840,6 +871,7 @@ class CaseTrackerService {
         defaults: {
           order_number: normalizedOrderNumber,
           complaint_date: todayDate(),
+          staff_in_charge: normalizedCurrentUser || null,
         },
       });
       caseEntry = result[0];
@@ -909,6 +941,11 @@ class CaseTrackerService {
     ]);
     const solutionOptions = buildValueOptions(lookupRows.solutionTypes, [caseDetails.solution]);
     const shippingMethodOptions = buildValueOptions(lookupRows.shippingMethods, [caseDetails.shipping_method]);
+    const currentUser = sanitizeText(extras && extras.currentUser);
+    const staffOptions = buildStaffOptions(lookupRows.users, [
+      caseDetails.staff_in_charge,
+      currentUser,
+    ]);
 
     return {
       caseDetails,
@@ -916,6 +953,8 @@ class CaseTrackerService {
       complaintTypes: complaintOptions,
       solutionTypes: solutionOptions,
       shippingMethods: shippingMethodOptions,
+      staffOptions,
+      currentUser,
       requirements: buildRequirements(caseDetails.effective_complaint, lookupRows.complaintTypes),
       requiredFieldDefinitions: REQUIRED_FIELD_DEFINITIONS,
       placeholderItem: PLACEHOLDER_ITEM,
@@ -927,7 +966,7 @@ class CaseTrackerService {
     };
   }
 
-  async updateCase(orderNumber, payload) {
+  async updateCase(orderNumber, payload, currentUser) {
     const normalizedOrderNumber = this.normalizeOrderNumber(orderNumber);
     if (!normalizedOrderNumber) {
       return { ok: false, notFound: true };
@@ -947,6 +986,7 @@ class CaseTrackerService {
     const currentComplaintEdit = sanitizeText(caseEntry.customer_complaint_edit);
     const currentSolution = sanitizeText(caseEntry.solution);
     const currentShippingMethod = sanitizeText(caseEntry.shipping_method);
+    const currentStaffInCharge = sanitizeText(caseEntry.staff_in_charge);
 
     const allowedComplaintValues = buildValueOptions(lookupRows.complaintTypes, [
       originalComplaint,
@@ -954,6 +994,7 @@ class CaseTrackerService {
     ]);
     const allowedSolutionValues = buildValueOptions(lookupRows.solutionTypes, [currentSolution]);
     const allowedShippingMethods = buildValueOptions(lookupRows.shippingMethods, [currentShippingMethod]);
+    const allowedStaff = buildStaffOptions(lookupRows.users, [currentStaffInCharge, currentUser]);
 
     let nextOriginalComplaint = originalComplaint || null;
     const requestedOriginalComplaint = sanitizeText(payload.customer_complaint);
@@ -990,6 +1031,16 @@ class CaseTrackerService {
     const shippingMethod = sanitizeText(payload.shipping_method);
     if (shippingMethod && allowedShippingMethods.indexOf(shippingMethod) === -1) {
       errors.push('Select a valid shipping method.');
+    }
+
+    const hasSubmittedStaff = Object.prototype.hasOwnProperty.call(payload, 'staff_in_charge');
+    const requestedStaffInCharge = hasSubmittedStaff
+      ? sanitizeText(payload.staff_in_charge)
+      : currentStaffInCharge;
+    let nextStaffInCharge = requestedStaffInCharge;
+    if (requestedStaffInCharge && allowedStaff.indexOf(requestedStaffInCharge) === -1) {
+      errors.push('Select a valid staff member.');
+      nextStaffInCharge = currentStaffInCharge;
     }
 
     const complaintDateInput = sanitizeText(payload.complaint_date);
@@ -1031,6 +1082,7 @@ class CaseTrackerService {
       defect_description: buildDefectDescription(defectItemsResult.rows),
       solution: nextSolution || '',
       solved_date: solvedDateInput || '',
+      staff_in_charge: nextStaffInCharge,
     };
 
     const effectiveComplaint = getEffectiveComplaint(nextCase);
@@ -1060,6 +1112,7 @@ class CaseTrackerService {
         viewModel: await this.getCaseView(normalizedOrderNumber, nextCase, {
           errors,
           message: 'Case was not saved.',
+          currentUser,
         }),
       };
     }
@@ -1076,9 +1129,38 @@ class CaseTrackerService {
       defect_description: emptyToNull(nextCase.defect_description),
       solution: emptyToNull(nextCase.solution),
       solved_date: solvedDate,
+      staff_in_charge: emptyToNull(nextCase.staff_in_charge),
     });
 
     return { ok: true };
+  }
+
+  async takeCase(orderNumber, currentUser) {
+    const normalizedOrderNumber = this.normalizeOrderNumber(orderNumber);
+    const normalizedCurrentUser = sanitizeText(currentUser);
+    if (!normalizedOrderNumber || !normalizedCurrentUser) {
+      return { ok: false, notFound: !normalizedOrderNumber };
+    }
+
+    const caseEntry = await ct.Case.findOne({ where: { order_number: normalizedOrderNumber } });
+    if (!caseEntry) {
+      return { ok: false, notFound: true };
+    }
+
+    await caseEntry.update({ staff_in_charge: normalizedCurrentUser });
+    return { ok: true, staffInCharge: normalizedCurrentUser };
+  }
+
+  async deleteCase(orderNumber) {
+    const normalizedOrderNumber = this.normalizeOrderNumber(orderNumber);
+    if (!normalizedOrderNumber) {
+      return { ok: false, notFound: true };
+    }
+
+    const deletedCount = await ct.Case.destroy({
+      where: { order_number: normalizedOrderNumber },
+    });
+    return { ok: deletedCount > 0, notFound: deletedCount === 0 };
   }
 
   async getAdminView() {

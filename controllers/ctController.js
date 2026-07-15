@@ -11,6 +11,10 @@ function isAdmin(req) {
   return req.user && req.user.role === 'admin';
 }
 
+function getCurrentUser(req) {
+  return req.user && req.user.userid ? req.user.userid : '';
+}
+
 function renderNotFound(req, res) {
   setLayoutLocals(req, res);
   res.status(404).render('error', {
@@ -22,7 +26,7 @@ function renderNotFound(req, res) {
 exports.dashboard = async (req, res, next) => {
   try {
     setLayoutLocals(req, res);
-    const dashboard = await caseTracker.getDashboard();
+    const dashboard = await caseTracker.getDashboard(getCurrentUser(req));
     res.render('ct/ct', {
       ...dashboard,
       message: req.query.message || null,
@@ -34,7 +38,7 @@ exports.dashboard = async (req, res, next) => {
 
 exports.openCase = async (req, res, next) => {
   try {
-    const result = await caseTracker.openCase(req.body.order_number);
+    const result = await caseTracker.openCase(req.body.order_number, getCurrentUser(req));
     const message = result.created ? '?message=' + encodeURIComponent('New case created.') : '';
     res.redirect(`/ct/case/${encodeURIComponent(result.caseEntry.order_number)}${message}`);
   } catch (error) {
@@ -50,6 +54,7 @@ exports.caseDetail = async (req, res, next) => {
     setLayoutLocals(req, res);
     const viewModel = await caseTracker.getCaseView(req.params.orderNumber, null, {
       message: req.query.message || null,
+      currentUser: getCurrentUser(req),
     });
 
     if (!viewModel) {
@@ -65,7 +70,7 @@ exports.caseDetail = async (req, res, next) => {
 exports.updateCase = async (req, res, next) => {
   try {
     setLayoutLocals(req, res);
-    const result = await caseTracker.updateCase(req.params.orderNumber, req.body);
+    const result = await caseTracker.updateCase(req.params.orderNumber, req.body, getCurrentUser(req));
 
     if (result.notFound) {
       return renderNotFound(req, res);
@@ -76,6 +81,39 @@ exports.updateCase = async (req, res, next) => {
     }
 
     res.redirect(`/ct/case/${encodeURIComponent(req.params.orderNumber)}?message=${encodeURIComponent('Case saved.')}`);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.takeCase = async (req, res, next) => {
+  try {
+    const result = await caseTracker.takeCase(req.params.orderNumber, getCurrentUser(req));
+    if (result.notFound) {
+      return res.status(404).json({ ok: false, message: 'Case not found.' });
+    }
+    if (!result.ok) {
+      return res.status(400).json({ ok: false, message: 'Unable to take this case.' });
+    }
+
+    res.json({
+      ok: true,
+      message: `Case assigned to ${result.staffInCharge}.`,
+      staffInCharge: result.staffInCharge,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteCase = async (req, res, next) => {
+  try {
+    const result = await caseTracker.deleteCase(req.params.orderNumber);
+    if (result.notFound) {
+      return renderNotFound(req, res);
+    }
+
+    res.redirect('/ct?message=' + encodeURIComponent(`Case ${req.params.orderNumber} deleted.`));
   } catch (error) {
     next(error);
   }
