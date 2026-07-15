@@ -3,7 +3,7 @@ const item = (text, children = []) => ({ text, children });
 module.exports = [
   {
     version: '2.9.13',
-    releaseDate: '2026-08-13',
+    releaseDate: '2026-07-16',
     updateDate: '2026-07-15',
     items: [
       item('Case tracker', [
