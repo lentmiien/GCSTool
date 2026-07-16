@@ -2,6 +2,16 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.9.14',
+    releaseDate: '2026-08-16',
+    updateDate: '2026-07-16',
+    items: [
+      item('HS', [
+        item('Ireland CSV editor - Added step 1 AmiAmi API preview integration for manual review using barcode lookup via Lentmiien proxy endpoint'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.13',
     releaseDate: '2026-07-16',
     updateDate: '2026-07-15',
