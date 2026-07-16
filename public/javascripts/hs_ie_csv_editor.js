@@ -32,7 +32,8 @@
   const reviewSuggestionsList = document.getElementById('review-suggestions-list');
   const reviewAmiAmiResponseGroup = document.getElementById('review-amiami-response-group');
   const reviewAmiAmiResponseStatus = document.getElementById('review-amiami-response-status');
-  const reviewAmiAmiResponse = document.getElementById('review-amiami-response');
+  const reviewAmiAmiItems = document.getElementById('review-amiami-items');
+  const reviewAmiAmiCopyBtn = document.getElementById('review-amiami-copy-btn');
   const taricMappingsEl = document.getElementById('taric-mappings');
 
   let initialTaricMappings = [];
@@ -58,6 +59,7 @@
   let automatedWorkflowToken = 0;
   let automationHasRun = false;
   let amiAmiResponseRenderToken = 0;
+  let currentAmiAmiRawResponse = '';
   let taricLookup = {
     jan: new Map(),
     nameHs: new Map(),
@@ -69,6 +71,8 @@
   const legacyJanPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
   const numericJanPattern = /^[0-9]+$/;
   const editableCountryCodes = new Set(['IE', 'GR']);
+  const multiItemCountryIndex = 12;
+  const dhlCountryIndex = 14;
 
   const setStatus = (text) => {
     statusEl.textContent = text || '';
@@ -264,7 +268,10 @@
     reviewSuggestionsList.innerHTML = '';
     reviewAmiAmiResponseGroup.classList.add('d-none');
     reviewAmiAmiResponseStatus.textContent = '';
-    reviewAmiAmiResponse.textContent = '';
+    reviewAmiAmiItems.innerHTML = '';
+    reviewAmiAmiCopyBtn.disabled = true;
+    reviewAmiAmiCopyBtn.textContent = 'Copy raw response';
+    currentAmiAmiRawResponse = '';
     setStatus('');
     setToolStatus('');
     refreshButtons();
@@ -287,9 +294,9 @@
     setToolStatus(message || 'Item names changed. Run HS to TARIC automation again to refresh suggestions.');
   };
 
-  const parseCsvLine = (line) => {
-    if (!hasQuotedFields) {
-      return line.split(fieldDelimiter);
+  const parseCsvLine = (line, delimiter = fieldDelimiter, quoted = hasQuotedFields) => {
+    if (!quoted) {
+      return line.split(delimiter);
     }
     const cols = [];
     let field = '';
@@ -305,7 +312,7 @@
         inQuotes = !inQuotes;
         continue;
       }
-      if (char === fieldDelimiter && !inQuotes) {
+      if (char === delimiter && !inQuotes) {
         cols.push(field);
         field = '';
         continue;
@@ -317,14 +324,35 @@
   };
 
   const detectCsvType = (lines) => {
-    const sampleLine = lines.find((line) => line.length);
+    const sampleLines = lines.filter((line) => line.length);
+    const sampleLine = sampleLines[0];
     if (!sampleLine) {
       return { type: 'japanPost', delimiter: ',', quoted: false };
     }
-    const quotedLinePattern = /^"(?:[^"]|"")*"(?:,"(?:[^"]|"")*")*$/;
     if (sampleLine.indexOf('\t') !== -1) {
       return { type: 'ePacket', delimiter: '\t', quoted: false };
     }
+
+    let dhlCountryMatches = 0;
+    let multiItemCountryMatches = 0;
+    sampleLines.forEach((line) => {
+      const row = parseCsvLine(line, ',', true);
+      if (row.length > dhlCountryIndex && isEditableCountryCode(row[dhlCountryIndex])) {
+        dhlCountryMatches += 1;
+      }
+      if (row.length > multiItemCountryIndex && isEditableCountryCode(row[multiItemCountryIndex])) {
+        multiItemCountryMatches += 1;
+      }
+    });
+
+    if (dhlCountryMatches > multiItemCountryMatches) {
+      return { type: 'dhl', delimiter: ',', quoted: true };
+    }
+    if (multiItemCountryMatches > dhlCountryMatches) {
+      return { type: 'japanPost', delimiter: ',', quoted: false };
+    }
+
+    const quotedLinePattern = /^"(?:[^"]|"")*"(?:,"(?:[^"]|"")*")*$/;
     if (quotedLinePattern.test(sampleLine)) {
       return { type: 'dhl', delimiter: ',', quoted: true };
     }
@@ -461,9 +489,9 @@
     let itemCountTotal = 0;
 
     rows.forEach((row, rowIndex) => {
-      if (row.length > 12 && isEditableCountryCode(row[12])) {
+      if (row.length > multiItemCountryIndex && isEditableCountryCode(row[multiItemCountryIndex])) {
         irelandCount += 1;
-        const countryCode = normalizeEditableCountryCode(row[12]);
+        const countryCode = normalizeEditableCountryCode(row[multiItemCountryIndex]);
         const orderNumber = row[0] || '(missing order)';
 
         const card = document.createElement('div');
@@ -583,9 +611,9 @@
     };
 
     rows.forEach((row, rowIndex) => {
-      if (row.length > 14 && isEditableCountryCode(row[14])) {
+      if (row.length > dhlCountryIndex && isEditableCountryCode(row[dhlCountryIndex])) {
         irelandCount += 1;
-        const countryCode = normalizeEditableCountryCode(row[14]);
+        const countryCode = normalizeEditableCountryCode(row[dhlCountryIndex]);
         const orderNumber = row[0] || '(missing order)';
         const orderState = getOrderCard(`${countryCode}__${orderNumber}`, orderNumber, countryCode);
         orderState.itemIndex += 1;
@@ -858,15 +886,196 @@
     };
   };
 
-  const formatAmiAmiResponse = (body) => {
-    if (!body) {
-      return '(empty response body)';
+  const firstNonEmptyValue = (...values) => {
+    for (let i = 0; i < values.length; i++) {
+      if (values[i] == null) {
+        continue;
+      }
+      const value = String(values[i]).trim();
+      if (value) {
+        return value;
+      }
+    }
+    return '';
+  };
+
+  const getHttpUrl = (value) => {
+    const candidate = firstNonEmptyValue(value);
+    if (!candidate) {
+      return '';
     }
 
     try {
-      return JSON.stringify(JSON.parse(body), null, 2);
+      const url = new URL(candidate);
+      return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
     } catch (err) {
-      return body;
+      return '';
+    }
+  };
+
+  const appendAmiAmiEmptyMessage = (message) => {
+    const empty = document.createElement('p');
+    empty.classList.add('ie-amiami-empty');
+    empty.textContent = message;
+    reviewAmiAmiItems.appendChild(empty);
+  };
+
+  const getAmiAmiItemRecords = (parsedResponse) => {
+    if (Array.isArray(parsedResponse)) {
+      return parsedResponse.filter((entry) => entry && typeof entry === 'object');
+    }
+    if (!parsedResponse || typeof parsedResponse !== 'object') {
+      return [];
+    }
+    if (Array.isArray(parsedResponse.items)) {
+      return parsedResponse.items.filter((entry) => entry && typeof entry === 'object');
+    }
+    if (parsedResponse.gcode || parsedResponse.details || parsedResponse.listing) {
+      return [parsedResponse];
+    }
+    return [];
+  };
+
+  const buildAmiAmiItemCard = (record) => {
+    const details = record.details && typeof record.details === 'object' ? record.details : {};
+    const listing = record.listing && typeof record.listing === 'object' ? record.listing : {};
+    const gcode = firstNonEmptyValue(record.gcode, details.gcode, details.scode, listing.gcode);
+    const itemName = firstNonEmptyValue(details.itemName, listing.itemName, record.itemName, gcode, 'Item name unavailable');
+    const sourceUrl = [details.sourceUrl, record.url, listing.url, record.sourceUrl]
+      .map(getHttpUrl)
+      .find((url) => url) || (gcode ? `https://www.amiami.com/eng/detail?gcode=${encodeURIComponent(gcode)}` : '');
+    const detailImageLinks = Array.isArray(details.imageLinks) ? details.imageLinks : [];
+    const imageUrls = detailImageLinks
+      .concat([details.imageUrl, listing.imageUrl, record.imageUrl])
+      .map(getHttpUrl)
+      .filter((url, index, urls) => url && urls.indexOf(url) === index);
+
+    const card = document.createElement('article');
+    card.classList.add('card', 'ie-amiami-item-card');
+
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body');
+
+    const codeElement = document.createElement(sourceUrl ? 'a' : 'span');
+    codeElement.classList.add('ie-amiami-item-code');
+    codeElement.textContent = gcode || 'View AmiAmi item';
+    if (sourceUrl) {
+      codeElement.href = sourceUrl;
+      codeElement.target = '_blank';
+      codeElement.rel = 'noopener noreferrer';
+    }
+    cardBody.appendChild(codeElement);
+
+    const nameElement = document.createElement('p');
+    nameElement.classList.add('ie-amiami-item-name');
+    nameElement.textContent = itemName;
+    cardBody.appendChild(nameElement);
+    card.appendChild(cardBody);
+
+    if (!imageUrls.length) {
+      const placeholder = document.createElement('p');
+      placeholder.classList.add('ie-amiami-image-placeholder');
+      placeholder.textContent = 'Image unavailable';
+      card.appendChild(placeholder);
+      return card;
+    }
+
+    const image = document.createElement('img');
+    const placeholder = document.createElement('p');
+    let imageIndex = 0;
+    image.classList.add('ie-amiami-item-image');
+    image.alt = itemName;
+    placeholder.classList.add('ie-amiami-image-placeholder', 'd-none');
+    placeholder.textContent = 'Image unavailable';
+    image.addEventListener('error', () => {
+      imageIndex += 1;
+      if (imageIndex < imageUrls.length) {
+        image.src = imageUrls[imageIndex];
+        return;
+      }
+      image.classList.add('d-none');
+      placeholder.classList.remove('d-none');
+    });
+    image.src = imageUrls[imageIndex];
+    card.appendChild(image);
+    card.appendChild(placeholder);
+    return card;
+  };
+
+  const renderAmiAmiItemCards = (body, barcode) => {
+    reviewAmiAmiItems.innerHTML = '';
+    if (!body) {
+      appendAmiAmiEmptyMessage(`No AmiAmi item data was returned for ${barcode}.`);
+      return;
+    }
+
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(body);
+    } catch (err) {
+      appendAmiAmiEmptyMessage('The API response could not be formatted. Use "Copy raw response" to inspect it.');
+      return;
+    }
+
+    const records = getAmiAmiItemRecords(parsedResponse);
+    if (!records.length) {
+      appendAmiAmiEmptyMessage(`No AmiAmi item data was found for ${barcode}.`);
+      return;
+    }
+
+    records.forEach((record) => {
+      reviewAmiAmiItems.appendChild(buildAmiAmiItemCard(record));
+    });
+  };
+
+  const copyTextToClipboard = async (text) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch (err) {
+        // Fall back to the legacy copy command when clipboard permission is unavailable.
+      }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    if (!copied) {
+      throw new Error('copy command failed');
+    }
+  };
+
+  const copyAmiAmiRawResponse = async () => {
+    if (!currentAmiAmiRawResponse) {
+      return;
+    }
+
+    const responseToCopy = currentAmiAmiRawResponse;
+    reviewAmiAmiCopyBtn.disabled = true;
+    try {
+      await copyTextToClipboard(responseToCopy);
+      if (responseToCopy !== currentAmiAmiRawResponse) {
+        return;
+      }
+      reviewAmiAmiCopyBtn.textContent = 'Copied';
+      setTimeout(() => {
+        if (responseToCopy === currentAmiAmiRawResponse) {
+          reviewAmiAmiCopyBtn.textContent = 'Copy raw response';
+          reviewAmiAmiCopyBtn.disabled = false;
+        }
+      }, 1500);
+    } catch (err) {
+      if (responseToCopy === currentAmiAmiRawResponse) {
+        reviewAmiAmiCopyBtn.textContent = 'Copy failed';
+        reviewAmiAmiCopyBtn.disabled = false;
+      }
     }
   };
 
@@ -875,7 +1084,10 @@
     const renderToken = ++amiAmiResponseRenderToken;
     reviewAmiAmiResponseGroup.classList.toggle('d-none', !barcode);
     reviewAmiAmiResponseStatus.textContent = '';
-    reviewAmiAmiResponse.textContent = '';
+    reviewAmiAmiItems.innerHTML = '';
+    reviewAmiAmiCopyBtn.disabled = true;
+    reviewAmiAmiCopyBtn.textContent = 'Copy raw response';
+    currentAmiAmiRawResponse = '';
     if (!barcode) {
       return;
     }
@@ -894,13 +1106,15 @@
       const cachedLabel = lookup.cached ? ' (cached)' : '';
       const errorLabel = result.ok ? '' : ` ${result.statusText || 'request failed'}`;
       reviewAmiAmiResponseStatus.textContent = `HTTP ${result.status}${errorLabel}${cachedLabel}`;
-      reviewAmiAmiResponse.textContent = formatAmiAmiResponse(result.body);
+      currentAmiAmiRawResponse = result.body || '';
+      reviewAmiAmiCopyBtn.disabled = !currentAmiAmiRawResponse;
+      renderAmiAmiItemCards(result.body, barcode);
     } catch (err) {
       if (renderToken !== amiAmiResponseRenderToken) {
         return;
       }
       reviewAmiAmiResponseStatus.textContent = `Could not fetch AmiAmi API data for ${barcode}.`;
-      reviewAmiAmiResponse.textContent = err && err.message ? err.message : 'Network request failed.';
+      appendAmiAmiEmptyMessage(err && err.message ? err.message : 'Network request failed.');
     }
   };
 
@@ -1573,6 +1787,7 @@
   autoTaricBtn.addEventListener('click', runTaricAutomation);
   reviewTaricBtn.addEventListener('click', openReviewModal);
   copySummaryBtn.addEventListener('click', saveWorkSummary);
+  reviewAmiAmiCopyBtn.addEventListener('click', copyAmiAmiRawResponse);
   exportBtn.addEventListener('click', () => {
     exportCsv();
   });

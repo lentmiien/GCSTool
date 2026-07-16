@@ -80,15 +80,17 @@ block content
             label(for='review-input') TARIC code
             input#review-input.form-control.ie-dark-input(type='text')
           .form-group.ie-taric-suggestions
-            .d-flex.justify-content-between.align-items-center.mb-2
+            .d-flex.flex-wrap.justify-content-between.align-items-center.mb-2
               label.mb-0 Suggested TARIC
               a.small(href='/hs/ireland/taric-explanations', target='_blank') Manage explanations
             p#review-suggestions-empty.ie-dark-muted.mb-0
             div#review-suggestions-list
           #review-amiami-response-group.form-group.ie-amiami-response.d-none
-            label.mb-1(for='review-amiami-response') AmiAmi API raw response
+            .d-flex.justify-content-between.align-items-center.mb-2
+              label.mb-0 AmiAmi item data
+              button#review-amiami-copy-btn.btn.btn-sm.btn-secondary(type='button', disabled) Copy raw response
             p#review-amiami-response-status.ie-dark-muted.mb-2
-            pre#review-amiami-response.mb-0
+            #review-amiami-items
           .d-flex.justify-content-end.ie-review-actions
             button#review-next-btn.btn.btn-primary(type='button') Next
 
@@ -186,15 +188,40 @@ block content
       padding: 0.5rem 0.75rem;
       background: #181818;
     }
-    .ie-amiami-response pre {
-      max-height: 18rem;
-      overflow: auto;
-      padding: 0.75rem;
-      border-radius: 4px;
+    .ie-amiami-item-card {
+      overflow: hidden;
+      border-color: #3a3a3a;
       color: #f1f1f1;
       background: #101010;
-      white-space: pre-wrap;
+    }
+    .ie-amiami-item-card + .ie-amiami-item-card {
+      margin-top: 0.75rem;
+    }
+    .ie-amiami-item-code {
+      display: inline-block;
+      margin-bottom: 0.35rem;
+      font-weight: 700;
       overflow-wrap: anywhere;
+    }
+    .ie-amiami-item-name {
+      margin-bottom: 0;
+      color: #f1f1f1;
+      line-height: 1.35;
+    }
+    .ie-amiami-item-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #ffffff;
+      object-fit: contain;
+    }
+    .ie-amiami-image-placeholder,
+    .ie-amiami-empty {
+      margin: 0;
+      padding: 1rem;
+      color: #cfcfcf;
+      text-align: center;
+      background: #101010;
     }
 
   script(src='/javascripts/FileSaver.js', defer)
