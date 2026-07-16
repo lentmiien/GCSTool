@@ -30,6 +30,9 @@
   const reviewInput = document.getElementById('review-input');
   const reviewSuggestionsEmpty = document.getElementById('review-suggestions-empty');
   const reviewSuggestionsList = document.getElementById('review-suggestions-list');
+  const reviewAmiAmiResponseGroup = document.getElementById('review-amiami-response-group');
+  const reviewAmiAmiResponseStatus = document.getElementById('review-amiami-response-status');
+  const reviewAmiAmiResponse = document.getElementById('review-amiami-response');
   const taricMappingsEl = document.getElementById('taric-mappings');
 
   let initialTaricMappings = [];
@@ -54,12 +57,14 @@
   let automatedWorkflowFinalizing = false;
   let automatedWorkflowToken = 0;
   let automationHasRun = false;
+  let amiAmiResponseRenderToken = 0;
   let taricLookup = {
     jan: new Map(),
     nameHs: new Map(),
   };
   let taricExplanationLookup = new Map();
   let blockedNameHsKeys = new Set();
+  const amiAmiResponseCache = new Map();
 
   const legacyJanPattern = /\s*[\[(]\s*barcode\s*([0-9]{8,14})\s*[\])]\s*$/i;
   const numericJanPattern = /^[0-9]+$/;
@@ -232,6 +237,7 @@
   };
 
   const closeReviewModal = () => {
+    amiAmiResponseRenderToken += 1;
     reviewOverlay.classList.add('d-none');
   };
 
@@ -256,6 +262,9 @@
     reviewInput.value = '';
     reviewSuggestionsEmpty.textContent = '';
     reviewSuggestionsList.innerHTML = '';
+    reviewAmiAmiResponseGroup.classList.add('d-none');
+    reviewAmiAmiResponseStatus.textContent = '';
+    reviewAmiAmiResponse.textContent = '';
     setStatus('');
     setToolStatus('');
     refreshButtons();
@@ -817,6 +826,84 @@
     });
   };
 
+  const requestAmiAmiItems = (barcode) => {
+    if (amiAmiResponseCache.has(barcode)) {
+      return {
+        cached: true,
+        request: amiAmiResponseCache.get(barcode),
+      };
+    }
+
+    const request = fetch('/hs/ireland/amiami-items', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify([barcode]),
+    }).then(async (response) => ({
+      body: await response.text(),
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    })).catch((err) => {
+      amiAmiResponseCache.delete(barcode);
+      throw err;
+    });
+
+    amiAmiResponseCache.set(barcode, request);
+    return {
+      cached: false,
+      request,
+    };
+  };
+
+  const formatAmiAmiResponse = (body) => {
+    if (!body) {
+      return '(empty response body)';
+    }
+
+    try {
+      return JSON.stringify(JSON.parse(body), null, 2);
+    } catch (err) {
+      return body;
+    }
+  };
+
+  const renderAmiAmiResponse = async (itemName) => {
+    const barcode = extractJanCode(itemName);
+    const renderToken = ++amiAmiResponseRenderToken;
+    reviewAmiAmiResponseGroup.classList.toggle('d-none', !barcode);
+    reviewAmiAmiResponseStatus.textContent = '';
+    reviewAmiAmiResponse.textContent = '';
+    if (!barcode) {
+      return;
+    }
+
+    const lookup = requestAmiAmiItems(barcode);
+    reviewAmiAmiResponseStatus.textContent = lookup.cached
+      ? `Loading cached response for ${barcode}...`
+      : `Loading response for ${barcode}...`;
+
+    try {
+      const result = await lookup.request;
+      if (renderToken !== amiAmiResponseRenderToken) {
+        return;
+      }
+
+      const cachedLabel = lookup.cached ? ' (cached)' : '';
+      const errorLabel = result.ok ? '' : ` ${result.statusText || 'request failed'}`;
+      reviewAmiAmiResponseStatus.textContent = `HTTP ${result.status}${errorLabel}${cachedLabel}`;
+      reviewAmiAmiResponse.textContent = formatAmiAmiResponse(result.body);
+    } catch (err) {
+      if (renderToken !== amiAmiResponseRenderToken) {
+        return;
+      }
+      reviewAmiAmiResponseStatus.textContent = `Could not fetch AmiAmi API data for ${barcode}.`;
+      reviewAmiAmiResponse.textContent = err && err.message ? err.message : 'Network request failed.';
+    }
+  };
+
   const getMappingItemNameNormalized = (entry) => {
     return normalizeItemName(entry.itemNameNormalized || entry.itemName);
   };
@@ -1057,6 +1144,7 @@
     reviewMatchStatus.value = getMatchLabel(item);
     reviewInput.value = item.currentHsCode;
     renderReviewTaricSuggestions(item);
+    renderAmiAmiResponse(item.currentProductName);
     reviewNextBtn.textContent = reviewIndex === reviewQueue.length - 1 ? 'Finish' : 'Next';
     reviewOverlay.classList.remove('d-none');
     reviewInput.focus();

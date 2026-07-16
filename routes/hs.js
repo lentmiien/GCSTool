@@ -18,6 +18,7 @@ router.get('/v2', controller.index_v2);
 
 // Ireland CSV editor
 router.get('/ireland', controller.ireland_editor);
+router.post('/ireland/amiami-items', controller.ireland_amiami_items);
 router.post('/ireland/save-mappings', controller.ireland_save_mappings);
 router.post('/ireland/save-work-summary', controller.ireland_save_work_summary);
 router.post('/ireland/work-summary/tracking', controller.ireland_save_tracking_numbers);

@@ -13,6 +13,7 @@ COMPANY_EMAIL=xxxxxxxx
 COMPANY_ADDRESS=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=/*For shortening names*/
 OPENAI_API_KEY2=/*For content creation*/
+LENTMIIEN_API_KEY=/*For Lentmiien API integrations*/
 HOSTNAME_OVERRIDE=
 PM2_BIN=
 HOST_SAMPLE_RETENTION_DAYS=30

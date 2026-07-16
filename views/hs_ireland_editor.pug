@@ -85,6 +85,10 @@ block content
               a.small(href='/hs/ireland/taric-explanations', target='_blank') Manage explanations
             p#review-suggestions-empty.ie-dark-muted.mb-0
             div#review-suggestions-list
+          #review-amiami-response-group.form-group.ie-amiami-response.d-none
+            label.mb-1(for='review-amiami-response') AmiAmi API raw response
+            p#review-amiami-response-status.ie-dark-muted.mb-2
+            pre#review-amiami-response.mb-0
           .d-flex.justify-content-end.ie-review-actions
             button#review-next-btn.btn.btn-primary(type='button') Next
 
@@ -175,6 +179,22 @@ block content
       color: #ffffff;
       font-size: 0.85rem;
       line-height: 1.25;
+    }
+    .ie-amiami-response {
+      border: 1px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      background: #181818;
+    }
+    .ie-amiami-response pre {
+      max-height: 18rem;
+      overflow: auto;
+      padding: 0.75rem;
+      border-radius: 4px;
+      color: #f1f1f1;
+      background: #101010;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
   script(src='/javascripts/FileSaver.js', defer)

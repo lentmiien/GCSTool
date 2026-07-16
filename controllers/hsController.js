@@ -1,5 +1,6 @@
 // Require used packages
 const csv = require('csvtojson');
+const axios = require('axios');
 
 // Require necessary database models
 const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSummary, Op } = require('../sequelize');
@@ -14,6 +15,10 @@ const {
 } = require('../utils/irelandTaricMapping');
 // TODO: Load old data to DB first time
 const old_data = require('../data/recommended.json');
+
+const AMIAMI_ITEMS_API_URL = 'https://my.lentmiien.com/api/amiami-items';
+const AMIAMI_ITEMS_TIMEOUT_MS = 20000;
+const amiAmiBarcodePattern = /^[0-9]{8,14}$/;
 HSCodeList.findAll().then(entries => {
   // Create a lookup list
   const entries_lookup = [];
@@ -730,6 +735,54 @@ exports.ireland_editor = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.ireland_amiami_items = async (req, res) => {
+  const barcodes = Array.isArray(req.body)
+    ? req.body.map((barcode) => collapseWhitespace(barcode))
+    : [];
+
+  if (!barcodes.length || barcodes.length > 100 || barcodes.some((barcode) => !amiAmiBarcodePattern.test(barcode))) {
+    return res.status(400).json({
+      error: 'Request body must be an array of 1 to 100 numeric barcodes (8 to 14 digits each).',
+    });
+  }
+
+  const apiKey = collapseWhitespace(process.env.LENTMIIEN_API_KEY);
+  if (!apiKey) {
+    return res.status(503).json({
+      error: 'AmiAmi item lookup is not configured. Set LENTMIIEN_API_KEY in the environment.',
+    });
+  }
+
+  try {
+    const response = await axios.post(AMIAMI_ITEMS_API_URL, barcodes, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: AMIAMI_ITEMS_TIMEOUT_MS,
+      validateStatus: () => true,
+    });
+
+    const contentType = response.headers['content-type'];
+    if (contentType) {
+      res.set('Content-Type', contentType);
+    }
+
+    if (response.data === undefined || response.data === null) {
+      return res.status(response.status).send('');
+    }
+    return res.status(response.status).send(response.data);
+  } catch (err) {
+    const timedOut = err.code === 'ECONNABORTED';
+    return res.status(timedOut ? 504 : 502).json({
+      error: timedOut
+        ? 'The AmiAmi item API request timed out.'
+        : 'Could not reach the AmiAmi item API.',
+    });
   }
 };
 

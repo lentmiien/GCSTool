@@ -91,7 +91,7 @@ Common optional values:
 - `DB_NAME_DHL_COMPENSATION`: separate DHL compensation schema; defaults to `DB_NAME_GCS` if blank.
 - `COMPANY_DHL_ACCOUNT`, `COMPANY_COMPANY`, `COMPANY_CONTACT`, `COMPANY_PHONE`, `COMPANY_EMAIL`, `COMPANY_ADDRESS`: used by document/PDF generation.
 - `OPENAI_API_KEY`, `OPENAI_API_KEY2`: used by ChatGPT/language helper flows.
-- `LENTMIIEN_API_KEY` or `PRODUCT_DETAILS_API_KEY`: used by the image-grid PDF product details lookup.
+- `LENTMIIEN_API_KEY`: used by Lentmiien API integrations, including the Ireland CSV AmiAmi lookup and image-grid PDF product details lookup. `PRODUCT_DETAILS_API_KEY` remains a fallback for the PDF lookup only.
 - `HOSTNAME_OVERRIDE`, `PM2_BIN`, `HOST_SAMPLE_RETENTION_DAYS`: host sample collection and retention settings.
 - `LINK_1` ... `LINK_5`: quick-access UI links.
 - `AIT_UPDATES_CONTENT_ID`: content entry used by the Lennart AIT update helper.
