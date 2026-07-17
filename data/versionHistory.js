@@ -3,11 +3,15 @@ const item = (text, children = []) => ({ text, children });
 module.exports = [
   {
     version: '2.9.14',
-    releaseDate: '2026-08-16',
-    updateDate: '2026-07-16',
+    releaseDate: '2026-07-17',
+    updateDate: '2026-07-17',
     items: [
       item('HS', [
         item('Ireland CSV editor - Added step 1 AmiAmi API preview integration for manual review using barcode lookup via Lentmiien proxy endpoint'),
+      ]),
+      item('Documents', [
+        item('Invoice tool - Made shipping methods configurable from app settings using a comma-separated list'),
+        item('Invoice PDF - Wrapped long item names into up to two lines and expanded row height to avoid overlap with HS code and adjacent columns'),
       ]),
     ],
   },
