@@ -8,7 +8,9 @@
 
 const fs = require('fs');
 const { degrees, PDFDocument, rgb, StandardFonts, appendBezierCurve } = require('pdf-lib');
-const { HSCodeList } = require('../sequelize');
+const { AppSetting, HSCodeList } = require('../sequelize');
+const { getInvoiceShippingMethods } = require('../services/appSettings');
+const { wrapTextToLines } = require('../utils/pdfText');
 
 const DHL_RETURN_CHOICES = new Set(['transport only', 'Redirect', 'RTO', 'Disposal']);
 
@@ -263,7 +265,10 @@ exports.get_pdf_dhltax = async function (req, res) {
 
 exports.invoice = async (req, res) => {
   // Get data from HS code DB, and add autocomplete when you input an invoice name
-  const hs_data = await HSCodeList.findAll();
+  const [hs_data, shippingMethods] = await Promise.all([
+    HSCodeList.findAll(),
+    getInvoiceShippingMethods(AppSetting),
+  ]);
   const name_to_hs = {};
   const name_list = [];
   const hs_list = [];
@@ -278,8 +283,13 @@ exports.invoice = async (req, res) => {
     if (hs_list.indexOf(hs.code) === -1) hs_list.push(hs.code);
   });
 
-  res.render("pdf_invoice", {name_to_hs, name_list, hs_list});
-}
+  res.render('pdf_invoice', {
+    hs_list,
+    name_list,
+    name_to_hs,
+    shippingMethods,
+  });
+};
 
 exports.generate_invoice = async (req, res) => {
   Object.keys(req.body).forEach((key) => {
@@ -480,12 +490,18 @@ exports.generate_invoice = async (req, res) => {
   });
   let current_page = page;
   let item_row_offset = height - 300 - 20;
-  const item_row_height = 35;
-  let item_column = 50;
-  let hs_column = width / 2 - 15;
-  let quantity_column = width / 2 + 75;
-  let rate_column = width - 125;
-  let amount_column = width - 50;
+  const item_row_height = 46;
+  const itemNameLineHeight = 14;
+  const itemRemarksOffset = 28;
+  const itemDividerOffset = 32;
+  const item_column = 50;
+  const hs_column = width / 2 - 15;
+  const quantity_column = width / 2 + 75;
+  const rate_column = width - 125;
+  const amount_column = width - 50;
+  const itemNameMaxWidth = include_hs
+    ? hs_column - item_column - 10
+    : quantity_column - item_column - 35;
   page.drawText("Item", {
     x: item_column,
     y: height - 300 + 6,
@@ -529,8 +545,10 @@ exports.generate_invoice = async (req, res) => {
   cnt = 0;
   let subtotal = 0;
   for (let i = 0; `item${i}_invoice` in req.body; i++) {
+    let itemRowY = item_row_offset - item_row_height * cnt;
+
     // Check if entry don't fit on current page
-    if (item_row_offset - item_row_height * cnt < 75)
+    if (itemRowY - itemDividerOffset < 50)
     {
       // Go to next page
       current_page = pdfDoc.addPage();
@@ -582,18 +600,28 @@ exports.generate_invoice = async (req, res) => {
       });
       item_row_offset = height - 70;
       cnt = 0;
+      itemRowY = item_row_offset;
     }
-    current_page.drawText(req.body[`item${i}_invoice`], {
-      x: item_column,
-      y: item_row_offset - item_row_height * cnt,
-      size: fsize_text,
-      font: fontHelvetica,
-      color: fcolor_black,
+    const itemNameLines = wrapTextToLines(
+      req.body[`item${i}_invoice`],
+      fontHelvetica,
+      fsize_text,
+      itemNameMaxWidth,
+      2,
+    );
+    itemNameLines.forEach((line, lineIndex) => {
+      current_page.drawText(line, {
+        x: item_column,
+        y: itemRowY - itemNameLineHeight * lineIndex,
+        size: fsize_text,
+        font: fontHelvetica,
+        color: fcolor_black,
+      });
     });
     if (include_hs) {
       current_page.drawText(req.body[`item${i}_hs`], {
         x: hs_column,
-        y: item_row_offset - item_row_height * cnt,
+        y: itemRowY,
         size: fsize_text,
         font: fontHelvetica,
         color: fcolor_black,
@@ -602,7 +630,7 @@ exports.generate_invoice = async (req, res) => {
     text_width = fontHelvetica.widthOfTextAtSize(req.body[`item${i}_q`], fsize_text);
     current_page.drawText(req.body[`item${i}_q`], {
       x: quantity_column - text_width / 2,
-      y: item_row_offset - item_row_height * cnt,
+      y: itemRowY,
       size: fsize_text,
       font: fontHelvetica,
       color: fcolor_black,
@@ -610,7 +638,7 @@ exports.generate_invoice = async (req, res) => {
     text_width = fontHelvetica.widthOfTextAtSize(`${parseInt(req.body[`item${i}_rate`]).toLocaleString()} JPY`, fsize_text);
     current_page.drawText(`${parseInt(req.body[`item${i}_rate`]).toLocaleString()} JPY`, {
       x: rate_column - text_width,
-      y: item_row_offset - item_row_height * cnt,
+      y: itemRowY,
       size: fsize_text,
       font: fontHelvetica,
       color: fcolor_black,
@@ -620,7 +648,7 @@ exports.generate_invoice = async (req, res) => {
     text_width = fontHelvetica.widthOfTextAtSize(`${amount.toLocaleString()} JPY`, fsize_text);
     current_page.drawText(`${amount.toLocaleString()} JPY`, {
       x: amount_column - text_width + 5,
-      y: item_row_offset - item_row_height * cnt,
+      y: itemRowY,
       size: fsize_text,
       font: fontHelvetica,
       color: fcolor_black,
@@ -629,7 +657,7 @@ exports.generate_invoice = async (req, res) => {
     if (req.body.gst_type !== '') {
       current_page.drawText(gst_paid, {
         x: rate_column - 15,
-        y: item_row_offset - item_row_height * cnt - 14,
+        y: itemRowY - 14,
         size: fsize_text_small,
         font: fontHelvetica,
         color: fcolor_gray,
@@ -638,15 +666,15 @@ exports.generate_invoice = async (req, res) => {
     // Remarks
     current_page.drawText(`${req.body[`item${i}_remarks`]}`, {
       x: item_column + 5,
-      y: item_row_offset - item_row_height * cnt - 14,
+      y: itemRowY - itemRemarksOffset,
       size: fsize_text_small,
       font: fontHelvetica,
       color: fcolor_gray,
     });
     // Divider line
     current_page.drawLine({
-      start: { x: 40, y: item_row_offset - item_row_height * cnt - 17 },
-      end: { x: width - 40, y: item_row_offset - item_row_height * cnt - 17 },
+      start: { x: 40, y: itemRowY - itemDividerOffset },
+      end: { x: width - 40, y: itemRowY - itemDividerOffset },
       thickness: 1,
       color: fcolor_black,
       opacity: 0.1,

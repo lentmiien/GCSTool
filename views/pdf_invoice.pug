@@ -31,16 +31,8 @@ block content
         label(for="shipping_method") Shipping method
         select#shipping_method.form-control(name="shipping_method") 
           option(value="") - Select a method -
-          option(value="Air Parcel") Air Parcel
-          option(value="Air Small Packet") Air Small Packet
-          option(value="DHL") DHL
-          option(value="EMS") EMS
-          option(value="SAL Parcel") SAL Parcel
-          option(value="SAL Small Packet") SAL Small Packet
-          option(value="International ePacket Light") International ePacket Light
-          option(value="Surface Mail Premium") Surface Mail Premium
-          option(value="Surface Parcel") Surface Parcel
-          option(value="ECMS") ECMS
+          each shippingMethod in shippingMethods
+            option(value=shippingMethod)= shippingMethod
         label(for="tracking") Tracking number
         input#tracking.form-control(type="text", name="tracking")
         label(for="shipping") Shipping cost

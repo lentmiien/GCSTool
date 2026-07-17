@@ -3,6 +3,7 @@ const {
   APP_SETTING_DESCRIPTIONS,
   APP_SETTING_KEYS,
   REASONING_EFFORTS,
+  parseInvoiceShippingMethods,
 } = require('../services/appSettings');
 
 const SETTING_KEY_PATTERN = /^[A-Z][A-Z0-9_]{0,127}$/;
@@ -21,6 +22,13 @@ function redirectWithMessage(res, type, message) {
 }
 
 function validateValue(key, value) {
+  if (
+    key === APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS
+    && parseInvoiceShippingMethods(value).length === 0
+  ) {
+    return 'Add at least one invoice shipping method.';
+  }
+
   if (key === APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_MODEL && !value) {
     return 'The OpenAI model cannot be empty.';
   }
