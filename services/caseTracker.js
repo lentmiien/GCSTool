@@ -15,6 +15,7 @@ const PLACEHOLDER_ITEM = {
 };
 const MAX_DEFECT_ITEMS = 25;
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
+const REVIEW_INTERVAL_IN_MILLISECONDS = 7 * DAY_IN_MILLISECONDS;
 const MONTH_NAMES = [
   'January',
   'February',
@@ -593,6 +594,16 @@ function formatDateTime(value) {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
+function needsReview(value) {
+  if (!value) {
+    return false;
+  }
+
+  const updatedAt = value instanceof Date ? value : new Date(value);
+  return !Number.isNaN(updatedAt.getTime())
+    && updatedAt.getTime() < Date.now() - REVIEW_INTERVAL_IN_MILLISECONDS;
+}
+
 function getEffectiveComplaint(caseData) {
   return sanitizeText(caseData.customer_complaint_edit) || sanitizeText(caseData.customer_complaint);
 }
@@ -802,6 +813,7 @@ function toPlainCase(caseEntry) {
   data.is_open = !data.solved_date;
   data.created_at_display = formatDateTime(data.createdAt);
   data.updated_at_display = formatDateTime(data.updatedAt);
+  data.needs_review = needsReview(data.updatedAt);
   return hydrateCaseDefectItems(data);
 }
 
@@ -1117,7 +1129,7 @@ class CaseTrackerService {
       };
     }
 
-    await caseEntry.update({
+    caseEntry.set({
       customer_id: emptyToNull(nextCase.customer_id),
       customer_complaint: emptyToNull(nextCase.customer_complaint),
       customer_complaint_edit: emptyToNull(nextCase.customer_complaint_edit),
@@ -1131,6 +1143,9 @@ class CaseTrackerService {
       solved_date: solvedDate,
       staff_in_charge: emptyToNull(nextCase.staff_in_charge),
     });
+    // Ensure save() issues an update when every submitted case value is unchanged.
+    caseEntry.changed('updatedAt', true);
+    await caseEntry.save();
 
     return { ok: true };
   }

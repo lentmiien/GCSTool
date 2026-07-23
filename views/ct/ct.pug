@@ -14,7 +14,7 @@ mixin openCaseTable(caseRows, showStaff)
           th Last updated
       tbody
         each caseEntry in caseRows
-          tr
+          tr(class=caseEntry.needs_review ? 'ct-needs-review-row' : '')
             td
               a(href=`/ct/case/${encodeURIComponent(caseEntry.order_number)}`)= caseEntry.order_number
             if showStaff
@@ -22,7 +22,10 @@ mixin openCaseTable(caseRows, showStaff)
             td= caseEntry.customer_id || '—'
             td= caseEntry.effective_complaint || '—'
             td= caseEntry.complaint_date || '—'
-            td= caseEntry.updated_at_display || '—'
+            td
+              span= caseEntry.updated_at_display || '—'
+              if caseEntry.needs_review
+                span.badge.badge-warning.ml-2(title='Last updated more than seven days ago') Need review
 
 block content
   .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4

@@ -4,10 +4,14 @@ module.exports = [
   {
     version: '2.9.14',
     releaseDate: '2026-07-17',
-    updateDate: '2026-07-17',
+    updateDate: '2026-07-23',
     items: [
       item('HS', [
         item('Ireland CSV editor - Added step 1 AmiAmi API preview integration for manual review using barcode lookup via Lentmiien proxy endpoint'),
+      ]),
+      item('Case tracker', [
+        item('Case saving - Refresh the Last updated time even when no case fields change'),
+        item('Case dashboard - Highlight open cases that have not been updated for more than one week as needing review'),
       ]),
       item('Documents', [
         item('Invoice tool - Made shipping methods configurable from app settings using a comma-separated list'),

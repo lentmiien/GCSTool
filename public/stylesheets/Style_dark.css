@@ -264,6 +264,19 @@ select {
   color: rgb(235, 251, 255);
 }
 
+.table-striped tbody tr.ct-needs-review-row,
+.table-striped tbody tr.ct-needs-review-row:nth-of-type(odd) {
+  background-color: rgb(72, 59, 24);
+}
+
+.table-hover tbody tr.ct-needs-review-row:hover {
+  background-color: rgb(91, 74, 28);
+}
+
+.ct-needs-review-row td:first-child {
+  border-left-color: rgb(255, 193, 7);
+}
+
 .ct-danger-zone {
   border-color: rgb(139, 64, 69) !important;
 }

@@ -445,6 +445,19 @@ svg {
   color: #ffffff;
 }
 
+.table-striped tbody tr.ct-needs-review-row,
+.table-striped tbody tr.ct-needs-review-row:nth-of-type(odd) {
+  background-color: #fff3cd;
+}
+
+.table-hover tbody tr.ct-needs-review-row:hover {
+  background-color: #ffe8a1;
+}
+
+.ct-needs-review-row td:first-child {
+  border-left: 4px solid #ffc107;
+}
+
 .ct-required-section > .border {
   border-color: #dc3545 !important;
 }
