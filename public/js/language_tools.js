@@ -185,6 +185,7 @@ async function Process() {
   let messages = [];
   const title = document.getElementById("title").value;
   let thread_id = 0;
+  let lastProcessedAt;
 
   // Generate prompt message
   if (method === "shorten_names") {
@@ -251,6 +252,7 @@ async function Process() {
         return;
       }
       thread_id = response_data.thread_id;
+      lastProcessedAt = response_data.lastProcessedAt;
       messages.push(response_data.messages[response_data.messages.length-1]);
 
       // Process response
@@ -315,8 +317,15 @@ async function Process() {
   document.getElementById("per_done_range").value = 100;
 
   // Update last processed (just UI update, as server already updated)
-  const d = new Date();
-  document.getElementById("lpa").innerText = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}, ${d.getHours()}:${d.getMinutes()}`;
+  updateLastProcessedDisplay(lastProcessedAt);
+}
+
+function updateLastProcessedDisplay(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return;
+
+  const japanDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+  document.getElementById("lpa").innerText = `${japanDate.getUTCFullYear()}-${japanDate.getUTCMonth()+1}-${japanDate.getUTCDate()}, ${japanDate.getUTCHours()}:${japanDate.getUTCMinutes()}`;
 }
 
 function SaveCompleted() {
@@ -334,7 +343,7 @@ function saveDynamicDataToFile(data, filename) {
 }
 
 async function updateChecked() {
-  await fetch(`/chatgpt/language_tools/checked`, {
+  const response = await fetch(`/chatgpt/language_tools/checked`, {
     method: 'POST', // *GET, POST, PUT, DELETE, etc.
     cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
     headers: {
@@ -343,9 +352,14 @@ async function updateChecked() {
     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
     body: JSON.stringify({}) // body data type must match "Content-Type" header
   });
+  const responseData = await response.json();
 
-  const d = new Date();
-  document.getElementById("lpa").innerText = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}, ${d.getHours()}:${d.getMinutes()}`;
+  if (!response.ok) {
+    alert(responseData.error || 'Failed to update the last processed date.');
+    return;
+  }
+
+  updateLastProcessedDisplay(responseData.lastProcessedAt);
 }
 // Clipboard copy for language tools hints
 document.addEventListener('click', async function (e) {

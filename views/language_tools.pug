@@ -1,12 +1,13 @@
 extends layout
 
 block content
+  - const lastProcessedInJapan = new Date(lastProcessed.getTime() + (9 * 60 * 60 * 1000))
   .row 
     .col 
       h2 Shorten item names 
       p In FM, find all paid orders since last check, for relevant countries, then open the layout for editing shorten names. Press button to remove completed/already short enough names, then "Export" data that needs to be processed. Select the exported file below, and click "Start processing", then wait for the task to be completed, and click on "Save CSV" to export the processed data. Now return to FM, and in the same layout you previously opened, press "Import" and select the file you just exported. Done!
       h3 Last processed at: 
-        b#lpa= `${lastProcessed.getFullYear()}-${lastProcessed.getMonth()+1}-${lastProcessed.getDate()}, ${lastProcessed.getHours()}:${lastProcessed.getMinutes()}`
+        b#lpa= `${lastProcessedInJapan.getUTCFullYear()}-${lastProcessedInJapan.getUTCMonth()+1}-${lastProcessedInJapan.getUTCDate()}, ${lastProcessedInJapan.getUTCHours()}:${lastProcessedInJapan.getUTCMinutes()}`
         button.btn.btn-outline-secondary(onclick="updateChecked()") Update
       hr(style="border: 2px solid red;")
   .row 
@@ -16,7 +17,7 @@ block content
         li Start a new search in FM 
           ul 
             li Press: Ctrl + F
-            - const thedate = new Date(lastProcessed.getTime() - (1000*60*60*24))
+            - const thedate = new Date(lastProcessedInJapan.getTime() - (1000*60*60*24))
             li
               | Paid date: "
               span.copy-text(data-copy='>' + thedate.toISOString().split('T')[0].split('-').join('/'), title='Click to copy', style='cursor: pointer;')

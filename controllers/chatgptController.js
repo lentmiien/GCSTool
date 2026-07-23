@@ -1,6 +1,10 @@
 const { chatGPT, embedding } = require('../utils/ChatGPT');
 const { AppSetting, Chatmsg } = require('../sequelize');
-const { getShortenItemNamesSettings } = require('../services/appSettings');
+const {
+  getShortenItemNamesLastProcessedAt,
+  getShortenItemNamesSettings,
+  setShortenItemNamesLastProcessedAt,
+} = require('../services/appSettings');
 
 // Monthly token limit 2500000 = $5
 // I'm setting this limit as it's a trial
@@ -269,9 +273,13 @@ exports.generate = async (req, res) => {
  * - display output and repeat until done
  * Note: the context or message should request for response in JSON format
  */
-let lastProcessed = new Date(Date.now() - (1000*60*60*24*14));
-exports.language_tools = (req, res) => {
-  res.render('language_tools', {lastProcessed});
+exports.language_tools = async (req, res, next) => {
+  try {
+    const lastProcessed = await getShortenItemNamesLastProcessedAt(AppSetting);
+    res.render('language_tools', { lastProcessed });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -280,9 +288,17 @@ exports.language_tools = (req, res) => {
  * No input/output, only update lastProcessed to curent date-time
  * Use when there was no data to process
  */
-exports.update_checked = (req, res) => {
-  lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
-  res.json({status: "OK"});
+exports.update_checked = async (req, res) => {
+  try {
+    const lastProcessedAt = await setShortenItemNamesLastProcessedAt(AppSetting, new Date());
+    return res.json({
+      lastProcessedAt: lastProcessedAt.toISOString(),
+      status: 'OK',
+    });
+  } catch (error) {
+    console.error('Failed to update the language-tools last processed date:', error);
+    return res.status(500).json({ error: 'Failed to update the last processed date.' });
+  }
 };
 
 /**
@@ -336,9 +352,13 @@ exports.language_send = async (req, res) => {
     db_data[db_data.length - 1].tokens = response.usage.completion_tokens;
     await Chatmsg.bulkCreate(db_data);
 
-    lastProcessed = new Date((new Date()).getTime() + (1000*60*60*9));// Timezone correction
+    const lastProcessedAt = await setShortenItemNamesLastProcessedAt(AppSetting, new Date());
 
-    return res.json({thread_id: tid, messages});
+    return res.json({
+      lastProcessedAt: lastProcessedAt.toISOString(),
+      messages,
+      thread_id: tid,
+    });
   } catch (error) {
     console.error('Failed to process language-tools request:', error);
     return res.status(500).json({ error: 'Failed to process the language-tools request.' });

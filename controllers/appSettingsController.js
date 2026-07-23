@@ -3,6 +3,7 @@ const {
   APP_SETTING_DESCRIPTIONS,
   APP_SETTING_KEYS,
   REASONING_EFFORTS,
+  parseAppSettingDate,
   parseInvoiceShippingMethods,
 } = require('../services/appSettings');
 
@@ -22,6 +23,13 @@ function redirectWithMessage(res, type, message) {
 }
 
 function validateValue(key, value) {
+  if (
+    key === APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT
+    && !parseAppSettingDate(value)
+  ) {
+    return 'Last processed at must be a valid date-time.';
+  }
+
   if (
     key === APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS
     && parseInvoiceShippingMethods(value).length === 0

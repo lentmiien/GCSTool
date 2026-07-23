@@ -1,8 +1,11 @@
 const APP_SETTING_KEYS = Object.freeze({
   INVOICE_SHIPPING_METHODS: 'INVOICE_SHIPPING_METHODS',
+  SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT: 'SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT',
   SHORTEN_ITEM_NAMES_MODEL: 'SHORTEN_ITEM_NAMES_MODEL',
   SHORTEN_ITEM_NAMES_REASONING_EFFORT: 'SHORTEN_ITEM_NAMES_REASONING_EFFORT',
 });
+
+const TWO_WEEKS_IN_MS = 14 * 24 * 60 * 60 * 1000;
 
 const REASONING_EFFORTS = Object.freeze([
   'none',
@@ -26,15 +29,26 @@ const DEFAULT_APP_SETTINGS = Object.freeze({
     'Surface Parcel',
     'ECMS',
   ].join(', '),
+  [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT]: new Date(
+    Date.now() - TWO_WEEKS_IN_MS,
+  ).toISOString(),
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_MODEL]: 'gpt-5.6-luna',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_REASONING_EFFORT]: 'low',
 });
 
 const APP_SETTING_DESCRIPTIONS = Object.freeze({
   [APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS]: 'Comma-separated shipping methods shown by /api/invoice.',
+  [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT]: 'ISO date-time of the last /chatgpt/language_tools run.',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_MODEL]: 'OpenAI model used by /chatgpt/language_tools.',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_REASONING_EFFORT]: 'Reasoning effort used by /chatgpt/language_tools.',
 });
+
+function parseAppSettingDate(value) {
+  const date = value instanceof Date
+    ? new Date(value.getTime())
+    : new Date(String(value || ''));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 function parseInvoiceShippingMethods(value) {
   return String(value || '')
@@ -82,6 +96,39 @@ async function getShortenItemNamesSettings(AppSetting) {
   return { model, reasoningEffort };
 }
 
+async function getShortenItemNamesLastProcessedAt(AppSetting) {
+  const entry = await AppSetting.findOne({
+    where: { key: APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT },
+  });
+  const configuredDate = parseAppSettingDate(entry && entry.value);
+
+  if (configuredDate) {
+    return configuredDate;
+  }
+
+  if (entry) {
+    console.warn(
+      `Invalid ${APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT} setting; using the default date.`,
+    );
+  }
+
+  return new Date(DEFAULT_APP_SETTINGS[APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT]);
+}
+
+async function setShortenItemNamesLastProcessedAt(AppSetting, value) {
+  const lastProcessedAt = parseAppSettingDate(value);
+  if (!lastProcessedAt) {
+    throw new TypeError('Last processed date must be a valid date.');
+  }
+
+  await AppSetting.upsert({
+    key: APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT,
+    value: lastProcessedAt.toISOString(),
+  });
+
+  return lastProcessedAt;
+}
+
 async function getInvoiceShippingMethods(AppSetting) {
   const entry = await AppSetting.findOne({
     where: { key: APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS },
@@ -103,7 +150,10 @@ module.exports = {
   DEFAULT_APP_SETTINGS,
   REASONING_EFFORTS,
   getInvoiceShippingMethods,
+  getShortenItemNamesLastProcessedAt,
   getShortenItemNamesSettings,
+  parseAppSettingDate,
   parseInvoiceShippingMethods,
   seedAppSettings,
+  setShortenItemNamesLastProcessedAt,
 };

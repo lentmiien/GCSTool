@@ -10,6 +10,9 @@ module.exports = [
         item('Case saving - Refresh the Last updated time even when no case fields change'),
         item('Case dashboard - Highlight open cases that have not been updated for more than one week as needing review'),
       ]),
+      item('ChatGPT', [
+        item('Shorten item names tool - Persisted the last processed timestamp in app settings so it survives server restarts'),
+      ]),
     ],
   },
   {
