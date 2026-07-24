@@ -1,4 +1,5 @@
 const CaseTrackerService = require('../services/caseTracker');
+const { getCachedItemProduct } = require('../services/amiAmiItems');
 
 const caseTracker = new CaseTrackerService();
 
@@ -249,7 +250,11 @@ exports.itemAnalytics = async (req, res, next) => {
       });
     }
 
-    res.render('ct/itemAnalytics', analytics);
+    const itemProductLookup = await getCachedItemProduct(analytics.itemCode);
+    res.render('ct/itemAnalytics', {
+      ...analytics,
+      itemProductLookup,
+    });
   } catch (error) {
     next(error);
   }

@@ -4,12 +4,15 @@ module.exports = [
   {
     version: '2.9.15',
     releaseDate: '2026-08-23',
-    updateDate: '2026-07-23',
+    updateDate: '2026-07-24',
     items: [
       item('Case tracker', [
         item('Case saving - Refresh the Last updated time even when no case fields change'),
         item('Case dashboard - Highlight open cases that have not been updated for more than one week as needing review'),
         item('Case page - Added an Open Case form on /ct/case/{caseId} for quickly opening or creating the next case without returning to the dashboard'),
+      ]),
+      item('CT', [
+        item('Item analytics - Added product card fetching by item code from the existing AmiAmi details API, including image, name, brand/series, price, and no-data handling'),
       ]),
       item('ChatGPT', [
         item('Shorten item names tool - Persisted the last processed timestamp in app settings so it survives server restarts'),

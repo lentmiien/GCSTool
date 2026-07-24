@@ -1,9 +1,12 @@
 // Require used packages
 const csv = require('csvtojson');
-const axios = require('axios');
 
 // Require necessary database models
 const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSummary, Op } = require('../sequelize');
+const {
+  hasAmiAmiApiKey,
+  requestAmiAmiItems,
+} = require('../services/amiAmiItems');
 const {
   collapseWhitespace,
   sanitizeMappingCode,
@@ -16,8 +19,6 @@ const {
 // TODO: Load old data to DB first time
 const old_data = require('../data/recommended.json');
 
-const AMIAMI_ITEMS_API_URL = 'https://my.lentmiien.com/api/amiami-items';
-const AMIAMI_ITEMS_TIMEOUT_MS = 20000;
 const amiAmiBarcodePattern = /^[0-9]{8,14}$/;
 HSCodeList.findAll().then(entries => {
   // Create a lookup list
@@ -749,23 +750,14 @@ exports.ireland_amiami_items = async (req, res) => {
     });
   }
 
-  const apiKey = collapseWhitespace(process.env.LENTMIIEN_API_KEY);
-  if (!apiKey) {
+  if (!hasAmiAmiApiKey()) {
     return res.status(503).json({
       error: 'AmiAmi item lookup is not configured. Set LENTMIIEN_API_KEY in the environment.',
     });
   }
 
   try {
-    const response = await axios.post(AMIAMI_ITEMS_API_URL, barcodes, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: AMIAMI_ITEMS_TIMEOUT_MS,
-      validateStatus: () => true,
-    });
+    const response = await requestAmiAmiItems(barcodes);
 
     const contentType = response.headers['content-type'];
     if (contentType) {

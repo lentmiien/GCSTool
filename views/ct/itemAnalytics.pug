@@ -46,6 +46,71 @@ block content
         if role === 'admin'
           a.btn.btn-outline-secondary(href='/ct/admin') Admin
 
+    if itemProductLookup && itemProductLookup.status === 'found'
+      - const itemProduct = itemProductLookup.product
+      article.ct-product-card.mb-4
+        .ct-product-media
+          if itemProduct.imageUrls && itemProduct.imageUrls.length > 0
+            if itemProduct.sourceUrl
+              a.ct-product-image-link(
+                href=itemProduct.sourceUrl,
+                target='_blank',
+                rel='noopener noreferrer',
+                aria-label=`View ${itemProduct.itemName} on AmiAmi`
+              )
+                img.ct-product-image(
+                  src=itemProduct.imageUrls[0],
+                  alt=itemProduct.itemName,
+                  data-ct-product-image,
+                  data-fallback-images=JSON.stringify(itemProduct.imageUrls.slice(1)),
+                  decoding='async'
+                )
+            else
+              img.ct-product-image(
+                src=itemProduct.imageUrls[0],
+                alt=itemProduct.itemName,
+                data-ct-product-image,
+                data-fallback-images=JSON.stringify(itemProduct.imageUrls.slice(1)),
+                decoding='async'
+              )
+            .ct-product-image-placeholder.d-none Image unavailable
+          else
+            .ct-product-image-placeholder Image unavailable
+        .ct-product-body
+          .ct-eyebrow Product information
+          if itemProduct.sourceUrl
+            h2.ct-product-name
+              a.ct-product-name-link(
+                href=itemProduct.sourceUrl,
+                target='_blank',
+                rel='noopener noreferrer'
+              )= itemProduct.itemName
+          else
+            h2.ct-product-name= itemProduct.itemName
+          .ct-product-code= itemProduct.itemCode
+          dl.ct-product-meta
+            .ct-product-meta-item
+              dt Brand
+              dd= itemProduct.brand
+            .ct-product-meta-item
+              dt Series
+              dd= itemProduct.series
+            .ct-product-meta-item
+              dt Price
+              dd.ct-product-price= itemProduct.price
+    else
+      section.ct-panel.ct-product-empty.mb-4(aria-labelledby='ct-product-empty-title')
+        .ct-eyebrow Product information
+        if itemProductLookup && itemProductLookup.status === 'not-found'
+          h2#ct-product-empty-title.ct-panel-title No item data found
+          p.ct-panel-subtitle.mb-0 The item API has no product record for #{itemCode}.
+        else if itemProductLookup && itemProductLookup.status === 'not-configured'
+          h2#ct-product-empty-title.ct-panel-title Item data unavailable
+          p.ct-panel-subtitle.mb-0 The item lookup is not configured on this server.
+        else
+          h2#ct-product-empty-title.ct-panel-title Item data temporarily unavailable
+          p.ct-panel-subtitle.mb-0 The product lookup could not be completed. The analytics below are still available.
+
     .ct-kpi-grid
       .ct-kpi
         span.ct-kpi-label Affected cases
@@ -124,3 +189,6 @@ block content
                   if entry.solvedDate
                     small.ct-status-date= entry.solvedDate
                 td.ct-wrap-cell= entry.solution
+
+block scripts
+  script(src='/js/ct/item-analytics.js')
