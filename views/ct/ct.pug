@@ -57,6 +57,37 @@ block content
           .form-group.col-md-4.mb-0
             button.btn.btn-primary.btn-block(type='submit') Open case
 
+  .card.mb-4(class=recentItemSummary.rows.length > 0 ? 'border-warning' : '')
+    .card-header.d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center
+      div
+        h2.h4.mb-1 Recent repeated item issues
+        p.text-muted.mb-0
+          | Real item codes in at least three separate cases dated #{recentItemSummary.periodStart}–#{recentItemSummary.periodEnd}, with the latest complaint on or after #{recentItemSummary.latestComplaintStartDate}.
+      span.badge.mt-2.mt-md-0(
+        class=recentItemSummary.rows.length > 0 ? 'badge-warning' : 'badge-secondary'
+      )= `${recentItemSummary.rows.length} item${recentItemSummary.rows.length === 1 ? '' : 's'}`
+    if recentItemSummary.rows.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover.mb-0
+          thead
+            tr
+              th Item code
+              th Cases
+              th Entries
+              th Latest complaint
+          tbody
+            each item in recentItemSummary.rows
+              tr
+                th(scope='row')
+                  a.ct-defect-item-link(href=item.url)= item.itemCode
+                td= item.caseCount
+                td= item.occurrenceCount
+                td
+                  span.badge.badge-warning= item.latestComplaintDate
+    else
+      .card-body
+        p.text-muted.mb-0 No item currently meets both the repeated-case and recent-complaint criteria.
+
   .card.mb-4
     .card-body
       .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center.mb-3

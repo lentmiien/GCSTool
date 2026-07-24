@@ -125,6 +125,15 @@ function shiftDateByMonths(value, monthOffset) {
   ].join('-');
 }
 
+function shiftDateByDays(value, dayOffset) {
+  const parsed = parseDateOnly(value);
+  if (!parsed) {
+    return null;
+  }
+
+  return new Date(parsed.timestamp + dayOffset * DAY_IN_MILLISECONDS).toISOString().slice(0, 10);
+}
+
 function buildRecentComplaintWindow(monthCount) {
   const endDate = todayDate();
   return {
@@ -348,7 +357,10 @@ function isRealDefectItem(item) {
     && item.itemCode.toUpperCase() !== PLACEHOLDER_ITEM.itemCode;
 }
 
-function buildItemSummary(caseRows) {
+function buildItemSummary(caseRows, options = {}) {
+  const minimumCaseCount = options.minimumCaseCount || 2;
+  const minimumLatestComplaintDate = sanitizeText(options.minimumLatestComplaintDate);
+  const rowLimit = Object.prototype.hasOwnProperty.call(options, 'rowLimit') ? options.rowLimit : 25;
   const items = new Map();
   let itemizedCases = 0;
 
@@ -394,7 +406,10 @@ function buildItemSummary(caseRows) {
       occurrenceCount: item.occurrenceCount,
       url: `/ct/analytics/item/${encodeURIComponent(item.itemCode)}`,
     }))
-    .filter((item) => item.caseCount >= 2)
+    .filter((item) => (
+      item.caseCount >= minimumCaseCount
+      && (!minimumLatestComplaintDate || item.latestComplaintDate >= minimumLatestComplaintDate)
+    ))
     .sort((left, right) => (
       right.caseCount - left.caseCount
       || right.occurrenceCount - left.occurrenceCount
@@ -404,7 +419,7 @@ function buildItemSummary(caseRows) {
 
   return {
     itemizedCases,
-    rows: repeatedItems.slice(0, 25),
+    rows: rowLimit === null ? repeatedItems : repeatedItems.slice(0, rowLimit),
     totalRepeatedItems: repeatedItems.length,
   };
 }
@@ -835,7 +850,9 @@ class CaseTrackerService {
 
   async getDashboard(currentUser) {
     const normalizedCurrentUser = sanitizeText(currentUser);
-    const [openCases, complaintTypes, solutionTypes, totalCases] = await Promise.all([
+    const itemWindow = buildRecentComplaintWindow(6);
+    const latestComplaintStartDate = shiftDateByDays(itemWindow.endDate, -7);
+    const [openCases, complaintTypes, solutionTypes, totalCases, recentItemCases] = await Promise.all([
       ct.Case.findAll({
         where: {
           solved_date: {
@@ -847,6 +864,22 @@ class CaseTrackerService {
       ct.ComplaintType.findAll({ order: [['name', 'ASC']] }),
       ct.SolutionType.findAll({ order: [['name', 'ASC']] }),
       ct.Case.count(),
+      ct.Case.findAll({
+        attributes: [
+          'customer_complaint',
+          'customer_complaint_edit',
+          'complaint_date',
+          'defect_items',
+          'defect_description',
+        ],
+        where: {
+          complaint_date: {
+            [Op.between]: [itemWindow.startDate, itemWindow.endDate],
+          },
+        },
+        order: [['complaint_date', 'ASC']],
+        raw: true,
+      }),
     ]);
 
     const caseRows = openCases.map((entry) => toPlainCase(entry));
@@ -862,6 +895,16 @@ class CaseTrackerService {
       otherCases,
       complaintTypes,
       solutionTypes,
+      recentItemSummary: {
+        ...buildItemSummary(recentItemCases, {
+          minimumCaseCount: 3,
+          minimumLatestComplaintDate: latestComplaintStartDate,
+          rowLimit: null,
+        }),
+        latestComplaintStartDate,
+        periodEnd: itemWindow.endDate,
+        periodStart: itemWindow.startDate,
+      },
       totalOpenCases: caseRows.length,
       totalCases,
     };

@@ -9,6 +9,8 @@ module.exports = [
       item('Case tracker', [
         item('Case saving - Refresh the Last updated time even when no case fields change'),
         item('Case dashboard - Highlight open cases that have not been updated for more than one week as needing review'),
+        item('Case dashboard - Added a recent repeated-item list for item codes with at least three cases in six months and a complaint in the last week'),
+        item('Case dashboard - Added repeated-item links on /ct with a /7 day recency condition and fixed consistent row-header underlines in related tables'),
         item('Case page - Added an Open Case form on /ct/case/{caseId} for quickly opening or creating the next case without returning to the dashboard'),
       ]),
       item('CT', [

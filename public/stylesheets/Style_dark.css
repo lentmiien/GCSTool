@@ -344,7 +344,8 @@ select {
   border: 5px solid rgb(255, 72, 0);
 }
 
-td {
+td,
+th[scope='row'] {
   padding: 5px;
   border-bottom: 5px solid rgb(124, 124, 124);
 }
