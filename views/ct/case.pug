@@ -21,6 +21,17 @@ block content
         each error in errors
           li= error
 
+  .card.mb-4
+    .card-body
+      h2.h4.mb-3 Open Case
+      form(method='post', action='/ct/open')
+        .form-row.align-items-end
+          .form-group.col-md-8.mb-2.mb-md-0
+            label(for='order_number') Order number
+            input#order_number.form-control(type='text', name='order_number', placeholder='Enter order number', required=true)
+          .form-group.col-md-4.mb-0
+            button.btn.btn-primary.btn-block(type='submit') Open case
+
   .row
     .col-lg-8
       form#case-form(method='post', action=`/ct/case/${encodeURIComponent(caseDetails.order_number)}`, data-original-complaint=caseDetails.customer_complaint)
