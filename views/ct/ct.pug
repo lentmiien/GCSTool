@@ -19,7 +19,11 @@ mixin openCaseTable(caseRows, showStaff)
               a(href=`/ct/case/${encodeURIComponent(caseEntry.order_number)}`)= caseEntry.order_number
             if showStaff
               td= caseEntry.staff_in_charge || 'Unassigned'
-            td= caseEntry.customer_id || '—'
+            td
+              if caseEntry.customer_id
+                a(href=`/ct/customer/${encodeURIComponent(caseEntry.customer_id)}`)= caseEntry.customer_id
+              else
+                | —
             td= caseEntry.effective_complaint || '—'
             td= caseEntry.complaint_date || '—'
             td
@@ -87,6 +91,40 @@ block content
     else
       .card-body
         p.text-muted.mb-0 No item currently meets both the repeated-case and recent-complaint criteria.
+
+  .card.mb-4(class=recentCustomerSummary.rows.length > 0 ? 'border-warning' : '')
+    .card-header.d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-center
+      div
+        h2.h4.mb-1 Recent repeat customers
+        p.text-muted.mb-0
+          | Customer IDs with at least two saved cases and a latest case opened within the past #{recentCustomerSummary.lookbackDays} days (since #{recentCustomerSummary.latestOpenedStart}).
+      span.badge.mt-2.mt-md-0(
+        class=recentCustomerSummary.rows.length > 0 ? 'badge-warning' : 'badge-secondary'
+      )= `${recentCustomerSummary.rows.length} customer${recentCustomerSummary.rows.length === 1 ? '' : 's'}`
+    if recentCustomerSummary.rows.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover.mb-0
+          thead
+            tr
+              th Customer ID
+              th Cases
+              th Open cases
+              th Latest case
+              th Opened
+          tbody
+            each customer in recentCustomerSummary.rows
+              tr
+                th(scope='row')
+                  a(href=customer.url)= customer.customerId
+                td= customer.caseCount
+                td= customer.openCaseCount
+                td
+                  a(href=customer.latestCaseUrl)= customer.latestOrderNumber
+                td
+                  span.badge.badge-warning= customer.latestCaseOpenedAt
+    else
+      .card-body
+        p.text-muted.mb-0 No repeat customer has had a new case opened within the past seven days.
 
   .card.mb-4
     .card-body

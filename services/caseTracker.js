@@ -16,6 +16,7 @@ const PLACEHOLDER_ITEM = {
 const MAX_DEFECT_ITEMS = 25;
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 const REVIEW_INTERVAL_IN_MILLISECONDS = 7 * DAY_IN_MILLISECONDS;
+const RECENT_REPEAT_CUSTOMER_INTERVAL_IN_MILLISECONDS = 7 * DAY_IN_MILLISECONDS;
 const MONTH_NAMES = [
   'January',
   'February',
@@ -537,6 +538,81 @@ function buildRepeatCustomerSummary(caseRows) {
   };
 }
 
+function buildRecentRepeatCustomerSummary(caseRows, now = new Date()) {
+  const currentDate = toValidDateTime(now) || new Date();
+  const latestOpenedStart = new Date(
+    currentDate.getTime() - RECENT_REPEAT_CUSTOMER_INTERVAL_IN_MILLISECONDS
+  );
+  const customers = new Map();
+
+  caseRows.forEach((caseRow) => {
+    const customerId = sanitizeText(caseRow.customer_id);
+    if (!customerId) {
+      return;
+    }
+
+    if (!customers.has(customerId)) {
+      customers.set(customerId, {
+        caseCount: 0,
+        customerId,
+        latestCaseOpenedAt: null,
+        latestOrderNumber: '',
+        openCaseCount: 0,
+      });
+    }
+
+    const summary = customers.get(customerId);
+    const openedAt = toValidDateTime(caseRow.createdAt);
+    const orderNumber = sanitizeText(caseRow.order_number);
+    summary.caseCount += 1;
+    if (!parseDateOnly(caseRow.solved_date)) {
+      summary.openCaseCount += 1;
+    }
+
+    if (
+      openedAt
+      && (
+        !summary.latestCaseOpenedAt
+        || openedAt.getTime() > summary.latestCaseOpenedAt.getTime()
+        || (
+          openedAt.getTime() === summary.latestCaseOpenedAt.getTime()
+          && orderNumber.localeCompare(summary.latestOrderNumber) > 0
+        )
+      )
+    ) {
+      summary.latestCaseOpenedAt = openedAt;
+      summary.latestOrderNumber = orderNumber;
+    }
+  });
+
+  const rows = Array.from(customers.values())
+    .filter((customer) => (
+      customer.caseCount >= 2
+      && customer.latestCaseOpenedAt
+      && customer.latestCaseOpenedAt.getTime() >= latestOpenedStart.getTime()
+    ))
+    .sort((left, right) => (
+      right.latestCaseOpenedAt.getTime() - left.latestCaseOpenedAt.getTime()
+      || right.caseCount - left.caseCount
+      || left.customerId.localeCompare(right.customerId)
+    ))
+    .map((customer) => ({
+      caseCount: customer.caseCount,
+      customerId: customer.customerId,
+      latestCaseOpenedAt: formatDateTime(customer.latestCaseOpenedAt),
+      latestCaseUrl: `/ct/case/${encodeURIComponent(customer.latestOrderNumber)}`,
+      latestOrderNumber: customer.latestOrderNumber,
+      openCaseCount: customer.openCaseCount,
+      url: `/ct/customer/${encodeURIComponent(customer.customerId)}`,
+    }));
+
+  return {
+    latestOpenedStart: formatDateTime(latestOpenedStart),
+    lookbackDays: 7,
+    rows,
+  };
+}
+
 function buildShippingComplaintRows(shippingCases) {
   const complaintRows = new Map();
 
@@ -590,13 +666,22 @@ function buildCoverageRow(label, count, total) {
   };
 }
 
-function formatDateTime(value) {
+function toValidDateTime(value) {
   if (!value) {
-    return '';
+    return null;
   }
 
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatDateTime(value) {
+  const date = toValidDateTime(value);
+  if (!date) {
     return '';
   }
 
@@ -903,7 +988,14 @@ class CaseTrackerService {
     const normalizedCurrentUser = sanitizeText(currentUser);
     const itemWindow = buildRecentComplaintWindow(6);
     const latestComplaintStartDate = shiftDateByDays(itemWindow.endDate, -7);
-    const [openCases, complaintTypes, solutionTypes, totalCases, recentItemCases] = await Promise.all([
+    const [
+      openCases,
+      complaintTypes,
+      solutionTypes,
+      totalCases,
+      recentItemCases,
+      repeatCustomerCases,
+    ] = await Promise.all([
       ct.Case.findAll({
         where: {
           solved_date: {
@@ -931,6 +1023,20 @@ class CaseTrackerService {
         order: [['complaint_date', 'ASC']],
         raw: true,
       }),
+      ct.Case.findAll({
+        attributes: [
+          'customer_id',
+          'order_number',
+          'solved_date',
+          'createdAt',
+        ],
+        where: {
+          customer_id: {
+            [Op.ne]: null,
+          },
+        },
+        raw: true,
+      }),
     ]);
 
     const caseRows = openCases.map((entry) => toPlainCase(entry));
@@ -956,6 +1062,7 @@ class CaseTrackerService {
         periodEnd: itemWindow.endDate,
         periodStart: itemWindow.startDate,
       },
+      recentCustomerSummary: buildRecentRepeatCustomerSummary(repeatCustomerCases),
       totalOpenCases: caseRows.length,
       totalCases,
     };
@@ -1079,6 +1186,71 @@ class CaseTrackerService {
       ),
       errors: extras && extras.errors ? extras.errors : [],
       message: extras && extras.message ? extras.message : null,
+    };
+  }
+
+  async getCustomerView(customerId) {
+    const normalizedCustomerId = sanitizeText(customerId);
+    if (!normalizedCustomerId) {
+      return null;
+    }
+
+    const customerCases = await ct.Case.findAll({
+      where: {
+        customer_id: normalizedCustomerId,
+      },
+      order: [['complaint_date', 'DESC'], ['createdAt', 'DESC'], ['order_number', 'DESC']],
+    });
+    if (customerCases.length === 0) {
+      return null;
+    }
+
+    const caseRows = customerCases.map((entry) => {
+      const caseEntry = toPlainCase(entry);
+      return {
+        ...caseEntry,
+        caseUrl: `/ct/case/${encodeURIComponent(caseEntry.order_number)}`,
+        status: caseEntry.is_open ? 'Open' : 'Solved',
+      };
+    });
+    const solvedCases = caseRows.filter((caseEntry) => !caseEntry.is_open);
+    const complaintTypes = buildBreakdown(caseRows.map((caseEntry) => (
+      caseEntry.effective_complaint || UNCLASSIFIED_COMPLAINT
+    )));
+    const solutions = buildBreakdown(solvedCases.map((caseEntry) => (
+      sanitizeText(caseEntry.solution) || 'Not recorded'
+    )));
+    const complaintDates = caseRows
+      .map((caseEntry) => parseDateOnly(caseEntry.complaint_date))
+      .filter(Boolean)
+      .sort((left, right) => left.timestamp - right.timestamp);
+    const openedDates = caseRows
+      .map((caseEntry) => toValidDateTime(caseEntry.createdAt))
+      .filter(Boolean)
+      .sort((left, right) => left.getTime() - right.getTime());
+
+    return {
+      cases: caseRows,
+      complaintTypes,
+      customerId: normalizedCustomerId,
+      pagetitle: `Customer details: ${normalizedCustomerId}`,
+      solutions,
+      summary: {
+        complaintTypeCount: complaintTypes.length,
+        dateRange: complaintDates.length > 0
+          ? `${complaintDates[0].key} – ${complaintDates[complaintDates.length - 1].key}`
+          : 'No complaint dates recorded',
+        latestCaseOpenedAt: openedDates.length > 0
+          ? formatDateTime(openedDates[openedDates.length - 1])
+          : '',
+        latestComplaintDate: complaintDates.length > 0
+          ? complaintDates[complaintDates.length - 1].key
+          : '',
+        openCaseCount: caseRows.length - solvedCases.length,
+        solvedCaseCount: solvedCases.length,
+        solvedRate: percentage(solvedCases.length, caseRows.length),
+        totalCases: caseRows.length,
+      },
     };
   }
 

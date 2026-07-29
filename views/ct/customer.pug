@@ -1,56 +1,119 @@
-﻿extends ../layout
+extends ../layout
+
+mixin horizontalChart(rows, emptyMessage)
+  if rows && rows.length > 0
+    .ct-horizontal-chart
+      each row in rows
+        .ct-horizontal-row
+          .ct-horizontal-heading
+            span.ct-horizontal-label= row.label
+            span.ct-horizontal-value= `${row.count} · ${row.percent}%`
+          .ct-meter(aria-hidden='true')
+            .ct-meter-fill(style=`width: ${row.percent}%`)
+  else
+    .ct-empty-inline= emptyMessage
+
+block styles
+  link(rel='stylesheet', href='/css/ct/analytics.css')
 
 block content
-  h1 Customer #{profile.customerId}
-  a.btn.btn-link(href='/ct') Back to dashboard
-  .mt-3
-    h2 Summary
-    if profile.totalCases
-      p Cases: #{profile.totalCases} (open #{profile.summary.open}, closed #{profile.summary.closed})
-      if profile.defectCounts
-        p Defect claims: #{profile.defectCounts.total} total#{profile.defectCounts.ongoing ? ` (+${profile.defectCounts.ongoing} open)` : ''}
-    else
-      p.text-muted No cases recorded for this customer.
-    if Object.keys(profile.summary.byStatus || {}).length
-      ul
-        each val, key in profile.summary.byStatus
-          li #{key}: #{val}
-  if profile.matrix && profile.matrix.rows && profile.matrix.rows.length
-    h2 Type vs. Solution
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Type
-          each col in profile.matrix.columns
-            th= col
-      tbody
-        each row in profile.matrix.rows
-          tr
-            td= row.type
-            each cell in row.cells
-              - const display = cell.completed || cell.ongoing ? `${cell.completed}${cell.ongoing ? ` (+${cell.ongoing})` : ''}` : '—'
-              td= display
-  hr
-  h2 Cases
-  if profile.cases && profile.cases.length
-    table.table.table-dark.table-striped
-      thead
-        tr
-          th Order
-          th Type
-          th Status
-          th Solution
-          th Deadline
-          th Staff
-      tbody
-        each c in profile.cases
-          tr
-            td
-              a(href=`/ct/case/${c.id}`)= c.order
-            td= c.type || '—'
-            td= c.status || '—'
-            td= c.solution || '—'
-            td= c.deadline ? ((new Date(c.deadline)).toISOString().split('T')[0]) : '—'
-            td= c.staff_in_charge || '—'
-  else
-    p.text-muted No cases recorded for this customer.
+  .ct-analytics
+    .ct-page-header
+      div
+        .ct-eyebrow Customer details
+        h1.mb-2= customerId
+        p.ct-page-subtitle.mb-0
+          | #{summary.totalCases} saved case#{summary.totalCases === 1 ? '' : 's'} · #{summary.dateRange}
+      .btn-group.mt-3.mt-lg-0
+        a.btn.btn-outline-secondary(href='/ct') Cases
+        a.btn.btn-outline-secondary(href='/ct/analytics') Analytics
+        if role === 'admin'
+          a.btn.btn-outline-secondary(href='/ct/admin') Admin
+
+    .ct-kpi-grid
+      .ct-kpi
+        span.ct-kpi-label Total cases
+        strong.ct-kpi-value= summary.totalCases
+        span.ct-kpi-detail All cases saved for this customer ID
+      .ct-kpi
+        span.ct-kpi-label Open cases
+        strong.ct-kpi-value= summary.openCaseCount
+        span.ct-kpi-detail Awaiting a solved date
+      .ct-kpi
+        span.ct-kpi-label Solved cases
+        strong.ct-kpi-value= summary.solvedCaseCount
+        span.ct-kpi-detail= `${summary.solvedRate}% of this customer's cases`
+      .ct-kpi
+        span.ct-kpi-label Complaint types
+        strong.ct-kpi-value= summary.complaintTypeCount
+        span.ct-kpi-detail Uses the current complaint classification
+      .ct-kpi
+        span.ct-kpi-label Latest complaint
+        strong.ct-kpi-value.ct-kpi-value--compact= summary.latestComplaintDate || '—'
+        span.ct-kpi-detail Most recent recorded complaint date
+      .ct-kpi
+        span.ct-kpi-label Latest case opened
+        strong.ct-kpi-value.ct-kpi-value--compact= summary.latestCaseOpenedAt || '—'
+        span.ct-kpi-detail When the newest case record was created
+
+    .row
+      .col-lg-6.mb-4
+        .ct-panel.h-100
+          .ct-panel-heading
+            div
+              h2.ct-panel-title Complaint types
+              p.ct-panel-subtitle Current complaint classification across all saved cases.
+          +horizontalChart(complaintTypes, 'No complaint types have been recorded.')
+      .col-lg-6.mb-4
+        .ct-panel.h-100
+          .ct-panel-heading
+            div
+              h2.ct-panel-title Solutions for solved cases
+              p.ct-panel-subtitle Saved solutions for cases that have a solved date.
+          +horizontalChart(solutions, 'No solved cases are available for this summary.')
+
+    .ct-panel.mb-4
+      .ct-panel-heading
+        div
+          h2.ct-panel-title All customer cases
+          p.ct-panel-subtitle Newest complaint date first. Open an order number to review the complete case.
+        span.ct-sample-badge= `${summary.totalCases} case${summary.totalCases === 1 ? '' : 's'}`
+      .table-responsive
+        table.table.ct-table.mb-0
+          thead
+            tr
+              th Complaint date
+              th Order
+              th Complaint
+              th Defect items
+              th Status
+              th Solution
+              th Staff
+              th Opened
+              th Last updated
+          tbody
+            each caseEntry in cases
+              tr
+                td= caseEntry.complaint_date || '—'
+                th(scope='row')
+                  a.ct-table-link(href=caseEntry.caseUrl)= caseEntry.order_number
+                td.ct-wrap-cell
+                  div= caseEntry.effective_complaint || 'Unclassified'
+                  if caseEntry.customer_complaint_comment
+                    small.ct-data-note= caseEntry.customer_complaint_comment
+                td
+                  if caseEntry.defect_item_rows.length > 0
+                    each item in caseEntry.defect_item_rows.slice(0, 3)
+                      div= item.placeholder ? 'Not confirmed' : item.itemCode
+                    if caseEntry.defect_item_rows.length > 3
+                      small.ct-data-note= `+${caseEntry.defect_item_rows.length - 3} more`
+                  else
+                    | —
+                td
+                  span.ct-status(class=caseEntry.is_open ? 'ct-status--open' : 'ct-status--solved')= caseEntry.status
+                  if caseEntry.solved_date
+                    small.ct-status-date= caseEntry.solved_date
+                td.ct-wrap-cell= caseEntry.solution || (caseEntry.is_open ? '—' : 'Not recorded')
+                td= caseEntry.staff_in_charge || 'Unassigned'
+                td= caseEntry.created_at_display || '—'
+                td= caseEntry.updated_at_display || '—'

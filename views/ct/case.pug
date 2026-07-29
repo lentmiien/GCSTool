@@ -223,7 +223,11 @@ block content
             |  #{caseDetails.effective_complaint || '—'}
           p.mb-2
             strong Customer ID:
-            |  #{caseDetails.customer_id || '—'}
+            if caseDetails.customer_id
+              = ' '
+              a(href=`/ct/customer/${encodeURIComponent(caseDetails.customer_id)}`)= caseDetails.customer_id
+            else
+              |  —
           p.mb-2
             strong Staff in charge:
             span(data-staff-in-charge-summary)  #{caseDetails.staff_in_charge || 'Unassigned'}
@@ -242,7 +246,12 @@ block content
 
       .card.mb-4
         .card-body
-          h2.h5.mb-3 Repeat Cases
+          .d-flex.justify-content-between.align-items-center.mb-3
+            h2.h5.mb-0 Repeat Cases
+            if caseDetails.customer_id
+              a.btn.btn-sm.btn-outline-secondary(
+                href=`/ct/customer/${encodeURIComponent(caseDetails.customer_id)}`
+              ) Customer details
           if caseDetails.customer_id
             if relatedCases.length > 0
               p.text-muted= `${relatedCases.length} other case(s) found for this customer ID.`

@@ -16,10 +16,10 @@ function getCurrentUser(req) {
   return req.user && req.user.userid ? req.user.userid : '';
 }
 
-function renderNotFound(req, res) {
+function renderNotFound(req, res, message = 'Case not found.') {
   setLayoutLocals(req, res);
   res.status(404).render('error', {
-    message: 'Case not found.',
+    message,
     request: req.body,
   });
 }
@@ -63,6 +63,20 @@ exports.caseDetail = async (req, res, next) => {
     }
 
     res.render('ct/case', viewModel);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.customerDetail = async (req, res, next) => {
+  try {
+    setLayoutLocals(req, res);
+    const viewModel = await caseTracker.getCustomerView(req.params.customerId);
+    if (!viewModel) {
+      return renderNotFound(req, res, 'No cases were found for this customer ID.');
+    }
+
+    res.render('ct/customer', viewModel);
   } catch (error) {
     next(error);
   }

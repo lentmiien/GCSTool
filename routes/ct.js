@@ -11,6 +11,8 @@ router.post('/case/:orderNumber', controller.updateCase);
 router.post('/case/:orderNumber/take', controller.takeCase);
 router.post('/case/:orderNumber/delete', controller.deleteCase);
 
+router.get('/customer/:customerId', controller.customerDetail);
+
 router.get('/admin', controller.admin);
 router.post('/admin/complaints', controller.addComplaintType);
 router.post('/admin/complaints/:id', controller.updateComplaintType);
