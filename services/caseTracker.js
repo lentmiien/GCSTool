@@ -832,6 +832,57 @@ function toPlainCase(caseEntry) {
   return hydrateCaseDefectItems(data);
 }
 
+function buildCaseNavigationTarget(caseEntry) {
+  const orderNumber = caseEntry ? sanitizeText(caseEntry.order_number) : '';
+  return {
+    orderNumber: orderNumber || null,
+    url: orderNumber ? `/ct/case/${encodeURIComponent(orderNumber)}` : '/ct',
+  };
+}
+
+function buildCaseNavigation(caseRows, currentOrderNumber, currentUser) {
+  const normalizedOrderNumber = sanitizeText(currentOrderNumber);
+  const normalizedCurrentUser = sanitizeText(currentUser);
+  const currentIndex = caseRows.findIndex((caseEntry) => (
+    sanitizeText(caseEntry.order_number) === normalizedOrderNumber
+  ));
+
+  const findAdjacentCase = (direction, predicate) => {
+    if (currentIndex < 0) {
+      return null;
+    }
+
+    for (
+      let index = currentIndex + direction;
+      index >= 0 && index < caseRows.length;
+      index += direction
+    ) {
+      if (predicate(caseRows[index])) {
+        return caseRows[index];
+      }
+    }
+
+    return null;
+  };
+
+  const allOpenCases = (caseEntry) => !caseEntry.solved_date;
+  const myCases = (caseEntry) => (
+    normalizedCurrentUser
+    && sanitizeText(caseEntry.staff_in_charge) === normalizedCurrentUser
+  );
+
+  return {
+    allOpenCases: {
+      previous: buildCaseNavigationTarget(findAdjacentCase(-1, allOpenCases)),
+      next: buildCaseNavigationTarget(findAdjacentCase(1, allOpenCases)),
+    },
+    myCases: {
+      previous: buildCaseNavigationTarget(findAdjacentCase(-1, myCases)),
+      next: buildCaseNavigationTarget(findAdjacentCase(1, myCases)),
+    },
+  };
+}
+
 class CaseTrackerService {
   normalizeOrderNumber(orderNumber) {
     return sanitizeText(orderNumber);
@@ -955,9 +1006,14 @@ class CaseTrackerService {
       return null;
     }
 
-    const [caseEntry, lookupRows] = await Promise.all([
+    const [caseEntry, lookupRows, navigationRows] = await Promise.all([
       ct.Case.findOne({ where: { order_number: normalizedOrderNumber } }),
       this.getLookupRows(),
+      ct.Case.findAll({
+        attributes: ['order_number', 'solved_date', 'staff_in_charge'],
+        order: [['updatedAt', 'ASC'], ['complaint_date', 'ASC'], ['order_number', 'ASC']],
+        raw: true,
+      }),
     ]);
 
     if (!caseEntry) {
@@ -1016,6 +1072,11 @@ class CaseTrackerService {
       hasComplaintTypes: lookupRows.complaintTypes.length > 0,
       hasSolutionTypes: lookupRows.solutionTypes.length > 0,
       hasShippingMethods: lookupRows.shippingMethods.length > 0,
+      caseNavigation: buildCaseNavigation(
+        navigationRows,
+        normalizedOrderNumber,
+        currentUser
+      ),
       errors: extras && extras.errors ? extras.errors : [],
       message: extras && extras.message ? extras.message : null,
     };

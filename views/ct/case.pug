@@ -21,16 +21,45 @@ block content
         each error in errors
           li= error
 
-  .card.mb-4
-    .card-body
-      h2.h4.mb-3 Open Case
-      form(method='post', action='/ct/open')
-        .form-row.align-items-end
-          .form-group.col-md-8.mb-2.mb-md-0
-            label(for='order_number') Order number
-            input#order_number.form-control(type='text', name='order_number', placeholder='Enter order number', required=true)
-          .form-group.col-md-4.mb-0
-            button.btn.btn-primary.btn-block(type='submit') Open case
+  .card.mb-3.ct-case-navigation
+    .card-body.p-2
+      .ct-case-navigation-row
+        h2.h6.mb-0.text-nowrap Navigate
+        form.ct-case-navigation-open(method='post', action='/ct/open')
+          label.sr-only(for='order_number') Order number
+          .input-group.input-group-sm
+            input#order_number.form-control(
+              type='text',
+              name='order_number',
+              placeholder='Order number',
+              aria-label='Order number',
+              required=true
+            )
+            .input-group-append
+              button.btn.btn-primary(type='submit') Open case
+        .ct-case-navigation-actions
+          .ct-case-navigation-scope
+            span.small.font-weight-bold.text-nowrap.mr-2 My cases
+            .btn-group.btn-group-sm(role='group', aria-label='Navigate my cases')
+              a.btn.btn-outline-secondary(
+                href=caseNavigation.myCases.previous.url,
+                title=caseNavigation.myCases.previous.orderNumber ? `Previous my case: ${caseNavigation.myCases.previous.orderNumber}` : 'Return to cases'
+              ) Previous
+              a.btn.btn-outline-secondary(
+                href=caseNavigation.myCases.next.url,
+                title=caseNavigation.myCases.next.orderNumber ? `Next my case: ${caseNavigation.myCases.next.orderNumber}` : 'Return to cases'
+              ) Next
+          .ct-case-navigation-scope
+            span.small.font-weight-bold.text-nowrap.mr-2 All open cases
+            .btn-group.btn-group-sm(role='group', aria-label='Navigate all open cases')
+              a.btn.btn-outline-secondary(
+                href=caseNavigation.allOpenCases.previous.url,
+                title=caseNavigation.allOpenCases.previous.orderNumber ? `Previous open case: ${caseNavigation.allOpenCases.previous.orderNumber}` : 'Return to cases'
+              ) Previous
+              a.btn.btn-outline-secondary(
+                href=caseNavigation.allOpenCases.next.url,
+                title=caseNavigation.allOpenCases.next.orderNumber ? `Next open case: ${caseNavigation.allOpenCases.next.orderNumber}` : 'Return to cases'
+              ) Next
 
   .row
     .col-lg-8

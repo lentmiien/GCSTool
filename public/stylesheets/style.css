@@ -485,6 +485,43 @@ svg {
   outline-offset: 2px;
 }
 
+.ct-case-navigation-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: -0.25rem;
+}
+
+.ct-case-navigation-row > * {
+  margin: 0.25rem;
+}
+
+.ct-case-navigation-open {
+  flex: 1 1 15rem;
+  max-width: 22rem;
+}
+
+.ct-case-navigation-actions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.ct-case-navigation-scope {
+  display: flex;
+  align-items: center;
+  margin: 0.25rem;
+}
+
+@media (max-width: 767.98px) {
+  .ct-case-navigation-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
 .ct-danger-zone {
   border-color: #dc3545 !important;
 }

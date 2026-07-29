@@ -2,6 +2,17 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.9.16',
+    releaseDate: '2026-08-29',
+    updateDate: '2026-07-29',
+    items: [
+      item('Case tracker', [
+        item('Case page - Reworked the Open Case block into a compact Navigate section with previous/next case navigation for "My cases" and "All open cases", preserving order-based paging behavior'),
+        item('Navigation list behavior - Added end-of-list handling that returns to /ct and excludes solved cases from the All open cases scope'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.15',
     releaseDate: '2026-07-27',
     updateDate: '2026-07-24',
