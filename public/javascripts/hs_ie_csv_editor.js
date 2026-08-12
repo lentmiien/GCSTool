@@ -24,6 +24,7 @@
   const reviewAmiAmiJpLink = document.getElementById('review-amiami-jp-link');
   const reviewGoogleLink = document.getElementById('review-google-link');
   const reviewBarcodeLinks = document.getElementById('review-barcode-links');
+  const reviewAmiAmiResult = document.getElementById('review-amiami-result');
   const reviewOriginalHs = document.getElementById('review-original-hs');
   const reviewCurrentHs = document.getElementById('review-current-hs');
   const reviewMatchStatus = document.getElementById('review-match-status');
@@ -920,6 +921,19 @@
     reviewAmiAmiItems.appendChild(empty);
   };
 
+  const setReviewAmiAmiResult = (hasItems) => {
+    reviewAmiAmiResult.classList.remove('badge-success', 'badge-warning');
+    if (hasItems == null) {
+      reviewAmiAmiResult.textContent = '';
+      reviewAmiAmiResult.classList.add('d-none');
+      return;
+    }
+
+    reviewAmiAmiResult.textContent = hasItems ? 'AmiAmi data found' : 'No AmiAmi data';
+    reviewAmiAmiResult.classList.add(hasItems ? 'badge-success' : 'badge-warning');
+    reviewAmiAmiResult.classList.remove('d-none');
+  };
+
   const getAmiAmiItemRecords = (parsedResponse) => {
     if (Array.isArray(parsedResponse)) {
       return parsedResponse.filter((entry) => entry && typeof entry === 'object');
@@ -1006,7 +1020,7 @@
     reviewAmiAmiItems.innerHTML = '';
     if (!body) {
       appendAmiAmiEmptyMessage(`No AmiAmi item data was returned for ${barcode}.`);
-      return;
+      return false;
     }
 
     let parsedResponse;
@@ -1014,18 +1028,19 @@
       parsedResponse = JSON.parse(body);
     } catch (err) {
       appendAmiAmiEmptyMessage('The API response could not be formatted. Use "Copy raw response" to inspect it.');
-      return;
+      return false;
     }
 
     const records = getAmiAmiItemRecords(parsedResponse);
     if (!records.length) {
       appendAmiAmiEmptyMessage(`No AmiAmi item data was found for ${barcode}.`);
-      return;
+      return false;
     }
 
     records.forEach((record) => {
       reviewAmiAmiItems.appendChild(buildAmiAmiItemCard(record));
     });
+    return true;
   };
 
   const copyTextToClipboard = async (text) => {
@@ -1088,6 +1103,7 @@
     reviewAmiAmiCopyBtn.disabled = true;
     reviewAmiAmiCopyBtn.textContent = 'Copy raw response';
     currentAmiAmiRawResponse = '';
+    setReviewAmiAmiResult(null);
     if (!barcode) {
       return;
     }
@@ -1108,13 +1124,14 @@
       reviewAmiAmiResponseStatus.textContent = `HTTP ${result.status}${errorLabel}${cachedLabel}`;
       currentAmiAmiRawResponse = result.body || '';
       reviewAmiAmiCopyBtn.disabled = !currentAmiAmiRawResponse;
-      renderAmiAmiItemCards(result.body, barcode);
+      setReviewAmiAmiResult(renderAmiAmiItemCards(result.body, barcode));
     } catch (err) {
       if (renderToken !== amiAmiResponseRenderToken) {
         return;
       }
       reviewAmiAmiResponseStatus.textContent = `Could not fetch AmiAmi API data for ${barcode}.`;
       appendAmiAmiEmptyMessage(err && err.message ? err.message : 'Network request failed.');
+      setReviewAmiAmiResult(false);
     }
   };
 
@@ -1347,7 +1364,7 @@
     }
 
     const item = reviewQueue[reviewIndex];
-    reviewProgress.textContent = `Review ${reviewIndex + 1} of ${reviewQueue.length}`;
+    reviewProgress.textContent = `TARIC review (${reviewIndex + 1}/${reviewQueue.length})`;
     reviewOrder.value = item.orderNumber;
     reviewRow.value = String(item.csvRowNumber);
     reviewItemNumber.value = String(item.itemNumber);

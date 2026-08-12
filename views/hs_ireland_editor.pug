@@ -45,40 +45,24 @@ block content
     #review-overlay.ie-review-overlay.d-none
       .card.ie-review-card
         .card-header.ie-editor-card-header.d-flex.justify-content-between.align-items-center
-          span TARIC review
+          span#review-progress TARIC review
           button#review-close-btn.btn.btn-sm.btn-secondary(type='button') Close
         .card-body.ie-editor-card-body.ie-review-body
-          p#review-progress.mb-3
           .form-row
-            .form-group.col-md-4
-              label(for='review-order') Order number
-              input#review-order.form-control.ie-dark-input(type='text', readonly)
-            .form-group.col-md-4
-              label(for='review-row') CSV row
-              input#review-row.form-control.ie-dark-input(type='text', readonly)
-            .form-group.col-md-4
-              label(for='review-item-number') Item number
-              input#review-item-number.form-control.ie-dark-input(type='text', readonly)
-          .form-group
+            .form-group.col-md-6.ie-review-compact-field
+              label.small.mb-1(for='review-order') Order number
+              input#review-order.form-control.form-control-sm.ie-dark-input(type='text', readonly)
+            .form-group.col-md-6.ie-review-compact-field
+              label.small.mb-1(for='review-input') TARIC code
+              input#review-input.form-control.form-control-sm.ie-dark-input(type='text')
+          .form-group.mb-3
             label(for='review-item-name') Item name
             input#review-item-name.form-control.ie-dark-input(type='text', readonly)
             #review-barcode-links.ie-review-item-links.mt-2.d-none
               a#review-amiami-eng-link(href='#', target='_blank', rel='noopener') AmiAmi COM
               a#review-amiami-jp-link(href='#', target='_blank', rel='noopener') AmiAmi JP
               a#review-google-link(href='#', target='_blank', rel='noopener') Google
-          .form-row
-            .form-group.col-md-4
-              label(for='review-original-hs') Original HS
-              input#review-original-hs.form-control.ie-dark-input(type='text', readonly)
-            .form-group.col-md-4
-              label(for='review-current-hs') Current TARIC
-              input#review-current-hs.form-control.ie-dark-input(type='text', readonly)
-            .form-group.col-md-4
-              label(for='review-match-status') Automation status
-              input#review-match-status.form-control.ie-dark-input(type='text', readonly)
-          .form-group
-            label(for='review-input') TARIC code
-            input#review-input.form-control.ie-dark-input(type='text')
+              span#review-amiami-result.badge.d-none(role='status', aria-live='polite')
           .form-group.ie-taric-suggestions
             .d-flex.flex-wrap.justify-content-between.align-items-center.mb-2
               label.mb-0 Suggested TARIC
@@ -91,6 +75,23 @@ block content
               button#review-amiami-copy-btn.btn.btn-sm.btn-secondary(type='button', disabled) Copy raw response
             p#review-amiami-response-status.ie-dark-muted.mb-2
             #review-amiami-items
+          .ie-review-secondary-details
+            .form-row
+              .form-group.col-6.col-md-2.ie-review-compact-field
+                label.small.mb-1(for='review-row') CSV row
+                input#review-row.form-control.form-control-sm.ie-dark-input(type='text', readonly)
+              .form-group.col-6.col-md-2.ie-review-compact-field
+                label.small.mb-1(for='review-item-number') Item number
+                input#review-item-number.form-control.form-control-sm.ie-dark-input(type='text', readonly)
+              .form-group.col-6.col-md-2.ie-review-compact-field
+                label.small.mb-1(for='review-original-hs') Original HS
+                input#review-original-hs.form-control.form-control-sm.ie-dark-input(type='text', readonly)
+              .form-group.col-6.col-md-2.ie-review-compact-field
+                label.small.mb-1(for='review-current-hs') Current TARIC
+                input#review-current-hs.form-control.form-control-sm.ie-dark-input(type='text', readonly)
+              .form-group.col-12.col-md-4.ie-review-compact-field
+                label.small.mb-1(for='review-match-status') Automation status
+                input#review-match-status.form-control.form-control-sm.ie-dark-input(type='text', readonly)
           .d-flex.justify-content-end.ie-review-actions
             button#review-next-btn.btn.btn-primary(type='button') Next
 
@@ -136,9 +137,17 @@ block content
     .ie-review-item-links {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.75rem;
       font-size: 0.85rem;
       line-height: 1.25;
+    }
+    .ie-review-compact-field {
+      margin-bottom: 0.75rem;
+    }
+    .ie-review-secondary-details {
+      padding-top: 0.75rem;
+      border-top: 1px solid #333;
     }
     .ie-taric-suggestions {
       border: 1px solid #3a3a3a;

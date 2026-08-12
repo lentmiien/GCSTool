@@ -12,6 +12,9 @@ module.exports = [
         item('Case dashboard - Added a Recent repeat customer section for customers with multiple cases and the latest case opened within the last 7 days'),
         item('Case tracker - Added a customer details page linked from dashboard IDs summarizing all cases for the selected customer'),
       ]),
+      item('HS', [
+        item('Ireland TARIC review - Prioritized key fields in the TARIC review modal, moved secondary CSV fields lower, moved review progress into the modal title, and added a row status badge for AmiAmi item-data fetch results'),
+      ]),
     ],
   },
   {
