@@ -3,8 +3,8 @@ const item = (text, children = []) => ({ text, children });
 module.exports = [
   {
     version: '2.9.16',
-    releaseDate: '2026-08-29',
-    updateDate: '2026-07-29',
+    releaseDate: '2026-08-17',
+    updateDate: '2026-08-17',
     items: [
       item('Case tracker', [
         item('Case page - Reworked the Open Case block into a compact Navigate section with previous/next case navigation for "My cases" and "All open cases", preserving order-based paging behavior'),
