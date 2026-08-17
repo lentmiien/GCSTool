@@ -691,56 +691,6 @@ function PeekDocuments(seconds) {
 
 /**********************************************
  *
- *               Phone schedule
- *
- **********************************************/
-
-// Date.prototype.getWeekNumber = function () {
-//   var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
-//   var dayNum = d.getUTCDay() || 7;
-//   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-//   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-//   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-// };
-function UpdateStatusBar() {
-  const statusBar = document.getElementById('status_bar');
-  if (!statusBar) {
-    return;
-  }
-  const d = new Date();
-  const day = d.getDay();
-  const hour = d.getHours();
-  const staff = [
-    'CLOSED',
-    'Schoppmann & Jammie',
-    'Victoria & Lennart',
-    'Schoppmann & Victoria',
-    'Katie & Lennart',
-    'Katie & Jammie',
-    'CLOSED',
-  ];
-  const isWeekday = day >= 1 && day <= 5;
-  const isOpen = isWeekday && hour >= 12 && hour < 17;
-  const statusText = isWeekday ? staff[day] : 'closed';
-  const stateKey = `${isOpen ? 'open' : 'closed'}:${statusText}`;
-  if (statusBar.dataset.state !== stateKey) {
-    const dot = document.createElement('span');
-    dot.className = `app-status-dot app-status-dot--${isOpen ? 'open' : 'closed'}`;
-    dot.setAttribute('aria-hidden', 'true');
-    dot.textContent = '●';
-    const label = document.createElement('span');
-    label.textContent = `Zendesk Talk: ${isOpen ? 'open' : 'closed'} · ${statusText}`;
-    statusBar.replaceChildren(dot, label);
-    statusBar.dataset.state = stateKey;
-  }
-  statusBar.classList.remove('hidden');
-
-  setTimeout(UpdateStatusBar, 10000);
-}
-UpdateStatusBar();
-
-/**********************************************
- *
  *                 Reminders
  *
  **********************************************/

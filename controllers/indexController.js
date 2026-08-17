@@ -1,6 +1,5 @@
 ﻿const async = require('async');
 const axios = require('axios');
-const bcrypt = require('bcryptjs');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
@@ -20,6 +19,7 @@ const {
 } = require('../sequelize');
 const { version: currentVersion } = require('../package.json');
 const sanitizeHtml = require('../utils/sanitizeHtml');
+const { hashPassword, isTemporaryPassword, verifyPassword } = require('../utils/password');
 
 const timekeeper = [];
 
@@ -27,6 +27,50 @@ const jpnews = {
   lastupdated: 0,
   data: {}
 };
+
+function normalizeJapanPostNews(items, now = new Date()) {
+  const normalized = { recent: [], older: [] };
+  if (!Array.isArray(items)) {
+    return normalized;
+  }
+
+  const recentBoundary = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+  items.forEach((item) => {
+    const title = item && Array.isArray(item.title) && typeof item.title[0] === 'string'
+      ? item.title[0].trim()
+      : '';
+    const link = item && Array.isArray(item.link) && typeof item.link[0] === 'string'
+      ? item.link[0].trim()
+      : '';
+    const pubDate = item && Array.isArray(item.pubDate) && typeof item.pubDate[0] === 'string'
+      ? item.pubDate[0].trim()
+      : '';
+
+    let parsedLink;
+    try {
+      parsedLink = new URL(link);
+    } catch (_error) {
+      return;
+    }
+    if (!title || (parsedLink.protocol !== 'http:' && parsedLink.protocol !== 'https:')) {
+      return;
+    }
+
+    const publishedAt = new Date(pubDate);
+    const entry = { title, link: parsedLink.href, pubDate };
+    if (
+      Number.isFinite(publishedAt.getTime())
+      && publishedAt >= recentBoundary
+      && publishedAt <= now
+    ) {
+      normalized.recent.push(entry);
+    } else {
+      normalized.older.push(entry);
+    }
+  });
+
+  return normalized;
+}
 
 // Load admin data
 exports.all = async function (req, res, next) {
@@ -230,7 +274,53 @@ exports.index = async function (req, res, next) {
       }
       return entry;
     });
-    return res.render('index', { entries: visibleEntries });
+    return res.render('index', {
+      entries: visibleEntries,
+      japanPostNews: normalizeJapanPostNews(res.locals.jp),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.change_password_get = function (req, res) {
+  return res.render('change_password', {
+    pagetitle: 'Change password · GCS Support Tool',
+    passwordChangeRequired: isTemporaryPassword(req.user.password),
+  });
+};
+
+exports.change_password_post = async function (req, res, next) {
+  const currentPassword = typeof req.body.currentPassword === 'string' ? req.body.currentPassword : '';
+  const newPassword = typeof req.body.newPassword === 'string' ? req.body.newPassword : '';
+  const confirmPassword = typeof req.body.confirmPassword === 'string' ? req.body.confirmPassword : '';
+  const renderError = (status, error) => res.status(status).render('change_password', {
+    pagetitle: 'Change password · GCS Support Tool',
+    passwordChangeRequired: isTemporaryPassword(req.user.password),
+    error,
+  });
+
+  if (!currentPassword || currentPassword.length > 128) {
+    return renderError(400, 'Enter your current password.');
+  }
+  if (newPassword.length < 12 || newPassword.length > 128) {
+    return renderError(400, 'Your new password must contain between 12 and 128 characters.');
+  }
+  if (newPassword !== confirmPassword) {
+    return renderError(400, 'The new password and confirmation do not match.');
+  }
+
+  try {
+    if (!(await verifyPassword(currentPassword, req.user.password))) {
+      return renderError(400, 'The current password is incorrect.');
+    }
+    if (await verifyPassword(newPassword, req.user.password)) {
+      return renderError(400, 'Choose a new password that is different from your current password.');
+    }
+
+    const password = await hashPassword(newPassword);
+    await req.user.update({ password });
+    return res.redirect('/');
   } catch (error) {
     return next(error);
   }
@@ -302,7 +392,18 @@ exports.admin_get = async function (req, res) {
   }
 
   try {
-    const users = await User.findAll({ order: [['userid', 'ASC']] });
+    const userRecords = await User.findAll({
+      attributes: ['id', 'userid', 'password', 'team', 'role'],
+      order: [['userid', 'ASC']],
+    });
+    const users = userRecords.map((user) => ({
+      id: user.id,
+      userid: user.userid,
+      team: user.team,
+      role: user.role,
+      hasPassword: typeof user.password === 'string' && user.password.length > 0,
+      passwordChangeRequired: isTemporaryPassword(user.password),
+    }));
     res.render('admin', { users });
   } catch (error) {
     console.error('Failed to load users:', error);
@@ -333,7 +434,7 @@ exports.adduser = async (req, res, next) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password, { temporary: true });
     const created = await sequelize.transaction(async (transaction) => {
       const existing = await User.findOne({
         where: { userid },
@@ -421,7 +522,7 @@ exports.reset_password = async (req, res, next) => {
     return res.status(400).json({ status: 'Temporary passwords must be between 12 and 128 characters.' });
   }
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password, { temporary: true });
     const [updatedCount] = await User.update({ password: hashedPassword }, { where: { id: id_to_reset } });
     return res.status(updatedCount ? 200 : 404).json({ status: updatedCount ? 'OK' : 'User not found.' });
   } catch (error) {

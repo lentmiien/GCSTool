@@ -7,6 +7,7 @@
  */
 
 const socketIO = require('socket.io');
+const { isTemporaryPassword } = require('./utils/password');
 
 // Require necessary database models
 const { Meeting, MeetingComment, User } = require('./sequelize');
@@ -95,11 +96,14 @@ async function resolveActor(socket, reload = false) {
     && socket.request.session.passport.user;
   const userId = requirePositiveId(sessionUserId, 'authenticated user');
   const user = await User.findByPk(userId, {
-    attributes: ['id', 'userid', 'role'],
+    attributes: ['id', 'userid', 'role', 'password'],
   });
 
   if (!user || typeof user.userid !== 'string' || user.userid.length === 0) {
     throw new Error('Authenticated user was not found.');
+  }
+  if (isTemporaryPassword(user.password)) {
+    throw new Error('Password change is required.');
   }
 
   return {

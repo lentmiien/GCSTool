@@ -64,8 +64,7 @@ block content
                     else if updatedValue > recentBoundaryValue
                       b.update-status Updated
                   .home-entry-meta
-                    span.label(lg_language=`_${entry.category}_`)= entry.category
-                    span(class=`label ${entry.ismaster ? 'master' : 'private'}`, lg_language=entry.ismaster ? '_master_' : '_private_')= entry.ismaster ? 'Master' : 'Private'
+                    span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
 
                 div.home-entry-detail(id=`entry${entry.id}`, style='display:none;')
                   each content in entry.contents
@@ -128,16 +127,36 @@ block content
       .table-responsive
         table#reminders.table
 
-    if jp && jp.length
+    - const japanPostNewsData = typeof japanPostNews !== 'undefined' && japanPostNews ? japanPostNews : {}
+    - const recentJapanPostNews = Array.isArray(japanPostNewsData.recent) ? japanPostNewsData.recent : []
+    - const olderJapanPostNews = Array.isArray(japanPostNewsData.older) ? japanPostNewsData.older : []
+    if recentJapanPostNews.length || olderJapanPostNews.length
       section.home-panel.home-news(aria-labelledby='jp-news-title')
         header.app-page-header
           div
             p.app-page-kicker External updates
             h2#jp-news-title Japan Post news
         .home-news-list
-          each newsItem in jp
-            if newsItem && newsItem.link && newsItem.link.length && newsItem.title && newsItem.title.length
-              a.home-news-item(href=newsItem.link[0], target='_blank', rel='noopener noreferrer')
-                span= newsItem.title[0]
-                if newsItem.pubDate && newsItem.pubDate.length
-                  time= newsItem.pubDate[0]
+          each newsItem in recentJapanPostNews
+            a.home-news-item(href=newsItem.link, target='_blank', rel='noopener noreferrer')
+              span= newsItem.title
+              if newsItem.pubDate
+                time= newsItem.pubDate
+        if !recentJapanPostNews.length
+          p.home-news-empty No Japan Post news was published during the last 30 days.
+        if olderJapanPostNews.length
+          .home-news-more
+            button.btn.btn-outline-secondary.btn-sm(
+              type='button',
+              data-toggle='collapse',
+              data-target='#older-japan-post-news',
+              aria-expanded='false',
+              aria-controls='older-japan-post-news'
+            )= `Show older news (${olderJapanPostNews.length})`
+            #older-japan-post-news.collapse
+              .home-news-list
+                each newsItem in olderJapanPostNews
+                  a.home-news-item(href=newsItem.link, target='_blank', rel='noopener noreferrer')
+                    span= newsItem.title
+                    if newsItem.pubDate
+                      time= newsItem.pubDate

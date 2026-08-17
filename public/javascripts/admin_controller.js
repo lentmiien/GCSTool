@@ -42,7 +42,7 @@ async function ResetPassword(id, button) {
     await PostAdminUpdate(`/reset_password/${id}`, { password: input.value });
     input.value = '';
     button.textContent = 'Set';
-    window.alert('Temporary password updated.');
+    window.alert('Temporary password updated. The user must replace it before continuing.');
   } catch (error) {
     window.alert(error.message);
   } finally {

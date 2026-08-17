@@ -8,6 +8,7 @@ var session = require('express-session');
 const Sequelize = require('sequelize');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const fileUpload = require('express-fileupload');
+const { isTemporaryPassword } = require('./utils/password');
 
 const pp = require('./passport_init');
 
@@ -97,6 +98,7 @@ app.use((req, res, next) => {
   res.locals.role = req.user && req.user.role ? req.user.role : 'guest';
   res.locals.name = req.user && req.user.userid ? req.user.userid : 'Guest';
   res.locals.signedIn = Boolean(req.user);
+  res.locals.passwordChangeRequired = Boolean(req.user && isTemporaryPassword(req.user.password));
   res.locals.currentPath = req.path;
   next();
 });
@@ -211,6 +213,11 @@ app.use(function (err, req, res, next) {
 // Autenthication checks
 function requireAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
+    const requestPath = req.originalUrl.split('?')[0].replace(/\/+$/, '') || '/';
+    const passwordRouteAllowed = requestPath === '/change-password' || requestPath === '/logout';
+    if (isTemporaryPassword(req.user.password) && !passwordRouteAllowed) {
+      return res.redirect('/change-password');
+    }
     return next();
   }
   res.locals.role = 'guest';

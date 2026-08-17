@@ -14,6 +14,8 @@ module.exports = [
         item('Redesigned the application shell with grouped navigation, clearer active states, modern language, theme, and user controls, and a consistent footer'),
         item('Unified Japan Post news, application status, holiday, and schedule notices into responsive components with clearer hierarchy and actions'),
         item('Improved keyboard and small-screen usability with skip navigation, visible focus states, accessible labels, responsive menus, tables, controls, and page spacing'),
+        item('Limited top-page Japan Post announcements to the latest 30 days by default and added an expand control for older items'),
+        item('Simplified news and entry list labels to color-only cues by shortening Master/Private to M/P and removing redundant type labels'),
       ]),
       item('Page modernization', [
         item('Migrated legacy administration, meeting, feedback, ChatGPT, policy/manual/template, DHL compensation, and Ireland/Greece workflows to the shared dual-theme styling standard'),
@@ -25,6 +27,8 @@ module.exports = [
         item('Sanitized rendered policy markdown and removed the exposed destructive reset route'),
         item('Secured meeting updates by deriving identities from authenticated sessions, validating socket payloads and ownership, and rendering user content as text'),
         item('Added focused defensive handling for missing page elements, unavailable data, failed feeds, and asynchronous operation errors'),
+        item('Added enforced temporary-password change flow after admin reset, including session blocking until password update'),
+        item('Removed the Zendesk Talk status notice and fixed meeting comment and news-body color/overflow regressions'),
       ]),
     ],
   },

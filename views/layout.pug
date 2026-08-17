@@ -25,6 +25,7 @@ html(lang='en', data-color-mode='dark')
     - const displayName = typeof name !== 'undefined' && name ? name : 'Guest'
     - const displayRole = typeof role !== 'undefined' && role ? role : 'guest'
     - const isSignedIn = typeof signedIn !== 'undefined' ? Boolean(signedIn) : displayName !== 'Guest'
+    - const requiresPasswordChange = typeof passwordChangeRequired !== 'undefined' && Boolean(passwordChangeRequired)
     a.app-skip-link(href='#main-content') Skip to main content
 
     .app-shell
@@ -47,7 +48,7 @@ html(lang='en', data-color-mode='dark')
             span.app-navbar-toggler-lines(aria-hidden='true')
 
           #navbarContent.collapse.navbar-collapse
-            if isSignedIn
+            if isSignedIn && !requiresPasswordChange
               ul.navbar-nav.app-nav-main
                 li.nav-item(class=pathIs('/entry') ? 'active' : '')
                   a.nav-link(href='/entry', lg_language='_content_', aria-current=pathIs('/entry') ? 'page' : undefined)
@@ -144,8 +145,10 @@ html(lang='en', data-color-mode='dark')
                     small#u_role= displayRole
                 .dropdown-menu.dropdown-menu-right.app-dropdown-menu(aria-labelledby='userMenuButton')
                   if isSignedIn
-                    span.dropdown-header Signed in as #{displayName}
-                    a.dropdown-item(href='/about') About GCS Tool
+                    span.dropdown-header= requiresPasswordChange ? 'Password update required' : `Signed in as ${displayName}`
+                    a.dropdown-item(href='/change-password') Change password
+                    if !requiresPasswordChange
+                      a.dropdown-item(href='/about') About GCS Tool
                     .dropdown-divider
                     a.dropdown-item.app-dropdown-danger(href='/logout', lg_language='_logout_') Logout
                   else
@@ -168,8 +171,6 @@ html(lang='en', data-color-mode='dark')
             .app-notice-content
               strong Japan Post news
               a(href=jpNotice.link, target='_blank', rel='noopener noreferrer')= jpNotice.title
-
-        #status_bar.app-notice.app-notice--status.hidden(role='status', aria-live='polite')
 
         if typeof holidays_next_week !== 'undefined' && holidays_next_week && holidays_next_week.length > 0
           .app-notice.app-notice--warning(role='note')
@@ -207,7 +208,7 @@ html(lang='en', data-color-mode='dark')
                 strong= day.date
                 span(lg_language=day.schedule ? `_${day.schedule}_` : '')= day.schedule || 'Not set'
 
-      main#main-content.app-main(class=!isSignedIn ? 'app-main--auth' : '')
+      main#main-content.app-main(class=!isSignedIn || requiresPasswordChange ? 'app-main--auth' : '')
         block content
 
       footer.app-footer

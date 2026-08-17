@@ -71,8 +71,7 @@ block content
           )
             each titlePart in titleParts
               span(class=titlePart.label ? 'highlight' : '')= titlePart.text
-          span.label(lg_language=`_${entry.category}_`)= entry.category
-          span(class=`label ${entry.ismaster ? 'master' : 'private'}`, lg_language=entry.ismaster ? '_master_' : '_private_')= entry.ismaster ? 'Master' : 'Private'
+          span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
 
           div.entry-detail(id=`entry${entry.id}`, style='display:none;')
             each content in entry.contents

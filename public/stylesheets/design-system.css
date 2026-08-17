@@ -545,6 +545,14 @@ html[data-color-mode='light'] .app-theme-icon--sun {
   box-shadow: var(--gcs-shadow-lg);
 }
 
+@media (min-width: 1200px) {
+  .app-navbar .dropdown-menu {
+    max-height: calc(100vh - 5.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 .dropdown-header {
   padding: 0.5rem 0.7rem 0.25rem;
   color: var(--gcs-subtle);
@@ -2043,6 +2051,10 @@ html[data-color-mode='light'] .pmt-review-count {
   background: var(--gcs-surface-muted);
 }
 
+.meeting-page .comment pre {
+  color: var(--gcs-text);
+}
+
 .user {
   border-color: color-mix(in srgb, var(--gcs-success) 40%, var(--gcs-border));
   background: var(--gcs-success-soft);
@@ -2322,6 +2334,15 @@ html[data-color-mode='light'] .pmt-review-count {
   gap: 1.5rem;
 }
 
+.home-content-grid > *,
+.home-updates,
+.home-entry-list,
+.home-entry,
+.home-entry-detail {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .home-entry-list {
   display: grid;
   gap: 0.7rem;
@@ -2359,6 +2380,7 @@ div.home-entry {
   margin-top: 0.85rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--gcs-border);
+  overflow: hidden;
 }
 
 .home-entry-detail > * + * {
@@ -2366,7 +2388,22 @@ div.home-entry {
 }
 
 .home-entry-manual {
-  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  overflow-wrap: normal;
+}
+
+.home-entry-manual table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.home-entry-manual th,
+.home-entry-manual td {
+  white-space: nowrap;
 }
 
 .home-entry-template {
@@ -2468,6 +2505,19 @@ div.home-entry {
   gap: 0.5rem;
 }
 
+.home-news-empty {
+  margin: 0;
+  color: var(--gcs-muted);
+}
+
+.home-news-more {
+  margin-top: 0.85rem;
+}
+
+.home-news-more > .btn {
+  margin-bottom: 0.75rem;
+}
+
 .home-news-item {
   align-items: baseline;
 }
@@ -2491,6 +2541,21 @@ div.home-entry {
 
 .auth-card h1 {
   margin-bottom: 0.65rem;
+}
+
+.account-password-layout .auth-card {
+  width: min(100%, 32rem);
+}
+
+.auth-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gcs-border);
+  font-size: 0.82rem;
 }
 
 .auth-intro,
@@ -2570,12 +2635,16 @@ div.home-entry {
   }
 
   .app-navbar .navbar-collapse {
+    max-height: calc(100vh - 5.6rem);
     margin-top: 0.65rem;
     padding: 0.75rem;
     border: 1px solid var(--gcs-border);
     border-radius: var(--gcs-radius);
     background: var(--gcs-surface);
     box-shadow: var(--gcs-shadow);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 
   .app-nav-main {

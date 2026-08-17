@@ -5,6 +5,9 @@ var router = express.Router();
 var index_controller = require('../controllers/indexController');
 var app_settings_controller = require('../controllers/appSettingsController');
 
+router.get('/change-password', index_controller.change_password_get);
+router.post('/change-password', index_controller.change_password_post);
+
 router.all('*', index_controller.all);
 
 /* GET home page. */

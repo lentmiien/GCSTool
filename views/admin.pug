@@ -5,7 +5,7 @@ block content
     div
       p.app-page-kicker Administration
       h1(lg_language='_users_') Users
-      p Manage account access, teams, and roles. Temporary passwords must contain 12–128 characters.
+      p Manage account access, teams, and roles. Temporary passwords must contain 12–128 characters and must be replaced by the user at their next sign-in.
     if role === 'admin'
       .app-page-actions
         a.btn.btn-outline-info(href='/admin/app-settings') Manage app settings
@@ -52,7 +52,10 @@ block content
                     )
                     .input-group-append
                       button.btn.btn-outline-danger(type='button', onclick=`ResetPassword(${u.id}, this)`) Set
-                  small.form-text.text-muted= u.password ? 'A password is set.' : 'Sign-in is disabled until a password is set.'
+                  if u.passwordChangeRequired
+                    small.form-text.text-warning Temporary password set; change required.
+                  else
+                    small.form-text.text-muted= u.hasPassword ? 'A password is set.' : 'Sign-in is disabled until a password is set.'
               td
                 if u.userid === 'Lennart'
                   span(lg_language=u.team)= u.team

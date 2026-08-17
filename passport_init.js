@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcryptjs');
+const { verifyPassword } = require('./utils/password');
 
 // Require necessary database models
 const { User } = require('./sequelize');
@@ -20,8 +20,7 @@ passport.use(
       }
 
       const user = await User.findOne({ where: { userid: username } });
-      const passwordHash = user && typeof user.password === 'string' ? user.password : '';
-      if (!passwordHash || !(await bcrypt.compare(password, passwordHash))) {
+      if (!user || !(await verifyPassword(password, user.password))) {
         return done(null, false);
       }
       return done(null, user);
