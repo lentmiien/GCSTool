@@ -1,0 +1,59 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/bulk_tracking.css')
+
+block content
+  - const formatDateTime = (value) => { if (!value) return 'Unknown'; const date = new Date(Number(value) || value); return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString(); };
+  - const formatDays = (value) => value === null || value === undefined ? '—' : `${Number(value).toFixed(1).replace('.0', '')} d`;
+  .container-fluid.bt-shell
+    .bt-page-heading.mb-4
+      div
+        .bt-section-kicker Long-term reference
+        h1.mb-1 Archived shipment groups
+        p.text-muted.mb-0 Archived dashboards are frozen snapshots. They are excluded from the 12-hour landing-page refresh cycle.
+      a.btn.btn-primary(href='/bulk-tracker') Back to active groups
+
+    if error
+      .alert.alert-danger.bt-alert(role='alert')= error
+
+    if groups && groups.length
+      .bt-archive-grid
+        each group in groups
+          - const summary = group.summary || {};
+          article.bt-archive-card
+            .d-flex.justify-content-between.align-items-start
+              div
+                .bt-archive-reason(class=group.archiveReason === 'automatic' ? 'bt-archive-reason-auto' : '')
+                  = group.archiveReason === 'automatic' ? 'Auto-archived' : 'Manually archived'
+                h2.h5.mt-2.mb-1= group.name
+              span.bt-muted.small= formatDateTime(group.archivedAt)
+            if group.explanation
+              p.bt-group-description= group.explanation
+            .bt-mini-stats.bt-mini-stats-archive
+              .bt-mini-stat
+                span Shipments
+                strong= summary.shipmentCount !== undefined ? summary.shipmentCount : group.entryCount
+              .bt-mini-stat
+                span Delivered
+                strong= summary.deliveredCount !== undefined ? summary.deliveredCount : '—'
+              .bt-mini-stat
+                span Avg. days
+                strong= formatDays(summary.averageDaysInShipment)
+              .bt-mini-stat
+                span Last delivery
+                strong.bt-small-value= summary.lastDeliveredAt ? formatDateTime(summary.lastDeliveredAt) : '—'
+            .bt-group-card-footer
+              .bt-group-meta
+                span Snapshot #{group.cacheGeneratedAt ? formatDateTime(group.cacheGeneratedAt) : 'unavailable'}
+              .bt-card-actions
+                if group.archiveReason !== 'automatic'
+                  form(method='post', action=`/bulk-tracker/groups/${group.id}/restore`)
+                    button.btn.btn-sm.btn-outline-primary(type='submit') Restore
+                if group.hasCache
+                  a.btn.btn-sm.btn-secondary(href=`/bulk-tracker/groups/${group.id}`) View frozen dashboard
+    else
+      .bt-empty-state
+        .bt-empty-orbit
+        h2.h4 No archived groups
+        p.mb-0 Completed groups will appear here one month after their final delivery, along with anything archived manually.

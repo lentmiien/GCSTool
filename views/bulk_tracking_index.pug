@@ -1,0 +1,137 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/bulk_tracking.css')
+
+block content
+  - const formatDateTime = (value) => { if (!value) return 'Never'; const date = new Date(Number(value) || value); return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString(); };
+  - const formatDays = (value) => value === null || value === undefined ? '—' : `${Number(value).toFixed(1).replace('.0', '')} d`;
+  .container-fluid.bt-shell
+    .bt-hero.mb-4
+      .bt-hero-copy
+        .bt-eyebrow Persistent shipment intelligence
+        h1 Bulk Tracking
+        p.mb-0 Build durable shipment groups, compare like-for-like carrier journeys, and surface packages that have drifted outside their peers' normal timing.
+      .bt-hero-actions
+        a.btn.btn-outline-light(href='/tracker') Personal tracker
+        a.btn.btn-light(href='/bulk-tracker/archived')
+          | Archived groups
+          if archivedCount
+            span.badge.badge-dark.ml-2= archivedCount
+
+    if notice
+      .alert.alert-success.bt-alert(role='alert')= notice
+    if error
+      .alert.alert-danger.bt-alert(role='alert')= error
+    if refreshErrors && refreshErrors.length
+      .alert.alert-warning.bt-alert(role='alert')
+        strong Some snapshots could not be refreshed.
+        ul.mb-0.mt-2
+          each refreshError in refreshErrors
+            li
+              strong= refreshError.groupName
+              | : #{refreshError.message}
+    if autoArchivedGroupIds && autoArchivedGroupIds.length
+      .alert.alert-info.bt-alert(role='alert')
+        | #{autoArchivedGroupIds.length} completed group#{autoArchivedGroupIds.length === 1 ? ' was' : 's were'} automatically moved to the archive because the final delivery was more than one calendar month ago.
+
+    .row
+      .col-xl-8
+        .d-flex.flex-column.flex-md-row.justify-content-between.align-items-md-end.mb-3
+          div
+            .bt-section-kicker Active portfolio
+            h2.h3.mb-1 Shipment groups
+            p.text-muted.mb-0 Cached analytics are refreshed here when older than 12 hours. Dashboard visits never trigger recalculation.
+          if groups && groups.length
+            .bt-group-total.mt-2.mt-md-0= `${groups.length} active group${groups.length === 1 ? '' : 's'}`
+
+        if groups && groups.length
+          .bt-group-grid
+            each group in groups
+              - const summary = group.summary || {};
+              - const deliveryRate = Number(summary.deliveryRate || 0);
+              article.bt-group-card
+                .bt-group-card-top
+                  div
+                    .d-flex.align-items-center.flex-wrap
+                      h3.h5.mb-1.mr-2= group.name
+                      if summary.attentionCount > 0
+                        span.bt-badge.bt-badge-danger= `${summary.attentionCount} need attention`
+                      else if group.hasCache
+                        span.bt-badge.bt-badge-success On track
+                    if group.explanation
+                      p.bt-group-description.mb-0= group.explanation
+                    else
+                      p.bt-group-description.bt-muted.mb-0 No explanation was added.
+                  .bt-cache-status(class=group.cacheStale ? 'bt-cache-status-stale' : '')
+                    span.bt-cache-dot
+                    if group.cacheGeneratedAt
+                      | Cached #{formatDateTime(group.cacheGeneratedAt)}
+                    else
+                      | Snapshot unavailable
+
+                .bt-delivery-progress.mt-3
+                  .d-flex.justify-content-between.mb-1
+                    span Delivery progress
+                    strong= `${summary.deliveredCount || 0} / ${summary.shipmentCount !== undefined ? summary.shipmentCount : group.entryCount}`
+                  .progress.bt-progress
+                    .progress-bar(role='progressbar', style=`width: ${Math.min(Math.max(deliveryRate, 0), 100)}%`, aria-valuenow=deliveryRate, aria-valuemin='0', aria-valuemax='100')
+
+                .bt-mini-stats
+                  .bt-mini-stat
+                    span Shipments
+                    strong= summary.shipmentCount !== undefined ? summary.shipmentCount : group.entryCount
+                  .bt-mini-stat
+                    span In transit
+                    strong= summary.inTransitCount !== undefined ? summary.inTransitCount : '—'
+                  .bt-mini-stat
+                    span Avg. days
+                    strong= formatDays(summary.averageDaysInShipment)
+                  .bt-mini-stat
+                    span 90th pct.
+                    strong= formatDays(summary.p90DeliveredDays)
+
+                .bt-group-card-footer
+                  div.bt-group-meta
+                    span= `${summary.methodCount || 0} method${Number(summary.methodCount || 0) === 1 ? '' : 's'}`
+                    span= `${summary.countryCount || 0} destination${Number(summary.countryCount || 0) === 1 ? '' : 's'}`
+                    if summary.allDelivered && summary.autoArchiveEligibleAt
+                      span Auto-archives #{formatDateTime(summary.autoArchiveEligibleAt)}
+                  .bt-card-actions
+                    form(method='post', action=`/bulk-tracker/groups/${group.id}/archive`, onsubmit="return confirm('Archive this group? Its cached dashboard will remain available.');")
+                      button.btn.btn-sm.btn-outline-secondary(type='submit') Archive
+                    a.btn.btn-sm.btn-primary(href=`/bulk-tracker/groups/${group.id}`) Open dashboard
+        else
+          .bt-empty-state
+            .bt-empty-orbit
+            h3 No active groups yet
+            p.mb-0 Create the first group to turn a set of tracking numbers into a shared, persistent analytics dashboard.
+
+      .col-xl-4.mt-4.mt-xl-0
+        .bt-create-card
+          .bt-section-kicker New cohort
+          h2.h4 Create a group
+          p.text-muted Give the shipment batch a clear name and context. Tracking numbers can be pasted or loaded from the first column of a text/CSV file.
+          form(method='post', action='/bulk-tracker/groups', enctype='multipart/form-data')
+            .form-group
+              label(for='bulkGroupName') Group name
+              input#bulkGroupName.form-control(type='text', name='name', maxlength='120', required, value=formData.name || '', placeholder='Example: Surface mail · March 2026')
+            .form-group
+              label(for='bulkGroupExplanation') Explanation
+              textarea#bulkGroupExplanation.form-control(name='explanation', rows='3', maxlength='5000', placeholder='What connects these shipments, and what should the team watch?')= formData.explanation || ''
+            .form-group
+              label(for='bulkTrackingInput') Tracking numbers
+              textarea#bulkTrackingInput.form-control.bt-mono(name='trackingInput', rows='9', spellcheck='false', placeholder='One tracking number per line')= formData.trackingInput || ''
+            .bt-or-divider
+              span or upload
+            .form-group
+              label.sr-only(for='bulkTrackingUpload') Tracking number file
+              input#bulkTrackingUpload.form-control-file(type='file', name='trackingUpload', accept='.txt,.csv,text/plain,text/csv')
+              small.form-text.text-muted CSV imports use the first column. Duplicate numbers are removed automatically.
+            button.btn.btn-primary.btn-block.bt-create-button(type='submit') Create group and build snapshot
+          .bt-policy-note.mt-3
+            strong Lifecycle policy
+            p.mb-0 Once every shipment is delivered, the group stays active for one calendar month after the last delivery, then moves to the archive automatically.
+
+block scripts
+  script(src='/js/bulk_tracking.js')

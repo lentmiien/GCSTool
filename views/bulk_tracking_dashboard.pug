@@ -1,0 +1,358 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/css/bulk_tracking.css')
+
+block content
+  - const summary = report.summary || {};
+  - const shipments = report.shipments || [];
+  - const methods = report.methods || [];
+  - const attention = report.attention || [];
+  - const formatDateTime = (value) => { if (!value) return '—'; const date = new Date(Number(value) || value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(); };
+  - const formatDate = (value) => { if (!value) return '—'; const date = new Date(Number(value) || value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(); };
+  - const formatDays = (value) => value === null || value === undefined ? '—' : `${Number(value).toFixed(1).replace('.0', '')} d`;
+  - const groupArchived = Number(group.archivedAt || 0) > 0;
+  .container-fluid.bt-shell.bt-dashboard
+    .bt-dashboard-hero.mb-4
+      .bt-dashboard-identity
+        .bt-dashboard-nav
+          a(href=groupArchived ? '/bulk-tracker/archived' : '/bulk-tracker') ← #{groupArchived ? 'Archived groups' : 'All active groups'}
+        .bt-eyebrow= groupArchived ? 'Frozen analytics snapshot' : 'Live portfolio snapshot'
+        h1= group.name
+        if group.explanation
+          p.mb-0= group.explanation
+      .bt-dashboard-actions
+        .bt-snapshot-time
+          span Snapshot generated
+          strong= formatDateTime(report.generatedAt)
+        if !groupArchived
+          form(method='post', action=`/bulk-tracker/groups/${group.id}/archive`, onsubmit="return confirm('Archive this group? Its cached dashboard will remain available.');")
+            button.btn.btn-outline-light(type='submit') Archive group
+
+    if notice
+      .alert.alert-success.bt-alert(role='alert')= notice
+    if error
+      .alert.alert-danger.bt-alert(role='alert')= error
+    if groupArchived
+      .alert.alert-secondary.bt-alert(role='alert')
+        strong Archived snapshot.
+        |  This report is intentionally frozen and is not recalculated on the landing page.
+    else if cacheStale
+      .alert.alert-warning.bt-alert(role='alert')
+        strong Snapshot is more than 12 hours old.
+        |  This dashboard still uses the cached result. Return to the Bulk Tracking landing page to trigger its refresh.
+
+    .bt-kpi-grid.mb-4
+      .bt-kpi-card.bt-kpi-primary
+        .bt-kpi-icon 01
+        span Shipments
+        strong= summary.shipmentCount || 0
+        small= `${summary.matchedCount || 0} matched in tracking database`
+      .bt-kpi-card.bt-kpi-success
+        .bt-kpi-icon 02
+        span Delivered
+        strong= `${summary.deliveryRate || 0}%`
+        small= `${summary.deliveredCount || 0} of ${summary.shipmentCount || 0} packages`
+      .bt-kpi-card.bt-kpi-blue
+        .bt-kpi-icon 03
+        span In transit
+        strong= summary.inTransitCount || 0
+        small= `${summary.averageActiveDays !== null && summary.averageActiveDays !== undefined ? formatDays(summary.averageActiveDays) : '—'} average active age`
+      .bt-kpi-card.bt-kpi-danger
+        .bt-kpi-icon 04
+        span Needs attention
+        strong= summary.attentionCount || 0
+        small= `${summary.criticalCount || 0} materially overdue`
+      .bt-kpi-card.bt-kpi-violet
+        .bt-kpi-icon 05
+        span Avg. days in shipment
+        strong= formatDays(summary.averageDaysInShipment)
+        small Includes delivered and active shipments
+      .bt-kpi-card.bt-kpi-amber
+        .bt-kpi-icon 06
+        span Median delivered
+        strong= formatDays(summary.medianDeliveredDays)
+        small= `90% delivered within ${formatDays(summary.p90DeliveredDays)}`
+
+    if !groupArchived
+      details.bt-append-panel.mb-4(open=Boolean(error))
+        summary
+          span.bt-append-plus +
+          span
+            strong Append tracking numbers
+            small Add more shipments; the cache will rebuild through the landing-page refresh path.
+        .bt-append-body
+          form(method='post', action=`/bulk-tracker/groups/${group.id}/shipments`, enctype='multipart/form-data')
+            .row.align-items-end
+              .col-lg-7
+                .form-group.mb-lg-0
+                  label(for='appendTrackingInput') Tracking numbers
+                  textarea#appendTrackingInput.form-control.bt-mono(name='trackingInput', rows='4', spellcheck='false', placeholder='One tracking number per line')
+              .col-lg-3
+                .form-group.mb-lg-0
+                  label(for='appendTrackingUpload') Or upload CSV/text
+                  input#appendTrackingUpload.form-control-file(type='file', name='trackingUpload', accept='.txt,.csv,text/plain,text/csv')
+              .col-lg-2.mt-3.mt-lg-0
+                button.btn.btn-primary.btn-block(type='submit') Add and refresh
+
+    .bt-section-heading
+      div
+        .bt-section-kicker At a glance
+        h2.h3 Overview
+      p Report scope: #{summary.methodCount || 0} shipping methods · #{summary.countryCount || 0} destinations
+
+    .bt-chart-grid.mb-5
+      .bt-chart-card
+        .bt-chart-card-header
+          div
+            h3.h5 Shipment state
+            p Mutually exclusive current outcomes
+          span.bt-chart-stat= `${summary.deliveryRate || 0}% delivered`
+        #btStatusChart.bt-chart(role='img', aria-label='Shipment status donut chart')
+      .bt-chart-card
+        .bt-chart-card-header
+          div
+            h3.h5 Delivered transit time
+            p Distribution of shipped-to-delivered days
+          span.bt-chart-stat= `${report.deliveredDurationStats.sampleSize || 0} samples`
+        #btDurationChart.bt-chart(role='img', aria-label='Delivered shipment duration histogram')
+      .bt-chart-card
+        .bt-chart-card-header
+          div
+            h3.h5 Method performance
+            p Median delivered days with cohort size
+          span.bt-chart-stat= `${methods.length} cohorts`
+        #btMethodChart.bt-chart(role='img', aria-label='Shipping method performance chart')
+      .bt-chart-card
+        .bt-chart-card-header
+          div
+            h3.h5 Destinations
+            p Largest destination cohorts
+          span.bt-chart-stat= `${summary.countryCount || 0} countries`
+        #btCountryChart.bt-chart(role='img', aria-label='Destination distribution chart')
+
+    .bt-section-heading
+      div
+        .bt-section-kicker Like-for-like analysis
+        h2.h3 Shipping method patterns
+      p Patterns use completed histories when at least two are available, then learn the most common stage order and timing ranges.
+
+    if methods.length
+      .bt-method-list.mb-5
+        each method, methodIndex in methods
+          article.bt-method-card
+            .bt-method-header
+              div
+                .d-flex.align-items-center.flex-wrap
+                  h3.h4.mb-1.mr-2= method.name
+                  if method.grouplabel !== null
+                    span.bt-badge.bt-badge-neutral= `grouplabel ${method.grouplabel}`
+                  else
+                    span.bt-badge.bt-badge-warning Data quality
+                p.mb-0 #{method.shipmentCount} shipments · #{method.deliveredCount} delivered · #{method.attentionCount} need attention
+              .bt-method-score
+                strong= `${method.pattern.confidencePercent || 0}%`
+                span pattern confidence
+
+            if method.pattern.stages && method.pattern.stages.length
+              .bt-pattern-wrap
+                .bt-pattern-label
+                  span Detected common journey
+                  small Based on #{method.pattern.sampleSize} #{method.pattern.sourceLabel}
+                .bt-pattern
+                  each stage, stageIndex in method.pattern.stages
+                    .bt-pattern-stage(title=`Observed in ${stage.supportPercent}% of pattern samples`)
+                      span.bt-pattern-number= stageIndex + 1
+                      span= stage.label
+                      small= `${stage.supportPercent}% support`
+                    if stageIndex < method.pattern.stages.length - 1
+                      span.bt-pattern-arrow →
+              .row
+                .col-xl-5
+                  .bt-subchart-card
+                    h4.h6 Stage reach
+                    p How much of this cohort has reached each common stage
+                    .bt-chart.bt-chart-tall(id=`btFunnelChart-${methodIndex}`)
+                .col-xl-7.mt-3.mt-xl-0
+                  .bt-subchart-card
+                    h4.h6 Transition timing
+                    p Typical 25th–75th percentile range, median, and 90th percentile
+                    .bt-chart.bt-chart-tall(id=`btTransitionChart-${methodIndex}`)
+              .bt-method-footnotes
+                span
+                  strong= formatDays(method.durationStats.median)
+                  |  median delivery
+                span
+                  strong= formatDays(method.updateGapStats.median)
+                  |  median scan gap
+                span
+                  strong= method.transitions.filter((transition) => transition.sampleSize > 0).length
+                  |  timed transitions
+            else
+              .bt-pattern-empty
+                strong Not enough comparable history to infer a journey yet.
+                span Predictions will fall back to the typical gap between carrier updates when that data is available.
+    else
+      .bt-empty-state.mb-5
+        h3.h5 No shipping method cohorts could be built
+        p.mb-0 None of the group entries currently match rows in the tracking database.
+
+    .bt-section-heading
+      div
+        .bt-section-kicker Exception desk
+        h2.h3 Shipments to review
+      p Thresholds adapt per shipping method and transition; there are no fixed global “30-day” rules.
+
+    if attention.length
+      .bt-table-card.mb-5
+        .table-responsive
+          table.table.bt-table.bt-attention-table
+            thead
+              tr
+                th Shipment
+                th Method / destination
+                th Latest known update
+                th Why it is flagged
+                th Expected next
+            tbody
+              each item in attention
+                tr(class=item.severity === 'critical' ? 'bt-row-critical' : 'bt-row-warning')
+                  td
+                    code= item.tracking
+                    .mt-1
+                      span.bt-badge(class=item.severity === 'critical' ? 'bt-badge-danger' : 'bt-badge-warning')= item.severity === 'critical' ? 'Overdue' : 'Review'
+                  td
+                    strong= item.methodName
+                    small.d-block.bt-muted= item.country
+                  td
+                    if item.latestUpdate
+                      strong= item.latestUpdate.description
+                      small.d-block.bt-muted #{formatDate(item.latestUpdate.timestamp)}#{item.latestUpdate.location ? ` · ${item.latestUpdate.location}` : ''}
+                    else
+                      span.bt-muted No usable update
+                  td
+                    each flag in item.flags
+                      div.bt-flag-line
+                        strong= flag.title
+                        small= flag.detail
+                  td
+                    if item.prediction
+                      strong= item.prediction.nextStage
+                      small.d-block.bt-muted= `${formatDate(item.prediction.rangeStartAt)} – ${formatDate(item.prediction.rangeEndAt)}`
+                      small.d-block(class=item.prediction.overdue ? 'text-danger' : 'bt-muted')= `${item.prediction.confidence} confidence · ${item.prediction.sampleSize} samples`
+                    else
+                      span.bt-muted Insufficient peer data
+    else
+      .bt-all-clear.mb-5
+        .bt-all-clear-mark ✓
+        div
+          strong No active exceptions detected
+          p.mb-0 Every matched, undelivered shipment is still inside the learned timing envelope for its shipping method.
+
+    .bt-section-heading.bt-shipment-heading
+      div
+        .bt-section-kicker Full cohort
+        h2.h3 All shipments
+      p Latest carrier update and a peer-based estimate for the next likely scan.
+
+    .bt-table-card
+      .bt-table-tools
+        .bt-search-wrap
+          label.sr-only(for='btShipmentSearch') Search shipments
+          input#btShipmentSearch.form-control(type='search', placeholder='Search tracking, status, destination…')
+        select#btShipmentState.form-control(aria-label='Filter shipment state')
+          option(value='') All states
+          option(value='attention') Needs attention
+          option(value='in_transit') In transit
+          option(value='delivered') Delivered
+          option(value='no_match') No database match
+        select#btShipmentMethod.form-control(aria-label='Filter shipping method')
+          option(value='') All methods
+          each method in methods
+            option(value=method.id)= method.name
+        .bt-result-count
+          strong#btVisibleShipmentCount= shipments.length
+          |  of #{shipments.length}
+      .table-responsive
+        table.table.bt-table.bt-shipments-table
+          thead
+            tr
+              th Tracking
+              th Method / destination
+              th State
+              th Days
+              th Latest update
+              th Next likely update
+              th Signals
+          tbody#btShipmentRows
+            each shipment in shipments
+              - const searchable = `${shipment.tracking} ${shipment.methodName} ${shipment.country} ${shipment.status} ${shipment.latestUpdate ? shipment.latestUpdate.description : ''}`.toLowerCase();
+              tr(data-search=searchable, data-state=shipment.statusBucket, data-method=shipment.grouplabel === null ? 'unmatched' : String(shipment.grouplabel))
+                td
+                  code.bt-tracking-code= shipment.tracking
+                  if shipment.matchCount > 1
+                    small.d-block.bt-muted= `${shipment.matchCount} source matches; newest relevant row used`
+                td
+                  strong= shipment.methodName
+                  small.d-block.bt-muted= shipment.country
+                td
+                  if shipment.statusBucket === 'delivered'
+                    span.bt-badge.bt-badge-success Delivered
+                  else if shipment.statusBucket === 'attention'
+                    span.bt-badge(class=shipment.severity === 'critical' ? 'bt-badge-danger' : 'bt-badge-warning')= shipment.severity === 'critical' ? 'Overdue' : 'Review'
+                  else if shipment.statusBucket === 'no_match'
+                    span.bt-badge.bt-badge-neutral No match
+                  else
+                    span.bt-badge.bt-badge-blue In transit
+                  small.d-block.mt-1.bt-muted= shipment.status
+                td
+                  strong= formatDays(shipment.daysInShipment)
+                  small.d-block.bt-muted= shipment.shippedAt ? `Shipped ${formatDate(shipment.shippedAt)}` : 'No ship date'
+                td.bt-latest-cell
+                  if shipment.latestUpdate
+                    strong= shipment.latestUpdate.description
+                    small.d-block.bt-muted= `${formatDateTime(shipment.latestUpdate.timestamp)}${shipment.latestUpdate.location ? ` · ${shipment.latestUpdate.location}` : ''}`
+                    if shipment.recentEvents && shipment.recentEvents.length > 1
+                      details.bt-history-details
+                        summary Recent updates
+                        ul
+                          each event in shipment.recentEvents
+                            li
+                              strong= formatDate(event.timestamp)
+                              |  #{event.description}#{event.location ? ` · ${event.location}` : ''}
+                  else
+                    span.bt-muted No usable carrier update
+                td
+                  if shipment.delivered
+                    strong Complete
+                    small.d-block.bt-muted= shipment.deliveredAt ? `Delivered ${formatDate(shipment.deliveredAt)}` : 'Carrier reports delivered'
+                  else if shipment.prediction
+                    strong= shipment.prediction.nextStage
+                    small.d-block= `Around ${formatDate(shipment.prediction.estimateAt)}`
+                    small.d-block(class=shipment.prediction.overdue ? 'text-danger' : 'bt-muted')= shipment.prediction.overdue ? `${shipment.prediction.overdueDays} days beyond threshold` : `${formatDate(shipment.prediction.rangeStartAt)} – ${formatDate(shipment.prediction.rangeEndAt)}`
+                    small.d-block.bt-muted= `${shipment.prediction.confidence} confidence (${shipment.prediction.sampleSize})`
+                  else
+                    span.bt-muted Insufficient peer data
+                td.bt-signals-cell
+                  if shipment.flags && shipment.flags.length
+                    each flag in shipment.flags.slice(0, 3)
+                      span.bt-signal(title=flag.detail, class=`bt-signal-${flag.severity}`)= flag.title
+                  else
+                    span.bt-muted No anomaly detected
+                  if shipment.missingStages && shipment.missingStages.length
+                    small.d-block.bt-muted.mt-1= `Missing pattern scans: ${shipment.missingStages.join(', ')}`
+                  if shipment.extraStages && shipment.extraStages.length
+                    small.d-block.bt-muted.mt-1= `${shipment.extraStages.length} additional update type${shipment.extraStages.length === 1 ? '' : 's'}`
+          tfoot#btNoShipmentResults.hidden
+            tr
+              td(colspan='7') No shipments match these filters.
+
+    .bt-methodology.mt-4
+      strong How estimates are made
+      p.mb-0= report.algorithm.description
+
+block scripts
+  script(src='https://d3js.org/d3.v7.min.js')
+  script.
+    window.bulkTrackingReport = !{reportJson};
+  script(src='/js/bulk_tracking.js')
