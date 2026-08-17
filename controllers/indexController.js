@@ -4,6 +4,7 @@ var parseString = require('xml2js').parseString;
 
 // Require necessary database models
 const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2, VersionHistory } = require('../sequelize');
+const { version: currentVersion } = require('../package.json');
 
 const timekeeper = [];
 
@@ -196,6 +197,29 @@ function parseVersionHistoryItems(entry) {
   }
 }
 
+function isNewerVersion(version, referenceVersion) {
+  // Release notes newer than the running package describe work that is not deployed yet.
+  const versionPattern = /^\d+(?:\.\d+)*$/;
+  if (!versionPattern.test(version) || !versionPattern.test(referenceVersion)) {
+    return false;
+  }
+
+  const versionParts = version.split('.').map(Number);
+  const referenceParts = referenceVersion.split('.').map(Number);
+  const partCount = Math.max(versionParts.length, referenceParts.length);
+
+  for (let i = 0; i < partCount; i++) {
+    const versionPart = versionParts[i] || 0;
+    const referencePart = referenceParts[i] || 0;
+
+    if (versionPart !== referencePart) {
+      return versionPart > referencePart;
+    }
+  }
+
+  return false;
+}
+
 exports.about = async function (req, res, next) {
   try {
     const entries = await VersionHistory.findAll({
@@ -206,8 +230,14 @@ exports.about = async function (req, res, next) {
       releaseDate: entry.releaseDate,
       updateDate: entry.updateDate,
       items: parseVersionHistoryItems(entry),
+      isCurrent: entry.version === currentVersion,
+      isUpcoming: isNewerVersion(entry.version, currentVersion),
     }));
-    res.render('about', { updates });
+    res.render('about', {
+      currentVersion,
+      pagetitle: 'About GCS Support Tool',
+      updates,
+    });
   } catch (err) {
     next(err);
   }
@@ -315,4 +345,3 @@ exports.removeuser = (req, res) => {
     res.render('s_added', { message: 'Only admin staff can remove users...' });
   }
 };
-

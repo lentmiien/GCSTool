@@ -1,35 +1,101 @@
 extends layout
 
-mixin updateItems(items)
-  ul
+mixin updateItems(items, level)
+  ul(class=level === 0 ? 'about-change-groups' : 'about-change-items')
     each item in items
-      li
-        = item.text
+      li(class=level === 0 ? 'about-change-group' : 'about-change-item')
+        span.about-change-text= item.text
         if item.children && item.children.length
-          +updateItems(item.children)
+          +updateItems(item.children, level + 1)
+
+block styles
+  link(rel='stylesheet', href='/css/about.css')
 
 block content
-  h1 About
-  hr
-  p Welcome to GCS Support Tool created by Lennart.
-  h3 Background
-  p When I started working as customer support, we mainly used a text document to keep track of the mail templates, and we did not have a proper manual when I started working. So I got the idea to create an HTML file instead for the templates that we were using at the time. After using the HTML tool for some time, I realized that it was hard to maintain the tool and add new content, so I decided to switch over to dynamically loaded content, and due to browser security limitations, it became necessary to copy paste the content data into the tool. At this point a started to think that the tool could become useful for the team, so I decided to include our Mail Manuals in the tool, as well as make a more useful interface for the tool. The next major step was to make the data handling easier, and at this point I got access to a server for the tool, so I moved the Master data to be loaded from a file on the server, and save/load Personal data from the browser memory. Due to the still existing limitations in sharing and updating the data used by the tool, then next and current step of implementing the tool in Node.js and the Express framework was decided, and the data will be stored in a database on the server for easier sharing.
-  h3 Version History
-  if updates && updates.length
-    each update in updates
-      - const versionTitle = update.releaseDate ? `Version ${update.version} [${update.releaseDate}]` : `Version ${update.version}`;
-      - const updateAttributes = update.updateDate ? { 'data-update': update.updateDate } : {};
-      div&attributes(updateAttributes)
-        b= versionTitle
-        +updateItems(update.items)
-  else
-    p No version history entries found.
-  h3 Licence
-  ul
-    li GCS Support Tool: 
-      b GPL-3.0
-    li Sound effects from https://freesound.org: 
-      b Creative Commons 0 License
-  h3 Technical References
-  ul
-   li Inspiration from https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs
+  main.about-page
+    section.about-hero(aria-labelledby='about-title')
+      .about-hero-content
+        p.about-eyebrow GCS Support Tool
+        h1#about-title A practical workspace, built around support work.
+        p.about-hero-lead Created by Lennart to turn scattered templates, manuals, and daily support processes into one shared tool for the GCS team.
+      .about-version-summary(aria-label='Current application version')
+        span.about-version-summary-label Current version
+        strong= `v${currentVersion}`
+        a(href='#version-history') View release notes
+
+    section.about-story-grid(aria-labelledby='background-title')
+      article.about-panel.about-story
+        p.about-eyebrow The background
+        h2#background-title From a simple reference file to a shared workspace
+        p The tool began as a practical answer to a simple support problem: mail templates lived in a text document, and there was no consolidated manual when I started working in customer support.
+        p A static HTML reference made the material easier to use, but maintaining and sharing updates was difficult. The content gradually grew into a more useful library of templates and mail manuals for the team.
+        p Moving the tool to Node.js, Express, and database-backed storage made content easier to update, share, and develop into the workspace used today.
+      aside.about-panel.about-evolution(aria-label='How GCS Support Tool evolved')
+        ol
+          li
+            span.about-evolution-number 01
+            div
+              h3 Quick reference
+              p Replaced scattered template notes with a usable HTML guide.
+          li
+            span.about-evolution-number 02
+            div
+              h3 Shared knowledge
+              p Brought mail manuals and dynamically loaded content into one interface.
+          li
+            span.about-evolution-number 03
+            div
+              h3 Server workspace
+              p Added shared database storage and room for new support workflows.
+
+    section#version-history.about-releases(aria-labelledby='version-history-title')
+      header.about-section-header
+        div
+          p.about-eyebrow Product updates
+          h2#version-history-title Version history
+        p Release notes are ordered newest first. Planned versions are visually separated from features available in the current production release.
+
+      if updates && updates.length
+        .about-release-list
+          each update in updates
+            - const releaseState = update.isUpcoming ? 'is-upcoming' : update.isCurrent ? 'is-current' : 'is-released';
+            article.about-release-card(class=releaseState)
+              header.about-release-header
+                .about-release-heading
+                  span.about-release-status(class=`about-release-status--${update.isUpcoming ? 'upcoming' : update.isCurrent ? 'current' : 'released'}`)
+                    = update.isUpcoming ? 'Upcoming' : update.isCurrent ? 'Current release' : 'Released'
+                  h3= `Version ${update.version}`
+                if update.releaseDate
+                  .about-release-date
+                    span= update.isUpcoming ? 'Target date (placeholder)' : 'Released'
+                    time(datetime=update.releaseDate)= update.releaseDate
+
+              if update.isUpcoming
+                .about-release-notice(role='note')
+                  strong Not yet available in production.
+                  span The target date is a planning placeholder and may change without prior notice.
+
+              +updateItems(update.items, 0)
+      else
+        .about-empty-state
+          h3 No release notes yet
+          p Version history entries will appear here when they are available.
+
+    section.about-info-grid(aria-label='Project information')
+      article.about-info-card
+        p.about-eyebrow Open source
+        h2 Licence
+        dl
+          div
+            dt GCS Support Tool
+            dd GPL-3.0
+          div
+            dt Sound effects from #[a(href='https://freesound.org', target='_blank', rel='noopener noreferrer') Freesound]
+            dd Creative Commons 0
+      article.about-info-card
+        p.about-eyebrow Foundation
+        h2 Technical reference
+        p The first server-side version was inspired by MDN's guide to building applications with Express and Node.js.
+        a.about-reference-link(href='https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs', target='_blank', rel='noopener noreferrer')
+          | Read the MDN reference
+          span(aria-hidden='true') ↗

@@ -12,6 +12,9 @@ module.exports = [
       item('Case dashboard - Added a Recent repeat customer section for customers with multiple cases and the latest case opened within the last 7 days'),
       item('Case tracker - Added a customer details page linked from dashboard IDs summarizing all cases for the selected customer'),
       ]),
+      item('About', [
+        item('About page - Redesigned the /about release history section with cleaner styling, improved upcoming-release highlighting, and clearer placeholder-release messaging for scheduled dates'),
+      ]),
       item('Tracker', [
         item('Bulk tracker - Added a new bulk shipment group management tool with landing page and per-group dashboard, including cached analytics, progress-pattern detection, anomaly detection, and shipment update prediction'),
       ]),
