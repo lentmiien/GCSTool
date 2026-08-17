@@ -18,7 +18,7 @@ const {
 const analytics = require('./bulkTrackingAnalytics');
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-const CACHE_SCHEMA_VERSION = 1;
+const CACHE_SCHEMA_VERSION = 2;
 const MAX_TRACKING_NUMBERS_PER_GROUP = 10000;
 const MAX_TRACKING_UPLOAD_BYTES = 2 * 1024 * 1024;
 const QUERY_CHUNK_SIZE = 750;

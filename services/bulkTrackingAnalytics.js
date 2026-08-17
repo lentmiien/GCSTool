@@ -1,7 +1,8 @@
 'use strict';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MAX_PATTERN_STAGES = 9;
+const MAX_PATTERN_STAGES = 14;
+const MIN_PROGRESSED_STAGE_SUPPORT_PERCENT = 50;
 
 const SHIPPING_METHODS = Object.freeze({
   19: 'EMS',
@@ -145,6 +146,56 @@ function calculateDelayThreshold(stats) {
     (stats.median || 0) * 1.25,
     1
   ));
+}
+
+function calculateEstimateRange(stats) {
+  if (!stats || stats.sampleSize === 0 || stats.median === null) {
+    return {
+      estimateLow: null,
+      estimateHigh: null,
+      uncertaintyMargin: null,
+      rangeExpanded: false,
+      rangeBasis: 'unavailable',
+    };
+  }
+
+  let lower = stats.p25;
+  let upper = stats.p75;
+  let margin = 0;
+  let rangeBasis = 'middle_50_percent';
+
+  if (stats.sampleSize === 1) {
+    margin = Math.max(1, stats.median * 0.5);
+    lower = Math.max(0, stats.median - margin);
+    upper = stats.median + margin;
+    rangeBasis = 'single_sample_expanded';
+  } else if (stats.sampleSize === 2) {
+    const observedSpan = Math.max((stats.max || 0) - (stats.min || 0), 0);
+    margin = Math.max(0.75, stats.median * 0.35, observedSpan * 0.5);
+    lower = Math.max(0, stats.min - margin);
+    upper = stats.max + margin;
+    rangeBasis = 'two_sample_expanded';
+  } else if (stats.sampleSize < 5) {
+    const interquartileRange = Math.max((stats.p75 || 0) - (stats.p25 || 0), 0);
+    margin = Math.max(0.5, stats.median * 0.2, interquartileRange * 0.5);
+    lower = Math.max(0, stats.p25 - margin);
+    upper = stats.p75 + margin;
+    rangeBasis = 'small_sample_expanded';
+  } else if (stats.sampleSize < 8) {
+    const interquartileRange = Math.max((stats.p75 || 0) - (stats.p25 || 0), 0);
+    margin = Math.max(0.25, stats.median * 0.1, interquartileRange * 0.25);
+    lower = Math.max(0, stats.p25 - margin);
+    upper = stats.p75 + margin;
+    rangeBasis = 'moderate_sample_expanded';
+  }
+
+  return {
+    estimateLow: round(lower),
+    estimateHigh: round(upper),
+    uncertaintyMargin: round(margin),
+    rangeExpanded: margin > 0,
+    rangeBasis,
+  };
 }
 
 function safeJsonParse(value) {
@@ -303,8 +354,9 @@ function canonicalizeEvent(description) {
     ['delivery_attempt', 'Delivery attempt', /(delivery attempt|attempted delivery|could not be delivered|recipient absent|addressee absent)/],
     ['available_pickup', 'Available for pickup', /(available for (pick ?up|collection)|ready for (pick ?up|collection)|awaiting collection)/],
     ['delivered', 'Delivered', /(^| )(delivered|delivery completed|final delivery|signed for|handed to recipient|pickup completed|pick up completed)( |$)/],
-    ['customs_released', 'Released from customs', /(released from customs|customs.*released|clearance (processing )?complete|cleared customs|import clearance success|customs clearance finished)/],
-    ['inbound_customs', 'Inbound customs', /(inbound customs|import customs|inward office of exchange|presented to import customs|held by import customs|arrival at customs in destination)/],
+    ['customs_released', 'Released from customs', /(released from customs|return(ed)? from import customs|customs.*released|clearance (processing )?complete|cleared customs|import clearance success|customs clearance finished)/],
+    ['in_transit', 'In transit', /(departure from (the )?inward office of exchange|departed from (the )?inward office of exchange)/],
+    ['inbound_customs', 'Inbound customs', /(^in customs$|inbound customs|import customs|inward office of exchange|presented to import customs|held by import customs|arrival at customs in destination)/],
     ['outbound_customs', 'Outbound customs', /(outbound customs|export customs|outward office of exchange|presented to export customs|held by export customs|export clearance)/],
     ['customs_processing', 'Customs processing', /(customs clearance|customs processing|customs inspection|held at customs|customs status)/],
     ['arrival_destination', 'Arrived in destination country', /(arriv(ed|al) (at|in).*(destination|delivery country)|received at destination|inbound into destination)/],
@@ -458,21 +510,39 @@ function alignPattern(patternStages, sequence) {
 }
 
 function stageSort(left, right) {
-  const positionDifference = left.averagePosition - right.averagePosition;
-  if (Math.abs(positionDifference) > 0.08) {
-    return positionDifference;
-  }
-
   const leftRank = KNOWN_STAGE_RANK[left.key];
   const rightRank = KNOWN_STAGE_RANK[right.key];
   if (leftRank !== undefined && rightRank !== undefined && leftRank !== rightRank) {
     return leftRank - rightRank;
   }
 
+  const positionDifference = left.averagePosition - right.averagePosition;
+  if (Math.abs(positionDifference) > 0.08) {
+    return positionDifference;
+  }
+
   if (left.supportCount !== right.supportCount) {
     return right.supportCount - left.supportCount;
   }
   return left.label.localeCompare(right.label);
+}
+
+function minimumStageSupport(sampleSize) {
+  if (sampleSize >= 8) {
+    return Math.max(3, Math.ceil(sampleSize * 0.4));
+  }
+  return sampleSize >= 3 ? 2 : 1;
+}
+
+function maximumKnownStageRank(sequence) {
+  return sequence.reduce((maximum, stage) => {
+    const rank = KNOWN_STAGE_RANK[stage.key];
+    return rank === undefined ? maximum : Math.max(maximum, rank);
+  }, 0);
+}
+
+function hasTerminalStage(sequence) {
+  return sequence.some((stage) => stage.key === 'delivered' || stage.key === 'returned');
 }
 
 function detectPattern(shipments) {
@@ -482,21 +552,24 @@ function detectPattern(shipments) {
   const allCandidates = shipments.filter((shipment) => shipment.sequence.length >= 2);
   const baseline = deliveredCandidates.length >= 2 ? deliveredCandidates : allCandidates;
   const sourceLabel = deliveredCandidates.length >= 2
-    ? 'completed shipments'
-    : 'all shipments with tracking history';
+    ? 'shipments with tracking history (completed journeys prioritized)'
+    : 'shipments with tracking history';
 
-  if (baseline.length === 0) {
+  if (allCandidates.length === 0) {
     return {
       stages: [],
       confidencePercent: 0,
       sampleSize: 0,
+      coreSampleSize: 0,
       sourceLabel,
       minimumSupport: 0,
+      progressedMinimumSupportPercent: MIN_PROGRESSED_STAGE_SUPPORT_PERCENT,
     };
   }
 
   const stageLookup = new Map();
-  baseline.forEach((shipment) => {
+  const baselineSet = new Set(baseline);
+  allCandidates.forEach((shipment) => {
     const seen = new Set();
     const denominator = Math.max(shipment.sequence.length - 1, 1);
     shipment.sequence.forEach((stage, index) => {
@@ -510,29 +583,115 @@ function detectPattern(shipments) {
           label: stage.label,
           known: stage.known,
           supportCount: 0,
+          baselineSupportCount: 0,
           positionTotal: 0,
+          previousKnownRanks: [],
+          nextKnownRanks: [],
         });
       }
       const aggregate = stageLookup.get(stage.key);
       aggregate.supportCount += 1;
+      if (baselineSet.has(shipment)) {
+        aggregate.baselineSupportCount += 1;
+      }
       aggregate.positionTotal += index / denominator;
+      const previousKnownStage = shipment.sequence
+        .slice(0, index)
+        .reverse()
+        .find((candidate) => KNOWN_STAGE_RANK[candidate.key] !== undefined);
+      const nextKnownStage = shipment.sequence
+        .slice(index + 1)
+        .find((candidate) => KNOWN_STAGE_RANK[candidate.key] !== undefined);
+      if (previousKnownStage) {
+        aggregate.previousKnownRanks.push(KNOWN_STAGE_RANK[previousKnownStage.key]);
+      }
+      if (nextKnownStage) {
+        aggregate.nextKnownRanks.push(KNOWN_STAGE_RANK[nextKnownStage.key]);
+      }
     });
   });
 
-  const minimumSupport = baseline.length >= 8
-    ? Math.max(3, Math.ceil(baseline.length * 0.4))
-    : (baseline.length >= 3 ? 2 : 1);
+  const minimumSupport = minimumStageSupport(baseline.length);
+  const minimumAllSupport = minimumStageSupport(allCandidates.length);
+  const progressRanks = allCandidates
+    .map((shipment) => maximumKnownStageRank(shipment.sequence))
+    .sort((left, right) => left - right);
+  const terminalShipmentCount = allCandidates.filter(
+    (shipment) => hasTerminalStage(shipment.sequence)
+  ).length;
+  const countAtOrBeyondRank = (rank) => {
+    let lower = 0;
+    let upper = progressRanks.length;
+    while (lower < upper) {
+      const middle = Math.floor((lower + upper) / 2);
+      if (progressRanks[middle] < rank) {
+        lower = middle + 1;
+      } else {
+        upper = middle;
+      }
+    }
+    return progressRanks.length - lower;
+  };
 
   let candidates = Array.from(stageLookup.values())
-    .filter((stage) => stage.supportCount >= minimumSupport)
     .map((stage) => ({
       ...stage,
       averagePosition: stage.positionTotal / stage.supportCount,
-      supportPercent: round((stage.supportCount / baseline.length) * 100),
-    }));
+      supportPercent: round((stage.supportCount / allCandidates.length) * 100),
+    }))
+    .map((stage) => {
+      const rank = KNOWN_STAGE_RANK[stage.key];
+      const inferredNextKnownRank = stage.nextKnownRanks.length > 0
+        ? quantile([...stage.nextKnownRanks].sort((left, right) => left - right), 0.5)
+        : null;
+      const anchoredUnknownStage = rank === undefined
+        && stage.previousKnownRanks.length > 0
+        && inferredNextKnownRank !== null;
+      let eligibleCount;
+      if (rank !== undefined) {
+        eligibleCount = rank === KNOWN_STAGE_RANK.delivered
+          ? terminalShipmentCount
+          : countAtOrBeyondRank(rank);
+      } else if (inferredNextKnownRank !== null) {
+        eligibleCount = Math.max(stage.supportCount, countAtOrBeyondRank(inferredNextKnownRank));
+      } else {
+        eligibleCount = allCandidates.length;
+      }
+      const progressedSupportPercent = eligibleCount > 0
+        ? round((stage.supportCount / eligibleCount) * 100)
+        : 0;
+      const core = stage.baselineSupportCount >= minimumSupport;
+      const commonAcrossAll = stage.supportCount >= minimumAllSupport;
+      const progressedStage = (stage.known || anchoredUnknownStage)
+        && progressedSupportPercent >= MIN_PROGRESSED_STAGE_SUPPORT_PERCENT;
+      return {
+        ...stage,
+        eligibleCount,
+        inferredNextKnownRank,
+        progressedSupportPercent,
+        core,
+        qualifies: core || commonAcrossAll || progressedStage,
+      };
+    })
+    .filter((stage) => stage.qualifies);
+
+  const terminalCandidates = candidates
+    .filter((stage) => stage.key === 'delivered' || stage.key === 'returned')
+    .sort((left, right) => (
+      right.supportCount - left.supportCount
+      || right.progressedSupportPercent - left.progressedSupportPercent
+      || (left.key === 'delivered' ? -1 : 1)
+    ));
+  if (terminalCandidates.length > 1) {
+    const retainedTerminalKey = terminalCandidates[0].key;
+    candidates = candidates.filter((stage) => (
+      (stage.key !== 'delivered' && stage.key !== 'returned')
+      || stage.key === retainedTerminalKey
+    ));
+  }
 
   if (candidates.length > MAX_PATTERN_STAGES) {
-    const retainedKeys = new Set(candidates
+    const retainedKeys = new Set([...candidates]
       .sort((left, right) => {
         const leftTerminal = left.key === 'delivered' || left.key === 'returned';
         const rightTerminal = right.key === 'delivered' || right.key === 'returned';
@@ -541,6 +700,12 @@ function detectPattern(shipments) {
         }
         if (left.known !== right.known) {
           return left.known ? -1 : 1;
+        }
+        if (left.core !== right.core) {
+          return left.core ? -1 : 1;
+        }
+        if (left.progressedSupportPercent !== right.progressedSupportPercent) {
+          return right.progressedSupportPercent - left.progressedSupportPercent;
         }
         return right.supportCount - left.supportCount;
       })
@@ -561,11 +726,17 @@ function detectPattern(shipments) {
       index,
       supportCount: stage.supportCount,
       supportPercent: stage.supportPercent,
+      eligibleCount: stage.eligibleCount,
+      progressedSupportPercent: stage.progressedSupportPercent,
+      evidenceLevel: predictionConfidence(stage.supportCount),
+      emerging: !stage.core,
     })),
     confidencePercent,
-    sampleSize: baseline.length,
+    sampleSize: allCandidates.length,
+    coreSampleSize: baseline.length,
     sourceLabel,
     minimumSupport,
+    progressedMinimumSupportPercent: MIN_PROGRESSED_STAGE_SUPPORT_PERCENT,
   };
 }
 
@@ -578,16 +749,18 @@ function buildTransitionStats(pattern, shipments) {
       const matches = alignPattern(pattern.stages, shipment.sequence);
       const from = matches[index];
       const to = matches[index + 1];
-      if (!from || !to || !from.firstTimestamp || !to.firstTimestamp) {
+      if (!from || !to || !from.lastTimestamp || !to.firstTimestamp) {
         return;
       }
-      const days = (to.firstTimestamp - from.firstTimestamp) / DAY_MS;
+      const days = (to.firstTimestamp - from.lastTimestamp) / DAY_MS;
       if (days >= 0 && days <= 730) {
         durations.push(days);
       }
     });
 
     const stats = distributionStats(durations);
+    const estimateRange = calculateEstimateRange(stats);
+    const calculatedDelayThreshold = calculateDelayThreshold(stats);
     transitions.push({
       index,
       fromKey: pattern.stages[index].key,
@@ -595,7 +768,11 @@ function buildTransitionStats(pattern, shipments) {
       toKey: pattern.stages[index + 1].key,
       toLabel: pattern.stages[index + 1].label,
       ...stats,
-      delayThreshold: calculateDelayThreshold(stats),
+      ...estimateRange,
+      confidence: predictionConfidence(stats.sampleSize),
+      delayThreshold: calculatedDelayThreshold === null
+        ? null
+        : round(Math.max(calculatedDelayThreshold, estimateRange.estimateHigh || 0)),
     });
   }
 
@@ -616,9 +793,15 @@ function buildUpdateGapStats(shipments) {
     }
   });
   const stats = distributionStats(gaps);
+  const estimateRange = calculateEstimateRange(stats);
+  const calculatedDelayThreshold = calculateDelayThreshold(stats);
   return {
     ...stats,
-    delayThreshold: calculateDelayThreshold(stats),
+    ...estimateRange,
+    confidence: predictionConfidence(stats.sampleSize),
+    delayThreshold: calculatedDelayThreshold === null
+      ? null
+      : round(Math.max(calculatedDelayThreshold, estimateRange.estimateHigh || 0)),
   };
 }
 
@@ -657,13 +840,15 @@ function buildPrediction(shipment, matches, pattern, transitions, updateGapStats
         fromStage: transition.fromLabel,
         nextStage: transition.toLabel,
         estimateAt: baseTimestamp + transition.median * DAY_MS,
-        rangeStartAt: baseTimestamp + transition.p25 * DAY_MS,
-        rangeEndAt: baseTimestamp + transition.p75 * DAY_MS,
+        rangeStartAt: baseTimestamp + transition.estimateLow * DAY_MS,
+        rangeEndAt: baseTimestamp + transition.estimateHigh * DAY_MS,
         overdueAt,
         overdue: overdueAt > 0 && now > overdueAt,
         overdueDays: overdueAt > 0 && now > overdueAt ? Math.ceil((now - overdueAt) / DAY_MS) : 0,
-        confidence: predictionConfidence(transition.sampleSize),
+        confidence: transition.confidence,
         sampleSize: transition.sampleSize,
+        rangeExpanded: transition.rangeExpanded,
+        rangeBasis: transition.rangeBasis,
       };
     }
   }
@@ -680,13 +865,15 @@ function buildPrediction(shipment, matches, pattern, transitions, updateGapStats
       fromStage: canonicalizeEvent(latestEvent.description).label,
       nextStage: 'Next carrier update',
       estimateAt: latestEvent.timestamp + updateGapStats.median * DAY_MS,
-      rangeStartAt: latestEvent.timestamp + updateGapStats.p25 * DAY_MS,
-      rangeEndAt: latestEvent.timestamp + updateGapStats.p75 * DAY_MS,
+      rangeStartAt: latestEvent.timestamp + updateGapStats.estimateLow * DAY_MS,
+      rangeEndAt: latestEvent.timestamp + updateGapStats.estimateHigh * DAY_MS,
       overdueAt,
       overdue: overdueAt > 0 && now > overdueAt,
       overdueDays: overdueAt > 0 && now > overdueAt ? Math.ceil((now - overdueAt) / DAY_MS) : 0,
-      confidence: predictionConfidence(updateGapStats.sampleSize),
+      confidence: updateGapStats.confidence,
       sampleSize: updateGapStats.sampleSize,
+      rangeExpanded: updateGapStats.rangeExpanded,
+      rangeBasis: updateGapStats.rangeBasis,
     };
   }
 
@@ -802,9 +989,15 @@ function analyzeShipment(shipment, methodAnalysis, now) {
     addFlag(
       flags,
       'overdue_next_update',
-      prediction.overdueDays >= 7 ? 'critical' : 'warning',
-      `Overdue for ${prediction.nextStage.toLowerCase()}`,
-      `${prediction.overdueDays} day${prediction.overdueDays === 1 ? '' : 's'} beyond the method-specific upper timing threshold.`
+      prediction.confidence === 'low'
+        ? 'info'
+        : (prediction.overdueDays >= 7 ? 'critical' : 'warning'),
+      prediction.confidence === 'low'
+        ? `Outside early estimate for ${prediction.nextStage.toLowerCase()}`
+        : `Overdue for ${prediction.nextStage.toLowerCase()}`,
+      prediction.confidence === 'low'
+        ? `${prediction.overdueDays} day${prediction.overdueDays === 1 ? '' : 's'} beyond an early estimate based on only ${prediction.sampleSize} comparable shipment${prediction.sampleSize === 1 ? '' : 's'}; more evidence is needed before treating this as an exception.`
+        : `${prediction.overdueDays} day${prediction.overdueDays === 1 ? '' : 's'} beyond the method-specific upper timing threshold.`
     );
   }
 
@@ -839,7 +1032,7 @@ function analyzeShipment(shipment, methodAnalysis, now) {
     if (!from || !to || transition.sampleSize < 3 || transition.outlierHigh === null) {
       return;
     }
-    const transitionDays = (to.firstTimestamp - from.firstTimestamp) / DAY_MS;
+    const transitionDays = (to.firstTimestamp - from.lastTimestamp) / DAY_MS;
     if (transitionDays > transition.outlierHigh) {
       addFlag(
         flags,
@@ -1111,9 +1304,10 @@ function buildAnalyticsReport(sources, options = {}) {
     })),
     shipments: shipmentReports,
     algorithm: {
-      version: 1,
-      description: 'Carrier descriptions are normalized into comparable stages. Common stages are ordered by their observed position in completed shipments when available, then transition timing uses robust quartiles and 90th-percentile thresholds.',
+      version: 2,
+      description: 'Carrier descriptions are normalized into comparable stages. Later-stage support is measured only against shipments that have progressed far enough to reach that stage, while transition estimates use robust timing statistics with widened uncertainty ranges when only a few comparable shipments are available.',
       maximumPatternStages: MAX_PATTERN_STAGES,
+      progressedStageSupportPercent: MIN_PROGRESSED_STAGE_SUPPORT_PERCENT,
     },
   };
 }

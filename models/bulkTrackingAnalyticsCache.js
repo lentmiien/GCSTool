@@ -13,7 +13,7 @@ module.exports = (sequelize, type) => {
     schemaVersion: {
       type: type.INTEGER,
       allowNull: false,
-      defaultValue: 1,
+      defaultValue: 2,
     },
     summaryJson: {
       type: type.TEXT('medium'),

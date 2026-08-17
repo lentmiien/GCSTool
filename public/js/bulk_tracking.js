@@ -485,6 +485,23 @@
       return;
     }
 
+    const transitionValue = (transition, primaryKey, fallbackKey) => {
+      const primaryValue = transition[primaryKey];
+      if (primaryValue !== null && primaryValue !== undefined && Number.isFinite(Number(primaryValue))) {
+        return Number(primaryValue);
+      }
+      const fallbackValue = transition[fallbackKey];
+      return fallbackValue !== null && fallbackValue !== undefined && Number.isFinite(Number(fallbackValue))
+        ? Number(fallbackValue)
+        : 0;
+    };
+    const estimateLow = (transition) => transitionValue(transition, 'estimateLow', 'p25');
+    const estimateHigh = (transition) => transitionValue(transition, 'estimateHigh', 'p75');
+    const reviewThreshold = (transition) => transitionValue(transition, 'delayThreshold', 'p90');
+    const confidence = (transition) => transition.confidence || (
+      transition.sampleSize >= 8 ? 'high' : (transition.sampleSize >= 3 ? 'medium' : 'low')
+    );
+
     const height = Math.max(280, data.length * 43 + 58);
     const { width, svg } = createSvg(container, height);
     const margin = { top: 12, right: 28, bottom: 36, left: Math.min(190, width * 0.48) };
@@ -492,8 +509,8 @@
     const plotHeight = height - margin.top - margin.bottom;
     const labels = data.map((transition) => `${transition.fromLabel} → ${transition.toLabel}`);
     const maxDays = Math.max(d3.max(data, (transition) => Math.max(
-      transition.p90 || 0,
-      transition.p75 || 0,
+      reviewThreshold(transition),
+      estimateHigh(transition),
       transition.median || 0
     )) || 0, 1);
     const x = d3.scaleLinear().domain([0, maxDays * 1.12]).nice().range([0, plotWidth]);
@@ -515,24 +532,28 @@
       .join('g')
       .attr('class', 'bt-transition-row')
       .attr('transform', (transition) => `translate(0,${y(`${transition.fromLabel} → ${transition.toLabel}`) + y.bandwidth() / 2})`)
-      .on('mousemove', (event, transition) => showTooltip(event, [
-        `${transition.fromLabel} → ${transition.toLabel}`,
-        `Median: ${transition.median} days`,
-        `Middle 50%: ${transition.p25}–${transition.p75} days`,
-        `90th percentile: ${transition.p90} days`,
-        `${transition.sampleSize} comparable shipment${transition.sampleSize === 1 ? '' : 's'}`,
-      ]))
+      .on('mousemove', (event, transition) => {
+        showTooltip(event, [
+          `${transition.fromLabel} → ${transition.toLabel}`,
+          `Median: ${transition.median} days`,
+          `Estimated range: ${estimateLow(transition)}–${estimateHigh(transition)} days`,
+          `Review threshold: ${reviewThreshold(transition)} days`,
+          `${confidence(transition)} confidence · ${transition.sampleSize} comparable shipment${transition.sampleSize === 1 ? '' : 's'}`,
+          transition.rangeExpanded ? 'Range widened to reflect limited evidence.' : '',
+        ]);
+      })
       .on('mouseleave', hideTooltip);
 
     rows.append('line')
-      .attr('x1', (transition) => x(transition.p25))
-      .attr('x2', (transition) => x(transition.p75))
+      .attr('x1', (transition) => x(estimateLow(transition)))
+      .attr('x2', (transition) => x(estimateHigh(transition)))
       .attr('stroke', colors.cyan)
       .attr('stroke-width', 7)
-      .attr('stroke-linecap', 'round');
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-dasharray', (transition) => confidence(transition) === 'low' ? '8 5' : null);
     rows.append('line')
       .attr('x1', 0)
-      .attr('x2', (transition) => x(transition.p90))
+      .attr('x2', (transition) => x(reviewThreshold(transition)))
       .attr('stroke', colors.transition)
       .attr('stroke-width', 1.5)
       .lower();
@@ -544,7 +565,7 @@
       .attr('stroke-width', 3);
     rows.append('path')
       .attr('d', d3.symbol().type(d3.symbolDiamond).size(38))
-      .attr('transform', (transition) => `translate(${x(transition.p90)},0)`)
+      .attr('transform', (transition) => `translate(${x(reviewThreshold(transition))},0)`)
       .attr('fill', colors.amber);
   }
 

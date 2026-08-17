@@ -135,7 +135,7 @@ block content
       div
         .bt-section-kicker Like-for-like analysis
         h2.h3 Shipping method patterns
-      p Patterns use completed histories when at least two are available, then learn the most common stage order and timing ranges.
+      p Later stages are compared only with shipments that have progressed far enough to reach them, so the journey and timing estimates extend as the cohort advances.
 
     if methods.length
       .bt-method-list.mb-5
@@ -161,10 +161,16 @@ block content
                   small Based on #{method.pattern.sampleSize} #{method.pattern.sourceLabel}
                 .bt-pattern
                   each stage, stageIndex in method.pattern.stages
-                    .bt-pattern-stage(title=`Observed in ${stage.supportPercent}% of pattern samples`)
+                    - const eligibleCount = stage.eligibleCount || method.pattern.sampleSize || stage.supportCount;
+                    - const progressedSupportPercent = stage.progressedSupportPercent !== undefined ? stage.progressedSupportPercent : stage.supportPercent;
+                    - const evidenceLevel = stage.evidenceLevel || (stage.supportCount >= 8 ? 'high' : (stage.supportCount >= 3 ? 'medium' : 'low'));
+                    .bt-pattern-stage(
+                      class=stage.emerging ? 'bt-pattern-stage-emerging' : '',
+                      title=`Observed in ${stage.supportCount} of ${eligibleCount} shipments that progressed at least this far (${progressedSupportPercent}%). ${stage.supportPercent}% of the full pattern cohort.`
+                    )
                       span.bt-pattern-number= stageIndex + 1
                       span= stage.label
-                      small= `${stage.supportPercent}% support`
+                      small= `${stage.supportCount}/${eligibleCount} reached · ${evidenceLevel} evidence`
                     if stageIndex < method.pattern.stages.length - 1
                       span.bt-pattern-arrow →
               .row
@@ -176,7 +182,7 @@ block content
                 .col-xl-7.mt-3.mt-xl-0
                   .bt-subchart-card
                     h4.h6 Transition timing
-                    p Typical 25th–75th percentile range, median, and 90th percentile
+                    p Estimated range, median, and review threshold; sparse samples use wider uncertainty margins
                     .bt-chart.bt-chart-tall(id=`btTransitionChart-${methodIndex}`)
               .bt-method-footnotes
                 span
@@ -188,6 +194,10 @@ block content
                 span
                   strong= method.transitions.filter((transition) => transition.sampleSize > 0).length
                   |  timed transitions
+                if method.pattern.stages.some((stage) => stage.emerging)
+                  span
+                    strong= method.pattern.stages.filter((stage) => stage.emerging).length
+                    |  emerging later stage#{method.pattern.stages.filter((stage) => stage.emerging).length === 1 ? '' : 's'}
             else
               .bt-pattern-empty
                 strong Not enough comparable history to infer a journey yet.

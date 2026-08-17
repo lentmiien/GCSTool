@@ -872,6 +872,16 @@
   font-weight: 800;
 }
 
+.bt-pattern-stage-emerging {
+  border-color: #d8a34b;
+  border-style: dashed;
+  background: #fffaf0;
+}
+
+.bt-pattern-stage-emerging .bt-pattern-number {
+  background: var(--bt-amber);
+}
+
 .bt-pattern-number {
   display: inline-grid;
   grid-row: 1 / 3;
@@ -1490,6 +1500,11 @@ html[data-color-mode='dark'] .bt-pattern-empty strong {
 html[data-color-mode='dark'] .bt-pattern-stage {
   border-color: #425866;
   background: #1b242a;
+}
+
+html[data-color-mode='dark'] .bt-pattern-stage-emerging {
+  border-color: #b9873f;
+  background: #332c21;
 }
 
 html[data-color-mode='dark'] .bt-pattern-stage small,
