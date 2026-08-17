@@ -10,17 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return value || fallback;
   };
 
-  const FILL_COLORS = {
-    returnPercent: readCssVar('--shipping-monitor-color-return', '#ea7568'),
-    inTransitPercent: readCssVar('--shipping-monitor-color-transit', '#4d8ff7'),
-    destinationPercent: readCssVar('--shipping-monitor-color-destination', '#39b86d'),
+  const FILL_COLORS = {};
+  const LINE_COLORS = {};
+
+  const updateChartColors = () => {
+    Object.assign(FILL_COLORS, {
+      returnPercent: readCssVar('--shipping-monitor-color-return', '#ea7568'),
+      inTransitPercent: readCssVar('--shipping-monitor-color-transit', '#4d8ff7'),
+      destinationPercent: readCssVar('--shipping-monitor-color-destination', '#39b86d'),
+    });
+    Object.assign(LINE_COLORS, {
+      returnPercent: readCssVar('--shipping-monitor-color-return-line', '#b04338'),
+      inTransitPercent: readCssVar('--shipping-monitor-color-transit-line', '#1f63cb'),
+      destinationPercent: readCssVar('--shipping-monitor-color-destination-line', '#177a43'),
+    });
   };
 
-  const LINE_COLORS = {
-    returnPercent: readCssVar('--shipping-monitor-color-return-line', '#b04338'),
-    inTransitPercent: readCssVar('--shipping-monitor-color-transit-line', '#1f63cb'),
-    destinationPercent: readCssVar('--shipping-monitor-color-destination-line', '#177a43'),
-  };
+  updateChartColors();
 
   const toRgbaColor = (value, opacity) => {
     const parsed = d3.color(value);
@@ -368,6 +374,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(renderAllCharts, 120);
+  });
+
+  window.addEventListener('gcs:themechange', () => {
+    updateChartColors();
+    renderAllCharts();
   });
 
   renderAllCharts();

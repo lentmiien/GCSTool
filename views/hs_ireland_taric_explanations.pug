@@ -19,7 +19,7 @@ block content
     else
       form#taric-explanations-form(method='post', action='/hs/ireland/taric-explanations')
         .table-responsive
-          table.table.table-dark.table-striped.table-sm.ie-explanation-table
+          table.table.table-striped.table-sm.ie-explanation-table
             thead
               tr
                 th TARIC code
@@ -49,9 +49,9 @@ block content
       vertical-align: top;
     }
     .ie-missing-explanation td {
-      border-top: 2px solid #a67c00;
-      border-bottom: 2px solid #a67c00;
+      border-top: 2px solid var(--gcs-warning);
+      border-bottom: 2px solid var(--gcs-warning);
     }
     .ie-missing-explanation td:first-child {
-      border-left: 4px solid #ffc107;
+      border-left: 4px solid var(--gcs-warning);
     }

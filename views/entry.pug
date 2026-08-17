@@ -1,71 +1,95 @@
 extends layout
 
 block content
-    a.btn.btn-link(href='/entry/create', lg_language='_create_new_')
-    hr
-    - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_'];
-    h2(lg_language='_filter_')
-    span.frame
-        span(lg_language='_input_')
-        input#s_box(name='search', type='text', value=search)
-        span.tooltip TIP
-            span.tooltiptext(lg_language='_tooltip_filter_')
-        | 
-        input#s_template(name='search', type='checkbox', checked, onclick='UpdateFilter()')
-        span(lg_language='_templates_')
-        | 
-        input#s_manual(name='search', type='checkbox', checked, onclick='UpdateFilter()')
-        span(lg_language='_manuals_')
-        | 
-        input#s_ccontact(name='search', type='checkbox', checked, onclick='UpdateFilter()')
-        span(lg_language='_ccontact_')
-        | 
-        select#s_tag(name='search', onchange='UpdateFilter()')
-            option(value='_', lg_language='_all_')
-            each tag in tags
-                option(value=tag, lg_language=tag)
-        | 
+  - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+
+  .app-page-header
+    div
+      p.app-page-kicker Shared knowledge
+      h1(lg_language='_content_') Content library
+      p Search team templates, manuals, and customer-contact references.
+    .app-page-actions
+      a.btn.btn-primary(href='/entry/create', lg_language='_create_new_') Create new
+
+  section.app-panel.entry-filter-panel(aria-labelledby='entry-filter-title')
+    h2#entry-filter-title.h5(lg_language='_filter_') Filter
+    .entry-filter-grid
+      .form-group.entry-filter-search
+        label(for='s_box', lg_language='_input_') Search
+        input#s_box.form-control(name='search', type='search', value=search, placeholder='Search title or content')
+        small.form-text.text-muted(lg_language='_tooltip_filter_') Use + between words to require every term.
+      .form-group
+        label(for='s_tag') Category
+        select#s_tag.form-control(name='search', onchange='UpdateFilter()')
+          option(value='_', lg_language='_all_') All
+          each tag in tags
+            option(value=tag, lg_language=tag)= tag
+      fieldset.entry-filter-types
+        legend Content type
+        label.entry-filter-check(for='s_template')
+          input#s_template(name='search', type='checkbox', checked, onclick='UpdateFilter()')
+          span(lg_language='_templates_') Templates
+        label.entry-filter-check(for='s_manual')
+          input#s_manual(name='search', type='checkbox', checked, onclick='UpdateFilter()')
+          span(lg_language='_manuals_') Manuals
+        label.entry-filter-check(for='s_ccontact')
+          input#s_ccontact(name='search', type='checkbox', checked, onclick='UpdateFilter()')
+          span(lg_language='_ccontact_') Customer contact
         if role === 'admin'
-            span
-                input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
-                span(lg_language='_other_user_data_')
-                | 
-        button#filter_key(onclick='Filter()', lg_language='_apply_filter_', title='<Enter>')
-        button#clear_key(onclick='Clear()', lg_language='_clear_filter_', title='<Esc>')
-    hr
-    #back
-    each entry in entries
-        div(class='entry ' + entry.category)
-            - const title_arr = []
-            if entry.title.indexOf('[') >= 0
-                each part in entry.title.split('[')
-                    if part.indexOf(']') >= 0
-                        - const sub_parts = part.split(']')
-                        - title_arr.push({label:true,text:sub_parts[0]})
-                        if sub_parts[1].length > 0
-                            - title_arr.push({label:false,text:sub_parts[1]})
-                    else
-                        if part.length > 0
-                            - title_arr.push({label:false,text:part})
-            else
-                - title_arr.push({label:false,text:entry.title})
-            button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')
-                each title_part in title_arr 
-                    span(class=`${title_part.label ? "highlight" : ""}`)= title_part.text
-            i.label(lg_language='_' + entry.category + '_')
-            i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;', lg_language=entry.ismaster ? '_master_' : '_private_')
-            br
-            div(id='entry' + entry.id, style='display:none;')
-                each content in entry.contents
-                    if entry.category == 'manual'
-                        div !{content.data}
-                    else
-                        textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
-                    hr
-                i(lg_language='_created_')
-                i= entry.creator
-                br
-                a.entry_control(href='/entry/' + entry.id + '/update', lg_language='_edit_data_')
-                if role === 'admin' || entry.ismaster == false
-                    a.entry_control(href='/entry/' + entry.id + '/delete', lg_language='_delete_data_')
-                a.entry_control(href='/entry/' + entry.id + '/createcopy', lg_language='_submit_create_copy_')
+          label.entry-filter-check(for='admin')
+            input#admin(type='checkbox', name='admin', onclick='AdminCheckBox()')
+            span(lg_language='_other_user_data_') Other users
+      .entry-filter-actions
+        button#filter_key.btn.btn-primary(type='button', onclick='Filter()', lg_language='_apply_filter_', title='Apply filter (Enter)') Apply
+        button#clear_key.btn.btn-outline-secondary(type='button', onclick='Clear()', lg_language='_clear_filter_', title='Clear filter (Esc)') Clear
+
+  #back
+
+  if entries.length
+    .entry-list
+      each entry in entries
+        article.entry(class=entry.category, data-creator=entry.creator, data-private=entry.ismaster ? 'false' : 'true')
+          - const titleParts = []
+          if entry.title.indexOf('[') >= 0
+            each part in entry.title.split('[')
+              if part.indexOf(']') >= 0
+                - const subParts = part.split(']')
+                - titleParts.push({ label: true, text: subParts[0] })
+                if subParts[1].length > 0
+                  - titleParts.push({ label: false, text: subParts[1] })
+              else if part.length > 0
+                - titleParts.push({ label: false, text: part })
+          else
+            - titleParts.push({ label: false, text: entry.title })
+
+          button.title_button(
+            class=entry.tag,
+            type='button',
+            onclick=`DisplayEntry('entry${entry.id}')`,
+            aria-controls=`entry${entry.id}`,
+            aria-expanded='false'
+          )
+            each titlePart in titleParts
+              span(class=titlePart.label ? 'highlight' : '')= titlePart.text
+          span.label(lg_language=`_${entry.category}_`)= entry.category
+          span(class=`label ${entry.ismaster ? 'master' : 'private'}`, lg_language=entry.ismaster ? '_master_' : '_private_')= entry.ismaster ? 'Master' : 'Private'
+
+          div.entry-detail(id=`entry${entry.id}`, style='display:none;')
+            each content in entry.contents
+              if entry.category === 'manual'
+                .entry-manual !{content.sanitizedData}
+              else
+                textarea.form-control.entry-template(onclick='Selector(this)', readonly)= content.data
+            footer.entry-footer
+              span
+                span(lg_language='_created_') Created by
+                strong= entry.creator
+              nav.entry-actions(aria-label=`Actions for ${entry.title}`)
+                a.entry_control(href=`/entry/${entry.id}/update`, lg_language='_edit_data_') Edit
+                if role === 'admin' || entry.ismaster === false
+                  a.entry_control(href=`/entry/${entry.id}/delete`, lg_language='_delete_data_') Delete
+                a.entry_control(href=`/entry/${entry.id}/createcopy`, lg_language='_submit_create_copy_') Create copy
+  else
+    .app-empty-state
+      h2 No content found
+      p Create the first entry for this team or change the current search.

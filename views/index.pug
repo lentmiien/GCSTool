@@ -1,85 +1,143 @@
 extends layout
 
 block content
-  h1(lg_language='_gcs_tool_')
-  p(lg_language='_welcome_gcs_tool_')
+  - const homeNow = new Date()
+  - const recentBoundary = new Date(homeNow.getFullYear(), homeNow.getMonth(), homeNow.getDate() - 7)
+  - const dateValue = (value) => { const date = value instanceof Date ? value : new Date(value); return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate(); }
+  - const recentBoundaryValue = dateValue(recentBoundary)
 
-  hr
-  h3(lg_language='_news_')
-  i(lg_language='_news_update_')
-  each entry in entries
-    - const cDate = entry.createdAt
-    - const uDate = entry.updatedAt
-    - const today = new Date()
-    - const withinOneWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate()-7)
-    - const wow_dateval = withinOneWeek.getFullYear() * 10000 + (withinOneWeek.getMonth()+1) * 100 + withinOneWeek.getDate()
-    - const cd_dateval = cDate.getFullYear() * 10000 + (cDate.getMonth()+1) * 100 + cDate.getDate()
-    - const ud_dateval = uDate.getFullYear() * 10000 + (uDate.getMonth()+1) * 100 + uDate.getDate()
-    div(class='entry ' + entry.category)
-      - const title_arr = []
-      if entry.title.indexOf('[') >= 0
-        each part in entry.title.split('[')
-          if part.indexOf(']') >= 0
-            - const sub_parts = part.split(']')
-            - title_arr.push({label:true,text:sub_parts[0]})
-            if sub_parts[1].length > 0
-              - title_arr.push({label:false,text:sub_parts[1]})
-          else
-            if part.length > 0
-              - title_arr.push({label:false,text:part})
-      else
-        - title_arr.push({label:false,text:entry.title})
-      button(class='title_button ' + entry.tag, onclick='DisplayEntry(\'entry' + entry.id + '\')')
-        each title_part in title_arr 
-          span(class=`${title_part.label ? "highlight" : ""}`)= title_part.text
-        if cd_dateval > wow_dateval
-          b.update-status  ★★ NEW ★★
-        else if ud_dateval > wow_dateval
-          b.update-status  ★ UPDATED ★
-      i.label(lg_language='_' + entry.category + '_')
-      i(class='label' + (entry.ismaster ? ' master' : ''), style='float:right;' lg_language=entry.ismaster ? '_master_' : '_private_')
-      br
-      div(id='entry' + entry.id, style='display:none;')
-        each content in entry.contents
-          if entry.category == 'manual'
-            div !{content.data}
-          else
-            textarea(style='width: 100%; height: 135px;', onclick='Selector(this)' readonly)= content.data
-          hr
-        i(lg_language='_created_')
-        i= entry.creator
+  .home-page
+    section.home-hero(aria-labelledby='home-title')
+      .home-hero-copy
+        p.home-eyebrow Daily support workspace
+        h1#home-title(lg_language='_gcs_tool_') GCS Support Tool
+        p.home-hero-lead(lg_language='_welcome_gcs_tool_') Welcome to the GCS Support Tool
+        .home-hero-actions
+          a.btn.btn-primary(href='/entry') Browse shared content
+          a.btn.btn-outline-light(href='/ct') Open case tracker
+          a.btn.btn-outline-light(href='/scheduler') View schedule
+      .home-hero-summary(aria-label='Workspace summary')
+        span.home-summary-label Recent knowledge updates
+        strong= entries.length
+        small From the last 30 days
 
-  hr
-  h3(lg_language='_settings_')
-  .input-group
-    .input-group-prepend
-      span.input-group-text(lg_language="_user_id_")
-    input#user_id.form-control(type='text')
-    .input-group-append
-      button#update_user_id_button.btn.btn-outline-info(onclick='UpdateUserID()', lg_language='_update_uid_')
-  i(lg_language='_set_once_')
-  br
-  br
-  .input-group
-    .input-group-prepend
-      span.input-group-text(lg_language="_color_mode_")
-    select#cmode.form-control(name="colormode")
-      option(value='Style_normal.css', lg_language='_normal_')
-      option(value='Style_dark.css', lg_language='_dark_')
-    .input-group-append
-      button.btn.btn-outline-info(onclick='UpdateColorMode()', lg_language='_update_color_')
-  i(lg_language='_update_on_next_')
-  hr
-  h3(lg_language='_reminders_')
-  table#reminders.table.table-dark
-  i(lg_language='_show_popup_')
-
-  if jp
-    hr
-    div(class='row')
-      div(class='col-sm-12')
-        h2 Japan Post news
-        each entry in jp
+    .home-content-grid
+      section.home-updates(aria-labelledby='home-updates-title')
+        header.app-page-header
           div
-            a(href=entry.link[0], target="_blank")= entry.title[0]
-            i= ` (${entry.pubDate[0]})`
+            p.app-page-kicker Shared knowledge
+            h2#home-updates-title(lg_language='_news_') Latest updates
+            p(lg_language='_news_update_') Content created or updated during the last month.
+          a.btn.btn-outline-secondary.btn-sm(href='/entry') View all content
+
+        if entries.length
+          .home-entry-list
+            each entry in entries
+              - const createdValue = dateValue(entry.createdAt)
+              - const updatedValue = dateValue(entry.updatedAt)
+              - const titleParts = []
+              if entry.title.indexOf('[') >= 0
+                each part in entry.title.split('[')
+                  if part.indexOf(']') >= 0
+                    - const subParts = part.split(']')
+                    - titleParts.push({ label: true, text: subParts[0] })
+                    if subParts[1].length > 0
+                      - titleParts.push({ label: false, text: subParts[1] })
+                  else if part.length > 0
+                    - titleParts.push({ label: false, text: part })
+              else
+                - titleParts.push({ label: false, text: entry.title })
+
+              article(class=`entry home-entry ${entry.category}`, data-creator=entry.creator, data-private=entry.ismaster ? 'false' : 'true')
+                .home-entry-heading
+                  button.home-entry-toggle.title_button(
+                    class=entry.tag,
+                    type='button',
+                    onclick=`DisplayEntry('entry${entry.id}')`,
+                    aria-controls=`entry${entry.id}`,
+                    aria-expanded='false'
+                  )
+                    each titlePart in titleParts
+                      span(class=titlePart.label ? 'highlight' : '')= titlePart.text
+                    if createdValue > recentBoundaryValue
+                      b.update-status New
+                    else if updatedValue > recentBoundaryValue
+                      b.update-status Updated
+                  .home-entry-meta
+                    span.label(lg_language=`_${entry.category}_`)= entry.category
+                    span(class=`label ${entry.ismaster ? 'master' : 'private'}`, lg_language=entry.ismaster ? '_master_' : '_private_')= entry.ismaster ? 'Master' : 'Private'
+
+                div.home-entry-detail(id=`entry${entry.id}`, style='display:none;')
+                  each content in entry.contents
+                    if entry.category === 'manual'
+                      .home-entry-manual !{content.sanitizedData}
+                    else
+                      textarea.form-control.home-entry-template(onclick='Selector(this)', readonly)= content.data
+                  footer.home-entry-footer
+                    span(lg_language='_created_') Created by
+                    strong= entry.creator
+        else
+          .app-empty-state
+            h3 No recent updates
+            p Shared content created or updated during the last month will appear here.
+
+      aside.home-preferences(aria-label='Personal preferences')
+        section.home-panel(aria-labelledby='preferences-title')
+          p.app-page-kicker Personal setup
+          h2#preferences-title(lg_language='_settings_') Settings
+          .form-group
+            label(for='user_id', lg_language='_user_id_') User ID
+            .input-group
+              input#user_id.form-control(type='text')
+              .input-group-append
+                button#update_user_id_button.btn.btn-outline-secondary(type='button', onclick='UpdateUserID()', lg_language='_update_uid_') Update
+            small.form-text.text-muted(lg_language='_set_once_') Your signed-in identity is used automatically.
+          .form-group.mb-0
+            label(for='cmode', lg_language='_color_mode_') Color mode
+            .input-group
+              select#cmode.form-control(name='colormode')
+                option(value='Style_dark.css', lg_language='_dark_') Dark
+                option(value='Style_normal.css', lg_language='_normal_') Light
+              .input-group-append
+                button.btn.btn-outline-secondary(type='button', onclick='UpdateColorMode()', lg_language='_update_color_') Apply
+            small.form-text.text-muted Theme changes apply immediately and are remembered on this browser.
+
+        section.home-panel.home-quick-links(aria-labelledby='quick-links-title')
+          p.app-page-kicker Shortcuts
+          h2#quick-links-title Start working
+          nav(aria-label='Workspace shortcuts')
+            a(href='/entry')
+              strong Content library
+              span Templates and manuals
+            a(href='/meeting')
+              strong Team topics
+              span Live discussion board
+            a(href='/tracker')
+              strong Shipment tracker
+              span Current delivery status
+            a(href='/about')
+              strong About v2.10
+              span Design and release notes
+
+    section.home-panel.home-reminders(aria-labelledby='reminders-title')
+      header.app-page-header
+        div
+          p.app-page-kicker Personal alerts
+          h2#reminders-title(lg_language='_reminders_') Reminders
+          p(lg_language='_show_popup_') Reminders show as a popup while the application is open.
+      .table-responsive
+        table#reminders.table
+
+    if jp && jp.length
+      section.home-panel.home-news(aria-labelledby='jp-news-title')
+        header.app-page-header
+          div
+            p.app-page-kicker External updates
+            h2#jp-news-title Japan Post news
+        .home-news-list
+          each newsItem in jp
+            if newsItem && newsItem.link && newsItem.link.length && newsItem.title && newsItem.title.length
+              a.home-news-item(href=newsItem.link[0], target='_blank', rel='noopener noreferrer')
+                span= newsItem.title[0]
+                if newsItem.pubDate && newsItem.pubDate.length
+                  time= newsItem.pubDate[0]

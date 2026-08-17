@@ -2,6 +2,33 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.10.0',
+    releaseDate: '2026-09-17',
+    updateDate: '2026-08-17',
+    items: [
+      item('Design system and themes', [
+        item('Introduced a shared token-based design system for page surfaces, typography, forms, buttons, cards, tables, alerts, focus states, spacing, and responsive layouts'),
+        item('Standardized a polished dark default and a complete light theme across the application, with persisted theme preference, early theme application, and live theme updates for interactive visualizations'),
+      ]),
+      item('Navigation, notices, and accessibility', [
+        item('Redesigned the application shell with grouped navigation, clearer active states, modern language, theme, and user controls, and a consistent footer'),
+        item('Unified Japan Post news, application status, holiday, and schedule notices into responsive components with clearer hierarchy and actions'),
+        item('Improved keyboard and small-screen usability with skip navigation, visible focus states, accessible labels, responsive menus, tables, controls, and page spacing'),
+      ]),
+      item('Page modernization', [
+        item('Migrated legacy administration, meeting, feedback, ChatGPT, policy/manual/template, DHL compensation, and Ireland/Greece workflows to the shared dual-theme styling standard'),
+        item('Refreshed case and return-shipping analytics, shipping monitor comparisons, and bulk tracking visualizations with theme-aware charts, tables, controls, and empty states'),
+      ]),
+      item('Security and stability', [
+        item('Hardened session and logout handling, authenticated upload limits, and same-origin language redirects'),
+        item('Strengthened administrator operations with server-side authorization, validated POST requests, bounded inputs, and securely hashed temporary passwords'),
+        item('Sanitized rendered policy markdown and removed the exposed destructive reset route'),
+        item('Secured meeting updates by deriving identities from authenticated sessions, validating socket payloads and ownership, and rendering user content as text'),
+        item('Added focused defensive handling for missing page elements, unavailable data, failed feeds, and asynchronous operation errors'),
+      ]),
+    ],
+  },
+  {
     version: '2.9.16',
     releaseDate: '2026-08-17',
     updateDate: '2026-08-17',

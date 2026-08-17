@@ -114,7 +114,7 @@ block content
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(0, 0, 0, 0.75);
+      background: var(--gcs-overlay);
     }
     .ie-review-card {
       width: 100%;
@@ -131,8 +131,8 @@ block content
       position: sticky;
       bottom: 0;
       padding: 0.75rem 0;
-      background: #1f1f1f;
-      border-top: 1px solid #333;
+      background: var(--gcs-surface);
+      border-top: 1px solid var(--gcs-border);
     }
     .ie-review-item-links {
       display: flex;
@@ -147,30 +147,30 @@ block content
     }
     .ie-review-secondary-details {
       padding-top: 0.75rem;
-      border-top: 1px solid #333;
+      border-top: 1px solid var(--gcs-border);
     }
     .ie-taric-suggestions {
-      border: 1px solid #3a3a3a;
-      border-radius: 4px;
+      border: 1px solid var(--gcs-border);
+      border-radius: var(--gcs-radius-sm);
       padding: 0.5rem 0.75rem;
-      background: #222;
+      background: var(--gcs-surface-muted);
     }
     .ie-taric-suggestion-section {
       margin-top: 0.35rem;
       margin-bottom: 0.2rem;
-      color: #f1f1f1;
+      color: var(--gcs-heading);
       font-weight: 700;
     }
     .ie-taric-exact-list {
       max-height: 11rem;
       overflow-y: auto;
-      border-top: 1px solid #333;
+      border-top: 1px solid var(--gcs-border);
     }
     .ie-taric-suggestion-row {
       display: flex;
       align-items: center;
       padding: 0.25rem 0;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid var(--gcs-border);
     }
     .ie-taric-suggestion-code {
       flex: 0 0 6.5rem;
@@ -178,30 +178,30 @@ block content
     }
     .ie-taric-suggestion-meta {
       flex: 1 1 auto;
-      color: #cfcfcf;
+      color: var(--gcs-muted);
       font-size: 0.85rem;
       line-height: 1.25;
     }
     .ie-taric-suggestion-explanation {
-      color: #ffffff;
+      color: var(--gcs-heading);
     }
     .ie-taric-partial-detail {
       margin-top: 0.35rem;
-      color: #ffffff;
+      color: var(--gcs-heading);
       font-size: 0.85rem;
       line-height: 1.25;
     }
     .ie-amiami-response {
-      border: 1px solid #3a3a3a;
-      border-radius: 4px;
+      border: 1px solid var(--gcs-border);
+      border-radius: var(--gcs-radius-sm);
       padding: 0.5rem 0.75rem;
-      background: #181818;
+      background: var(--gcs-bg-subtle);
     }
     .ie-amiami-item-card {
       overflow: hidden;
-      border-color: #3a3a3a;
-      color: #f1f1f1;
-      background: #101010;
+      border-color: var(--gcs-border);
+      color: var(--gcs-text);
+      background: var(--gcs-surface-elevated);
     }
     .ie-amiami-item-card + .ie-amiami-item-card {
       margin-top: 0.75rem;
@@ -214,23 +214,23 @@ block content
     }
     .ie-amiami-item-name {
       margin-bottom: 0;
-      color: #f1f1f1;
+      color: var(--gcs-heading);
       line-height: 1.35;
     }
     .ie-amiami-item-image {
       display: block;
       width: 100%;
       height: auto;
-      background: #ffffff;
+      background: var(--gcs-surface);
       object-fit: contain;
     }
     .ie-amiami-image-placeholder,
     .ie-amiami-empty {
       margin: 0;
       padding: 1rem;
-      color: #cfcfcf;
+      color: var(--gcs-muted);
       text-align: center;
-      background: #101010;
+      background: var(--gcs-bg-subtle);
     }
 
   script(src='/javascripts/FileSaver.js', defer)

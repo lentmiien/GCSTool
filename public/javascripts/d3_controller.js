@@ -16,23 +16,23 @@ function GenerateGraph(prefix, title) {
   d3.select('#graph_area').append('h2').text(title);
   const svg = d3.select('#graph_area')
     .append('svg')
+      .attr('class', 'gcs-line-chart')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .attr('style', 'background-color: black;')
     .append('g')
       .attr('transform', 
-            `translate(${margin.left},${margin.top})`)
+            `translate(${margin.left},${margin.top})`);
 
   // Prepare data
-  let plotdata = data.map((entry, index) => {
+  const plotdata = data.map((entry, index) => {
     return {
       yval: entry[`${prefix}_days`] / (entry[`${prefix}_cnt`] > 0 ? entry[`${prefix}_cnt`] : 1),
       xval: index,
-    }
+    };
   }).filter(entry => entry.yval > 0);
 
   // X label
-  let x = d3.scaleLinear()
+  const x = d3.scaleLinear()
     .domain([0, 51])
     .range([width, 0]);
   svg.append('g')
@@ -40,7 +40,7 @@ function GenerateGraph(prefix, title) {
     .call(d3.axisBottom(x));
 
   // Y label
-  let y = d3.scaleLinear()
+  const y = d3.scaleLinear()
     .domain([0, d3.max(plotdata, d => d.yval)])
     .range([height, 0]);
   svg.append('g')
@@ -49,9 +49,9 @@ function GenerateGraph(prefix, title) {
   // Line
   svg
     .append('path')
+    .attr('class', 'gcs-line-chart-series')
     .datum(plotdata)
     .attr('fill', 'none')
-    .attr('stroke', 'steelblue')
     .attr('stroke-width', 3)
     .attr('d', d3.line()
       .x(d => x(d.xval))

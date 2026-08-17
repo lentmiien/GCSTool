@@ -1,14 +1,30 @@
 extends layout
 
 block content
-  .row
-    .col
-      h1 Login
-      form(action="/login", method="post")
+  .auth-layout
+    section.auth-card(aria-labelledby='login-title')
+      p.app-page-kicker GCS Support Tool
+      h1#login-title Welcome back
+      p.auth-intro Sign in to continue to the shared support workspace.
+      form.auth-form(action='/login', method='post')
         .form-group
-          label(for="username") Username
-          input#username.form-control(type="text", name="username", placeholder="Enter username")
+          label(for='username') Username
+          input#username.form-control(
+            type='text',
+            name='username',
+            placeholder='Enter username',
+            autocomplete='username',
+            autofocus,
+            required
+          )
         .form-group
-          label(for="password") Password
-          input#password.form-control(type="password", name="password", placeholder="Enter password")
-        button.btn.btn-outline-primary(type="submit") Login
+          label(for='password') Password
+          input#password.form-control(
+            type='password',
+            name='password',
+            placeholder='Enter password',
+            autocomplete='current-password',
+            required
+          )
+        button.btn.btn-primary.btn-block(type='submit') Sign in
+      p.auth-footnote Access is limited to authorized team members.

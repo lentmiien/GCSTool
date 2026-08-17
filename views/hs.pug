@@ -10,7 +10,7 @@ block content
   div#hsinput
   h1 3. Generate output file
   p When done, press the button below to save the output CSV file.
-  button(onclick="Generate()") Generate CSV
+  button.btn.btn-primary(type='button', onclick="Generate()") Generate CSV
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/hs_controller.js', defer)

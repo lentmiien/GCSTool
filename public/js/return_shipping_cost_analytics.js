@@ -92,11 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('aria-label', `${section.country} p95 return shipping cost by weight interval${hasLowEntryCountRows ? '; low sample warnings are marked' : ''}`);
 
     svg.append('rect')
+      .attr('class', 'chart-background')
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', width)
-      .attr('height', height)
-      .attr('fill', '#1f252d');
+      .attr('height', height);
 
     const chart = svg.append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);

@@ -14,26 +14,20 @@ const pp = {};
 // Various initialize
 passport.use(
   new LocalStrategy(async (username, password, done) => {
-    User.findAll({ where: { userid: username } }).then(async (u) => {
-      if (u.length == 0) {
+    try {
+      if (typeof username !== 'string' || typeof password !== 'string' || username.length > 100 || password.length > 128) {
         return done(null, false);
       }
-      try {
-        const usepsw = u[0].password ? u[0].password : '';
-        if (await bcrypt.compare(password, usepsw)) {
-          return done(null, u[0]);
-        } else {
-          if (usepsw.length == 0) {
-            const hashed_password = await bcrypt.hash(password, 10);
-            User.update({ password: hashed_password }, { where: { userid: username } });
-            return done(null, u[0]);
-          }
-          return done(null, false);
-        }
-      } catch (e) {
-        return done(e);
+
+      const user = await User.findOne({ where: { userid: username } });
+      const passwordHash = user && typeof user.password === 'string' ? user.password : '';
+      if (!passwordHash || !(await bcrypt.compare(password, passwordHash))) {
+        return done(null, false);
       }
-    });
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
   })
 );
 
@@ -41,10 +35,13 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-  User.findOne({ where: { id } }).then((u) => {
-    done(null, u);
-  });
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findOne({ where: { id } });
+    return done(null, user || false);
+  } catch (error) {
+    return done(error);
+  }
 });
 
 router.get('/', (req, res) => res.render('login', {}));

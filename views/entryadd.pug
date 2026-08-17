@@ -4,7 +4,7 @@ block content
     if errors
         ul
             for error in errors
-                li!= error.msg
+                li= error.msg
         hr
     h1(lg_language='_new_entry_')
     form(action='/entry/create', method='post')

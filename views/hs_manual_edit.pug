@@ -11,7 +11,7 @@ block content
   #edit 
   h1 Step 3
   p Copy output (to paste output in other place)
-  button(onclick="Copy()") Copy
+  button.btn.btn-primary(type='button', onclick="Copy()") Copy
 
   pre#sections_lookup.hidden= JSON.stringify(sections_lookup)
   pre#headings_lookup.hidden= JSON.stringify(headings_lookup)

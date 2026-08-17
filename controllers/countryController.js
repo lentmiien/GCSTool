@@ -21,7 +21,6 @@
  */
 
 // Require used packages
-const fs = require('fs');
 const parseString = require('xml2js').parseString;
 const cheerio = require('cheerio');
 const axios = require('axios').default;
@@ -50,6 +49,71 @@ function numberToDateString(number) {
   }
 }
 
+function createBadRequest(message) {
+  const error = new Error(message);
+  error.status = 400;
+  return error;
+}
+
+function readUploadedText(req, fieldName) {
+  const file = req.files && req.files[fieldName];
+  if (!file || Array.isArray(file) || !Buffer.isBuffer(file.data) || file.data.length === 0) {
+    throw createBadRequest('Select one non-empty CSV file to upload.');
+  }
+  return file.data.toString('utf8').replace(/^\uFEFF/, '');
+}
+
+function parseCsvRow(row) {
+  const cells = [];
+  let value = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < row.length; index++) {
+    const character = row[index];
+    if (character === '"') {
+      if (inQuotes && row[index + 1] === '"') {
+        value += '"';
+        index++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (character === ',' && !inQuotes) {
+      cells.push(value);
+      value = '';
+    } else {
+      value += character;
+    }
+  }
+
+  if (inQuotes) {
+    throw createBadRequest('The uploaded CSV contains an unterminated quoted value.');
+  }
+  cells.push(value);
+  return cells;
+}
+
+function parseUploadedCsv(req, fieldName, expectedHeader) {
+  const rows = readUploadedText(req, fieldName)
+    .split(/\r?\n/)
+    .filter((row) => row.trim().length > 0);
+  if (rows.length < 2) {
+    throw createBadRequest('The uploaded CSV does not contain any country rows.');
+  }
+
+  const header = parseCsvRow(rows[0]);
+  if (header.length !== expectedHeader.length || header.some((value, index) => value !== expectedHeader[index])) {
+    throw createBadRequest('The uploaded CSV has an unrecognized header.');
+  }
+
+  return rows.slice(1).map((row) => {
+    const cells = parseCsvRow(row);
+    if (cells.length !== expectedHeader.length || cells.some((value) => value.length === 0 || value.length > 255)) {
+      throw createBadRequest('The uploaded CSV contains an invalid country row.');
+    }
+    return cells;
+  });
+}
+
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
 //---------------------------------------------//
@@ -58,135 +122,109 @@ function numberToDateString(number) {
 async function CleanupDB() {}
 /// DEBUG CLEANUP DATABASE
 
-exports.index = async (req, res) => {
-  // Display a control panel for managing shipping methods
-  const d = new Date();
-  const d_str = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth()+1 : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
-  const JP_announcements = await GetJPAnnouncements();
+exports.index = async (req, res, next) => {
+  try {
+    // Display a control panel for managing shipping methods
+    const d = new Date();
+    const d_str = `${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth()+1 : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
+    const JP_announcements = await GetJPAnnouncements();
 
-  CleanupDB();
+    CleanupDB();
 
-  res.render('country_control_panel', {d_str, JP_announcements});
+    return res.render('country_control_panel', {d_str, JP_announcements});
+  } catch (error) {
+    return next(error);
+  }
 };
 
-exports.officialCountryList_upload = async (req, res) => {
-  const db = await OfficialCountryList.findAll();
-  const file_data = fs.readFileSync(req.file.path, 'utf8');
-
-  // index of country codes for easier lookup
-  const db_country_code_index = [];
-  const file_data_country_code_index = [];
-  for (let i = 0; i < db.length; i++) {
-    db_country_code_index.push(db[i].countryCode);
-  }
-
-  // file_data is CSV formatted, parse and save to array,
-  // first row is column headers (country,country_code)
-  const file_data_arr = [];
-  const nl = file_data.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
-  const rows = file_data.split(nl);
-  if (rows[0] === '"country","country_code"') {
-    for (let i = 1; i < rows.length-1; i++) {
-      const cells = rows[i].split(",");
-      const country_code = cells[0].split('"')[1];
-      const country_name = cells[1].split('"')[1];
-      file_data_arr.push([country_code, country_name]);
-      file_data_country_code_index.push(country_code);
+exports.officialCountryList_upload = async (req, res, next) => {
+  try {
+    const rows = parseUploadedCsv(req, 'officialCountryList', ['country', 'country_code']);
+    const file_data_arr = rows.map(([countryName, countryCode]) => [countryCode, countryName]);
+    const file_data_country_code_index = file_data_arr.map((entry) => entry[0]);
+    if (new Set(file_data_country_code_index).size !== file_data_country_code_index.length) {
+      throw createBadRequest('The uploaded CSV contains duplicate country codes.');
     }
-    
-    const db_id_to_remove = [];// ids of db entires that were not in the uploaded file
-    const db_id_to_update = [];// if a country code with different country name exists, put id and new country name in this array
-    const db_to_add = [];// entries in the input file that are new to db
-    
-    // Generate update arrays
+
+    const db = await OfficialCountryList.findAll();
+    const db_country_code_index = db.map((entry) => entry.countryCode);
+    const db_id_to_remove = [];
+    const db_id_to_update = [];
+    const db_to_add = [];
+
     for (let i = 0; i < db.length; i++) {
       const index = file_data_country_code_index.indexOf(db[i].countryCode);
-      if (index == -1) {
+      if (index === -1) {
         db_id_to_remove.push(db[i].id);
-      } else if (db[i].countryName != file_data_arr[index][1]) {
-        db_id_to_update.push({id: db[i].id, countryName: file_data_arr[index][1]});
+      } else if (db[i].countryName !== file_data_arr[index][1]) {
+        db_id_to_update.push({ id: db[i].id, countryName: file_data_arr[index][1] });
       }
     }
     for (let i = 0; i < file_data_arr.length; i++) {
-      const index = db_country_code_index.indexOf(file_data_arr[i][0]);
-      if (index == -1) {
-        db_to_add.push({countryCode: file_data_arr[i][0], countryName: file_data_arr[i][1]});
+      if (db_country_code_index.indexOf(file_data_arr[i][0]) === -1) {
+        db_to_add.push({ countryCode: file_data_arr[i][0], countryName: file_data_arr[i][1] });
       }
     }
-    
-    // Update database
+
     if (db_id_to_remove.length > 0) {
-      await OfficialCountryList.destroy({where:{id:{[Op.in]: db_id_to_remove}}});
+      await OfficialCountryList.destroy({ where: { id: { [Op.in]: db_id_to_remove } } });
     }
     if (db_id_to_update.length > 0) {
-      await OfficialCountryList.bulkCreate(db_id_to_update, {updateOnDuplicate:["countryName"]});
-      // Method 2: need to change to this if "updateOnDuplicate" isn't supported
-      // let dataToUpdate = [
-      //   { id: 1, new_name: 'New Name 1' },
-      //   { id: 2, new_name: 'New Name 2' },
-      //   // ...
-      // ];
-      // (async () => {
-      //   for (let item of dataToUpdate) {
-      //     await YourModel.update(
-      //       { name: item.new_name },
-      //       { where: { id: item.id } }
-      //     );
-      //   }
-      // })();
+      await OfficialCountryList.bulkCreate(db_id_to_update, { updateOnDuplicate: ['countryName'] });
     }
     if (db_to_add.length > 0) {
       await OfficialCountryList.bulkCreate(db_to_add);
     }
-    
-    // Return some type of completed message
-    res.render("officialCountryList_upload", {db_id_to_remove, db_id_to_update, db_to_add});
-  } else {
-    res.render("officialCountryList_upload_error", {error:"Fileformat not recognized..."});
+
+    return res.render('officialCountryList_upload', { db_id_to_remove, db_id_to_update, db_to_add });
+  } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).render('officialCountryList_upload_error', { error: error.message });
+    }
+    return next(error);
   }
 };
 
-exports.internalCountryList_upload = async (req, res) => {
-  const db = await InternalCountryList.findAll();
-  const file_data = fs.readFileSync(req.file.path, 'utf8');
+exports.internalCountryList_upload = async (req, res, next) => {
+  try {
+    const rows = parseUploadedCsv(req, 'internalCountryList', ['country', 'country_code', 'country_j', 'DHL', 'AIT']);
+    const file_data_arr = rows.map(([countryName, countryCode, countryNameJ, dhl, ait]) => {
+      if (!/^-?\d+$/.test(dhl) || !/^-?\d+$/.test(ait)) {
+        throw createBadRequest('The DHL and AIT availability values must be whole numbers.');
+      }
+      const dhlAvailability = Number(dhl);
+      const aitAvailability = Number(ait);
+      if (!Number.isSafeInteger(dhlAvailability) || !Number.isSafeInteger(aitAvailability)) {
+        throw createBadRequest('The DHL and AIT availability values are outside the supported range.');
+      }
+      return [countryName, countryCode, countryNameJ, dhlAvailability, aitAvailability];
+    });
+    const file_data_country_code_index = file_data_arr.map((entry) => entry[1]);
+    if (new Set(file_data_country_code_index).size !== file_data_country_code_index.length) {
+      throw createBadRequest('The uploaded CSV contains duplicate country codes.');
+    }
 
-  // index of country codes for easier lookup
-  const db_country_code_index = [];
-  const file_data_country_code_index = [];
-  for (let i = 0; i < db.length; i++) {
-    // id country code is already in db_country_code_index, then check which one is newer, and overwrite to older woth "---"
-    const previous = db_country_code_index.indexOf(db[i].countryCode);
-    if (previous == -1) {
-      db_country_code_index.push(db[i].countryCode);
-    } else {
-      if (db[i].createdAt > db[previous].createdAt) {
-        db_country_code_index[previous] = '---';
+    const db = await InternalCountryList.findAll();
+
+    // index of country codes for easier lookup
+    const db_country_code_index = [];
+    for (let i = 0; i < db.length; i++) {
+      // If a country code already exists, retain only the newest row in the index.
+      const previous = db_country_code_index.indexOf(db[i].countryCode);
+      if (previous === -1) {
         db_country_code_index.push(db[i].countryCode);
       } else {
-        db_country_code_index.push('---');
+        if (db[i].createdAt > db[previous].createdAt) {
+          db_country_code_index[previous] = '---';
+          db_country_code_index.push(db[i].countryCode);
+        } else {
+          db_country_code_index.push('---');
+        }
       }
     }
-  }
 
-  // file_data is CSV formatted, parse and save to array,
-  // first row is column headers (country,country_code,country_j,DHL,AIT)
-  const file_data_arr = [];
-  const nl = file_data.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
-  const rows = file_data.split(nl);
-  if (rows[0] === '"country","country_code","country_j","DHL","AIT"') {
-    for (let i = 1; i < rows.length-1; i++) {
-      const cells = rows[i].split('",');
-      const country_name = cells[0].split('"')[1];
-      const country_code = cells[1].split('"')[1];
-      const country_j = cells[2].split('"')[1];
-      const DHL = parseInt(cells[3].split('"')[1]);
-      const AIT = parseInt(cells[4].split('"')[1]);
-      file_data_arr.push([country_name, country_code, country_j, DHL, AIT]);
-      file_data_country_code_index.push(country_code);
-    }
-    
     const db_to_add = [];// entries in the input file that are new to db
-    
+
     // Generate update arrays
     for (let i = 0; i < db.length; i++) {
       const index = file_data_country_code_index.indexOf(db[i].countryCode);
@@ -212,16 +250,19 @@ exports.internalCountryList_upload = async (req, res) => {
         });
       }
     }
-    
+
     // Update database
     if (db_to_add.length > 0) {
       await InternalCountryList.bulkCreate(db_to_add);
     }
-    
+
     // Return some type of completed message
-    res.render("InternalCountryList_upload", {db_to_add});
-  } else {
-    res.render("InternalCountryList_upload_error", {error:"Fileformat not recognized..."});
+    return res.render('InternalCountryList_upload', { db_to_add });
+  } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).render('InternalCountryList_upload_error', { error: error.message });
+    }
+    return next(error);
   }
 };
 
@@ -1101,15 +1142,33 @@ async function GenerateJPData() {
 }
 
 async function GetJPAnnouncements() {
-  // Get JP announcements RSS (XLM)
-  const jp_announcements = await axios.get('https://www.post.japanpost.jp/rss/int.xml');
-
-  // Conver to array and return array
-  // xml to json
-  let entries = undefined;
-  parseString(jp_announcements.data, (err, result) => {
-    entries = result.rss.channel[0].item;
-  });
-
-  return entries;
+  try {
+    const jp_announcements = await axios.get('https://www.post.japanpost.jp/rss/int.xml');
+    const entries = await new Promise((resolve) => {
+      parseString(jp_announcements.data, (error, result) => {
+        const items = !error
+          && result
+          && result.rss
+          && Array.isArray(result.rss.channel)
+          && result.rss.channel[0]
+          && Array.isArray(result.rss.channel[0].item)
+          ? result.rss.channel[0].item
+          : [];
+        resolve(items);
+      });
+    });
+    return entries.filter((entry) => (
+      entry
+      && Array.isArray(entry.link)
+      && typeof entry.link[0] === 'string'
+      && /^https?:\/\//i.test(entry.link[0])
+      && Array.isArray(entry.title)
+      && typeof entry.title[0] === 'string'
+      && Array.isArray(entry.pubDate)
+      && typeof entry.pubDate[0] === 'string'
+    ));
+  } catch (error) {
+    console.warn('Could not load Japan Post announcements:', error.message);
+    return [];
+  }
 }

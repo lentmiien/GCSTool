@@ -32,6 +32,11 @@ const imagePdfRouter = require('./routes/imagePdf');
 const dhlCompensationRouter = require('./routes/dhl_compensation');
 
 var app = express();
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+
+if (process.env.SESSION_COOKIE_SECURE === 'true') {
+  app.set('trust proxy', 1);
+}
 
 const {} = require('./sequelize');
 
@@ -73,18 +78,43 @@ app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());
 app.use(i18n.init);
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(fileUpload());
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   store: sessionStore,
   resave: false,
-  // proxy: true,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 8640000000 },
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.SESSION_COOKIE_SECURE === 'true',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  },
 });
 app.use(sessionMiddleware);
 app.use(pp.passport.initialize());
 app.use(pp.passport.session());
+app.use((req, res, next) => {
+  res.locals.role = req.user && req.user.role ? req.user.role : 'guest';
+  res.locals.name = req.user && req.user.userid ? req.user.userid : 'Guest';
+  res.locals.signedIn = Boolean(req.user);
+  res.locals.currentPath = req.path;
+  next();
+});
+const authenticatedFileUpload = fileUpload({
+  abortOnLimit: true,
+  limits: {
+    fileSize: MAX_UPLOAD_BYTES,
+    files: 10,
+    fields: 100,
+  },
+  uploadTimeout: 60000,
+});
+app.use((req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return next();
+  }
+  return authenticatedFileUpload(req, res, next);
+});
 sessionStore.sync();
 
 app.use('/login', requireNotAuthenticated, pp.router);
@@ -127,8 +157,20 @@ app.get('/lang/:lang', (req, res) => {
   // Also set the locale for the current request and response
   res.setLocale(lang);
 
-  // Redirect back to the previous page (or home if no referrer)
-  res.redirect('back');
+  // Redirect only to a same-origin path from this application.
+  const referrer = req.get('Referrer');
+  let redirectTarget = '/';
+  if (referrer) {
+    try {
+      const referrerUrl = new URL(referrer, `${req.protocol}://${req.get('host')}`);
+      if (referrerUrl.host === req.get('host')) {
+        redirectTarget = `${referrerUrl.pathname}${referrerUrl.search}`;
+      }
+    } catch (_error) {
+      redirectTarget = '/';
+    }
+  }
+  res.redirect(redirectTarget);
 });
 
 
@@ -137,7 +179,13 @@ app.get('/logout', (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.redirect('/');
+    req.session.destroy((sessionError) => {
+      if (sessionError) {
+        return next(sessionError);
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/login');
+    });
   });
 });
 
@@ -148,12 +196,15 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  const status = err.status || 500;
+  const isDevelopment = req.app.get('env') === 'development';
+  res.locals.message = !isDevelopment && status >= 500
+    ? 'The application could not complete this request.'
+    : err.message;
+  res.locals.error = isDevelopment ? err : { status };
 
   // render the error page
-  res.status(err.status || 500);
+  res.status(status);
   res.render('error', { request: req.body });
 });
 
@@ -164,6 +215,7 @@ function requireAuthenticated(req, res, next) {
   }
   res.locals.role = 'guest';
   res.locals.name = 'Guest';
+  res.locals.signedIn = false;
   res.redirect('/login');
 }
 function requireNotAuthenticated(req, res, next) {
@@ -172,6 +224,7 @@ function requireNotAuthenticated(req, res, next) {
   }
   res.locals.role = 'guest';
   res.locals.name = 'Guest';
+  res.locals.signedIn = false;
   next();
 }
 

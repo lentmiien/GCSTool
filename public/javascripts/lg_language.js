@@ -1050,6 +1050,12 @@ var json_language = {
 var language_id = 'japanese';
 function UpdateLanguage(source) {
   language_id = document.getElementById(source).value;
+  var htmlLanguage = {
+    japanese: 'ja',
+    english: 'en',
+    swedish: 'sv'
+  };
+  document.documentElement.lang = htmlLanguage[language_id] || 'en';
   var z = document.getElementsByTagName('*');
 
   for (var i = 0; i < z.length; i++) {
@@ -1060,7 +1066,7 @@ function UpdateLanguage(source) {
       if (json_language[lval]) {
         elmnt.innerHTML = json_language[lval][language_id];
       } else {
-        elmnt.innerHTML = `[${lval}]`;
+        elmnt.textContent = `[${lval}]`;
       }
     }
   }

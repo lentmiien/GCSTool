@@ -12,6 +12,6 @@ block content
         h2(lg_language='_couldnt_delete_')
         ul
             for error in errors
-                li!= error.msg
+                li= error.msg
         hr
         a(href="/entry", lg_language='_back_')

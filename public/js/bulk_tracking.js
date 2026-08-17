@@ -2,22 +2,28 @@
   'use strict';
 
   const report = window.bulkTrackingReport || null;
-  const isDarkMode = document.documentElement.getAttribute('data-color-mode') !== 'light';
-  const colors = {
-    delivered: isDarkMode ? '#48c78e' : '#22a06b',
-    in_transit: isDarkMode ? '#5aa2ff' : '#2778e8',
-    attention: isDarkMode ? '#f07480' : '#dd5361',
-    no_match: isDarkMode ? '#93a7b4' : '#9aaab5',
-    cyan: isDarkMode ? '#45c5d3' : '#22a8bd',
-    amber: isDarkMode ? '#f2b75a' : '#e69b2e',
-    violet: isDarkMode ? '#a694f2' : '#7259d6',
-    grid: isDarkMode ? '#3f5360' : '#dce7ed',
-    text: isDarkMode ? '#adbec9' : '#60798a',
-    ink: isDarkMode ? '#edf4f8' : '#173247',
-    surface: isDarkMode ? '#20282f' : '#ffffff',
-    track: isDarkMode ? '#34434d' : '#eaf1f4',
-    transition: isDarkMode ? '#607887' : '#a9c1cd',
-  };
+  const colors = {};
+
+  function updateChartColors() {
+    const isDarkMode = document.documentElement.getAttribute('data-color-mode') !== 'light';
+    Object.assign(colors, {
+      delivered: isDarkMode ? '#48c78e' : '#22a06b',
+      in_transit: isDarkMode ? '#5aa2ff' : '#2778e8',
+      attention: isDarkMode ? '#f07480' : '#dd5361',
+      no_match: isDarkMode ? '#93a7b4' : '#9aaab5',
+      cyan: isDarkMode ? '#45c5d3' : '#22a8bd',
+      amber: isDarkMode ? '#f2b75a' : '#e69b2e',
+      violet: isDarkMode ? '#a694f2' : '#7259d6',
+      grid: isDarkMode ? '#3f5360' : '#dce7ed',
+      text: isDarkMode ? '#adbec9' : '#60798a',
+      ink: isDarkMode ? '#edf4f8' : '#173247',
+      surface: isDarkMode ? '#20282f' : '#ffffff',
+      track: isDarkMode ? '#34434d' : '#eaf1f4',
+      transition: isDarkMode ? '#607887' : '#a9c1cd',
+    });
+  }
+
+  updateChartColors();
 
   function initShipmentFilters() {
     const search = document.getElementById('btShipmentSearch');
@@ -555,6 +561,10 @@
   }
 
   drawAllCharts();
+  window.addEventListener('gcs:themechange', () => {
+    updateChartColors();
+    drawAllCharts();
+  });
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     window.clearTimeout(resizeTimer);

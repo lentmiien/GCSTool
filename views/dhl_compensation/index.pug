@@ -1,31 +1,35 @@
 extends ../layout
 
-block content
-  - var isLennart = name === 'Lennart';
-  - var prefersCompleteTab = name === 'Yokoyama';
-  - var hasNewEntryDraft = newEntry && (newEntry.order_number || newEntry.tracking_number || newEntry.compensation_amount_jpy);
-  - var isNewEntryOpen = isLennart || hasNewEntryDraft;
-
+block styles
   style.
+    .dhl-new-entry-card,
+    .dhl-open-entry {
+      overflow: hidden;
+    }
     .dhl-new-entry-card .card-header {
-      background-color: rgb(33, 33, 40);
-      border-bottom: 1px solid rgb(78, 78, 90);
+      border-bottom: 1px solid var(--gcs-border);
+      background: var(--gcs-surface-muted);
     }
     .dhl-new-entry-card .card-body {
-      background-color: rgb(26, 26, 31);
-      color: rgb(252, 255, 214);
+      color: var(--gcs-text);
+      background: var(--gcs-surface);
     }
     .dhl-new-entry-card label,
     .dhl-entry-tab-content label {
-      color: rgb(216, 216, 216);
+      color: var(--gcs-heading);
     }
     .dhl-new-entry-card .text-muted,
     .dhl-entry-tabs .text-muted,
     .dhl-entry-tab-content .text-muted {
-      color: rgb(184, 188, 200) !important;
+      color: var(--gcs-muted) !important;
     }
     .dhl-open-entry {
-      border-left: 4px solid #c8d5de;
+      border-left: 4px solid var(--gcs-accent);
+      transition: border-color var(--gcs-transition), box-shadow var(--gcs-transition);
+    }
+    .dhl-open-entry:hover {
+      border-left-color: var(--gcs-accent-strong);
+      box-shadow: var(--gcs-shadow);
     }
     .dhl-entry-summary {
       display: flex;
@@ -45,7 +49,7 @@ block content
     }
     .dhl-entry-amount-label {
       margin-bottom: 0.35rem;
-      color: #6c757d;
+      color: var(--gcs-muted);
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -54,69 +58,79 @@ block content
     .dhl-entry-amount {
       display: inline-block;
       padding: 0.55rem 0.9rem;
-      border: 1px solid #b9dcc3;
-      border-radius: 0.75rem;
-      background: linear-gradient(135deg, #eef8ef 0%, #d8efdc 100%);
-      box-shadow: 0 0.35rem 0.85rem rgba(19, 82, 44, 0.12);
-      color: #13522c;
+      border: 1px solid var(--gcs-success);
+      border-radius: var(--gcs-radius);
+      color: var(--gcs-success);
+      background: var(--gcs-success-soft);
+      box-shadow: var(--gcs-shadow-sm);
       font-size: 2rem;
       font-weight: 700;
       line-height: 1;
     }
-    .dhl-entry-tabs .nav-link {
-      color: rgb(184, 188, 200);
-      font-size: 0.9rem;
-      background-color: rgb(33, 33, 40);
-      border: 1px solid rgb(78, 78, 90);
+    .dhl-entry-tabs.nav-tabs {
+      gap: 0.25rem;
+      border-bottom-color: var(--gcs-border);
+    }
+    .dhl-entry-tabs.nav-tabs .nav-link {
+      margin-bottom: -1px;
+      border: 1px solid var(--gcs-border);
       border-bottom: 0;
+      border-radius: var(--gcs-radius-sm) var(--gcs-radius-sm) 0 0;
+      color: var(--gcs-muted);
+      background: var(--gcs-surface-muted);
+      font-size: 0.9rem;
+      transition: color var(--gcs-transition), background-color var(--gcs-transition), border-color var(--gcs-transition);
     }
-    .dhl-entry-tabs .nav-link:hover,
-    .dhl-entry-tabs .nav-link:focus {
-      color: rgb(252, 255, 214);
-      background-color: rgb(36, 36, 44);
-      border-color: rgb(78, 78, 90);
+    .dhl-entry-tabs.nav-tabs .nav-link:hover,
+    .dhl-entry-tabs.nav-tabs .nav-link:focus {
+      border-color: var(--gcs-border-strong);
+      color: var(--gcs-heading);
+      background: var(--gcs-surface-hover);
     }
-    .dhl-entry-tabs .nav-link.active,
-    .dhl-entry-tabs .nav-link.active:hover,
-    .dhl-entry-tabs .nav-link.active:focus {
-      color: rgb(252, 255, 214);
-      background-color: rgb(26, 26, 31);
-      border-color: rgb(78, 78, 90);
-      border-bottom-color: rgb(26, 26, 31);
+    .dhl-entry-tabs.nav-tabs .nav-link.active,
+    .dhl-entry-tabs.nav-tabs .nav-link.active:hover,
+    .dhl-entry-tabs.nav-tabs .nav-link.active:focus {
+      border-color: var(--gcs-border);
+      border-bottom-color: var(--gcs-surface);
+      color: var(--gcs-heading);
+      background: var(--gcs-surface);
+    }
+    .dhl-entry-tabs.nav-tabs .nav-item:last-child .nav-link:not(.active) {
+      color: var(--gcs-danger);
     }
     .dhl-entry-tab-content {
       padding: 1rem;
-      border: 1px solid rgb(78, 78, 90);
+      border: 1px solid var(--gcs-border);
       border-top: 0;
-      border-radius: 0 0 0.25rem 0.25rem;
-      background: rgb(26, 26, 31);
-      color: rgb(252, 255, 214);
+      border-radius: 0 0 var(--gcs-radius-sm) var(--gcs-radius-sm);
+      color: var(--gcs-text);
+      background: var(--gcs-surface);
     }
     .dhl-new-entry-toggle,
     .dhl-new-entry-toggle:hover,
     .dhl-new-entry-toggle:focus {
-      color: rgb(252, 255, 214) !important;
+      color: var(--gcs-heading) !important;
       text-decoration: none !important;
     }
     .dhl-new-entry-toggle:focus {
-      box-shadow: 0 0 0 0.2rem rgba(255, 200, 47, 0.2);
+      box-shadow: 0 0 0 0.2rem var(--gcs-focus);
     }
     .dhl-new-entry-card .form-control,
     .dhl-entry-tab-content .form-control {
-      background-color: rgb(39, 39, 0);
-      border-color: rgb(92, 92, 56);
-      color: rgb(230, 227, 255);
+      border-color: var(--gcs-border-strong);
+      color: var(--gcs-text);
+      background-color: var(--gcs-input);
     }
     .dhl-new-entry-card .form-control:focus,
     .dhl-entry-tab-content .form-control:focus {
-      background-color: rgb(39, 39, 0);
-      border-color: rgb(190, 164, 79);
-      color: rgb(255, 255, 255);
-      box-shadow: 0 0 0 0.2rem rgba(255, 200, 47, 0.2);
+      border-color: var(--gcs-accent);
+      color: var(--gcs-heading);
+      background-color: var(--gcs-input);
+      box-shadow: 0 0 0 0.2rem var(--gcs-focus);
     }
     .dhl-new-entry-card .form-control::placeholder,
     .dhl-entry-tab-content .form-control::placeholder {
-      color: rgb(180, 180, 150);
+      color: var(--gcs-subtle);
     }
     @media (max-width: 991.98px) {
       .dhl-entry-amount-wrap {
@@ -127,6 +141,12 @@ block content
         font-size: 1.75rem;
       }
     }
+
+block content
+  - var isLennart = name === 'Lennart';
+  - var prefersCompleteTab = name === 'Yokoyama';
+  - var hasNewEntryDraft = newEntry && (newEntry.order_number || newEntry.tracking_number || newEntry.compensation_amount_jpy);
+  - var isNewEntryOpen = isLennart || hasNewEntryDraft;
 
   .d-flex.flex-column.flex-lg-row.justify-content-between.align-items-lg-center.mb-4
     .mb-3.mb-lg-0

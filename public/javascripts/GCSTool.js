@@ -17,6 +17,35 @@ const my_settings = {
   },
 };
 
+function ReadStoredSettings() {
+  try {
+    const storedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+    if (!storedSettings || typeof storedSettings !== 'object' || Array.isArray(storedSettings)) {
+      return {};
+    }
+    return storedSettings;
+  } catch (_error) {
+    return {};
+  }
+}
+
+function PersistSettings() {
+  try {
+    localStorage.setItem('settings', JSON.stringify(my_settings));
+  } catch (_error) {
+    // Keep the current session usable when browser storage is unavailable.
+  }
+}
+
+function EscapeHTML(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const month_names = [
   'january',
   'february',
@@ -37,7 +66,12 @@ function GetColorModeName() {
 }
 
 function ApplyColorModeDataAttribute() {
-  document.documentElement.setAttribute('data-color-mode', GetColorModeName());
+  const mode = GetColorModeName();
+  if (window.GCSTheme) {
+    window.GCSTheme.apply(mode, { persist: false });
+    return;
+  }
+  document.documentElement.setAttribute('data-color-mode', mode);
 }
 
 /**********************************************
@@ -49,16 +83,32 @@ function ApplyColorModeDataAttribute() {
 // Run when every page has been loaded
 function Loaded() {
   // Load local settings
-  if (localStorage.hasOwnProperty('settings') == true) {
-    const my_settings_local = JSON.parse(localStorage.getItem('settings'));
-    for (const key of Object.keys(my_settings)) {
-      if (my_settings_local.hasOwnProperty(key)) {
-        my_settings[key] = my_settings_local[key];
-      }
+  const my_settings_local = ReadStoredSettings();
+  for (const key of Object.keys(my_settings)) {
+    if (Object.prototype.hasOwnProperty.call(my_settings_local, key)) {
+      my_settings[key] = my_settings_local[key];
     }
-    if (!my_settings.documents.jplabel) {
-      my_settings.documents['jplabel'] = [];
+  }
+  if (!my_settings.documents || typeof my_settings.documents !== 'object') {
+    my_settings.documents = { label: [], invoice: [], both: [], jplabel: [] };
+  }
+  for (const documentType of ['label', 'invoice', 'both', 'jplabel']) {
+    if (!Array.isArray(my_settings.documents[documentType])) {
+      my_settings.documents[documentType] = [];
     }
+  }
+  if (!Array.isArray(my_settings.reminders)) {
+    my_settings.reminders = [];
+  }
+  if (!['japanese', 'english', 'swedish'].includes(my_settings.language)) {
+    my_settings.language = 'japanese';
+  }
+
+  if (window.GCSTheme) {
+    const activeMode = window.GCSTheme.getPreferredMode();
+    my_settings.colormode = activeMode === 'dark' ? 'Style_dark.css' : 'Style_normal.css';
+  } else if (!['Style_dark.css', 'Style_normal.css'].includes(my_settings.colormode)) {
+    my_settings.colormode = 'Style_dark.css';
   }
 
   // Set user ID
@@ -72,8 +122,11 @@ function Loaded() {
   }
 
   // Set interface language
-  document.getElementById('lg_language').value = my_settings.language;
-  UpdateLanguage('lg_language');
+  const languageSelect = document.getElementById('lg_language');
+  if (languageSelect) {
+    languageSelect.value = my_settings.language;
+    UpdateLanguage('lg_language');
+  }
 
   // Set color mode
   let dom_cmode = document.getElementById('cmode');
@@ -99,9 +152,6 @@ function Loaded() {
 
   // If has entries, then hide all private entries from other users
   DisplayOthersPrivateEntries('none');
-
-  // Set Cookies
-  document.cookie = 'userid=' + document.getElementById('u_name').innerHTML + '; expires=Thu, 31 Dec 2099 12:00:00 UTC';
 
   // Make a search if search input field has content *can have content sent through GET parameters
   if (document.getElementById('s_box') && document.getElementById('s_box').value.length > 0) {
@@ -131,11 +181,11 @@ function ShowReminders() {
   for (let ri = 0; ri < my_settings.reminders.length; ri++) {
     reminder_html +=
       '<tr><td>' +
-      ("days" in my_settings.reminders[ri] ? my_settings.reminders[ri].days : "Su,M,Tu,W,Th,F,Sa") +
+      EscapeHTML('days' in my_settings.reminders[ri] ? my_settings.reminders[ri].days : 'Su,M,Tu,W,Th,F,Sa') +
       '</td><td>' +
-      my_settings.reminders[ri].time +
+      EscapeHTML(my_settings.reminders[ri].time) +
       '</td><td>' +
-      my_settings.reminders[ri].message +
+      EscapeHTML(my_settings.reminders[ri].message) +
       '</td><td><button class="btn btn-outline-danger" onclick="RemoveReminder(' +
       ri +
       ')">' +
@@ -152,41 +202,64 @@ function ShowReminders() {
 
 // Entry view admin controller
 function AdminCheckBox() {
-  if (document.getElementById('admin').checked == false) {
-    DisplayOthersPrivateEntries('none');
+  if (document.getElementById('s_box')) {
+    Filter();
   }
 }
 
 function DisplayOthersPrivateEntries(property) {
-  let entries = document.getElementsByClassName('entry');
+  const currentUserElement = document.getElementById('u_name');
+  const currentUser = currentUserElement ? currentUserElement.textContent : '';
+  const entries = document.getElementsByClassName('entry');
   for (let i = 0; i < entries.length; i++) {
-    if (entries[i].innerHTML.indexOf('lg_language="_private_"') >= 0) {
-      if (entries[i].innerHTML.indexOf('</i><i>' + document.getElementById('u_name').innerHTML + '</i>') == -1) {
-        entries[i].style.display = property;
-      }
+    if (entries[i].dataset.private === 'true' && entries[i].dataset.creator !== currentUser) {
+      entries[i].style.display = property;
     }
   }
 }
 
 function UpdateUserID() {
   my_settings.userid = document.getElementById('user_id').value;
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  PersistSettings();
 }
 
 function UpdateColorMode() {
-  my_settings.colormode = document.getElementById('cmode').value;
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  const colorModeSelect = document.getElementById('cmode');
+  if (!colorModeSelect || !['Style_dark.css', 'Style_normal.css'].includes(colorModeSelect.value)) {
+    return;
+  }
+  my_settings.colormode = colorModeSelect.value;
+  PersistSettings();
+  if (window.GCSTheme) {
+    window.GCSTheme.apply(GetColorModeName());
+  } else {
+    ApplyColorModeDataAttribute();
+    document.getElementById('myCss').href = '/stylesheets/' + my_settings.colormode;
+  }
+}
+
+function ToggleColorMode() {
+  if (!window.GCSTheme) {
+    return;
+  }
+  const mode = window.GCSTheme.toggle();
+  my_settings.colormode = mode === 'dark' ? 'Style_dark.css' : 'Style_normal.css';
+  PersistSettings();
 }
 
 function UpdateLanguageSettings() {
-  my_settings.language = document.getElementById('lg_language').value;
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  const languageSelect = document.getElementById('lg_language');
+  if (!languageSelect || !['japanese', 'english', 'swedish'].includes(languageSelect.value)) {
+    return;
+  }
+  my_settings.language = languageSelect.value;
+  PersistSettings();
   UpdateLanguage('lg_language');
 }
 
 function RemoveReminder(reminder_index) {
   my_settings.reminders.splice(reminder_index, 1);
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  PersistSettings();
   ShowReminders();
 }
 
@@ -206,7 +279,7 @@ function AddReminder() {
     message: document.getElementById('reminder_message').value,
   });
   SetReminderPopup(document.getElementById('reminder_time').value, document.getElementById('reminder_message').value, days.join(','));
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  PersistSettings();
   ShowReminders();
 }
 
@@ -251,18 +324,27 @@ function Selector(this_element) {
   this_element.select();
   document.execCommand('copy');
 
-  this_element.parentElement.innerHTML += '<div id="test" class="w3-animate-opacity"><b>COPY</b></div>';
+  const copyOverlay = document.createElement('div');
+  copyOverlay.id = 'test';
+  copyOverlay.className = 'w3-animate-opacity';
+  const copyLabel = document.createElement('b');
+  copyLabel.textContent = 'COPY';
+  copyOverlay.appendChild(copyLabel);
+  this_element.parentElement.appendChild(copyOverlay);
   setTimeout(DeleteCOPY, 1000);
 }
 function DeleteCOPY() {
   let element = document.getElementById('test');
-  element.parentElement.removeChild(element);
+  if (element && element.parentElement) {
+    element.parentElement.removeChild(element);
+  }
 }
 
 function Copy(content) {
+  const copyContent = String(content === undefined || content === null ? '' : content);
   // Put in copy buffer
   function listener(e) {
-    e.clipboardData.setData('text/plain', content.split("|").join("\n"));
+    e.clipboardData.setData('text/plain', copyContent.split('|').join('\n'));
     e.preventDefault();
   }
   document.addEventListener('copy', listener);
@@ -302,36 +384,46 @@ function UpdateFilter() {
 function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
   if (document.getElementById('s_box')) {
     const back = document.getElementById('back');
-    const old_data =
-      '<div id="backdata" class="hidden">' +
-      document.getElementById('s_box').value +
-      '|' +
-      document.getElementById('s_tag').value +
-      '|' +
-      document.getElementById('s_template').checked +
-      '|' +
-      document.getElementById('s_manual').checked +
-      '|' +
-      document.getElementById('s_ccontact').checked +
-      '</div><button onclick="SetFilterBack()">BACK</button><hr>';
-    document.getElementById('s_box').value = q_string;
-    document.getElementById('s_tag').value = q_tag;
+    const oldData = {
+      search: document.getElementById('s_box').value,
+      tag: document.getElementById('s_tag').value,
+      template: document.getElementById('s_template').checked,
+      manual: document.getElementById('s_manual').checked,
+      ccontact: document.getElementById('s_ccontact').checked,
+    };
+    document.getElementById('s_box').value = String(q_string || '');
+    document.getElementById('s_tag').value = String(q_tag || '_');
     document.getElementById('s_template').checked = q_template == 'true' ? true : false;
     document.getElementById('s_manual').checked = q_manual == 'true' ? true : false;
     document.getElementById('s_ccontact').checked = q_ccontact == 'true' ? true : false;
     Filter();
-    back.innerHTML = old_data;
+    back.dataset.filterState = JSON.stringify(oldData);
+    const backButton = document.createElement('button');
+    backButton.type = 'button';
+    backButton.className = 'btn btn-outline-secondary btn-sm mb-3';
+    backButton.textContent = 'Back to previous filter';
+    backButton.addEventListener('click', SetFilterBack);
+    back.replaceChildren(backButton);
   } else {
-    open(`/entry?search=${q_string}`, '_self');
+    window.location.assign(`/entry?search=${encodeURIComponent(String(q_string || ''))}`);
   }
 }
 function SetFilterBack() {
-  const back = document.getElementById('backdata').innerHTML.split('|');
-  document.getElementById('s_box').value = back[0];
-  document.getElementById('s_tag').value = back[1];
-  document.getElementById('s_template').checked = back[2] == 'true' ? true : false;
-  document.getElementById('s_manual').checked = back[3] == 'true' ? true : false;
-  document.getElementById('s_ccontact').checked = back[4] == 'true' ? true : false;
+  const backElement = document.getElementById('back');
+  if (!backElement || !backElement.dataset.filterState) {
+    return;
+  }
+  let back;
+  try {
+    back = JSON.parse(backElement.dataset.filterState);
+  } catch (_error) {
+    return;
+  }
+  document.getElementById('s_box').value = back.search || '';
+  document.getElementById('s_tag').value = back.tag || '_';
+  document.getElementById('s_template').checked = Boolean(back.template);
+  document.getElementById('s_manual').checked = Boolean(back.manual);
+  document.getElementById('s_ccontact').checked = Boolean(back.ccontact);
   Filter();
 }
 
@@ -345,18 +437,20 @@ function Clear() {
 }
 
 function Filter() {
-  document.getElementById('back').innerHTML = '';
+  const back = document.getElementById('back');
+  if (back) {
+    back.replaceChildren();
+    delete back.dataset.filterState;
+  }
   const e = document.getElementsByClassName('entry');
   const s_string = document.getElementById('s_box').value.toLocaleLowerCase();
   const s_tag = document.getElementById('s_tag').value;
+  const currentUserElement = document.getElementById('u_name');
+  const currentUser = currentUserElement ? currentUserElement.textContent : '';
+  const showOtherUsers = document.getElementById('admin') && document.getElementById('admin').checked === true;
   for (let i = 0; i < e.length; i++) {
-    if (
-      !(
-        e[i].innerHTML.indexOf('lg_language="_private_"') >= 0 &&
-        e[i].innerHTML.indexOf('</i><i>' + document.getElementById('u_name').innerHTML + '</i>') == -1
-      ) ||
-      (document.getElementById('admin') && document.getElementById('admin').checked == true)
-    ) {
+    const isOtherPrivate = e[i].dataset.private === 'true' && e[i].dataset.creator !== currentUser;
+    if (!isOtherPrivate || showOtherUsers) {
       // string1+string2+string3 => Must include all 3 strings to be true
       let query_words = [];
       if (s_string.indexOf('+') >= 0) {
@@ -364,15 +458,18 @@ function Filter() {
       } else {
         query_words.push(s_string.toLocaleLowerCase());
       }
-      const button_title = e[i].getElementsByTagName('BUTTON')[0].innerHTML.toLocaleLowerCase();
-      const content_body = e[i].getElementsByTagName('DIV')[0].innerHTML.toLocaleLowerCase();
+      const titleButton = e[i].querySelector('.title_button');
+      const contentBody = e[i].querySelector('.entry-detail');
+      const button_title = titleButton ? titleButton.textContent.toLocaleLowerCase() : '';
+      const content_body = contentBody ? contentBody.textContent.toLocaleLowerCase() : '';
       let found = true;
       query_words.forEach((qw) => {
         if (!(button_title.indexOf(qw) >= 0 || content_body.indexOf(qw) >= 0)) {
           found = false;
         }
       });
-      if (found && e[i].innerHTML.indexOf(s_tag) >= 0) {
+      const hasSelectedTag = s_tag === '_' || (titleButton && titleButton.classList.contains(s_tag));
+      if (found && hasSelectedTag) {
         if (
           (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||
           (e[i].className.indexOf('manual') >= 0 && document.getElementById('s_manual').checked == true) ||
@@ -385,21 +482,34 @@ function Filter() {
       } else {
         e[i].style.display = 'none';
       }
+    } else {
+      e[i].style.display = 'none';
     }
   }
 }
 
 function DisplayEntry(uid) {
-  if (document.getElementById(uid).style.display.indexOf('none') == 0) {
-    document.getElementById(uid).style.display = 'block';
+  const entry = document.getElementById(uid);
+  if (!entry) {
+    return;
+  }
+  const trigger = document.querySelector(`[aria-controls="${uid}"]`);
+  if (entry.style.display.indexOf('none') == 0) {
+    entry.style.display = 'block';
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'true');
+    }
 
     // Scale up size of text box to fit the text
-    let all_t_area = document.getElementById(uid).getElementsByTagName('TEXTAREA');
+    let all_t_area = entry.getElementsByTagName('TEXTAREA');
     for (let ata = 0; ata < all_t_area.length; ata++) {
       auto_grow(all_t_area[ata]);
     }
   } else {
-    document.getElementById(uid).style.display = 'none';
+    entry.style.display = 'none';
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'false');
+    }
   }
 }
 
@@ -474,7 +584,7 @@ function myGetDocument(type) {
     my_settings.documents.jplabel.push(input);
   }
   document.getElementById('track').value = '';
-  localStorage.setItem('settings', JSON.stringify(my_settings));
+  PersistSettings();
   PeekDocuments(3);
 }
 function ShowDocuments() {
@@ -488,14 +598,14 @@ function ShowDocuments() {
     if (my_settings.documents.jplabel.length > 0) {
       message += '伝票画像　＋　発送サポートシステム上での【送料】と【重量】<br>';
       while (my_settings.documents.jplabel.length > 0) {
-        message += my_settings.documents.jplabel.pop() + '<br>';
+        message += EscapeHTML(my_settings.documents.jplabel.pop()) + '<br>';
       }
       message += '<br>';
     }
     if (my_settings.documents.both.length > 0) {
       message += '伝票画像　＋　インボイス<br>';
       while (my_settings.documents.both.length > 0) {
-        message += my_settings.documents.both.pop() + '<br>';
+        message += EscapeHTML(my_settings.documents.both.pop()) + '<br>';
       }
       message += '<br>';
     }
@@ -503,14 +613,14 @@ function ShowDocuments() {
       let number_of_labels = my_settings.documents.label.length;
       message += '伝票画像<br>';
       while (my_settings.documents.label.length > 0) {
-        message += my_settings.documents.label.pop() + '<br>';
+        message += EscapeHTML(my_settings.documents.label.pop()) + '<br>';
       }
       message += '<br>';
     }
     if (my_settings.documents.invoice.length > 0) {
       message += 'インボイス<br>';
       while (my_settings.documents.invoice.length > 0) {
-        message += my_settings.documents.invoice.pop() + '<br>';
+        message += EscapeHTML(my_settings.documents.invoice.pop()) + '<br>';
       }
       message += '<br>';
     }
@@ -521,7 +631,7 @@ function ShowDocuments() {
 
     document.getElementById('ask_labels').innerHTML = message;
 
-    localStorage.setItem('settings', JSON.stringify(my_settings));
+    PersistSettings();
 
     document.getElementById('alertsound_4').play();
 
@@ -542,14 +652,14 @@ function PeekDocuments(seconds) {
     if (my_settings.documents.jplabel.length > 0) {
       message += '伝票画像　＋　発送サポートシステム上での【送料】と【重量】<br>';
       for (let i = 0; i < my_settings.documents.jplabel.length; i++) {
-        message += my_settings.documents.jplabel[i] + '<br>';
+        message += EscapeHTML(my_settings.documents.jplabel[i]) + '<br>';
       }
       message += '<br>';
     }
     if (my_settings.documents.both.length > 0) {
       message += '伝票画像　＋　インボイス<br>';
       for (let i = 0; i < my_settings.documents.both.length; i++) {
-        message += my_settings.documents.both[i] + '<br>';
+        message += EscapeHTML(my_settings.documents.both[i]) + '<br>';
       }
       message += '<br>';
     }
@@ -557,14 +667,14 @@ function PeekDocuments(seconds) {
       let number_of_labels = my_settings.documents.label.length;
       message += '伝票画像<br>';
       for (let i = 0; i < my_settings.documents.label.length; i++) {
-        message += my_settings.documents.label[i] + '<br>';
+        message += EscapeHTML(my_settings.documents.label[i]) + '<br>';
       }
       message += '<br>';
     }
     if (my_settings.documents.invoice.length > 0) {
       message += 'インボイス<br>';
       for (let i = 0; i < my_settings.documents.invoice.length; i++) {
-        message += my_settings.documents.invoice[i] + '<br>';
+        message += EscapeHTML(my_settings.documents.invoice[i]) + '<br>';
       }
       message += '<br>';
     }
@@ -593,10 +703,13 @@ function PeekDocuments(seconds) {
 //   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 // };
 function UpdateStatusBar() {
+  const statusBar = document.getElementById('status_bar');
+  if (!statusBar) {
+    return;
+  }
   const d = new Date();
   const day = d.getDay();
   const hour = d.getHours();
-  const isOpen = hour >= 12 && hour < 17 ? '<b style="color:#66FF66;">●</b>' : '<b style="color:#FF6666;">●</b>';
   const staff = [
     'CLOSED',
     'Schoppmann & Jammie',
@@ -606,11 +719,21 @@ function UpdateStatusBar() {
     'Katie & Jammie',
     'CLOSED',
   ];
-  if (day >= 1 && day <= 5) {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: ' + isOpen + ' ' + staff[day] + '</i>';
-  } else {
-    document.getElementById('status_bar').innerHTML = '<i>Zendesk Talk: <b style="color:red;">●</b> closed</i>';
+  const isWeekday = day >= 1 && day <= 5;
+  const isOpen = isWeekday && hour >= 12 && hour < 17;
+  const statusText = isWeekday ? staff[day] : 'closed';
+  const stateKey = `${isOpen ? 'open' : 'closed'}:${statusText}`;
+  if (statusBar.dataset.state !== stateKey) {
+    const dot = document.createElement('span');
+    dot.className = `app-status-dot app-status-dot--${isOpen ? 'open' : 'closed'}`;
+    dot.setAttribute('aria-hidden', 'true');
+    dot.textContent = '●';
+    const label = document.createElement('span');
+    label.textContent = `Zendesk Talk: ${isOpen ? 'open' : 'closed'} · ${statusText}`;
+    statusBar.replaceChildren(dot, label);
+    statusBar.dataset.state = stateKey;
   }
+  statusBar.classList.remove('hidden');
 
   setTimeout(UpdateStatusBar, 10000);
 }
@@ -624,19 +747,25 @@ UpdateStatusBar();
 
 function SetReminders() {
   my_settings.reminders.forEach((rem) => {
-    SetReminderPopup(rem.time, rem.message, "days" in rem ? rem.days : "Su,M,Tu,W,Th,F,Sa");
+    if (rem && typeof rem === 'object') {
+      SetReminderPopup(rem.time, rem.message, 'days' in rem ? rem.days : 'Su,M,Tu,W,Th,F,Sa');
+    }
   });
   SetReminderFunction('16:59', ShowDocuments);
 }
 
-const weekdayConverter = ["Su","M","Tu","W","Th","F","Sa"];
+const weekdayConverter = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
 function SetReminderPopup(trigger_time, message, days) {
+  if (typeof trigger_time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(trigger_time)) {
+    return;
+  }
+  const activeDays = typeof days === 'string' ? days.split(',') : [];
   let nowdate = new Date();
   let split_time = trigger_time.split(':');
   let milliseconds_left =
     new Date(nowdate.getFullYear(), nowdate.getMonth(), nowdate.getDate(), split_time[0], split_time[1], 0, 0) - nowdate;
-  if (milliseconds_left > 0 && days.indexOf(weekdayConverter[nowdate.getDay()]) >= 0) {
-    setTimeout('Reminder("' + message + '")', milliseconds_left);
+  if (milliseconds_left > 0 && activeDays.includes(weekdayConverter[nowdate.getDay()])) {
+    setTimeout(() => Reminder(String(message || '')), milliseconds_left);
   }
 }
 function SetReminderFunction(trigger_time, functionname) {
@@ -652,7 +781,7 @@ function Reminder(message) {
   document.getElementById('alertsound_4').play();
   Debug(
     '<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>' +
-      message +
+      EscapeHTML(message) +
       '</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
   );
   alert('Check reminders!');

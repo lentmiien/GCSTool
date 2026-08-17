@@ -1,57 +1,75 @@
 extends ../layout
 
 block content
-  h2= entry.entry.title
-  .row 
-    .col-8 
-      select#version.form-control(name="version", onchange="UpdateVersion(this)") 
-        option(value=entry.entry.html) Latest 
-        each v in entry.versions 
-          option(value=v.html)= `Version ${v.version_number} (${v.createdAt.toISOString().split("T")[0]})` 
-      div#content(style="padding: 10px; margin: 5px;")!= entry.entry.html
-    .col-4
-      a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit this entry
-      if entry.parents.length > 0
-        hr
-        h3 Parents 
-        each p in entry.parents
-          button.btn.btn-outline-info.btn-sm(style="margin-right: 2px;" data-toggle='modal' data-target=`#m${p.parent_id}`)= `${entryMap[p.parent_id].title}`
-      if entry.children.length > 0
-        hr
-        h3 Children 
-        each c in entry.children
-          button.btn.btn-outline-info.btn-sm(style="margin-right: 2px;" data-toggle='modal' data-target=`#m${c.child_id}`)= `${entryMap[c.child_id].title}`
-      if entry.entry.type === 'Policy'
-        hr
-        a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Manual&parent=${entry.entry.id}`) + Manual
-        a.btn.btn-sm.btn-primary.ml-1(href=`/pmt/create?type=Template&parent=${entry.entry.id}`) + Template
+  header.app-page-header
+    div
+      p.app-page-kicker= entry.entry.type
+      h1= entry.entry.title
+      p Browse the current document, its history, and connected guidance.
+    .app-page-actions
+      a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit entry
+      a.btn.btn-outline-secondary(href='/pmt') Back to library
+
+  .row
+    .col-lg-8
+      section.app-panel.pmt-document-panel
+        label(for='version') Document version
+        select#version.form-control(name='version', onchange='UpdateVersion(this)')
+          option(value=entry.entry.html) Latest
+          each v in entry.versions
+            option(value=v.html)= `Version ${v.version_number} (${v.createdAt.toISOString().split('T')[0]})`
+        #content.pmt-entry-content!= entry.entry.html
+    .col-lg-4.mt-3.mt-lg-0
+      aside.app-panel.pmt-related-panel
+        if entry.parents.length > 0
+          h2 Parent policies
+          .pmt-related-links
+            each p in entry.parents
+              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${p.parent_id}`)= entryMap[p.parent_id].title
+        if entry.children.length > 0
+          h2 Child documents
+          .pmt-related-links
+            each c in entry.children
+              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${c.child_id}`)= entryMap[c.child_id].title
+        if entry.entry.type === 'Policy'
+          h2 Create a child
+          .pmt-related-links
+            a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Manual&parent=${entry.entry.id}`) + Manual
+            a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Template&parent=${entry.entry.id}`) + Template
+
       if entry.logs.length > 0
-        hr
-        h3 Log 
-        table.table.table-dark.table-striped.small 
-          thead 
-            tr 
-              th Action 
-              th By 
-              th Details 
-              th Date 
-          tbody 
-            each log in entry.logs
-              tr 
-                td= log.action
-                td= log.action_by
-                td= log.details
-                td= log.createdAt.toISOString().split("T")[0]
-  each obj in [...entry.parents.map(p=>p.parent_id), ...entry.children.map(c=>c.child_id)]
-    - const ref = obj;
-    - const ent = entryMap[ref];        // we’ll prepare it below in script
-    .modal.fade(id=`m${ref}` tabindex='-1')
-      .modal-dialog.modal-lg
-        .modal-content.bg-dark
+        section.app-panel.pmt-log-panel
+          h2 Activity
+          .table-responsive
+            table.table.table-striped.table-sm
+              thead
+                tr
+                  th(scope='col') Action
+                  th(scope='col') By
+                  th(scope='col') Details
+                  th(scope='col') Date
+              tbody
+                each log in entry.logs
+                  tr
+                    td= log.action
+                    td= log.action_by
+                    td= log.details
+                    td= log.createdAt.toISOString().split('T')[0]
+
+  each obj in [...entry.parents.map(p => p.parent_id), ...entry.children.map(c => c.child_id)]
+    - const ref = obj
+    - const ent = entryMap[ref]
+    .modal.fade(id=`m${ref}`, tabindex='-1', role='dialog', aria-hidden='true')
+      .modal-dialog.modal-lg(role='document')
+        .modal-content
           .modal-header
-            h5.modal-title= ent.title || ('Entry ' + ref)
-            a.btn.btn-sm.btn-link(href=`/pmt/details/${ref}`) Open detail
-            button.close(type='button' data-dismiss='modal') ×
-          .modal-body
-            != ent.html
-  script(src="/js/pmt/details.js") 
+            h2.modal-title.h5= ent.title || `Entry ${ref}`
+            button.close(type='button', data-dismiss='modal', aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body.pmt-entry-content!= ent.html
+          .modal-footer
+            a.btn.btn-sm.btn-primary(href=`/pmt/details/${ref}`) Open detail
+            button.btn.btn-sm.btn-secondary(type='button', data-dismiss='modal') Close
+
+block scripts
+  script(src='/js/pmt/details.js')

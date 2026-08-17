@@ -1,10 +1,25 @@
 ﻿const async = require('async');
 const axios = require('axios');
+const bcrypt = require('bcryptjs');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
-const { Entry, Content, User, Username, Op, Staff, Holiday, Schedule2, VersionHistory } = require('../sequelize');
+const {
+  sequelize,
+  Entry,
+  Content,
+  User,
+  Username,
+  Op,
+  Staff,
+  Holiday,
+  Schedule2,
+  VersionHistory,
+  Meeting,
+  MeetingComment,
+} = require('../sequelize');
 const { version: currentVersion } = require('../package.json');
+const sanitizeHtml = require('../utils/sanitizeHtml');
 
 const timekeeper = [];
 
@@ -15,6 +30,7 @@ const jpnews = {
 
 // Load admin data
 exports.all = async function (req, res, next) {
+  try {
   res.locals.role = req.user.role;
   res.locals.name = req.user.userid;
 
@@ -27,7 +43,11 @@ exports.all = async function (req, res, next) {
         jpnews.data['raw'] = response.data;
         // xml to json
         parseString(response.data, (err, result) => {
-          jpnews.data['json'] = result.rss.channel[0].item;
+          if (err || !result || !result.rss || !result.rss.channel || !result.rss.channel[0]) {
+            console.error('Failed to parse Japan Post news feed:', err || 'Unexpected feed structure');
+            return;
+          }
+          jpnews.data['json'] = Array.isArray(result.rss.channel[0].item) ? result.rss.channel[0].item : [];
         });
       })
       .catch(function (error) {
@@ -86,14 +106,16 @@ exports.all = async function (req, res, next) {
     });
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, today.getHours());// +1 day loop
   }
-  for(let i = 0; i < res.locals.workschedule.days.length; i++) {
-    schedule[0].schedule2s.forEach(s => {
-      if(s.date == res.locals.workschedule.days[i].date) {
-        // full / mix / off
-        res.locals.workschedule.days[i].category = s.work.indexOf('work') >= 0 ? 'ws_full' : (s.work == 'off' || s.work == 'holiday' || s.work == 'vacation') ? 'ws_off' : 'ws_mix';
-        res.locals.workschedule.days[i].schedule = s.work;
-      }
-    });
+  if (schedule.length > 0 && Array.isArray(schedule[0].schedule2s)) {
+    for(let i = 0; i < res.locals.workschedule.days.length; i++) {
+      schedule[0].schedule2s.forEach(s => {
+        if(s.date == res.locals.workschedule.days[i].date) {
+          // full / mix / off
+          res.locals.workschedule.days[i].category = s.work.indexOf('work') >= 0 ? 'ws_full' : (s.work == 'off' || s.work == 'holiday' || s.work == 'vacation') ? 'ws_off' : 'ws_mix';
+          res.locals.workschedule.days[i].schedule = s.work;
+        }
+      });
+    }
   }
 
   // Holiday schedule next week
@@ -151,6 +173,9 @@ exports.all = async function (req, res, next) {
   }
 
   next();
+  } catch (error) {
+    next(error);
+  }
 };
 
 exports.view_timekeeper = (req, res) => {
@@ -170,22 +195,45 @@ exports.view_timekeeper = (req, res) => {
   }
 };
 
-exports.index = function (req, res) {
+exports.index = async function (req, res, next) {
   let d = new Date();
   d = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
-  Entry.findAll({
-    include: [{ model: Content }],
-    order: [['updatedAt', 'DESC']],
-    where: {
-      //team: req.user['team'],
+  try {
+    const where = {
+      team: req.user.team,
       updatedAt: {
         [Op.gt]: d,
       },
-    },
-  }).then((updated_within_last_month) => {
-    const filtered = updated_within_last_month.filter((data) => data.ismaster == true || data.creator == req.user.userid);
-    res.render('index', { entries: filtered });
-  });
+    };
+    if (req.user.role !== 'admin') {
+      where[Op.or] = [
+        { ismaster: true },
+        { creator: req.user.userid },
+      ];
+    }
+
+    const entries = await Entry.findAll({
+      include: [{ model: Content }],
+      order: [['updatedAt', 'DESC']],
+      where,
+    });
+
+    const visibleEntries = entries.map((entryInstance) => {
+      const entry = entryInstance.get({ plain: true });
+      if (Array.isArray(entry.contents)) {
+        entry.contents.sort((left, right) => left.id - right.id);
+      }
+      if (entry.category === 'manual' && Array.isArray(entry.contents)) {
+        entry.contents.forEach((content) => {
+          content.sanitizedData = sanitizeHtml(content.data);
+        });
+      }
+      return entry;
+    });
+    return res.render('index', { entries: visibleEntries });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 function parseVersionHistoryItems(entry) {
@@ -222,17 +270,22 @@ function isNewerVersion(version, referenceVersion) {
 
 exports.about = async function (req, res, next) {
   try {
+    const today = new Date().toISOString().slice(0, 10);
     const entries = await VersionHistory.findAll({
       order: [['sortOrder', 'ASC'], ['version', 'DESC']],
     });
-    const updates = entries.map((entry) => ({
-      version: entry.version,
-      releaseDate: entry.releaseDate,
-      updateDate: entry.updateDate,
-      items: parseVersionHistoryItems(entry),
-      isCurrent: entry.version === currentVersion,
-      isUpcoming: isNewerVersion(entry.version, currentVersion),
-    }));
+    const updates = entries.map((entry) => {
+      const hasFutureReleaseDate = entry.releaseDate && String(entry.releaseDate) > today;
+      const isUpcoming = hasFutureReleaseDate || isNewerVersion(entry.version, currentVersion);
+      return {
+        version: entry.version,
+        releaseDate: entry.releaseDate,
+        updateDate: entry.updateDate,
+        items: parseVersionHistoryItems(entry),
+        isCurrent: entry.version === currentVersion && !isUpcoming,
+        isUpcoming,
+      };
+    });
     res.render('about', {
       currentVersion,
       pagetitle: 'About GCS Support Tool',
@@ -244,8 +297,8 @@ exports.about = async function (req, res, next) {
 };
 
 exports.admin_get = async function (req, res) {
-  if (req.user.role === 'guest') {
-    return res.render('admin', { users: [] });
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('admin', { users: [], error: 'Administrator access is required.' });
   }
 
   try {
@@ -256,92 +309,190 @@ exports.admin_get = async function (req, res) {
     res.render('admin', { users: [], error: 'Failed to load users.' });
   }
 };
-exports.adduser = (req, res) => {
-  if (req.user.role === 'admin') {
-    User.create({ userid: req.body.newuserid, password: '', team: req.body.newteam, role: req.body.newrole }).then(() => {
-      res.redirect('/admin');
+
+exports.adduser = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('s_added', { message: 'Only admin staff can add users...' });
+  }
+
+  const userid = typeof req.body.newuserid === 'string' ? req.body.newuserid.trim() : '';
+  const password = typeof req.body.newpassword === 'string' ? req.body.newpassword : '';
+  const allowedTeams = ['ohami_gcs_mail', 'ohami_gcs_order', 'ohami_gcs_korea', 'ohami_gcs_boss'];
+  const allowedRoles = ['user', 'admin'];
+  if (
+    !userid ||
+    userid.length > 100 ||
+    password.length < 12 ||
+    password.length > 128 ||
+    !allowedTeams.includes(req.body.newteam) ||
+    !allowedRoles.includes(req.body.newrole)
+  ) {
+    return res.status(400).render('s_added', {
+      message: 'Enter a valid user ID and a temporary password between 12 and 128 characters.',
     });
-  } else {
-    res.render('s_added', { message: 'Only admin staff can add users...' });
   }
-};
 
-exports.change_name = (req, res) => {
-  const id_to_change = parseInt(req.params.id);
-  const change_to_name = req.params.name;
-  if (req.user.role === 'admin' && id_to_change > 1) {
-    User.update({ userid: change_to_name }, { where: { id: id_to_change } });
-    return res.json({ status: 'OK' });
-  }
-  return res.json({ status: 'FAILED' });
-};
-
-exports.reset_password = (req, res) => {
-  const id_to_reset = parseInt(req.params.id);
-  if (req.user.role === 'admin' && id_to_reset > 1) {
-    User.update({ password: '' }, { where: { id: id_to_reset } });
-    return res.json({ status: 'OK' });
-  }
-  return res.json({ status: 'FAILED' });
-};
-
-exports.change_team = (req, res) => {
-  const id_to_change = parseInt(req.params.id);
-  const change_to_team = req.params.team;
-  if (req.user.role === 'admin' && id_to_change > 1) {
-    User.update({ team: change_to_team }, { where: { id: id_to_change } });
-    return res.json({ status: 'OK' });
-  }
-  return res.json({ status: 'FAILED' });
-};
-
-exports.make_admin = (req, res) => {
-  const id_to_change = parseInt(req.params.id);
-  if (req.user.role === 'admin' && id_to_change > 1) {
-    User.update({ role: 'admin' }, { where: { id: id_to_change } });
-    return res.json({ status: 'OK' });
-  }
-  return res.json({ status: 'FAILED' });
-};
-
-exports.make_user = (req, res) => {
-  const id_to_change = parseInt(req.params.id);
-  if (req.user.role === 'admin' && id_to_change > 1) {
-    User.update({ role: 'user' }, { where: { id: id_to_change } });
-    return res.json({ status: 'OK' });
-  }
-  return res.json({ status: 'FAILED' });
-};
-
-exports.removeuser = (req, res) => {
-  if (req.user.role === 'admin') {
-    if (req.params.userid == 1) {
-      res.redirect('/admin');
-    } else {
-      // Destroy data by this user [Issue #21]
-      User.findAll({ where: { id: req.params.userid } }).then((user) => {
-        Entry.findAll({
-          where: {
-            creator: user[0].userid,
-            ismaster: false,
-          },
-          include: [{ model: Content }],
-        }).then((data) => {
-          data.forEach((d) => {
-            Content.destroy({ where: { entryId: d.id } }).then((d2) => {
-              Entry.destroy({
-                where: { id: d.id },
-              });
-            });
-          });
-        });
-        // Destroy user
-        User.destroy({ where: { id: req.params.userid } }).then(() => {
-          res.redirect('/admin');
-        });
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const created = await sequelize.transaction(async (transaction) => {
+      const existing = await User.findOne({
+        where: { userid },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
       });
+      if (existing) {
+        return false;
+      }
+      await User.create({
+        userid,
+        password: hashedPassword,
+        team: req.body.newteam,
+        role: req.body.newrole,
+      }, { transaction });
+      return true;
+    });
+    if (!created) {
+      return res.status(409).render('s_added', { message: 'That user ID is already in use.' });
     }
-  } else {
-    res.render('s_added', { message: 'Only admin staff can remove users...' });
+    return res.redirect('/admin');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.change_name = async (req, res, next) => {
+  const id_to_change = Number.parseInt(req.params.id, 10);
+  const change_to_name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ status: 'Administrator access is required.' });
+  }
+  if (!Number.isSafeInteger(id_to_change) || id_to_change <= 1 || !change_to_name || change_to_name.length > 100) {
+    return res.status(400).json({ status: 'Invalid user name or ID.' });
+  }
+  try {
+    const result = await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(id_to_change, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!user) {
+        return { status: 404, message: 'User not found.' };
+      }
+
+      const duplicate = await User.findOne({
+        where: {
+          id: { [Op.ne]: id_to_change },
+          userid: change_to_name,
+        },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (duplicate) {
+        return { status: 409, message: 'That user name is already in use.' };
+      }
+
+      const previousName = user.userid;
+      if (previousName !== change_to_name) {
+        await Promise.all([
+          Entry.update({ creator: change_to_name }, { where: { creator: previousName }, transaction }),
+          Username.update({ userid: change_to_name }, { where: { userid: previousName }, transaction }),
+          Staff.update({ name: change_to_name }, { where: { name: previousName }, transaction }),
+          Meeting.update({ created_by: change_to_name }, { where: { created_by: previousName }, transaction }),
+          MeetingComment.update({ created_by: change_to_name }, { where: { created_by: previousName }, transaction }),
+        ]);
+        await user.update({ userid: change_to_name }, { transaction });
+      }
+
+      return { status: 200, message: 'OK' };
+    });
+    return res.status(result.status).json({ status: result.message });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.reset_password = async (req, res, next) => {
+  const id_to_reset = Number.parseInt(req.params.id, 10);
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ status: 'Administrator access is required.' });
+  }
+  if (!Number.isSafeInteger(id_to_reset) || id_to_reset <= 1 || password.length < 12 || password.length > 128) {
+    return res.status(400).json({ status: 'Temporary passwords must be between 12 and 128 characters.' });
+  }
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [updatedCount] = await User.update({ password: hashedPassword }, { where: { id: id_to_reset } });
+    return res.status(updatedCount ? 200 : 404).json({ status: updatedCount ? 'OK' : 'User not found.' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.change_team = async (req, res, next) => {
+  const id_to_change = Number.parseInt(req.params.id, 10);
+  const allowedTeams = ['ohami_gcs_mail', 'ohami_gcs_order', 'ohami_gcs_korea', 'ohami_gcs_boss'];
+  const change_to_team = req.body.team;
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ status: 'Administrator access is required.' });
+  }
+  if (!Number.isSafeInteger(id_to_change) || id_to_change <= 1 || !allowedTeams.includes(change_to_team)) {
+    return res.status(400).json({ status: 'Invalid team or user ID.' });
+  }
+  try {
+    const [updatedCount] = await User.update({ team: change_to_team }, { where: { id: id_to_change } });
+    return res.status(updatedCount ? 200 : 404).json({ status: updatedCount ? 'OK' : 'User not found.' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+async function updateUserRole(req, res, next, nextRole) {
+  const id_to_change = Number.parseInt(req.params.id, 10);
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ status: 'Administrator access is required.' });
+  }
+  if (!Number.isSafeInteger(id_to_change) || id_to_change <= 1) {
+    return res.status(400).json({ status: 'Invalid user ID.' });
+  }
+  try {
+    const [updatedCount] = await User.update({ role: nextRole }, { where: { id: id_to_change } });
+    return res.status(updatedCount ? 200 : 404).json({ status: updatedCount ? 'OK' : 'User not found.' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+exports.make_admin = (req, res, next) => updateUserRole(req, res, next, 'admin');
+
+exports.make_user = (req, res, next) => updateUserRole(req, res, next, 'user');
+
+exports.removeuser = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('s_added', { message: 'Only admin staff can remove users...' });
+  }
+  const userId = Number.parseInt(req.params.userid, 10);
+  if (!Number.isSafeInteger(userId) || userId <= 1) {
+    return res.redirect('/admin');
+  }
+
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.redirect('/admin');
+    }
+    const entries = await Entry.findAll({
+      where: { creator: user.userid, ismaster: false },
+      attributes: ['id'],
+    });
+    const entryIds = entries.map((entry) => entry.id);
+    if (entryIds.length > 0) {
+      await Content.destroy({ where: { entryId: entryIds } });
+      await Entry.destroy({ where: { id: entryIds } });
+    }
+    await user.destroy();
+    return res.redirect('/admin');
+  } catch (error) {
+    return next(error);
   }
 };

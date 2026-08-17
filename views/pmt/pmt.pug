@@ -1,41 +1,62 @@
 extends ../layout
 
 block content
-  h1 Policy - Manual - Template tool
-  //‑‑‑‑‑ FILTER FORM  ‑‑‑‑‑
-  form.form-inline(method='get' action='/pmt')
-    select.form-control(name='type')
-      option(value='') All types
-      option(value='Policy' selected=(query.type=='Policy')) Policy
-      option(value='Manual' selected=(query.type=='Manual')) Manual
-      option(value='Template' selected=(query.type=='Template')) Template
-    select.form-control.ml-2(name='category')
-      option(value='') All categories
-      each cat in ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
-        option(value=cat selected=(query.category==cat), lg_language=cat)= cat
-    button.btn.btn-secondary.ml-2(type='submit') Filter
-  //‑‑‑‑‑ MAIN ACTION BUTTONS  ‑‑‑‑‑
-  a.btn.btn-primary.ml-2(href='/pmt/create') + New entry
-  a.btn.btn-secondary.ml-2(href='/pmt/logs') Logs
-  a.btn.btn-secondary.ml-2(href='/pmt/reviews') Reviews 
-    if reviews > 0
-      span(style="background-color: #955; border: 1px solid red; border-radius: 50%; padding: 5px;")= reviews
-  a.btn.btn-danger.ml-2(href='/pmt/reset') Delete all
-  hr
-  //‑‑‑‑‑ ENTRIES LIST  ‑‑‑‑‑
-  each entry in entries
-    div(style="border: 1px solid gray; padding: 10px; margin: 5px; border-radius: 15px;") 
-      div(style="background-color: #557;padding: 2px;")
-        h2= `${entry.title} (v${entry.current_version})`
-        i
-          span= `${entry.type} (`
-          span(lg_language=entry.category)= entry.category
-          span= `)`
-      - const d = new Date(Date.now() - (7*24*60*60*1000))
-      if d < entry.updatedAt
-        div!= entry.html
-        hr
-      a.btn.btn-link(href=`/pmt/details/${entry.id}`) Details 
-      a.btn.btn-link(href=`/pmt/edit/${entry.id}`) Edit 
-      button.btn.btn-link(data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy RAW
-  script(src="/js/pmt/pmt.js")
+  header.app-page-header
+    div
+      p.app-page-kicker Knowledge base
+      h1 Policy, manual & template library
+      p Find approved guidance, reusable replies, and the policies that connect them.
+    .app-page-actions
+      a.btn.btn-primary(href='/pmt/create') + New entry
+      a.btn.btn-outline-secondary(href='/pmt/logs') Logs
+      a.btn.btn-outline-secondary(href='/pmt/reviews')
+        | Reviews
+        if reviews > 0
+          span.pmt-review-count(aria-label=`${reviews} open reviews`)= reviews
+
+  section.app-toolbar.pmt-filter-bar(aria-label='Filter library')
+    form(method='get' action='/pmt')
+      .pmt-filter-field
+        label(for='pmt-type') Type
+        select#pmt-type.form-control(name='type')
+          option(value='') All types
+          option(value='Policy' selected=(query.type === 'Policy')) Policy
+          option(value='Manual' selected=(query.type === 'Manual')) Manual
+          option(value='Template' selected=(query.type === 'Template')) Template
+      .pmt-filter-field.pmt-filter-field--wide
+        label(for='pmt-category') Category
+        select#pmt-category.form-control(name='category')
+          option(value='') All categories
+          each cat in ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+            option(value=cat selected=(query.category === cat), lg_language=cat)= cat
+      button.btn.btn-secondary(type='submit') Apply filters
+
+  if entries.length > 0
+    .pmt-entry-grid
+      each entry in entries
+        - const updatedRecently = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)) < entry.updatedAt
+        article.pmt-entry-card
+          header.pmt-entry-card-header
+            div
+              p.app-page-kicker= entry.type
+              h2
+                a(href=`/pmt/details/${entry.id}`)= entry.title
+              p.pmt-entry-meta
+                span= `Version ${entry.current_version}`
+                span(aria-hidden='true') ·
+                span(lg_language=entry.category)= entry.category
+            if updatedRecently
+              span.badge.badge-success Recently updated
+          if updatedRecently
+            .pmt-entry-content!= entry.html
+          footer.pmt-entry-actions
+            a.btn.btn-sm.btn-outline-primary(href=`/pmt/details/${entry.id}`) Details
+            a.btn.btn-sm.btn-outline-secondary(href=`/pmt/edit/${entry.id}`) Edit
+            button.btn.btn-sm.btn-link(type='button', data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy Markdown
+  else
+    .app-empty-state
+      h2 No entries found
+      p Try changing the filters or create a new library entry.
+
+block scripts
+  script(src='/js/pmt/pmt.js')

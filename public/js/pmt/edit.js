@@ -4,7 +4,8 @@ const editor = new toastui.Editor({
   el: document.querySelector('#editor'),
   height: '500px',
   initialEditType: 'wysiwyg',
-  theme: 'dark',
+  theme: document.documentElement.getAttribute('data-color-mode') === 'dark' ? 'dark' : '',
+  usageStatistics: false,
 });
 
 document.getElementById("form").addEventListener('submit', function(event) {
@@ -21,7 +22,7 @@ function showPreview(){
   const sel   = Array.from(document.getElementById('policies').selectedOptions).map(o=>+o.value);
   const htmls = sel.map(id=>{
     const p = allPolicies.find(x=>x.id===id);
-    return `<h5>${p.title}</h5><hr>${marked.parse(p.content_md)}`;
+    return GCSPmtPreview.render(p.title, p.content_md);
   });
   document.getElementById('policyPreview').innerHTML = htmls.join('<hr>');
 }

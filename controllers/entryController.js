@@ -1,50 +1,137 @@
 /****************************
- * 
+ *
  * Consider
- * 
+ *
  * change so that an entry can have as many content parts as needed
  * when edit, show the available parts + 1 empty and a button to add more
- * 
+ *
  */
-
-const async = require('async');
 
 const { body, validationResult } = require('express-validator');
 
 // Require necessary database models
-const { Entry, Content } = require('../sequelize');
+const { Entry, Content, Op, sequelize } = require('../sequelize');
+const sanitizeHtml = require('../utils/sanitizeHtml');
+
+const CONTENT_LIMIT = 5;
+
+function isAdmin(req) {
+  return req.user.role === 'admin';
+}
+
+function isGuest(req) {
+  return req.user.role === 'guest';
+}
+
+function parsePositiveInteger(value) {
+  const normalized = String(value || '');
+  if (!/^\d+$/.test(normalized)) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function bodyString(value) {
+  return typeof value === 'string' ? value : '';
+}
+
+function visibleEntryWhere(req, extraWhere) {
+  const where = {
+    team: req.user.team,
+    ...extraWhere,
+  };
+
+  if (!isAdmin(req)) {
+    where[Op.or] = [
+      { ismaster: true },
+      { creator: req.user.userid },
+    ];
+  }
+
+  return where;
+}
+
+function canModifyEntry(req, entry) {
+  if (isGuest(req) || entry.team !== req.user.team) {
+    return false;
+  }
+
+  if (entry.ismaster) {
+    return isAdmin(req);
+  }
+
+  return isAdmin(req) || entry.creator === req.user.userid;
+}
+
+function sortEntryContents(entry) {
+  if (entry && Array.isArray(entry.contents)) {
+    entry.contents.sort((left, right) => left.id - right.id);
+  }
+  return entry;
+}
+
+function entriesForDisplay(entries) {
+  return entries.map((entryInstance) => {
+    const entry = entryInstance.get({ plain: true });
+    sortEntryContents(entry);
+
+    if (entry.category === 'manual') {
+      entry.contents.forEach((content) => {
+        content.sanitizedData = sanitizeHtml(content.data);
+      });
+    }
+
+    return entry;
+  });
+}
+
+function renderForbidden(res, message) {
+  return res.status(403).render('error', {
+    message: message || 'You do not have permission to modify this entry.',
+    error: { status: 403 },
+  });
+}
+
+async function findVisibleEntry(req, id, options = {}) {
+  const query = {
+    where: visibleEntryWhere(req, { id }),
+  };
+
+  if (options.includeContents) {
+    query.include = [{ model: Content }];
+  }
+  if (options.transaction) {
+    query.transaction = options.transaction;
+  }
+  if (options.lock && options.transaction) {
+    query.lock = options.transaction.LOCK.UPDATE;
+  }
+
+  const entry = await Entry.findOne(query);
+  return sortEntryContents(entry);
+}
 
 // Display all Entries
-exports.entry_list = function (req, res) {
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          include: [{ model: Content }],
-          where: { team: req.user.team },
-          order: [
-            ['tag', 'ASC'],
-            ['category', 'DESC'],
-            ['ismaster', 'DESC'],
-            ['updatedAt', 'DESC'],
-          ],
-        }).then((entry) => callback(null, entry));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-      let search = '';
-      if (req.query.search) {
-        search = req.query.search;
-        console.log(search);
-      }
+exports.entry_list = async function (req, res, next) {
+  try {
+    const entries = await Entry.findAll({
+      include: [{ model: Content }],
+      where: visibleEntryWhere(req),
+      order: [
+        ['tag', 'ASC'],
+        ['category', 'DESC'],
+        ['ismaster', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
+    const search = typeof req.query.search === 'string' ? req.query.search.slice(0, 500) : '';
 
-      // Successful, so render.
-      res.render('entry', { entries: results.entry, search });
-    }
-  );
+    res.render('entry', { entries: entriesForDisplay(entries), search });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Display Entry create form on GET
@@ -53,437 +140,343 @@ exports.entry_create_get = function (req, res) {
 };
 
 // Copy entry
-exports.entry_createcopy_get = function (req, res) {
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          where: { id: req.params.id },
-          include: [{ model: Content }],
-        }).then((entry) => callback(null, entry[0]));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-      if (results.entry == null) {
-        // No results.
-        res.redirect('/entry');
-      }
-      // Input data in req.body
-      Object.keys(results.entry.dataValues).forEach((key, index) => {
-        req.body[key] = results.entry.dataValues[key];
-      });
-      for (let ci = 0; ci < results.entry.dataValues['contents'].length; ci++) {
-        req.body['content' + (ci + 1)] = results.entry.dataValues['contents'][ci].dataValues.data;
-      }
-      // Successful, so render.
-      res.render('entryadd', { request: req.body });
+exports.entry_createcopy_get = async function (req, res, next) {
+  const entryId = parsePositiveInteger(req.params.id);
+  if (!entryId) {
+    return res.redirect('/entry');
+  }
+
+  try {
+    const entry = await findVisibleEntry(req, entryId, { includeContents: true });
+    if (!entry) {
+      return res.redirect('/entry');
     }
-  );
+
+    const request = {
+      category: entry.category,
+      ismaster: isAdmin(req) && entry.ismaster ? 1 : 0,
+      tag: entry.tag,
+      team: req.user.team,
+      title: entry.title,
+    };
+    entry.contents.slice(0, CONTENT_LIMIT).forEach((content, index) => {
+      request[`content${index + 1}`] = content.data;
+    });
+
+    return res.render('entryadd', { request });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Handle Entry create on POST.
 exports.entry_create_post = [
   // Validation fields
-  body('title').isLength({ min: 1 }).trim().withMessage('A title is needed.'),
+  body('title').isLength({ min: 1, max: 255 }).trim().withMessage('A title is needed.'),
   body('content1').isLength({ min: 1 }).trim().withMessage('Content 1 is needed.'),
 
-  (req, res) => {
-    // Extract the validation errors from a request.
+  async (req, res, next) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.render('entryadd', { errors: errors.array(), request: req.body });
-      return;
-    } else {
-      // Guest users can not add data
-      if (req.user.role === 'guest') {
-        res.render('entryadded', { warning: 'Non-registered users can not add data...' });
-      } else {
-        // Add data to database
-        const input_data = {
-          creator: req.user.userid,
-          category: req.body.category,
-          ismaster: req.body.ismaster ? 1 : 0,
-          tag: req.body.tag,
-          team: req.body.team,
-          title: req.body.title,
-          contents: [],
-        };
+      return res.status(400).render('entryadd', { errors: errors.array(), request: req.body });
+    }
 
-        input_data.contents.push({ data: req.body.content1 });
-        if (req.body.content2.length > 0) {
-          input_data.contents.push({ data: req.body.content2 });
-        }
-        if (req.body.content3.length > 0) {
-          input_data.contents.push({ data: req.body.content3 });
-        }
-        if (req.body.content4.length > 0) {
-          input_data.contents.push({ data: req.body.content4 });
-        }
-        if (req.body.content5.length > 0) {
-          input_data.contents.push({ data: req.body.content5 });
-        }
+    if (isGuest(req)) {
+      return res.render('entryadded', { warning: 'Non-registered users can not add data...' });
+    }
 
-        // ismaster can only be added by approved staff
-        let warning = '';
-        if (input_data.ismaster == 1 && !(req.user.role === 'admin')) {
-          input_data.ismaster = 0;
-          warning = 'You can not add master data, added as personal data instead.';
-        }
+    const wantsMaster = Boolean(req.body.ismaster);
+    const inputData = {
+      creator: req.user.userid,
+      category: bodyString(req.body.category).slice(0, 255),
+      ismaster: isAdmin(req) && wantsMaster,
+      tag: bodyString(req.body.tag).slice(0, 255),
+      team: req.user.team,
+      title: bodyString(req.body.title),
+      contents: [],
+    };
 
-        Entry.create(input_data, { include: Entry.Content }).then((d) => {
-          res.render('entryadded', { warning: warning });
-        });
+    for (let contentIndex = 1; contentIndex <= CONTENT_LIMIT; contentIndex += 1) {
+      const data = bodyString(req.body[`content${contentIndex}`]);
+      if (data.length > 0) {
+        inputData.contents.push({ data });
       }
+    }
+
+    const warning = wantsMaster && !isAdmin(req)
+      ? 'You can not add master data, added as personal data instead.'
+      : '';
+
+    try {
+      await Entry.create(inputData, { include: Entry.Content });
+      return res.render('entryadded', { warning });
+    } catch (error) {
+      return next(error);
     }
   },
 ];
 
 // Display Entry delete form on GET.
-exports.entry_delete_get = function (req, res) {
-  //res.send('NOT IMPLEMENTED: Entry delete GET');
+exports.entry_delete_get = async function (req, res, next) {
+  const entryId = parsePositiveInteger(req.params.id);
+  if (!entryId) {
+    return res.redirect('/entry');
+  }
 
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          where: { id: req.params.id },
-          include: [{ model: Content }],
-        }).then((entry) => callback(null, entry[0]));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-      if (results.entry == null) {
-        // No results.
-        res.redirect('/entry');
-      }
-      // Successful, so render.
-      res.render('entrydelete', { entry: results.entry });
+  try {
+    const entry = await findVisibleEntry(req, entryId, { includeContents: true });
+    if (!entry) {
+      return res.redirect('/entry');
     }
-  );
+    if (!canModifyEntry(req, entry)) {
+      return renderForbidden(res);
+    }
+
+    return res.render('entrydelete', { entry });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Handle Entry delete on POST.
-exports.entry_delete_post = (req, res) => {
-  // Load data to be deleted from database
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          where: { id: req.params.id },
-          include: [{ model: Content }],
-        }).then((entry) => callback(null, entry[0]));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
+exports.entry_delete_post = async function (req, res, next) {
+  const entryId = parsePositiveInteger(req.params.id);
+  if (!entryId) {
+    return res.redirect('/entry');
+  }
+
+  try {
+    const result = await sequelize.transaction(async (transaction) => {
+      const entry = await findVisibleEntry(req, entryId, { transaction, lock: true });
+      if (!entry) {
+        return 'not-found';
       }
-      if (results.entry == null) {
-        // No results.
-        res.redirect('/entry');
+      if (isGuest(req)) {
+        return 'guest';
+      }
+      if (!canModifyEntry(req, entry)) {
+        return 'forbidden';
       }
 
-      // Guest users can not remove data
-      if (req.user.role === 'guest') {
-        res.render('entrydeleted', { warning: 'Non-registered users can not remove data...' });
-      } else {
-        // Successful, so continue.
-        // ismaster can only be deleted by approved staff
-        let warning = '';
-        if (results.entry.ismaster == 1 && !(req.user.role === 'admin')) {
-          warning = 'You can not delete master data.';
-          res.render('entrydeleted', { warning: warning });
-        } else {
-          // Delete data from database
-          Content.destroy({ where: { entryId: req.params.id } }).then((d) => {
-            Entry.destroy({
-              where: { id: req.params.id },
-            }).then((d) => res.render('entrydeleted', { warning: warning }));
-          });
-        }
-      }
+      await Content.destroy({
+        where: { entryId: entry.id },
+        transaction,
+      });
+      await entry.destroy({ transaction });
+      return 'deleted';
+    });
+
+    if (result === 'not-found') {
+      return res.redirect('/entry');
     }
-  );
+    if (result === 'guest') {
+      return res.render('entrydeleted', { warning: 'Non-registered users can not remove data...' });
+    }
+    if (result === 'forbidden') {
+      return renderForbidden(res);
+    }
+
+    return res.render('entrydeleted', { warning: '' });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Display Entry update form on GET.
-exports.entry_update_get = function (req, res) {
-  //res.send('NOT IMPLEMENTED: Entry update GET');
+exports.entry_update_get = async function (req, res, next) {
+  const entryId = parsePositiveInteger(req.params.id);
+  if (!entryId) {
+    return res.redirect('/entry');
+  }
 
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          where: { id: req.params.id },
-          include: [{ model: Content }],
-        }).then((entry) => callback(null, entry[0]));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-      if (results.entry == null) {
-        // No results.
-        res.redirect('/entry');
-      }
-      // Successful, so render.
-      res.render('entryupdate', { entry: results.entry });
+  try {
+    const entry = await findVisibleEntry(req, entryId, { includeContents: true });
+    if (!entry) {
+      return res.redirect('/entry');
     }
-  );
+    if (!canModifyEntry(req, entry)) {
+      return renderForbidden(res);
+    }
+
+    return res.render('entryupdate', { entry });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Handle Entry update on POST.
 exports.entry_update_post = [
   // Validation fields
-  body('title').isLength({ min: 1 }).trim().withMessage('A title is needed.'),
+  body('title').isLength({ min: 1, max: 255 }).trim().withMessage('A title is needed.'),
 
-  (req, res) => {
-    // Extract the validation errors from a request.
-    const errors = validationResult(req);
+  async (req, res, next) => {
+    const entryId = parsePositiveInteger(req.params.id);
+    if (!entryId) {
+      return res.redirect('/entry');
+    }
 
-    if (!errors.isEmpty()) {
-      res.render('entryupdate', { errors: errors.array() });
-      return;
-    } else {
-      async.parallel(
-        {
-          entry: function (callback) {
-            Entry.findAll({
-              where: { id: req.params.id },
-              include: [{ model: Content }],
-            }).then((entry) => callback(null, entry[0]));
-          },
-        },
-        function (err, results) {
-          if (err) {
-            return next(err);
-          }
-          if (results.entry == null) {
-            // No results.
-            res.redirect('/entry');
-          }
+    try {
+      const currentEntry = await findVisibleEntry(req, entryId, { includeContents: true });
+      if (!currentEntry) {
+        return res.redirect('/entry');
+      }
+      if (isGuest(req)) {
+        return res.render('entryupdated', { warning: 'Non-registered users can not update data...' });
+      }
+      if (!canModifyEntry(req, currentEntry)) {
+        return renderForbidden(res);
+      }
 
-          // Guest users can not update data
-          if (req.user.role === 'guest') {
-            res.render('entryupdated', { warning: 'Non-registered users can not update data...' });
-          } else {
-            // Successful, so continue.
-            // ismaster can only be updated by approved staff
-            const update_data = {
-              category: req.body.category,
-              ismaster: req.body.ismaster ? 1 : 0,
-              tag: req.body.tag,
-              team: req.body.team,
-              title: req.body.title,
-            };
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).render('entryupdate', {
+          errors: errors.array(),
+          entry: currentEntry,
+        });
+      }
 
-            // ismaster can only be updated by approved staff
-            let warning = '';
-            if (false && results.entry.ismaster == 1 && !(req.user.role === 'admin')) {
-              warning = 'You can not update master data.';
-              res.render('entryupdated', { warning: warning });
-            } else {
-              // Update database data
-              Entry.update(update_data, {
-                where: { id: req.params.id },
-              }).then((d) =>
-                async.parallel(
-                  {
-                    content1: function (callback) {
-                      if (req.body.contentid1 != undefined) {
-                        if (req.body.content1.length > 0) {
-                          Content.update({ data: req.body.content1 }, { where: { id: req.body.contentid1 } }).then((r) =>
-                            callback(null, r)
-                          );
-                        } else {
-                          Content.destroy({
-                            where: { id: req.body.contentid1 },
-                          }).then((r) => callback(null, r));
-                        }
-                      } else {
-                        if (req.body.content1.length > 0) {
-                          Content.create({
-                            data: req.body.content1,
-                            entryId: req.params.id,
-                          }).then((r) => callback(null, r));
-                        } else {
-                          callback(null, null);
-                        }
-                      }
-                    },
-                    content2: function (callback) {
-                      if (req.body.contentid2 != undefined) {
-                        if (req.body.content2.length > 0) {
-                          Content.update({ data: req.body.content2 }, { where: { id: req.body.contentid2 } }).then((r) =>
-                            callback(null, r)
-                          );
-                        } else {
-                          Content.destroy({
-                            where: { id: req.body.contentid2 },
-                          }).then((r) => callback(null, r));
-                        }
-                      } else {
-                        if (req.body.content2.length > 0) {
-                          Content.create({
-                            data: req.body.content2,
-                            entryId: req.params.id,
-                          }).then((r) => callback(null, r));
-                        } else {
-                          callback(null, null);
-                        }
-                      }
-                    },
-                    content3: function (callback) {
-                      if (req.body.contentid3 != undefined) {
-                        if (req.body.content3.length > 0) {
-                          Content.update({ data: req.body.content3 }, { where: { id: req.body.contentid3 } }).then((r) =>
-                            callback(null, r)
-                          );
-                        } else {
-                          Content.destroy({
-                            where: { id: req.body.contentid3 },
-                          }).then((r) => callback(null, r));
-                        }
-                      } else {
-                        if (req.body.content3.length > 0) {
-                          Content.create({
-                            data: req.body.content3,
-                            entryId: req.params.id,
-                          }).then((r) => callback(null, r));
-                        } else {
-                          callback(null, null);
-                        }
-                      }
-                    },
-                    content4: function (callback) {
-                      if (req.body.contentid4 != undefined) {
-                        if (req.body.content4.length > 0) {
-                          Content.update({ data: req.body.content4 }, { where: { id: req.body.contentid4 } }).then((r) =>
-                            callback(null, r)
-                          );
-                        } else {
-                          Content.destroy({
-                            where: { id: req.body.contentid4 },
-                          }).then((r) => callback(null, r));
-                        }
-                      } else {
-                        if (req.body.content4.length > 0) {
-                          Content.create({
-                            data: req.body.content4,
-                            entryId: req.params.id,
-                          }).then((r) => callback(null, r));
-                        } else {
-                          callback(null, null);
-                        }
-                      }
-                    },
-                    content5: function (callback) {
-                      if (req.body.contentid5 != undefined) {
-                        if (req.body.content5.length > 0) {
-                          Content.update({ data: req.body.content5 }, { where: { id: req.body.contentid5 } }).then((r) =>
-                            callback(null, r)
-                          );
-                        } else {
-                          Content.destroy({
-                            where: { id: req.body.contentid5 },
-                          }).then((r) => callback(null, r));
-                        }
-                      } else {
-                        if (req.body.content5.length > 0) {
-                          Content.create({
-                            data: req.body.content5,
-                            entryId: req.params.id,
-                          }).then((r) => callback(null, r));
-                        } else {
-                          callback(null, null);
-                        }
-                      }
-                    },
-                  },
-                  function (err, results) {
-                    if (err) {
-                      return next(err);
-                    }
-                    // Successful, so render.
-                    res.render('entryupdated', { warning: warning });
-                  }
-                )
-              );
-            }
+      const result = await sequelize.transaction(async (transaction) => {
+        const entry = await findVisibleEntry(req, entryId, { transaction, lock: true });
+        if (!entry) {
+          return 'not-found';
+        }
+        if (!canModifyEntry(req, entry)) {
+          return 'forbidden';
+        }
+
+        const existingContents = await Content.findAll({
+          where: { entryId: entry.id },
+          order: [['id', 'ASC']],
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        await entry.update({
+          category: bodyString(req.body.category).slice(0, 255),
+          ismaster: isAdmin(req) ? Boolean(req.body.ismaster) : false,
+          tag: bodyString(req.body.tag).slice(0, 255),
+          title: bodyString(req.body.title),
+        }, { transaction });
+
+        for (let contentIndex = 0; contentIndex < CONTENT_LIMIT; contentIndex += 1) {
+          const data = bodyString(req.body[`content${contentIndex + 1}`]);
+          const existingContent = existingContents[contentIndex];
+
+          if (existingContent && data.length > 0) {
+            await Content.update(
+              { data },
+              {
+                where: { id: existingContent.id, entryId: entry.id },
+                transaction,
+              }
+            );
+          } else if (existingContent) {
+            await Content.destroy({
+              where: { id: existingContent.id, entryId: entry.id },
+              transaction,
+            });
+          } else if (data.length > 0) {
+            await Content.create({ data, entryId: entry.id }, { transaction });
           }
         }
-      );
+
+        return 'updated';
+      });
+
+      if (result === 'not-found') {
+        return res.redirect('/entry');
+      }
+      if (result === 'forbidden') {
+        return renderForbidden(res);
+      }
+
+      return res.render('entryupdated', { warning: '' });
+    } catch (error) {
+      return next(error);
     }
   },
 ];
 
 // Backup
-exports.backup = function (req, res) {
-  async.parallel(
-    {
-      entry: function (callback) {
-        Entry.findAll({
-          include: [{ model: Content }],
-          where: { team: req.params.team },
-          order: [
-            ['tag', 'ASC'],
-            ['category', 'DESC'],
-            ['ismaster', 'DESC'],
-            ['updatedAt', 'DESC'],
-          ],
-        }).then((entry) => callback(null, entry));
-      },
-    },
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-
-      // Successful, so render.
-      res.render('backup', { data: JSON.stringify(results.entry) });
-    }
-  );
-};
-
-// Handle Entry create on POST.
-exports.restore = async (req, res) => {
-  // Aquire form data #restore (JSON format) and parse to JSON
-  const data = await JSON.parse(req.body.restore);
-
-  // Only admin are allowed to add date
-  if (req.user.role === 'admin') {
-    // Prepare data to add to database
-    const input_data = [];
-    data.forEach((d) => {
-      const index = input_data.length;
-      input_data.push({
-        creator: d.creator,
-        category: d.category,
-        ismaster: d.ismaster,
-        tag: d.tag,
-        team: d.team,
-        title: d.title,
-        contents: [],
-      });
-      for (let i = 0; i < d.contents.length; i++) {
-        input_data[index].contents.push({
-          data: d.contents[i].data,
-        });
-      }
-    });
-
-    // Bulk add all data to database
-    Entry.bulkCreate(input_data, { include: Entry.Content });
+exports.backup = async function (req, res, next) {
+  if (req.params.team !== req.user.team) {
+    return renderForbidden(res, 'You do not have permission to back up entries for this team.');
   }
 
-  // Redirect to start page
-  res.redirect('/');
+  try {
+    const entries = await Entry.findAll({
+      include: [{ model: Content }],
+      where: visibleEntryWhere(req),
+      order: [
+        ['tag', 'ASC'],
+        ['category', 'DESC'],
+        ['ismaster', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
+
+    return res.render('backup', { data: JSON.stringify(entries) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Handle Entry restore on POST.
+exports.restore = async function (req, res, next) {
+  if (!isAdmin(req)) {
+    return res.redirect('/');
+  }
+
+  let data;
+  try {
+    data = JSON.parse(bodyString(req.body.restore));
+  } catch (error) {
+    return res.status(400).render('error', {
+      message: 'The backup data is not valid JSON.',
+      error: { status: 400 },
+    });
+  }
+
+  if (!Array.isArray(data)) {
+    return res.status(400).render('error', {
+      message: 'The backup data must contain a list of entries.',
+      error: { status: 400 },
+    });
+  }
+
+  const inputData = [];
+  for (const entry of data) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return res.status(400).render('error', {
+        message: 'The backup contains an invalid entry.',
+        error: { status: 400 },
+      });
+    }
+
+    const contents = Array.isArray(entry.contents)
+      ? entry.contents.slice(0, CONTENT_LIMIT)
+        .filter((content) => content && typeof content.data === 'string')
+        .map((content) => ({ data: content.data }))
+      : [];
+
+    inputData.push({
+      creator: req.user.userid,
+      category: bodyString(entry.category).slice(0, 255),
+      ismaster: entry.ismaster === true || entry.ismaster === 1 || entry.ismaster === '1',
+      tag: bodyString(entry.tag).slice(0, 255),
+      team: req.user.team,
+      title: bodyString(entry.title).slice(0, 255),
+      contents,
+    });
+  }
+
+  try {
+    await sequelize.transaction(async (transaction) => {
+      await Entry.bulkCreate(inputData, { include: Entry.Content, transaction });
+    });
+    return res.redirect('/');
+  } catch (error) {
+    return next(error);
+  }
 };

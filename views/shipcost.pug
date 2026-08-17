@@ -120,7 +120,7 @@ block content
         h2= method
         label(for=`updatedate${x}`) Update date
         input(id=`updatedate${x}`, type="date")
-        button(onclick=`UpdateDatabase(${x},"${method}")`) Update database
+        button.btn.btn-outline-secondary(type='button', onclick=`UpdateDatabase(${x},"${method}")`) Update database
         - const zones = Object.keys(output[method])
         table.table.table-striped.table-dark.table-bordered
           thead 

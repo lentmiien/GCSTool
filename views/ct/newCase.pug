@@ -69,6 +69,7 @@ block content
     input.btn.btn-primary(type='submit', value='Create case')
     a.btn.btn-link(href='/ct') Cancel
   if templates && templates.length
+    - const caseTemplatesJson = JSON.stringify(templates).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
     script.
-      window.caseTemplates = !{JSON.stringify(templates)};
+      window.caseTemplates = !{caseTemplatesJson};
   script(src='/js/ct/new-case.js')

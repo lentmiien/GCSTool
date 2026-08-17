@@ -1,75 +1,79 @@
-async function UpdateName(id) {
-  const response = await fetch(`/change_name/${id}/${document.getElementById("name_" + id).value}`, {
-    method: 'get',
+async function PostAdminUpdate(url, body) {
+  const response = await fetch(url, {
+    method: 'POST',
     cache: 'no-cache',
     headers: {
       Accept: 'application/json',
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify(body || {}),
   });
-  const data = await response.json();
-  if (data.status != 'OK') {
-    alert(data.status);
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = { status: 'The server returned an unexpected response.' };
+  }
+  if (!response.ok || data.status !== 'OK') {
+    throw new Error(data.status || 'The update failed.');
+  }
+  return data;
+}
+
+async function UpdateName(id) {
+  const input = document.getElementById(`name_${id}`);
+  try {
+    await PostAdminUpdate(`/change_name/${id}`, { name: input.value });
+  } catch (error) {
+    window.alert(error.message);
   }
 }
 
-async function ResetPassword(id, btn) {
-  const response = await fetch(`/reset_password/${id}`, {
-    method: 'get',
-    cache: 'no-cache',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-  const data = await response.json();
-  if (data.status === 'OK') {
-    btn.parentElement.innerHTML = '<b>NOT SET</b>';
-  } else {
-    alert(data.status);
+async function ResetPassword(id, button) {
+  const input = document.getElementById(`password_${id}`);
+  if (!input || input.value.length < 12) {
+    window.alert('Temporary passwords must contain at least 12 characters.');
+    return;
+  }
+
+  button.disabled = true;
+  try {
+    await PostAdminUpdate(`/reset_password/${id}`, { password: input.value });
+    input.value = '';
+    button.textContent = 'Set';
+    window.alert('Temporary password updated.');
+  } catch (error) {
+    window.alert(error.message);
+  } finally {
+    button.disabled = false;
   }
 }
 
 async function UpdateTeam(id) {
-  const response = await fetch(`/change_team/${id}/${document.getElementById("team_" + id).value}`, {
-    method: 'get',
-    cache: 'no-cache',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-  const data = await response.json();
-  if (data.status != 'OK') {
-    alert(data.status);
+  const select = document.getElementById(`team_${id}`);
+  try {
+    await PostAdminUpdate(`/change_team/${id}`, { team: select.value });
+  } catch (error) {
+    window.alert(error.message);
+    window.location.reload();
   }
 }
 
-async function MakeAdmin(id, btn) {
-  const response = await fetch(`/make_admin/${id}`, {
-    method: 'get',
-    cache: 'no-cache',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-  const data = await response.json();
-  if (data.status === 'OK') {
-    btn.parentElement.innerHTML = '<b>admin</b>';
-  } else {
-    alert(data.status);
+async function MakeAdmin(id) {
+  try {
+    await PostAdminUpdate(`/make_admin/${id}`);
+    window.location.reload();
+  } catch (error) {
+    window.alert(error.message);
   }
 }
 
-async function MakeUser(id, btn) {
-  const response = await fetch(`/make_user/${id}`, {
-    method: 'get',
-    cache: 'no-cache',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-  const data = await response.json();
-  if (data.status === 'OK') {
-    btn.parentElement.innerHTML = '<b>user</b>';
-  } else {
-    alert(data.status);
+async function MakeUser(id) {
+  try {
+    await PostAdminUpdate(`/make_user/${id}`);
+    window.location.reload();
+  } catch (error) {
+    window.alert(error.message);
   }
 }

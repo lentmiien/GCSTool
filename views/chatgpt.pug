@@ -17,7 +17,7 @@ block content
               - let parts = entry.content.split("```")
               each d, i in parts 
                 if i%2 == 0
-                  p!= d.split('\n').join('<br>')
+                  p.chat-message-text= d
                 else 
                   pre= d
       #inputarea 

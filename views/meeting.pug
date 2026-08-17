@@ -38,7 +38,7 @@ block content
           - cMonth = sDate.getMonth()+1
           h2= cYear + "年" + cMonth + "月"
         - let classType = "alert-primary"
-        - let message = ""
+        - let statusLabel = ""
         - let hide = false
         - const s_list = {"new": "新規", "prosessing": "対応中", "onhold": "待ち", "completed": "完了", "discontinued": "中止"}
         if row.status == "new"
@@ -47,14 +47,18 @@ block content
           - classType = "alert-warning"
         if row.status == "completed"
           - classType = "alert-success"
-          - message = "<b>【完了】</b>"
+          - statusLabel = "【完了】"
           - hide = true
         if row.status == "discontinued"
           - classType = "alert-dark"
-          - message = "<b>【中止】</b>"
+          - statusLabel = "【中止】"
           - hide = true
         .alert(id=`meeting_${row.id}`, class=classType, role="alert")
-          h3!= "■" + message + row.title
+          h3
+            | ■
+            if statusLabel
+              strong= statusLabel
+            = row.title
             if hide
               button.btn.btn-primary.ml-3(type="button", data-toggle="collapse" data-target=`#collapseExample${cnt}` aria-expanded="false" aria-controls=`collapseExample${cnt}`) Show
           div.collapse(id=`collapseExample${cnt}`, class=`${hide ? "" : "show"}`)
@@ -90,4 +94,8 @@ block content
                   if comment.created_by == name
                     textarea.form-control(id=`mycomment${comment.id}`, name="mycomment", cols="30", rows="3", style="width: 100%;")= comment.content
                     button.btn.btn-warning.btn-lg.btn-block.update_comment_button(data-id=`${comment.id}`) Update comment
-  script(src="/javascripts/open_meeting.js")
+
+block scripts
+  script(src='/socket.io/socket.io.js')
+  script(src='/javascripts/socket_io_client.js')
+  script(src='/javascripts/open_meeting.js')

@@ -1,4 +1,6 @@
 SESSION_SECRET=xxxxx
+# Set to true when the app is served through an HTTPS reverse proxy.
+SESSION_COOKIE_SECURE=false
 DB_NAME_GCS=xxxxxxxxxx
 DB_NAME_TRACK=xxxxxxxxxx
 DB_NAME_DHL_COMPENSATION=xxxxxxxxxx

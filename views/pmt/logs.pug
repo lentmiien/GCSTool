@@ -1,21 +1,34 @@
 extends ../layout
 
 block content
-  h2 All logs
-  table.table.table-dark.table-striped
-    thead
-      tr
-        th Action
-        th Entry
-        th By
-        th Details
-        th Date
-    tbody
-      each l in logs
-        tr
-          td= l.action
-          td 
-            a(href=`/pmt/details/${l.entry_id}`)= l.entry_id
-          td= l.action_by
-          td= l.details
-          td= l.createdAt.toISOString().split('T')[0]
+  header.app-page-header
+    div
+      p.app-page-kicker Knowledge base
+      h1 Activity log
+      p Review changes made across policies, manuals, and templates.
+    a.btn.btn-outline-secondary(href='/pmt') Back to library
+
+  if logs.length > 0
+    .app-panel
+      .table-responsive
+        table.table.table-striped
+          thead
+            tr
+              th(scope='col') Action
+              th(scope='col') Entry
+              th(scope='col') By
+              th(scope='col') Details
+              th(scope='col') Date
+          tbody
+            each log in logs
+              tr
+                td= log.action
+                td
+                  a(href=`/pmt/details/${log.entry_id}`)= log.entry_id
+                td= log.action_by
+                td= log.details
+                td= log.createdAt.toISOString().split('T')[0]
+  else
+    .app-empty-state
+      h2 No activity yet
+      p Changes to library entries will appear here.

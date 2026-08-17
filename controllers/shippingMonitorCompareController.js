@@ -1,5 +1,14 @@
 const shippingMonitorReadonlyService = require('../services/shippingMonitorReadonlyService');
 
+function safeJson(value) {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 function createEmptyReport() {
   return {
     groups: [],
@@ -38,6 +47,7 @@ exports.showShortcutCompare = async function (req, res) {
         : 'Shipping Monitor Compare',
       shortcut,
       report,
+      reportJson: safeJson(report),
       error: null,
     });
   } catch (error) {
@@ -45,6 +55,7 @@ exports.showShortcutCompare = async function (req, res) {
       pagetitle: 'Shipping Monitor Compare',
       shortcut: null,
       report: createEmptyReport(),
+      reportJson: safeJson(createEmptyReport()),
       error: error.message || 'Failed to load the saved comparison report.',
     });
   }

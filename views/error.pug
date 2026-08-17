@@ -1,6 +1,16 @@
 extends layout
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  section.error-state(aria-labelledby='error-title')
+    p.app-page-kicker Something went wrong
+    h1#error-title= message || 'The page could not be loaded.'
+    if error && error.status
+      p.error-code= `Error ${error.status}`
+    p.error-summary Try the previous action again, or return to the workspace home page.
+    .app-page-actions
+      a.btn.btn-primary(href='/') Return home
+      button.btn.btn-outline-secondary(type='button', onclick='history.back()') Go back
+    if error && error.stack
+      details.error-details
+        summary Technical details
+        pre= error.stack

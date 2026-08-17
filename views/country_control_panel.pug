@@ -1,33 +1,61 @@
 extends layout
 
 block content
-  h1 shipping methods/country manager
-  .row 
-    .col 
-      h3 Update website country list 
-      p Upload a CSV file with date (header row 'country,country_code')
-      form(action="/country/officialCountryList/upload", method="post", enctype="multipart/form-data") 
-        input#officialCountryList.form-control(type="file", name="officialCountryList", required)
-        input.btn.btn-primary(type="submit", value="Upload")
-    .col 
-      h3 Update internal country list (including DHL and AIT shipping methods)
-      p Upload a CSV file for adding new entries (header row 'country,country_code,country_j,DHL,AIT')
-      form(action="/country/internalCountryList/upload", method="post", enctype="multipart/form-data") 
-        input#internalCountryList.form-control(type="file", name="internalCountryList", required)
-        input.btn.btn-primary(type="submit", value="Upload")
-    .col 
-      h3 Check for updates by Japan Post 
-      p Select an update massage and a date for the changes to proceed 
-      form(action="/country/japanPostCountryList/update", method="post") 
-        select#update_msg.form-control(name="update_msg", required) 
-          each entry in JP_announcements
-            option(value=`${entry.link[0]}`)= `${entry.title[0]} (${entry.pubDate[0]})`
-        input#update_date.form-control(type="date", name="update_date", value=`${d_str}`, required)
-        input.btn.btn-primary(type="submit", value="Proceed")
-    .col 
-      h3 Link data (JP cid to country code)
-      a.btn.btn-link(href="/country/countryCodeEntryIdLink/manage") Manage links
-    .col 
-      h3 Other 
-      a.btn.btn-link(href="/country/countries") View country list
-      a.btn.btn-link(href="/country/updateHistory/last") View last update
+  header.app-page-header
+    div
+      p.app-page-kicker Shipping operations
+      h1 Country & shipping-method manager
+      p Import source lists, review Japan Post changes, and maintain country-code links.
+    a.btn.btn-outline-secondary(href='/country/countries') View country list
+
+  .row
+    .col-lg-6.mb-3
+      section.card.h-100
+        .card-body
+          h2.card-title.h4 Website country list
+          p.text-muted Replace the public website list using a CSV headed #[code country,country_code].
+          form(action='/country/officialCountryList/upload', method='post', enctype='multipart/form-data')
+            .form-group
+              label(for='officialCountryList') Official country CSV
+              input#officialCountryList.form-control-file(type='file', name='officialCountryList', accept='.csv,text/csv', required)
+            button.btn.btn-primary(type='submit') Upload website list
+
+    .col-lg-6.mb-3
+      section.card.h-100
+        .card-body
+          h2.card-title.h4 Internal country list
+          p.text-muted Add DHL and AIT availability rows using #[code country,country_code,country_j,DHL,AIT].
+          form(action='/country/internalCountryList/upload', method='post', enctype='multipart/form-data')
+            .form-group
+              label(for='internalCountryList') Internal country CSV
+              input#internalCountryList.form-control-file(type='file', name='internalCountryList', accept='.csv,text/csv', required)
+            button.btn.btn-primary(type='submit') Upload internal list
+
+    .col-lg-6.mb-3
+      section.card.h-100
+        .card-body
+          h2.card-title.h4 Japan Post updates
+          p.text-muted Select a published notice and effective date before processing availability changes.
+          if JP_announcements.length > 0
+            form(action='/country/japanPostCountryList/update', method='post')
+              .form-group
+                label(for='update_msg') Published notice
+                select#update_msg.form-control(name='update_msg', required)
+                  each entry in JP_announcements
+                    option(value=entry.link[0])= `${entry.title[0]} (${entry.pubDate[0]})`
+              .form-group
+                label(for='update_date') Effective date
+                input#update_date.form-control(type='date', name='update_date', value=d_str, required)
+              button.btn.btn-primary(type='submit') Process update
+          else
+            .app-empty-state
+              p.mb-0 Japan Post announcements are temporarily unavailable. Try again later.
+
+    .col-lg-6.mb-3
+      section.card.h-100
+        .card-body
+          h2.card-title.h4 Data tools
+          p.text-muted Maintain country-code links or inspect the current list and update history.
+          .app-page-actions
+            a.btn.btn-outline-primary(href='/country/countryCodeEntryIdLink/manage') Manage links
+            a.btn.btn-outline-secondary(href='/country/updateHistory/last') Latest update

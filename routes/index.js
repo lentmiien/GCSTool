@@ -22,12 +22,12 @@ router.post('/admin/app-settings/:id', app_settings_controller.update);
 
 router.post('/adduser', index_controller.adduser);
 
-router.get('/change_name/:id/:name', index_controller.change_name);
-router.get('/reset_password/:id', index_controller.reset_password);
-router.get('/change_team/:id/:team', index_controller.change_team);
-router.get('/make_admin/:id', index_controller.make_admin);
-router.get('/make_user/:id', index_controller.make_user);
+router.post('/change_name/:id', index_controller.change_name);
+router.post('/reset_password/:id', index_controller.reset_password);
+router.post('/change_team/:id', index_controller.change_team);
+router.post('/make_admin/:id', index_controller.make_admin);
+router.post('/make_user/:id', index_controller.make_user);
 
-router.get('/removeuser/:userid', index_controller.removeuser);
+router.post('/removeuser/:userid', index_controller.removeuser);
 
 module.exports = router;

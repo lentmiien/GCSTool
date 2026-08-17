@@ -15,30 +15,30 @@ document.addEventListener('DOMContentLoaded', () => {
   /***********
    * Meeting *
    ***********/
-  document.getElementById('newpostbutton').addEventListener('click', () => {
-    const name = document.getElementById('name').value;
-    const title = document.getElementById('newtitle');
-    const content = document.getElementById('newcontent');
-    const comment = document.getElementById('newmycomment');
-    socket.emit('meeting_new', { name, title: title.value, content: content.value, comment: comment.value });
-  });
+  const newPostButton = document.getElementById('newpostbutton');
+  if (newPostButton) {
+    newPostButton.addEventListener('click', () => {
+      const title = document.getElementById('newtitle');
+      const content = document.getElementById('newcontent');
+      const comment = document.getElementById('newmycomment');
+      socket.emit('meeting_new', { title: title.value, content: content.value, comment: comment.value });
+    });
+  }
   const update_meeting_buttons = document.getElementsByClassName('update_meeting_button');
   for (let i = 0; i < update_meeting_buttons.length; i++) {
     update_meeting_buttons[i].addEventListener('click', (e) => {
-      const name = document.getElementById('name').value;
       const id = e.target.dataset.id;
       const status = document.getElementById(`editstatus${id}`);
       const content = document.getElementById(`editdetails${id}`);
-      socket.emit('meeting_update', { name, id, content: content.value, status: status.value });
+      socket.emit('meeting_update', { id, content: content.value, status: status.value });
     });
   }
   const add_comment_buttons = document.getElementsByClassName('add_comment_button');
   for (let i = 0; i < add_comment_buttons.length; i++) {
     add_comment_buttons[i].addEventListener('click', (e) => {
-      const name = document.getElementById('name').value;
       const id = e.target.dataset.id;
       const comment = document.getElementById(`newcomment${id}`);
-      socket.emit('comment_add', { name, id, comment: comment.value });
+      socket.emit('comment_add', { id, comment: comment.value });
     });
   }
   const update_comment_buttons = document.getElementsByClassName('update_comment_button');
@@ -71,12 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (data.newMeeting[0].status == 'completed') {
           classType = 'alert-success';
-          message = '<b>【完了】</b>';
+          message = '【完了】';
           hide = true;
         }
         if (data.newMeeting[0].status == 'discontinued') {
           classType = 'alert-dark';
-          message = '<b>【中止】</b>';
+          message = '【中止】';
           hide = true;
         }
         const alert = document.createElement('div');
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert.role = 'alert';
         new_meeting_section.prepend(alert);
         const h3_title = document.createElement('h3');
-        h3_title.innerText = '■' + message + data.newMeeting[0].title;
+        h3_title.textContent = '■' + message + data.newMeeting[0].title;
         alert.append(h3_title);
         const content = document.createElement('div');
         alert.append(content);
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         content.append(i_updated);
         const pre_content = document.createElement('pre');
         pre_content.id = `meeting_content_${data.newMeeting[0].id}`;
-        pre_content.innerHTML = data.newMeeting[0].content;
+        pre_content.textContent = data.newMeeting[0].content;
         content.append(pre_content);
         const p_button = document.createElement('p');
         content.append(p_button);
@@ -169,11 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
         button2.dataset.id = `${data.newMeeting[0].id}`;
         button2.innerText = 'Update';
         button2.addEventListener('click', (e) => {
-          const name = document.getElementById('name').value;
           const id = e.target.dataset.id;
           const status = document.getElementById(`editstatus${id}`);
           const content = document.getElementById(`editdetails${id}`);
-          socket.emit('meeting_update', { name, id, content: content.value, status: status.value });
+          socket.emit('meeting_update', { id, content: content.value, status: status.value });
         });
         edit_form.append(button2);
         const hr = document.createElement('hr');
@@ -195,10 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
         button3.dataset.id = `${data.newMeeting[0].id}`;
         button3.innerText = 'Add comment';
         button3.addEventListener('click', (e) => {
-          const name = document.getElementById('name').value;
           const id = e.target.dataset.id;
           const comment = document.getElementById(`newcomment${id}`);
-          socket.emit('comment_add', { name, id, comment: comment.value });
+          socket.emit('comment_add', { id, comment: comment.value });
         });
         newcomment.append(button3);
         const comment_section = document.createElement('div');
@@ -213,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
           comment2.append(h4_created_by);
           const comment_pre = document.createElement('pre');
           comment_pre.id = `comment_id_${data.newMeeting[0].comments[0].id}`;
-          comment_pre.innerHTML = data.newMeeting[0].comments[0].content;
+          comment_pre.textContent = data.newMeeting[0].comments[0].content;
           comment2.append(comment_pre);
           if (data.newMeeting[0].comments[0].created_by == document.getElementById('name').value) {
             const editcomment_text = document.createElement('textarea');
@@ -253,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = document.getElementById(`meeting_status_${data.updateMeeting[0].id}`);
         status.innerText = `Status: ${s_list[data.updateMeeting[0].status]}`;
         const content = document.getElementById(`meeting_content_${data.updateMeeting[0].id}`);
-        content.innerHTML = data.updateMeeting[0].content;
+        content.textContent = data.updateMeeting[0].content;
 
         // move to top
         document.getElementById('new_meeting_section').prepend(alert);
@@ -267,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         comment.append(h4_created_by);
         const comment_pre = document.createElement('pre');
         comment_pre.id = `comment_id_${data.newComment[0].id}`;
-        comment_pre.innerHTML = data.newComment[0].content;
+        comment_pre.textContent = data.newComment[0].content;
         comment.append(comment_pre);
         if (data.newComment[0].created_by == document.getElementById('name').value) {
           const editcomment_text = document.createElement('textarea');
@@ -295,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (data.updateComment.length > 0) {
         const comment_text = document.getElementById(`comment_id_${data.updateComment[0].id}`);
-        comment_text.innerHTML = data.updateComment[0].content;
+        comment_text.textContent = data.updateComment[0].content;
 
         // Move comment to the top
         const comment = comment_text.parentElement;
@@ -311,6 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle server messages
   socket.on('message', (data) => {
     console.log('Message from the server:', data);
+  });
+
+  socket.on('operation_error', (data) => {
+    const message = data && typeof data.message === 'string'
+      ? data.message
+      : 'The requested operation could not be completed.';
+    console.error('Meeting operation failed:', data);
+    window.alert(message);
   });
 
   // Handle disconnection

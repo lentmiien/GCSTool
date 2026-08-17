@@ -15,11 +15,12 @@ function OpenChat(threadid) {
       parts.forEach((d, i) => {
         if (i % 2 == 0) {
           const p = document.createElement('p');
-          p.innerHTML = d.split('\n').join('<br>');
+          p.classList.add('chat-message-text');
+          p.textContent = d;
           element.append(p);
         } else {
           const pre = document.createElement('pre');
-          pre.innerHTML = d;
+          pre.textContent = d;
           element.append(pre);
         }
       });

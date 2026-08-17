@@ -1,15 +1,6 @@
 const database = JSON.parse(document.getElementsByTagName('pre')[0].innerText);
 const database_tracking = JSON.parse(document.getElementsByTagName('pre')[1].innerText);
 
-const graph_icon = `
-<svg width="20" height="15">
-  <line x1="0" y1="15" x2="5" y2="7" style="stroke:rgb(100,100,200);stroke-width:2" />
-  <line x1="5" y1="7" x2="10" y2="12" style="stroke:rgb(100,100,200);stroke-width:2" />
-  <line x1="10" y1="12" x2="15" y2="11" style="stroke:rgb(100,100,200);stroke-width:2" />
-  <line x1="15" y1="11" x2="20" y2="0" style="stroke:rgb(100,100,200);stroke-width:2" />
-</svg>
-`;
-
 // Constants
 const delay_trigger = 1.5; // If shipping time is 50% (or more) longer then usual, then consider as delayed
 const statuses = [
@@ -119,21 +110,26 @@ function ChangeSearch() {
   }
 
   // Print result
-  document.getElementById('auto').innerHTML = '';
+  const autocomplete = document.getElementById('auto');
+  autocomplete.replaceChildren();
   for (let i = 0; i < 5; i++) {
     if (i < output.length) {
       // Show auto-complete term
-      document.getElementById('auto').innerHTML += `
-            <button class="btn btn-link" onclick="FillIn('${output[i].country_name}')" style="color:#ffffff;">${output[i].country_name} {${
-        i + 1
-      }}</button>
-            `;
+      const suggestion = document.createElement('button');
+      suggestion.type = 'button';
+      suggestion.className = 'btn btn-link';
+      suggestion.textContent = `${output[i].country_name} {${i + 1}}`;
+      suggestion.addEventListener('click', () => FillIn(output[i].country_name));
+      autocomplete.append(suggestion);
 
       // If at active entry, display data
       if (i + 1 == index) {
-        document.getElementById(
-          'link'
-        ).innerHTML = `<a class="btn btn-link" href="/country/countrygraph/${output[i].country_code}" style="color:rgb(100,100,200);">${graph_icon}Show graphs</a>`;
+        const graphLinkContainer = document.getElementById('link');
+        const graphLink = document.createElement('a');
+        graphLink.className = 'btn btn-link';
+        graphLink.href = `/country/countrygraph/${encodeURIComponent(output[i].country_code)}`;
+        graphLink.textContent = 'Show graphs ↗';
+        graphLinkContainer.replaceChildren(graphLink);
         const format = {
           ems: Available(output[i].ems_available, output[i].ems_averagetime, output[i].ems_totalaveragetime),
           airsp: Available(output[i].airsp_available, output[i].airsp_averagetime, output[i].airsp_totalaveragetime),
@@ -147,16 +143,25 @@ function ChangeSearch() {
         document.getElementById('tracking').innerText = tracking_number;
 
         for (let key of Object.keys(format)) {
-          document.getElementById(
-            `${key}_available`
-          ).innerHTML = `<span class="${format[key].class}" title="${format[key].title}">${format[key].text}</span>`;
+          const statusContainer = document.getElementById(`${key}_available`);
+          const status = document.createElement('span');
+          status.className = format[key].class;
+          status.title = format[key].title;
+          status.textContent = format[key].text;
+          statusContainer.replaceChildren(status);
           if (format[key].delay.text) {
-            document.getElementById(
-              `${key}_available`
-            ).innerHTML += `<span class="${format[key].delay.class}" title="${format[key].delay.title}">${format[key].delay.text}</span>`;
+            const delay = document.createElement('span');
+            delay.className = format[key].delay.class;
+            delay.title = format[key].delay.title;
+            delay.textContent = format[key].delay.text;
+            statusContainer.append(delay);
           }
           if (output[i][`${key}_small_sample`]) {
-            document.getElementById(`${key}_available`).innerHTML += `<b style="color:red;">△</b>`;
+            const smallSample = document.createElement('b');
+            smallSample.className = 'text-danger';
+            smallSample.title = 'Small sample';
+            smallSample.textContent = '△';
+            statusContainer.append(smallSample);
           }
           // document.getElementById(`${key}_average`).innerHTML = `${
           //   output[i][`${key}_averagetime`] > 0 ? Math.round(10 * output[i][`${key}_averagetime`]) / 10 : '--'

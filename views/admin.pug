@@ -1,94 +1,112 @@
-﻿extends layout
+extends layout
 
 block content
+  .app-page-header
+    div
+      p.app-page-kicker Administration
+      h1(lg_language='_users_') Users
+      p Manage account access, teams, and roles. Temporary passwords must contain 12–128 characters.
     if role === 'admin'
-        .mb-3
-            a.btn.btn-outline-info(href='/admin/app-settings') Manage app settings
-    h1(lg_language='_users_')
-    if error
-      .alert.alert-danger= error
-    table.table.table-dark
+      .app-page-actions
+        a.btn.btn-outline-info(href='/admin/app-settings') Manage app settings
+
+  if error
+    .alert.alert-danger= error
+
+  if role === 'admin'
+    form#addUserForm(action='/adduser', method='post')
+
+    .table-responsive
+      table.table.table-hover.mb-0
         thead
-            tr
-                th User ID
-                th Password
-                th Team
-                th Role
-                th Action
+          tr
+            th(scope='col') User ID
+            th(scope='col') Password
+            th(scope='col') Team
+            th(scope='col') Role
+            th(scope='col') Action
         tbody
-            each u in users
-                tr
-                    td
-                        if u.userid == 'Lennart'
-                            i= u.userid
-                        else
-                            .input-group
-                                input.form-control(id=`name_${u.id}`, type='text', value=u.userid)
-                                .input-group-append
-                                    button.btn.btn-outline-warning(onclick=`UpdateName("${u.id}")`) Update
-                    td
-                        if u.userid == 'Lennart'
-                            i LOCKED
-                        else if u.password != null && u.password.length > 0
-                            button.btn.btn-outline-danger(onclick=`ResetPassword(${u.id}, this)`) Reset
-                        else
-                            b NOT SET
-                    td
-                        if u.userid == 'Lennart'
-                            i(lg_language=u.team)
-                        else
-                            select.form-control(id=`team_${u.id}`, onchange=`UpdateTeam("${u.id}")`)
-                                if u.team == 'ohami_gcs_mail'
-                                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
-                                else
-                                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
-                                if u.team == 'ohami_gcs_order'
-                                    option(value='ohami_gcs_order', lg_language='ohami_gcs_order', selected)
-                                else
-                                    option(value='ohami_gcs_order', lg_language='ohami_gcs_order')
-                                if u.team == 'ohami_gcs_korea'
-                                    option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea', selected)
-                                else
-                                    option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea')
-                                if u.team == 'ohami_gcs_boss'
-                                    option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss', selected)
-                                else
-                                    option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss')
-                    td
-                        b= `${u.role} `
-                        if u.role == 'user'
-                            button.btn.btn-outline-warning(onclick=`MakeAdmin(${u.id}, this)`) → admin
-                        else if u.userid != 'Lennart'
-                            button.btn.btn-outline-warning(onclick=`MakeUser(${u.id}, this)`) → user
-                    td
-                        if u.userid != 'Lennart'
-                            a.btn.btn-outline-danger(href='/removeuser/'+u.id) Remove
-                        else
-                            i.text-danger *Deletes user private data aswell
-            form(action='/adduser', method='post')
-                tr
-                    td
-                        .input-group
-                            .input-group-prepend
-                                span.input-group-text User ID
-                            input#newuserid.form-control(type='text', name='newuserid')
-                    td NOT SET
-                    td
-                        .input-group
-                            .input-group-prepend
-                                span.input-group-text Team
-                            select#newteam.form-control(name='newteam')
-                                option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
-                                option(value='ohami_gcs_order', lg_language='ohami_gcs_order')
-                                option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea')
-                                option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss')
-                    td
-                        .input-group
-                            .input-group-prepend
-                                span.input-group-text Role
-                            select#newrole.form-control(name='newrole')
-                                option(value='user') User
-                                option(value='admin') Admin
-                    td
-                        button.btn.btn-outline-success(type='submit') Add user
-    script(src='/javascripts/admin_controller.js')
+          each u in users
+            tr
+              td
+                if u.userid === 'Lennart'
+                  strong= u.userid
+                else
+                  .input-group.input-group-sm
+                    input.form-control(id=`name_${u.id}`, type='text', value=u.userid, maxlength='100', aria-label=`User ID for ${u.userid}`)
+                    .input-group-append
+                      button.btn.btn-outline-warning(type='button', onclick=`UpdateName(${u.id})`) Update
+              td
+                if u.userid === 'Lennart'
+                  span.badge.badge-secondary Locked
+                else
+                  .input-group.input-group-sm
+                    input.form-control(
+                      id=`password_${u.id}`,
+                      type='password',
+                      minlength='12',
+                      maxlength='128',
+                      autocomplete='new-password',
+                      placeholder='Temporary password',
+                      aria-label=`Temporary password for ${u.userid}`
+                    )
+                    .input-group-append
+                      button.btn.btn-outline-danger(type='button', onclick=`ResetPassword(${u.id}, this)`) Set
+                  small.form-text.text-muted= u.password ? 'A password is set.' : 'Sign-in is disabled until a password is set.'
+              td
+                if u.userid === 'Lennart'
+                  span(lg_language=u.team)= u.team
+                else
+                  select.form-control.form-control-sm(id=`team_${u.id}`, onchange=`UpdateTeam(${u.id})`, aria-label=`Team for ${u.userid}`)
+                    each team in ['ohami_gcs_mail', 'ohami_gcs_order', 'ohami_gcs_korea', 'ohami_gcs_boss']
+                      option(value=team, selected=u.team === team, lg_language=team)= team
+              td
+                .d-flex.flex-wrap.align-items-center.gap-2
+                  span.badge.badge-secondary= u.role
+                  if u.role === 'user'
+                    button.btn.btn-sm.btn-outline-warning(type='button', onclick=`MakeAdmin(${u.id})`) Make admin
+                  else if u.userid !== 'Lennart'
+                    button.btn.btn-sm.btn-outline-warning(type='button', onclick=`MakeUser(${u.id})`) Make user
+              td
+                if u.userid !== 'Lennart'
+                  form(method='post', action=`/removeuser/${u.id}`, onsubmit='return confirm("Remove this user and their private entries?")')
+                    button.btn.btn-sm.btn-outline-danger(type='submit') Remove
+                else
+                  span.text-muted Protected account
+
+          tr.app-admin-add-row
+            td
+              input#newuserid.form-control.form-control-sm(
+                type='text',
+                name='newuserid',
+                form='addUserForm',
+                maxlength='100',
+                placeholder='New user ID',
+                required
+              )
+            td
+              input#newpassword.form-control.form-control-sm(
+                type='password',
+                name='newpassword',
+                form='addUserForm',
+                minlength='12',
+                maxlength='128',
+                autocomplete='new-password',
+                placeholder='Temporary password',
+                required
+              )
+            td
+              select#newteam.form-control.form-control-sm(name='newteam', form='addUserForm')
+                option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail') ohami_gcs_mail
+                option(value='ohami_gcs_order', lg_language='ohami_gcs_order') ohami_gcs_order
+                option(value='ohami_gcs_korea', lg_language='ohami_gcs_korea') ohami_gcs_korea
+                option(value='ohami_gcs_boss', lg_language='ohami_gcs_boss') ohami_gcs_boss
+            td
+              select#newrole.form-control.form-control-sm(name='newrole', form='addUserForm')
+                option(value='user') User
+                option(value='admin') Admin
+            td
+              button.btn.btn-sm.btn-outline-success(type='submit', form='addUserForm') Add user
+
+block scripts
+  script(src='/javascripts/admin_controller.js')

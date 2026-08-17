@@ -1,181 +1,232 @@
 doctype html
 html(lang='en', data-color-mode='dark')
   head
-    title= typeof pagetitle !== 'undefined' && pagetitle ? pagetitle : 'GCS Support Tool'
+    - const isErrorPage = typeof error !== 'undefined' && error && (error.status || error.stack)
+    - const isLoginPage = typeof currentPath !== 'undefined' && currentPath === '/login'
+    - const pageTitle = typeof pagetitle !== 'undefined' && pagetitle ? pagetitle : isErrorPage ? 'Error · GCS Support Tool' : isLoginPage ? 'Sign in · GCS Support Tool' : 'GCS Support Tool'
+    title= pageTitle
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
-    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous")
-    link(rel='stylesheet', href='https://uicdn.toast.com/editor/latest/toastui-editor.min.css')
-    link(rel="stylesheet", href="https://uicdn.toast.com/editor/latest/theme/toastui-editor-dark.min.css")
+    meta(name='theme-color', content='#101a21')
+    script(src='/javascripts/theme.js')
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T', crossorigin='anonymous')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
     block styles
     link#myCss(rel='stylesheet', href='/stylesheets/Style_dark.css')
     script.
-      (() => {
-        let colorMode = 'Style_dark.css';
-        try {
-          const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
-          if (savedSettings.colormode === 'Style_normal.css' || savedSettings.colormode === 'Style_dark.css') {
-            colorMode = savedSettings.colormode;
-          }
-        } catch (_error) {
-          colorMode = 'Style_dark.css';
-        }
-        document.documentElement.setAttribute('data-color-mode', colorMode === 'Style_dark.css' ? 'dark' : 'light');
-        document.getElementById('myCss').href = `/stylesheets/${colorMode}`;
-      })();
+      if (window.GCSTheme) {
+        window.GCSTheme.apply(window.GCSTheme.getPreferredMode(), { persist: false });
+      }
+    link(rel='stylesheet', href='/stylesheets/design-system.css')
   body(onload='Loaded()')
-    div(class='container-fluid')
-      nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
-        a.navbar-brand(href="/", lg_language="_gcs_tool_")
-        button.navbar-toggler(type="button", data-toggle="collapse", data-target="#navbarContent", aria-controls="navbarSupportedContent", aria-expanded="false", aria-label="Toggle navigation")
-          span.navbar-toggler-icon
-        #navbarContent.collapse.navbar-collapse
-          ul.navbar-nav.mr-auto
-            li.nav-item
-              a.nav-link(href='/entry', lg_language='_content_')
-            li.nav-item
-              a.nav-link(href='/scheduler', lg_language='_scheduler_')
-            li.nav-item
-              a.nav-link(href='/meeting')
-                span(lg_language='_meeting_')
-                span#m_count.badge.badge-warning.ml-1
-            li.nav-item
-              a.nav-link(href='/country', lg_language='_ship_status_')
-            if role === 'admin'
-              li.nav-item
-                a.nav-link(href='/admin', lg_language='_admin_')
-            li.nav-item
-              a.nav-link(href='/tracker', lg_language='_tracker_')
-            li.nav-item
-              a.nav-link(href='/bulk-tracker') Bulk Tracker
-            li.nav-item
-              a.nav-link(href='/shipping-monitor-compare') Shipping Monitor Compare
-            li.nav-item.dropdown
-              a#navbarDropdownExp.nav-link.dropdown-toggle(href="#", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", lg_language='_other_')
-              .dropdown-menu(aria-labelledby="navbarDropdownExp")
-                a.dropdown-item(href='/binpack') Binpacker
-                hr.dropdown-divider
-                a.dropdown-item(href='/hs/v2') HS code editor v2
-                a.dropdown-item(href='/hs/manualedit') HS code manual editor
-                a.dropdown-item(href='/hs/ireland') IE/GR CSV editor
-                a.dropdown-item(href='/hs/ireland/taric-explanations') Ireland TARIC explanations
-                a.dropdown-item(href='/hs/ireland/work-summary') IE/GR work summary
-                a.dropdown-item(href='/hs/checker') HS code checker
-                if role === 'admin'
-                  a.dropdown-item(href='/hs/dbeditor') HS database
-                hr.dropdown-divider
-                a.dropdown-item(href='/form') Feedback form
-                hr.dropdown-divider
-                a.dropdown-item(href='/shipcost/view') Shipping cost tables
-                a.dropdown-item(href='/tracker/return-shipping-cost-analytics') Return shipping cost analytics
-                if role === 'admin'
-                  a.dropdown-item(href='/shipcost') Shipping cost manager
-                  hr.dropdown-divider
-                  a.dropdown-item(href='/tracker/generate') Upload tracking numbers
-                if role === 'admin'
-                  hr.dropdown-divider
-                  a.dropdown-item(href='/timekeeper') Timekeeper
-                  a.dropdown-item(href='/scheduler/updatelog') Scheduler update log
-                hr.dropdown-divider
-                a.dropdown-item(href='/manifest_check') Manifest check
-                a.dropdown-item(href="/chatgpt/language_tools") Shorten item names
-                hr.dropdown-divider
-                a.dropdown-item(href="/country/country_csv_check") Check methods CSV file
-                hr.dropdown-divider
-                a.dropdown-item(href='/ct') Cases
-                a.dropdown-item(href='/pmt') Policy - Manual - Template tool
-                if role === 'admin'
-                  a.dropdown-item(href='/dhl-compensation') DHL compensation
-                a.dropdown-item(href='/image-pdf') Image grid PDF
-            if name === "Lennart"
-              li.nav-item.dropdown
-                a#navbarDropdownExp2.nav-link.dropdown-toggle(href="#", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Lennart
-                .dropdown-menu(aria-labelledby="navbarDropdownExp2")
-                  a.dropdown-item(href='/lennart') Lennart
-                  a.dropdown-item(href='/lennart/zpl') ZPL converter
-                  a.dropdown-item(href='/lennart/host-samples') Host samples
-                  a.dropdown-item(href='/lennart/host-trends') Host trends
-                  a.dropdown-item(href='/chatgpt') ChatGPT
-          //- Process changed
-          //- span.form-inline.my-2.my-lg-0
-          //-   input#track.form-control.mr-sm-2(type='text' placeholder='Tracking number' aria-label='Tracking number')
-          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(3)' title='JP Investigation/JP調査依頼') JP
-          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(1)' title='Label/ラベル') L
-          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(2)' title='Invoice/インボイス') I
-          //-   button.btn.btn-outline-info.my-2.my-sm-0(onclick='myGetDocument(0)' title='Label+Invoice/ラベル＋インボイス') L+I
-      - let ld = new Date()
-      - let dm1 = new Date(ld.getFullYear(), ld.getMonth(), ld.getDate()-1)
-      - let ms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      if jp && (jp[0].pubDate[0].indexOf(`${ld.getDate()} ${ms[ld.getMonth()]} ${ld.getFullYear()}`) >= 0 || jp[0].pubDate[0].indexOf(`${dm1.getDate()} ${ms[dm1.getMonth()]} ${dm1.getFullYear()}`) >= 0)
-        .alert.alert-primary(style="padding:0px;margin-bottom:0px;")
-          b JP NEWS! 
-          a(href=jp[0].link[0], target="_blank")= jp[0].title[0]
-      #status_bar.alert.alert-dark.hidden(style="padding:0px;margin-bottom:0px;")
-      if holidays_next_week && holidays_next_week.length > 0
-        .alert.alert-dark(style="padding:0px;margin-bottom:0px;")
-          b 次の10日間の祝日出勤：　
-          each holiday in holidays_next_week
-            b= `${holiday.date}: `
-            span= holiday.work_staff.join(", ")
-            if role === "admin"
-              button(onclick=`Copy('${holiday.message_title}')`) Title
-              button(onclick=`Copy('${holiday.message_body}')`) Body
-              button(onclick=`Copy('[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]')`) CW
-      .alert.alert-dark(style="padding:0px;margin-top:0px;")
-        span You are logged in as 
-          b#u_name= name
-          |  (
-          b#u_role= role
-          | ) 
-          if name != 'Guest'
-            a(href="/logout", lg_language='_logout_')
+    - const activePath = typeof currentPath !== 'undefined' && currentPath ? currentPath : ''
+    - const pathIs = (prefix) => activePath === prefix || activePath.indexOf(prefix + '/') === 0
+    - const displayName = typeof name !== 'undefined' && name ? name : 'Guest'
+    - const displayRole = typeof role !== 'undefined' && role ? role : 'guest'
+    - const isSignedIn = typeof signedIn !== 'undefined' ? Boolean(signedIn) : displayName !== 'Guest'
+    a.app-skip-link(href='#main-content') Skip to main content
 
-      #debug
-      #ask_labels
-      audio#alertsound_1(src="/sounds/162463__kastenfrosch__message.mp3")
-      audio#alertsound_2(src="/sounds/167337__willy-ineedthatapp-com__pup-alert.mp3")
-      audio#alertsound_3(src="/sounds/221359__melliug__newmessage.mp3")
-      audio#alertsound_4(src="/sounds/398346__henrocker01__wheep-wheep.mp3")
-      hr
+    .app-shell
+      header.app-header
+        nav.navbar.navbar-expand-xl.app-navbar(aria-label='Primary navigation')
+          a.app-brand.navbar-brand(href='/', aria-label='GCS Support Tool home')
+            span.app-brand-mark(aria-hidden='true') G
+            span.app-brand-copy
+              strong(lg_language='_gcs_tool_') GCS Support Tool
+              small Support workspace
 
-      if workschedule
-        #workschedule.row
-          each day in workschedule.days 
-            .wsday.col(class=day.category)
-              b= day.date 
-              br
-              i(lg_language=`_${day.schedule}_`)
-        hr
+          button.navbar-toggler.app-navbar-toggler(
+            type='button',
+            data-toggle='collapse',
+            data-target='#navbarContent',
+            aria-controls='navbarContent',
+            aria-expanded='false',
+            aria-label='Toggle navigation'
+          )
+            span.app-navbar-toggler-lines(aria-hidden='true')
 
-      div(class='row')
-        div(class='col-sm-12')
-          block content
-      hr
+          #navbarContent.collapse.navbar-collapse
+            if isSignedIn
+              ul.navbar-nav.app-nav-main
+                li.nav-item(class=pathIs('/entry') ? 'active' : '')
+                  a.nav-link(href='/entry', lg_language='_content_', aria-current=pathIs('/entry') ? 'page' : undefined)
+                li.nav-item(class=pathIs('/scheduler') ? 'active' : '')
+                  a.nav-link(href='/scheduler', lg_language='_scheduler_', aria-current=pathIs('/scheduler') ? 'page' : undefined)
+                li.nav-item(class=pathIs('/meeting') ? 'active' : '')
+                  a.nav-link(href='/meeting', aria-current=pathIs('/meeting') ? 'page' : undefined)
+                    span(lg_language='_meeting_') Meeting
+                li.nav-item(class=pathIs('/ct') ? 'active' : '')
+                  a.nav-link(href='/ct', aria-current=pathIs('/ct') ? 'page' : undefined) Cases
 
-      nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
-        span.navbar-brand(style="color:grey;") Created by Lennart
-        button.navbar-toggler(type="button", data-toggle="collapse", data-target="#navbarContentBottom", aria-controls="navbarSupportedContent", aria-expanded="false", aria-label="Toggle navigation")
-          span.navbar-toggler-icon
-        #navbarContentBottom.collapse.navbar-collapse
-          ul.navbar-nav.mr-auto
-            li.nav-item
-              a.nav-link(href='/about', lg_language='_about_')
-            li.nav-item
-              a.nav-link(href='/api') Documents
-          span.form-inline.my-2.my-lg-0
-            select#lg_language.form-control.form-control.mr-sm-2(onchange='UpdateLanguageSettings()')
-              option(value='japanese') 日本語
-              option(value='english') English
-              option(value='swedish') Svenska
+                li.nav-item.dropdown(class=(pathIs('/country') || pathIs('/tracker') || pathIs('/bulk-tracker') || pathIs('/shipping-monitor-compare') || pathIs('/shipcost')) ? 'active' : '')
+                  a#shippingDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Shipping
+                  .dropdown-menu.app-dropdown-menu(aria-labelledby='shippingDropdown')
+                    span.dropdown-header Daily operations
+                    a.dropdown-item(href='/country') Shipping status
+                    a.dropdown-item(href='/tracker') Shipment tracker
+                    a.dropdown-item(href='/bulk-tracker') Bulk tracker
+                    a.dropdown-item(href='/shipping-monitor-compare') Monitor compare
+                    .dropdown-divider
+                    span.dropdown-header Reference & analytics
+                    a.dropdown-item(href='/shipcost/view') Shipping cost tables
+                    a.dropdown-item(href='/tracker/return-shipping-cost-analytics') Return cost analytics
+
+                li.nav-item.dropdown(class=(pathIs('/hs') || pathIs('/binpack') || pathIs('/pmt') || pathIs('/form') || pathIs('/image-pdf') || pathIs('/chatgpt') || pathIs('/api')) ? 'active' : '')
+                  a#toolsDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Tools
+                  .dropdown-menu.app-dropdown-menu(aria-labelledby='toolsDropdown')
+                    span.dropdown-header Knowledge
+                    a.dropdown-item(href='/pmt') Policy, manual & templates
+                    a.dropdown-item(href='/hs/v2') HS code editor v2
+                    a.dropdown-item(href='/hs/manualedit') HS manual editor
+                    a.dropdown-item(href='/hs/ireland') IE / GR CSV editor
+                    a.dropdown-item(href='/hs/checker') HS code checker
+                    .dropdown-divider
+                    span.dropdown-header Utilities
+                    a.dropdown-item(href='/binpack') Binpacker
+                    a.dropdown-item(href='/hs/manifest_check') Manifest check
+                    a.dropdown-item(href='/chatgpt/language_tools') Shorten item names
+                    a.dropdown-item(href='/country/country_csv_check') Check methods CSV
+                    a.dropdown-item(href='/image-pdf') Image grid PDF
+                    a.dropdown-item(href='/api') Documents
+                    a.dropdown-item(href='/form') Feedback
+                    .dropdown-divider
+                    span.dropdown-header Ireland / Greece
+                    a.dropdown-item(href='/hs/ireland/taric-explanations') TARIC explanations
+                    a.dropdown-item(href='/hs/ireland/work-summary') Work summary
+
+                if displayRole === 'admin'
+                  li.nav-item.dropdown(class=(pathIs('/admin') || pathIs('/timekeeper') || pathIs('/dhl-compensation')) ? 'active' : '')
+                    a#adminDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Admin
+                    .dropdown-menu.app-dropdown-menu(aria-labelledby='adminDropdown')
+                      a.dropdown-item(href='/admin') User management
+                      a.dropdown-item(href='/admin/app-settings') App settings
+                      a.dropdown-item(href='/hs/dbeditor') HS database
+                      a.dropdown-item(href='/shipcost') Shipping cost manager
+                      a.dropdown-item(href='/tracker/generate') Upload tracking numbers
+                      a.dropdown-item(href='/timekeeper') Timekeeper
+                      a.dropdown-item(href='/scheduler/updatelog') Scheduler update log
+                      a.dropdown-item(href='/dhl-compensation') DHL compensation
+
+                if displayName === 'Lennart'
+                  li.nav-item.dropdown(class=pathIs('/lennart') || pathIs('/chatgpt') ? 'active' : '')
+                    a#personalDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Lennart
+                    .dropdown-menu.app-dropdown-menu(aria-labelledby='personalDropdown')
+                      a.dropdown-item(href='/lennart') Workspace
+                      a.dropdown-item(href='/lennart/zpl') ZPL converter
+                      a.dropdown-item(href='/lennart/host-samples') Host samples
+                      a.dropdown-item(href='/lennart/host-trends') Host trends
+                      a.dropdown-item(href='/chatgpt') ChatGPT
+
+            .app-nav-actions(class=!isSignedIn ? 'ml-auto' : '')
+              .app-language-control
+                label.sr-only(for='lg_language') Interface language
+                select#lg_language.form-control.app-language-select(onchange='UpdateLanguageSettings()', title='Interface language', aria-label='Interface language')
+                  option(value='japanese') 日本語
+                  option(value='english') English
+                  option(value='swedish') Svenska
+
+              button#theme-toggle.app-theme-toggle(
+                type='button',
+                onclick='ToggleColorMode()',
+                aria-label='Switch to light theme',
+                title='Switch to light theme'
+              )
+                span.app-theme-icon.app-theme-icon--sun(aria-hidden='true')
+                span.app-theme-icon.app-theme-icon--moon(aria-hidden='true')
+                span.app-theme-toggle-label Theme
+
+              .dropdown.app-user-menu
+                button#userMenuButton.app-user-button.dropdown-toggle(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false', aria-label=`Account menu for ${displayName}`)
+                  span.app-user-avatar(aria-hidden='true')= displayName.charAt(0).toUpperCase()
+                  span.app-user-copy
+                    strong#u_name= displayName
+                    small#u_role= displayRole
+                .dropdown-menu.dropdown-menu-right.app-dropdown-menu(aria-labelledby='userMenuButton')
+                  if isSignedIn
+                    span.dropdown-header Signed in as #{displayName}
+                    a.dropdown-item(href='/about') About GCS Tool
+                    .dropdown-divider
+                    a.dropdown-item.app-dropdown-danger(href='/logout', lg_language='_logout_') Logout
+                  else
+                    span.dropdown-header Not signed in
+
+      - const jpItems = typeof jp !== 'undefined' && Array.isArray(jp) ? jp : []
+      - const now = new Date()
+      - const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+      - const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      - const jpCandidate = jpItems.length ? jpItems[0] : null
+      - const jpHasFields = jpCandidate && Array.isArray(jpCandidate.pubDate) && typeof jpCandidate.pubDate[0] === 'string' && Array.isArray(jpCandidate.title) && typeof jpCandidate.title[0] === 'string' && Array.isArray(jpCandidate.link) && typeof jpCandidate.link[0] === 'string'
+      - const jpNotice = jpHasFields && /^https?:\/\//i.test(jpCandidate.link[0]) ? { date: jpCandidate.pubDate[0], title: jpCandidate.title[0], link: jpCandidate.link[0] } : null
+      - const jpDate = jpNotice ? jpNotice.date : ''
+      - const jpIsRecent = jpDate.indexOf(`${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`) >= 0 || jpDate.indexOf(`${yesterday.getDate()} ${monthNames[yesterday.getMonth()]} ${yesterday.getFullYear()}`) >= 0
+
+      .app-notice-region(aria-label='Application notices')
+        if jpNotice && jpIsRecent
+          .app-notice.app-notice--info(role='status')
+            span.app-notice-icon(aria-hidden='true') JP
+            .app-notice-content
+              strong Japan Post news
+              a(href=jpNotice.link, target='_blank', rel='noopener noreferrer')= jpNotice.title
+
+        #status_bar.app-notice.app-notice--status.hidden(role='status', aria-live='polite')
+
+        if typeof holidays_next_week !== 'undefined' && holidays_next_week && holidays_next_week.length > 0
+          .app-notice.app-notice--warning(role='note')
+            span.app-notice-icon(aria-hidden='true') !
+            .app-notice-content
+              strong 次の10日間の祝日出勤
+              .app-holiday-list
+                each holiday in holidays_next_week
+                  .app-holiday-item
+                    span
+                      strong= `${holiday.date}: `
+                      = holiday.work_staff.join(', ')
+                    if displayRole === 'admin'
+                      span.app-notice-actions
+                        button(type='button', data-copy-text=holiday.message_title, onclick='Copy(this.dataset.copyText)') Title
+                        button(type='button', data-copy-text=holiday.message_body, onclick='Copy(this.dataset.copyText)') Body
+                        button(type='button', data-copy-text=`[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]`, onclick='Copy(this.dataset.copyText)') CW
+
+      #debug.app-debug-region(aria-live='polite')
+      #ask_labels.app-dialog-region
+
+      audio#alertsound_1(src='/sounds/162463__kastenfrosch__message.mp3', preload='none')
+      audio#alertsound_2(src='/sounds/167337__willy-ineedthatapp-com__pup-alert.mp3', preload='none')
+      audio#alertsound_3(src='/sounds/221359__melliug__newmessage.mp3', preload='none')
+      audio#alertsound_4(src='/sounds/398346__henrocker01__wheep-wheep.mp3', preload='none')
+
+      if typeof workschedule !== 'undefined' && workschedule && workschedule.days && workschedule.days.length
+        section#workschedule.app-schedule-strip(aria-label='Your next seven days')
+          .app-schedule-label
+            span Next 7 days
+            small Your schedule
+          .app-schedule-days
+            each day in workschedule.days
+              .wsday(class=day.category || 'ws_unknown')
+                strong= day.date
+                span(lg_language=day.schedule ? `_${day.schedule}_` : '')= day.schedule || 'Not set'
+
+      main#main-content.app-main(class=!isSignedIn ? 'app-main--auth' : '')
+        block content
+
+      footer.app-footer
+        .app-footer-inner
+          .app-footer-brand
+            span.app-brand-mark.app-brand-mark--small(aria-hidden='true') G
+            span
+              strong GCS Support Tool
+              small Created by Lennart
+          nav.app-footer-links(aria-label='Footer navigation')
+            a(href='/about', lg_language='_about_') About
+            a(href='/api') Documents
+            a(href='/form') Feedback
+
     script(src='/javascripts/lg_language.js')
     script(src='/javascripts/lg_update.js')
     script(src='/javascripts/GCSTool.js')
     script(src='/javascripts/feedback.js')
-    script(src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous")
-    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous")
-    script(src="/socket.io/socket.io.js")
-    script(src='/javascripts/socket_io_client.js')
+    script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js', integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js', integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1', crossorigin='anonymous')
+    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js', integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM', crossorigin='anonymous')
     block scripts

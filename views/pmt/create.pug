@@ -1,5 +1,9 @@
 extends ../layout
 
+block styles
+  link(rel='stylesheet', href='https://uicdn.toast.com/editor/3.2.2/toastui-editor.min.css')
+  link(rel='stylesheet', href='https://uicdn.toast.com/editor/3.2.2/theme/toastui-editor-dark.min.css')
+
 block content
   h2 Create a new entry 
   form#form(action="/pmt/savenew", method="post") 
@@ -34,14 +38,15 @@ block content
         option(value=p.id selected=(selected.includes(p.id)))= `${p.id} – ${p.title}`
     label(for="editor") Content
     .row 
-      .col-8
+      .col-12.col-xl-8
         #editor 
         input#content_md(type="hidden", name="content_md")
-      .col-4
+      .col-12.col-xl-4.mt-3.mt-xl-0
         h4 Preview selected Policies
-        #policyPreview(style='border:1px solid #aaa;padding:6px;overflow:auto;height:480px')
+        #policyPreview.pmt-policy-preview
     input.btn.btn-primary(type="submit", value="Save")
   pre#policies_data.hidden= JSON.stringify(policies)
-  script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js", defer)
-  script(src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js", defer)
+  script(src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js", defer)
+  script(src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js", defer)
+  script(src="/js/pmt/preview.js", defer)
   script(src="/js/pmt/create.js", defer)
