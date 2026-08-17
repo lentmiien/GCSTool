@@ -25,7 +25,7 @@ The app is server-rendered with Pug and Bootstrap-era static assets. Most featur
 | Country/shipping status | `/country` | Official/internal/Japan Post country list imports, shipping status views, update history, and country-code linking. |
 | API/PDF documents | `/api` | DHL return/tax PDF generation and invoice generation. |
 | Bin packing | `/binpack` | Box packing helpers using `binpackingjs`. |
-| HS tools | `/hs` | HS code suggestions, history lookup, Ireland TARIC mapping/explanations, manifest checking, and DB editing. |
+| HS tools | `/hs` | HS code suggestions, history lookup, Ireland TARIC mapping/explanations, shipping CSV compaction, manifest checking, and DB editing. |
 | Tracker | `/tracker` | Tracking-data lookup and tracking-number upload tasks against the tracker database. |
 | Shipping monitor compare | `/shipping-monitor-compare`, `/shipping-monitor-shortcuts` | Read-only saved comparisons over shipping monitor groups and shortcuts. |
 | Shipping costs | `/shipcost` | Shipping cost import and view pages. |
@@ -141,6 +141,7 @@ npm run seed                 Sync DBs and create the initial admin/user/staff re
 npm run collect:host-sample  Insert one host sample row
 npm run cleanup:host-samples Delete host samples older than HOST_SAMPLE_RETENTION_DAYS
 npm run repair:ireland-barcode Repair Ireland barcode/TARIC mappings
+npm run generate:shipping-compactor-samples Generate local 5,000-order CSV stress samples
 npm run codex-todo           Ask Codex to work through todo.txt
 npm run codex-commit         Ask Codex to draft a commit message for pending changes
 ```

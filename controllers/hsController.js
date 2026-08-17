@@ -871,6 +871,10 @@ exports.ireland_work_summary = async (req, res, next) => {
   }
 };
 
+exports.shipping_compactor = (req, res) => {
+  res.render('hs_shipping_compactor');
+};
+
 // Manual editor
 exports.manual_edit = (req, res) => {
   HSCodeList.findAll().then(entries => {
