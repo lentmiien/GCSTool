@@ -9,8 +9,11 @@ module.exports = [
       item('Case tracker', [
         item('Case page - Reworked the Open Case block into a compact Navigate section with previous/next case navigation for "My cases" and "All open cases", preserving order-based paging behavior'),
         item('Navigation list behavior - Added end-of-list handling that returns to /ct and excludes solved cases from the All open cases scope'),
-        item('Case dashboard - Added a Recent repeat customer section for customers with multiple cases and the latest case opened within the last 7 days'),
-        item('Case tracker - Added a customer details page linked from dashboard IDs summarizing all cases for the selected customer'),
+      item('Case dashboard - Added a Recent repeat customer section for customers with multiple cases and the latest case opened within the last 7 days'),
+      item('Case tracker - Added a customer details page linked from dashboard IDs summarizing all cases for the selected customer'),
+      ]),
+      item('Tracker', [
+        item('Bulk tracker - Added a new bulk shipment group management tool with landing page and per-group dashboard, including cached analytics, progress-pattern detection, anomaly detection, and shipment update prediction'),
       ]),
       item('HS', [
         item('Ireland TARIC review - Prioritized key fields in the TARIC review modal, moved secondary CSV fields lower, moved review progress into the modal title, and added a row status badge for AmiAmi item-data fetch results'),
