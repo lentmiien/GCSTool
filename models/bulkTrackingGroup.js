@@ -7,7 +7,6 @@ module.exports = (sequelize, type) => {
     explanation: {
       type: type.TEXT,
       allowNull: false,
-      defaultValue: '',
     },
     createdBy: {
       type: type.STRING,

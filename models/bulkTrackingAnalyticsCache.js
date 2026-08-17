@@ -18,7 +18,6 @@ module.exports = (sequelize, type) => {
     summaryJson: {
       type: type.TEXT('medium'),
       allowNull: false,
-      defaultValue: '{}',
     },
     reportJson: {
       type: type.TEXT('long'),
