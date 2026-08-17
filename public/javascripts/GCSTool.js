@@ -6,7 +6,7 @@
 
 const my_settings = {
   userid: 'NewUser',
-  colormode: 'Style_normal.css',
+  colormode: 'Style_dark.css',
   language: 'japanese',
   reminders: [],
   documents: {
@@ -81,15 +81,17 @@ function Loaded() {
     dom_cmode.value = my_settings.colormode;
   }
   ApplyColorModeDataAttribute();
-  // Load css file for selected color mode
-  let head = document.getElementsByTagName('head')[0];
-  let link = document.createElement('link');
-  link.id = 'myCss';
-  link.rel = 'stylesheet';
-  link.type = 'text/css';
+  // Update the color-mode stylesheet initialized in the page head
+  let link = document.getElementById('myCss');
+  if (!link) {
+    link = document.createElement('link');
+    link.id = 'myCss';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.media = 'all';
+    document.getElementsByTagName('head')[0].appendChild(link);
+  }
   link.href = '/stylesheets/' + my_settings.colormode;
-  link.media = 'all';
-  head.appendChild(link);
 
   // Process reminders
   ShowReminders();

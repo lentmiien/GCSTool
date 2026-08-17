@@ -1,5 +1,5 @@
 doctype html
-html(lang='en')
+html(lang='en', data-color-mode='dark')
   head
     title= typeof pagetitle !== 'undefined' && pagetitle ? pagetitle : 'GCS Support Tool'
     meta(charset='utf-8')
@@ -10,6 +10,21 @@ html(lang='en')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/my_style.css')
     block styles
+    link#myCss(rel='stylesheet', href='/stylesheets/Style_dark.css')
+    script.
+      (() => {
+        let colorMode = 'Style_dark.css';
+        try {
+          const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+          if (savedSettings.colormode === 'Style_normal.css' || savedSettings.colormode === 'Style_dark.css') {
+            colorMode = savedSettings.colormode;
+          }
+        } catch (_error) {
+          colorMode = 'Style_dark.css';
+        }
+        document.documentElement.setAttribute('data-color-mode', colorMode === 'Style_dark.css' ? 'dark' : 'light');
+        document.getElementById('myCss').href = `/stylesheets/${colorMode}`;
+      })();
   body(onload='Loaded()')
     div(class='container-fluid')
       nav.navbar.navbar-expand-lg.navbar-dark.bg-dark

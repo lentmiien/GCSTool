@@ -24,6 +24,12 @@
 - Files: routes are lowercase (e.g., `routes/hs.js`); controllers end with `Controller.js`; keep existing view naming.
 - Keep changes minimal and consistent with neighboring code.
 
+## UI Theme Guidelines
+- Dark mode (`Style_dark.css`) is the app default and the primary design target for new and updated UI.
+- Design and review UI in dark mode first, including text contrast, controls, tables, charts, empty states, and interactive states.
+- Keep the light-theme toggle functional, but do not assume light colors or light backgrounds when adding shared styles.
+- Scope theme-specific overrides with the existing `html[data-color-mode='dark']` pattern where appropriate.
+
 ## Testing Guidelines
 - No automated tests are configured yet. Before PRs, smoke-test key flows: auth, Entries, Scheduler, CT, PMT, file upload, and locale switching.
 - If adding tests, prefer Jest + Supertest. Place in `tests/` and name `*.test.js`. Example: `npx jest` (add `"test"` script when introducing Jest).
@@ -39,4 +45,3 @@
 - Create a local `.env` from `env_sample`; never commit secrets. Set `SESSION_SECRET`, DB creds, and optional `OPENAI_API_KEY*`.
 - Use a non-root MySQL user; restrict host access. Back up DB before schema-affecting changes (note: `sequelize.sync()` creates tables on startup).
 - Avoid logging sensitive data; sanitize user inputs with existing validators.
-

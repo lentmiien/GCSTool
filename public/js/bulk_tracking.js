@@ -2,17 +2,21 @@
   'use strict';
 
   const report = window.bulkTrackingReport || null;
+  const isDarkMode = document.documentElement.getAttribute('data-color-mode') !== 'light';
   const colors = {
-    delivered: '#22a06b',
-    in_transit: '#2778e8',
-    attention: '#dd5361',
-    no_match: '#9aaab5',
-    cyan: '#22a8bd',
-    amber: '#e69b2e',
-    violet: '#7259d6',
-    grid: '#dce7ed',
-    text: '#60798a',
-    ink: '#173247',
+    delivered: isDarkMode ? '#48c78e' : '#22a06b',
+    in_transit: isDarkMode ? '#5aa2ff' : '#2778e8',
+    attention: isDarkMode ? '#f07480' : '#dd5361',
+    no_match: isDarkMode ? '#93a7b4' : '#9aaab5',
+    cyan: isDarkMode ? '#45c5d3' : '#22a8bd',
+    amber: isDarkMode ? '#f2b75a' : '#e69b2e',
+    violet: isDarkMode ? '#a694f2' : '#7259d6',
+    grid: isDarkMode ? '#3f5360' : '#dce7ed',
+    text: isDarkMode ? '#adbec9' : '#60798a',
+    ink: isDarkMode ? '#edf4f8' : '#173247',
+    surface: isDarkMode ? '#20282f' : '#ffffff',
+    track: isDarkMode ? '#34434d' : '#eaf1f4',
+    transition: isDarkMode ? '#607887' : '#a9c1cd',
   };
 
   function initShipmentFilters() {
@@ -146,7 +150,7 @@
       .data(pie(data))
       .join('path')
       .attr('fill', (item) => colors[item.data.key] || colors.cyan)
-      .attr('stroke', '#fff')
+      .attr('stroke', colors.surface)
       .attr('stroke-width', 3)
       .attr('d', arc)
       .style('cursor', 'default')
@@ -437,7 +441,7 @@
       .attr('width', plotWidth)
       .attr('height', y.bandwidth())
       .attr('rx', 5)
-      .attr('fill', '#eaf1f4');
+      .attr('fill', colors.track);
     plot.selectAll('.bt-funnel-bar')
       .data(data)
       .join('rect')
@@ -523,13 +527,13 @@
     rows.append('line')
       .attr('x1', 0)
       .attr('x2', (transition) => x(transition.p90))
-      .attr('stroke', '#a9c1cd')
+      .attr('stroke', colors.transition)
       .attr('stroke-width', 1.5)
       .lower();
     rows.append('circle')
       .attr('cx', (transition) => x(transition.median))
       .attr('r', 5)
-      .attr('fill', '#fff')
+      .attr('fill', colors.surface)
       .attr('stroke', colors.violet)
       .attr('stroke-width', 3);
     rows.append('path')
