@@ -12,6 +12,7 @@ module.exports = [
       ]),
       item('Shipping', [
         item('Added the /hs/compact shipping CSV compactor utility with automatic deduplication across Japan Post, ePacket, and DHL by order, HS/TARIC, and unit price, preserving first item names and summing quantities'),
+        item('Enhanced /hs/compact with side-by-side before/after preview of up to 100 orders, including an on-page toggle, while preserving full CSV download behavior for all entries'),
       ]),
       item('Navigation, notices, and accessibility', [
         item('Redesigned the application shell with grouped navigation, clearer active states, modern language, theme, and user controls, and a consistent footer'),

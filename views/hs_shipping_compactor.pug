@@ -1,5 +1,8 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/stylesheets/shipping_csv_compactor.css')
+
 block content
   .shipping-compactor
     h1 Shipping CSV compactor
@@ -12,8 +15,23 @@ block content
           label(for='shipping-compact-file') Shipping CSV file
           input#shipping-compact-file.form-control(type='file', accept='.csv,.tsv,text/csv,text/tab-separated-values')
           small.form-text.text-muted The file is processed in your browser and is not uploaded to the server.
-        button#shipping-compact-download.btn.btn-primary(type='button', disabled) Download compacted CSV
+        .shipping-compact-actions
+          button#shipping-compact-download.btn.btn-primary(type='button', disabled) Download compacted CSV
+          .custom-control.custom-switch.shipping-compact-preview-control
+            input#shipping-compact-preview-toggle.custom-control-input(
+              type='checkbox',
+              checked,
+              aria-controls='shipping-compact-preview'
+            )
+            label.custom-control-label(for='shipping-compact-preview-toggle') Show before/after preview (up to 100 orders)
         p#shipping-compact-status.alert.mt-3.mb-0.text-muted(role='status', aria-live='polite')
+
+    section#shipping-compact-preview.mt-4.d-none(aria-labelledby='shipping-compact-preview-heading')
+      .shipping-compact-preview-heading
+        div
+          h2#shipping-compact-preview-heading.h4.mb-1 Before and after
+          p#shipping-compact-preview-summary.text-muted.mb-0(role='status', aria-live='polite')
+      #shipping-compact-preview-orders.mt-3
 
 block scripts
   script(src='/javascripts/FileSaver.js')

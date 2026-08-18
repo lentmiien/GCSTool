@@ -1,4 +1,6 @@
 (() => {
+  const PREVIEW_ORDER_LIMIT = 100;
+
   const formatConfigs = {
     japanPost: {
       label: 'Japan Post',
@@ -189,14 +191,40 @@
     stats.duplicateItemsRemoved += group.length - 1;
   };
 
+  const getMaximumItemOffset = (config) => Math.max(
+    config.nameOffset,
+    config.quantityOffset,
+    config.priceOffset,
+    config.hsOffset
+  );
+
+  const extractMultiItemPreviewItems = (row, config) => {
+    const items = [];
+    const maximumOffset = getMaximumItemOffset(config);
+
+    for (
+      let blockStart = config.blockStartIndex;
+      blockStart + maximumOffset < row.length;
+      blockStart += config.blockSize
+    ) {
+      const item = {
+        itemNumber: String(items.length + 1),
+        name: toCellText(row[blockStart + config.nameOffset]),
+        hsCode: toCellText(row[blockStart + config.hsOffset]),
+        unitPrice: toCellText(row[blockStart + config.priceOffset]),
+        quantity: toCellText(row[blockStart + config.quantityOffset]),
+      };
+      if ([item.name, item.hsCode, item.unitPrice, item.quantity].some((value) => value !== '')) {
+        items.push(item);
+      }
+    }
+
+    return items;
+  };
+
   const compactMultiItemRows = (rows, config) => {
     const stats = makeStats();
-    const maximumOffset = Math.max(
-      config.nameOffset,
-      config.quantityOffset,
-      config.priceOffset,
-      config.hsOffset
-    );
+    const maximumOffset = getMaximumItemOffset(config);
 
     rows.forEach((row, rowIndex) => {
       const groups = new Map();
@@ -260,6 +288,101 @@
     ].some((value) => toCellText(value) !== '');
     const itemNumber = toCellText(row[config.itemNumberIndex]).trim();
     return hasItemContent && (parseQuantity(row[config.quantityIndex]) !== null || /^\d+$/.test(itemNumber));
+  };
+
+  const buildMultiItemPreviewSnapshot = (rows, config) => {
+    const orders = [];
+    let totalOrders = 0;
+
+    rows.forEach((row, rowIndex) => {
+      const items = extractMultiItemPreviewItems(row, config);
+      if (!items.length) {
+        return;
+      }
+
+      totalOrders += 1;
+      if (orders.length >= PREVIEW_ORDER_LIMIT) {
+        return;
+      }
+
+      const orderNumber = toCellText(row[0]).trim();
+      orders.push({
+        id: `row:${rowIndex}`,
+        label: orderNumber ? `Order ${orderNumber}` : `CSV row ${rowIndex + 1}`,
+        items,
+      });
+    });
+
+    return { orders, totalOrders };
+  };
+
+  const buildDhlPreviewSnapshot = (rows, config) => {
+    const allOrderNumbers = new Set();
+    const previewOrdersByNumber = new Map();
+    const orders = [];
+
+    rows.forEach((row) => {
+      if (!isDhlItemRow(row, config)) {
+        return;
+      }
+
+      const orderNumber = toCellText(row[config.orderIndex]);
+      if (!allOrderNumbers.has(orderNumber)) {
+        allOrderNumbers.add(orderNumber);
+        if (orders.length < PREVIEW_ORDER_LIMIT) {
+          const order = {
+            id: `order:${orderNumber}`,
+            label: `Order ${orderNumber.trim()}`,
+            items: [],
+          };
+          orders.push(order);
+          previewOrdersByNumber.set(orderNumber, order);
+        }
+      }
+
+      const previewOrder = previewOrdersByNumber.get(orderNumber);
+      if (!previewOrder) {
+        return;
+      }
+
+      previewOrder.items.push({
+        itemNumber: toCellText(row[config.itemNumberIndex]) || String(previewOrder.items.length + 1),
+        name: toCellText(row[config.nameIndex]),
+        hsCode: toCellText(row[config.hsIndex]),
+        unitPrice: toCellText(row[config.priceIndex]),
+        quantity: toCellText(row[config.quantityIndex]),
+      });
+    });
+
+    return {
+      orders,
+      totalOrders: allOrderNumbers.size,
+    };
+  };
+
+  const buildPreviewSnapshot = (rows, type, config) => (
+    type === 'dhl'
+      ? buildDhlPreviewSnapshot(rows, config)
+      : buildMultiItemPreviewSnapshot(rows, config)
+  );
+
+  const buildPreview = (beforeSnapshot, afterSnapshot) => {
+    const afterOrdersById = new Map(
+      afterSnapshot.orders.map((order) => [order.id, order])
+    );
+
+    return {
+      limit: PREVIEW_ORDER_LIMIT,
+      totalOrders: beforeSnapshot.totalOrders,
+      orders: beforeSnapshot.orders.map((order) => {
+        const afterOrder = afterOrdersById.get(order.id);
+        return {
+          label: order.label,
+          before: order.items,
+          after: afterOrder ? afterOrder.items : [],
+        };
+      }),
+    };
   };
 
   const compactDhlRows = (rows, config) => {
@@ -346,6 +469,7 @@
 
     const parsed = parseCsv(text);
     const config = formatConfigs[parsed.type];
+    const beforePreview = buildPreviewSnapshot(parsed.rows, parsed.type, config);
     const result = parsed.type === 'dhl'
       ? compactDhlRows(parsed.rows, config)
       : compactMultiItemRows(parsed.rows, config);
@@ -359,6 +483,10 @@
       type: parsed.type,
       label: config.label,
       stats: result.stats,
+      preview: buildPreview(
+        beforePreview,
+        buildPreviewSnapshot(result.rows, parsed.type, config)
+      ),
     };
   };
 
@@ -394,13 +522,40 @@
 
   const downloadButton = document.getElementById('shipping-compact-download');
   const status = document.getElementById('shipping-compact-status');
+  const previewToggle = document.getElementById('shipping-compact-preview-toggle');
+  const previewSection = document.getElementById('shipping-compact-preview');
+  const previewSummary = document.getElementById('shipping-compact-preview-summary');
+  const previewOrders = document.getElementById('shipping-compact-preview-orders');
   let outputCsv = '';
   let outputFileName = '';
+  let previewData = null;
+  let previewIsRendered = false;
+
+  const removeAllChildren = (element) => {
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  };
+
+  const hidePreview = () => {
+    previewSection.classList.add('d-none');
+    previewSection.setAttribute('aria-hidden', 'true');
+    previewToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const resetPreview = () => {
+    previewData = null;
+    previewIsRendered = false;
+    previewSummary.textContent = '';
+    removeAllChildren(previewOrders);
+    hidePreview();
+  };
 
   const resetOutput = () => {
     outputCsv = '';
     outputFileName = '';
     downloadButton.disabled = true;
+    resetPreview();
   };
 
   const setStatus = (message, style) => {
@@ -440,6 +595,149 @@
     return details.join(' ');
   };
 
+  const createElement = (tagName, className, textContent) => {
+    const element = document.createElement(tagName);
+    if (className) {
+      element.className = className;
+    }
+    if (textContent !== undefined) {
+      element.textContent = textContent;
+    }
+    return element;
+  };
+
+  const displayPreviewValue = (value) => {
+    const text = toCellText(value);
+    return text === '' ? '\u2014' : text;
+  };
+
+  const appendPreviewCell = (row, tagName, value, className) => {
+    const cell = createElement(tagName, className, displayPreviewValue(value));
+    if (tagName === 'th') {
+      cell.setAttribute('scope', 'row');
+    }
+    row.appendChild(cell);
+  };
+
+  const buildPreviewTable = (items, stage, orderLabel) => {
+    const panelClass = stage === 'After'
+      ? 'shipping-compact-preview-panel shipping-compact-preview-panel--after'
+      : 'shipping-compact-preview-panel';
+    const panel = createElement('div', panelClass);
+    const itemLabel = items.length === 1 ? 'item' : 'items';
+    panel.appendChild(createElement(
+      'h4',
+      'shipping-compact-preview-panel-heading',
+      `${stage} \u00b7 ${items.length} ${itemLabel}`
+    ));
+
+    const tableWrapper = createElement('div', 'table-responsive shipping-compact-preview-table-wrap');
+    const table = createElement('table', 'table table-sm table-striped shipping-compact-preview-table');
+    const caption = createElement('caption', 'sr-only', `${stage} items for ${orderLabel}`);
+    const tableHead = document.createElement('thead');
+    const headingRow = document.createElement('tr');
+    [
+      ['#', 'shipping-compact-preview-number'],
+      ['Item name', 'shipping-compact-preview-name'],
+      ['HS/TARIC', 'shipping-compact-preview-code'],
+      ['Unit price', 'shipping-compact-preview-value'],
+      ['Quantity', 'shipping-compact-preview-value'],
+    ].forEach(([label, className]) => {
+      const heading = createElement('th', className, label);
+      heading.setAttribute('scope', 'col');
+      headingRow.appendChild(heading);
+    });
+    tableHead.appendChild(headingRow);
+
+    const tableBody = document.createElement('tbody');
+    items.forEach((item, itemIndex) => {
+      const row = document.createElement('tr');
+      appendPreviewCell(
+        row,
+        'th',
+        item.itemNumber || String(itemIndex + 1),
+        'shipping-compact-preview-number'
+      );
+      appendPreviewCell(row, 'td', item.name, 'shipping-compact-preview-name');
+      appendPreviewCell(row, 'td', item.hsCode, 'shipping-compact-preview-code');
+      appendPreviewCell(row, 'td', item.unitPrice, 'shipping-compact-preview-value');
+      appendPreviewCell(row, 'td', item.quantity, 'shipping-compact-preview-value');
+      tableBody.appendChild(row);
+    });
+
+    table.appendChild(caption);
+    table.appendChild(tableHead);
+    table.appendChild(tableBody);
+    tableWrapper.appendChild(table);
+    panel.appendChild(tableWrapper);
+    return panel;
+  };
+
+  const buildPreviewOrder = (order) => {
+    const orderCard = createElement('article', 'card shipping-compact-preview-order mb-3');
+    const header = createElement('div', 'card-header shipping-compact-preview-order-header');
+    header.appendChild(createElement('h3', 'h6 mb-0', order.label));
+
+    const itemCountChanged = order.before.length !== order.after.length;
+    const beforeItemLabel = order.before.length === 1 ? 'item' : 'items';
+    const afterItemLabel = order.after.length === 1 ? 'item' : 'items';
+    const countBadge = createElement(
+      'span',
+      `badge badge-${itemCountChanged ? 'success' : 'secondary'}`,
+      `${order.before.length} ${beforeItemLabel} \u2192 ${order.after.length} ${afterItemLabel}`
+    );
+    header.appendChild(countBadge);
+    orderCard.appendChild(header);
+
+    const body = createElement('div', 'card-body');
+    const columns = createElement('div', 'row');
+    const beforeColumn = createElement('div', 'col-lg-6 mb-3 mb-lg-0');
+    const afterColumn = createElement('div', 'col-lg-6');
+    beforeColumn.appendChild(buildPreviewTable(order.before, 'Before', order.label));
+    afterColumn.appendChild(buildPreviewTable(order.after, 'After', order.label));
+    columns.appendChild(beforeColumn);
+    columns.appendChild(afterColumn);
+    body.appendChild(columns);
+    orderCard.appendChild(body);
+    return orderCard;
+  };
+
+  const renderPreview = () => {
+    removeAllChildren(previewOrders);
+    const fragment = document.createDocumentFragment();
+    previewData.orders.forEach((order) => {
+      fragment.appendChild(buildPreviewOrder(order));
+    });
+    previewOrders.appendChild(fragment);
+
+    const shownOrders = previewData.orders.length;
+    const totalOrders = previewData.totalOrders;
+    if (totalOrders > shownOrders) {
+      previewSummary.textContent = `Showing the first ${shownOrders.toLocaleString()} of ${totalOrders.toLocaleString()} orders. The downloaded CSV includes all orders.`;
+    } else {
+      previewSummary.textContent = `Showing all ${totalOrders.toLocaleString()} orders.`;
+    }
+    previewIsRendered = true;
+  };
+
+  const updatePreviewVisibility = () => {
+    if (!previewData || !previewToggle.checked) {
+      if (!previewToggle.checked && previewIsRendered) {
+        removeAllChildren(previewOrders);
+        previewIsRendered = false;
+      }
+      hidePreview();
+      return;
+    }
+
+    if (!previewIsRendered) {
+      renderPreview();
+    }
+    previewSection.classList.remove('d-none');
+    previewSection.setAttribute('aria-hidden', 'false');
+    previewToggle.setAttribute('aria-expanded', 'true');
+  };
+
   fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
     resetOutput();
@@ -455,7 +753,9 @@
         const result = compactCsv(reader.result || '');
         outputCsv = result.csv;
         outputFileName = makeOutputFileName(file.name);
+        previewData = result.preview;
         downloadButton.disabled = false;
+        updatePreviewVisibility();
         setStatus(buildResultMessage(result), result.stats.skippedGroups ? 'warning' : 'success');
       } catch (error) {
         setStatus(error && error.message ? error.message : 'Could not compact this CSV file.', 'danger');
@@ -474,6 +774,8 @@
     const blob = new Blob([outputCsv], { type: 'text/csv;charset=utf-8' });
     saveAs(blob, outputFileName);
   });
+
+  previewToggle.addEventListener('change', updatePreviewVisibility);
 
   resetOutput();
   setStatus('Select a CSV file to begin.');

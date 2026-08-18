@@ -1,0 +1,117 @@
+.shipping-compact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.25rem;
+}
+
+.shipping-compact-preview-control {
+  margin-bottom: 0;
+}
+
+.shipping-compact-preview-control .custom-control-label {
+  cursor: pointer;
+}
+
+.shipping-compact-preview-control .custom-control-label::before {
+  border-color: var(--gcs-border-strong);
+  background: var(--gcs-input);
+}
+
+.shipping-compact-preview-control .custom-control-input:checked ~ .custom-control-label::before {
+  border-color: var(--gcs-accent-strong);
+  background: var(--gcs-accent-strong);
+}
+
+.shipping-compact-preview-heading,
+.shipping-compact-preview-order-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.shipping-compact-preview-order {
+  overflow: hidden;
+  border-color: var(--gcs-border);
+  background: var(--gcs-surface);
+}
+
+.shipping-compact-preview-order-header {
+  color: var(--gcs-heading);
+  background: var(--gcs-surface-muted);
+}
+
+.shipping-compact-preview-panel {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-surface);
+}
+
+.shipping-compact-preview-panel-heading {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--gcs-border);
+  color: var(--gcs-heading);
+  background: var(--gcs-bg-subtle);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.shipping-compact-preview-panel--after {
+  border-color: var(--gcs-accent);
+}
+
+.shipping-compact-preview-panel--after .shipping-compact-preview-panel-heading {
+  color: var(--gcs-accent-strong);
+  background: var(--gcs-accent-soft);
+}
+
+.table-responsive.shipping-compact-preview-table-wrap {
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.shipping-compact-preview-table {
+  min-width: 36rem;
+  font-size: 0.8rem;
+}
+
+.table.shipping-compact-preview-table th,
+.table.shipping-compact-preview-table td {
+  padding: 0.48rem 0.55rem;
+}
+
+.shipping-compact-preview-table .shipping-compact-preview-number {
+  width: 3rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.shipping-compact-preview-table .shipping-compact-preview-name {
+  min-width: 14rem;
+  overflow-wrap: anywhere;
+}
+
+.shipping-compact-preview-table .shipping-compact-preview-code {
+  min-width: 7rem;
+  white-space: nowrap;
+}
+
+.shipping-compact-preview-table .shipping-compact-preview-value {
+  min-width: 5.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .shipping-compact-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
