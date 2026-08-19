@@ -54,6 +54,8 @@ html(lang='en', data-color-mode='dark')
                   a.nav-link(href='/entry', lg_language='_content_', aria-current=pathIs('/entry') ? 'page' : undefined)
                 li.nav-item(class=pathIs('/scheduler') ? 'active' : '')
                   a.nav-link(href='/scheduler', lg_language='_scheduler_', aria-current=pathIs('/scheduler') ? 'page' : undefined)
+                li.nav-item(class=pathIs('/daily-tasks') ? 'active' : '')
+                  a.nav-link(href='/daily-tasks', aria-current=pathIs('/daily-tasks') ? 'page' : undefined) Daily tasks
                 li.nav-item(class=pathIs('/meeting') ? 'active' : '')
                   a.nav-link(href='/meeting', aria-current=pathIs('/meeting') ? 'page' : undefined)
                     span(lg_language='_meeting_') Meeting
@@ -208,6 +210,16 @@ html(lang='en', data-color-mode='dark')
               .wsday(class=day.category || 'ws_unknown')
                 strong= day.date
                 span(lg_language=day.schedule ? `_${day.schedule}_` : '')= day.schedule || 'Not set'
+                if day.tasks && day.tasks.length
+                  .app-schedule-tasks
+                    each task in day.tasks
+                      - const taskTitle = `${task.name}${task.note ? `: ${task.note}` : ''}${task.hasConflict ? ' — assigned on a day off' : ''}`
+                      a.app-schedule-task(
+                        class=task.hasConflict ? 'app-schedule-task--conflict' : '',
+                        href=`/daily-tasks?start=${day.date}&days=7&team=${encodeURIComponent(task.team)}`,
+                        title=taskTitle,
+                        aria-label=taskTitle
+                      )= task.name
 
       main#main-content.app-main(class=!isSignedIn || requiresPasswordChange ? 'app-main--auth' : '')
         block content

@@ -31,6 +31,7 @@ const ctRouter = require('./routes/ct');
 const pmtRouter = require('./routes/pmt');
 const imagePdfRouter = require('./routes/imagePdf');
 const dhlCompensationRouter = require('./routes/dhl_compensation');
+const dailyTasksRouter = require('./routes/dailyTasks');
 
 var app = express();
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
@@ -140,6 +141,7 @@ app.use('/ct', requireAuthenticated, ctRouter);
 app.use('/pmt', requireAuthenticated, pmtRouter);
 app.use('/image-pdf', requireAuthenticated, imagePdfRouter);
 app.use('/dhl-compensation', requireAuthenticated, dhlCompensationRouter);
+app.use('/daily-tasks', requireAuthenticated, dailyTasksRouter);
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;

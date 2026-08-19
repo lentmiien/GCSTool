@@ -13,6 +13,8 @@ const {
   Staff,
   Holiday,
   Schedule2,
+  DailyTaskAssignment,
+  DailyTaskType,
   VersionHistory,
   Meeting,
   MeetingComment,
@@ -20,6 +22,7 @@ const {
 const { version: currentVersion } = require('../package.json');
 const sanitizeHtml = require('../utils/sanitizeHtml');
 const { hashPassword, isTemporaryPassword, verifyPassword } = require('../utils/password');
+const { addDays, getJapanToday } = require('../utils/dailyTasks');
 
 const timekeeper = [];
 
@@ -138,17 +141,13 @@ exports.all = async function (req, res, next) {
   // Load workschedule
   res.locals.workschedule = { days: [] };
   const schedule = await Staff.findAll({ include: [{ model: Schedule2 }], where: { name: req.user.userid } });
-  let today = new Date();
-  today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() + 9);// Add 9 hours for Japanese time
+  const workScheduleToday = getJapanToday();
   for(let i = 0; i < 7; i++) {
-    const mm = today.getMonth() > 8 ? (today.getMonth()+1).toString() : '0' + (today.getMonth()+1);
-    const dd = today.getDate() > 9 ? (today.getDate()).toString() : '0' + (today.getDate());
     res.locals.workschedule.days.push({
       category: null,
-      date: `${today.getFullYear()}-${mm}-${dd}`,
+      date: addDays(workScheduleToday, i),
       schedule: null
     });
-    today = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, today.getHours());// +1 day loop
   }
   if (schedule.length > 0 && Array.isArray(schedule[0].schedule2s)) {
     for(let i = 0; i < res.locals.workschedule.days.length; i++) {
@@ -161,6 +160,42 @@ exports.all = async function (req, res, next) {
       });
     }
   }
+
+  const workScheduleStart = res.locals.workschedule.days[0].date;
+  const workScheduleEnd = res.locals.workschedule.days[res.locals.workschedule.days.length - 1].date;
+  const personalTaskAssignments = await DailyTaskAssignment.findAll({
+    where: {
+      assigneeUserId: req.user.id,
+      date: { [Op.between]: [workScheduleStart, workScheduleEnd] },
+    },
+    include: [{
+      model: DailyTaskType,
+      as: 'taskType',
+      attributes: ['id', 'name', 'team', 'archived'],
+      required: true,
+    }],
+    order: [['date', 'ASC'], ['taskTypeId', 'ASC']],
+  });
+  const personalTasksByDate = {};
+  personalTaskAssignments.forEach((assignmentRecord) => {
+    const assignment = assignmentRecord.get({ plain: true });
+    if (!personalTasksByDate[assignment.date]) {
+      personalTasksByDate[assignment.date] = [];
+    }
+    personalTasksByDate[assignment.date].push({
+      id: assignment.id,
+      name: assignment.taskType.name,
+      team: assignment.taskType.team,
+      note: assignment.note,
+      archived: assignment.taskType.archived,
+    });
+  });
+  res.locals.workschedule.days.forEach((day) => {
+    day.tasks = (personalTasksByDate[day.date] || []).map((task) => ({
+      ...task,
+      hasConflict: day.category === 'ws_off',
+    }));
+  });
 
   // Holiday schedule next week
   res.locals.holidays_next_week = [];
@@ -500,6 +535,14 @@ exports.change_name = async (req, res, next) => {
           Staff.update({ name: change_to_name }, { where: { name: previousName }, transaction }),
           Meeting.update({ created_by: change_to_name }, { where: { created_by: previousName }, transaction }),
           MeetingComment.update({ created_by: change_to_name }, { where: { created_by: previousName }, transaction }),
+          DailyTaskAssignment.update(
+            { assigneeName: change_to_name },
+            { where: { assigneeUserId: id_to_change }, transaction }
+          ),
+          DailyTaskAssignment.update(
+            { assignedByName: change_to_name },
+            { where: { assignedByUserId: id_to_change }, transaction }
+          ),
         ]);
         await user.update({ userid: change_to_name }, { transaction });
       }

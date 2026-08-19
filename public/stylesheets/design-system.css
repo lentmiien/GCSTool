@@ -769,6 +769,48 @@ html[data-color-mode='light'] .app-theme-icon--sun {
   font-size: 0.66rem;
 }
 
+.app-schedule-tasks {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 0.32rem;
+}
+
+.app-schedule-task {
+  display: block;
+  min-width: 0;
+  padding: 0.14rem 0.32rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gcs-info) 38%, var(--gcs-border));
+  border-radius: 0.3rem;
+  color: var(--gcs-info);
+  background: var(--gcs-info-soft);
+  font-size: 0.6rem;
+  font-weight: 750;
+  line-height: 1.35;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-schedule-task:hover,
+.app-schedule-task:focus {
+  color: var(--gcs-heading);
+  background: var(--gcs-surface-hover);
+  text-decoration: none;
+}
+
+.app-schedule-task--conflict {
+  border-color: color-mix(in srgb, var(--gcs-danger) 48%, var(--gcs-border));
+  color: var(--gcs-danger);
+  background: var(--gcs-danger-soft);
+}
+
+.app-schedule-task--conflict::before {
+  margin-right: 0.22rem;
+  content: '!';
+  font-weight: 900;
+}
+
 .app-schedule-strip .ws_full {
   border-color: color-mix(in srgb, var(--gcs-success) 45%, var(--gcs-border));
   background: var(--gcs-success-soft);

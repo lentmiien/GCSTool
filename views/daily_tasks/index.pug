@@ -1,0 +1,322 @@
+extends ../layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/daily-tasks.css')
+
+block content
+  section.daily-tasks-page(aria-labelledby='daily-tasks-title')
+    header.app-page-header
+      .daily-tasks-heading
+        p.app-page-kicker Operations planning
+        h1#daily-tasks-title Daily task assignments
+        p Assign each recurring responsibility to someone who is scheduled to work, and keep the workload visible across the team.
+      .app-page-actions
+        a.btn.btn-outline-secondary(href='/scheduler') View staff scheduler
+
+    if success
+      .alert.alert-success(role='status')= success
+    if warning
+      .alert.alert-warning(role='alert')= warning
+    if error
+      .alert.alert-danger(role='alert')= error
+
+    form.app-toolbar.daily-task-filters(method='get', action='/daily-tasks')
+      .daily-task-filter-field
+        label(for='dailyTaskTeam') Team
+        select#dailyTaskTeam.form-control(name='team')
+          option(value='all', selected=filters.team === 'all') All teams
+          each teamOption in teamOptions
+            option(value=teamOption.value, selected=filters.team === teamOption.value)= teamOption.label
+      .daily-task-filter-field
+        label(for='dailyTaskStart') Start date
+        input#dailyTaskStart.form-control(type='date', name='start', value=filters.start, required=true)
+      .daily-task-filter-field
+        label(for='dailyTaskDays') Date range
+        select#dailyTaskDays.form-control(name='days')
+          each rangeOption in rangeOptions
+            option(value=rangeOption, selected=filters.days === rangeOption)= `${rangeOption} days`
+      .daily-task-filter-actions
+        button.btn.btn-primary(type='submit') Update view
+        a.btn.btn-outline-secondary(href=`/daily-tasks?start=${today}&days=${filters.days}&team=${filters.team}`) Today
+
+    nav.daily-task-range-nav(aria-label='Task assignment date range')
+      a.btn.btn-sm.btn-outline-secondary(
+        href=`/daily-tasks?start=${previousStart}&days=${filters.days}&team=${filters.team}`
+      ) ← Previous #{filters.days} days
+      span
+        strong= `${filters.start} – ${endDate}`
+        small= selectedTeamLabel
+      a.btn.btn-sm.btn-outline-secondary(
+        href=`/daily-tasks?start=${nextStart}&days=${filters.days}&team=${filters.team}`
+      ) Next #{filters.days} days →
+
+    .daily-task-metrics(aria-label='Assignment overview')
+      article.daily-task-metric
+        span Task types
+        strong= activeTaskTypeCount
+        small Active for this view
+      article.daily-task-metric
+        span Assignments
+        strong= rangeAssignments.length
+        small In the displayed date range
+      article.daily-task-metric(class=conflicts.length ? 'daily-task-metric--warning' : '')
+        span Schedule conflicts
+        strong= conflicts.length
+        small= conflicts.length ? 'Assigned on a day off' : 'No day-off assignments'
+
+    if conflicts.length
+      .alert.alert-warning.daily-task-conflicts(role='status')
+        strong Rescheduling required
+        p.mb-2 The following people are assigned while marked off in the staff scheduler:
+        ul.mb-0
+          each conflict in conflicts
+            li
+              strong= `${conflict.date}: ${conflict.taskTypeName}`
+              = ` — ${conflict.assigneeDisplayName} (${conflict.scheduleLabel})`
+
+    section.app-panel.daily-task-board-panel(aria-labelledby='assignment-board-title')
+      .daily-task-section-heading
+        div
+          p.app-page-kicker Assignment board
+          h2#assignment-board-title Schedule by day
+          p Each staff option includes that person's schedule for the selected date. A saved day-off assignment is highlighted until it is reassigned or removed.
+        .daily-task-legend(aria-label='Schedule status legend')
+          span.daily-task-legend-item.daily-task-legend-item--working Working
+          span.daily-task-legend-item.daily-task-legend-item--partial Partial day
+          span.daily-task-legend-item.daily-task-legend-item--off Day off
+          span.daily-task-legend-item.daily-task-legend-item--unknown Not set
+
+      if boardTaskTypes.length
+        .table-responsive.daily-task-board-scroll
+          table.table.daily-task-board
+            caption.sr-only Daily task assignments from #{filters.start} through #{endDate}
+            thead
+              tr
+                th.daily-task-date-column(scope='col') Date
+                th.daily-task-staff-column(scope='col') Staff scheduled to work
+                each taskType in boardTaskTypes
+                  th.daily-task-type-column(scope='col')
+                    .daily-task-type-heading
+                      strong= taskType.name
+                      span.badge.badge-secondary= taskType.teamLabel
+                      if taskType.archived
+                        span.badge.badge-warning Archived
+                    if taskType.description
+                      small= taskType.description
+            tbody
+              each day in dates
+                tr(class=day.isToday ? 'daily-task-row--today' : '')
+                  th.daily-task-date(scope='row')
+                    strong= day.label
+                    span= day.date
+                    if day.isToday
+                      span.badge.badge-info Today
+                  td.daily-task-working-staff
+                    if day.workingUsers.length
+                      .daily-task-staff-list
+                        each staffUser in day.workingUsers
+                          - const staffAvailability = staffUser.availability[day.date]
+                          span.daily-task-staff-chip(class=`daily-task-staff-chip--${staffAvailability.category}`)
+                            strong= staffUser.userid
+                            if filters.team === 'all'
+                              small= staffUser.shortTeamLabel
+                            if staffAvailability.category === 'partial'
+                              small= staffAvailability.label
+                    else
+                      span.daily-task-no-staff No staff scheduled
+                  each slot in day.taskSlots
+                    - const taskType = slot.taskType
+                    - const assignment = slot.assignment
+                    - const currentChoiceIsAllowed = assignment && taskType.assignableUsers.some((staffUser) => staffUser.id === assignment.assigneeUserId)
+                    td.daily-task-cell(
+                      id=`task-${day.date}-${taskType.id}`,
+                      class=assignment && assignment.hasConflict ? 'daily-task-cell--conflict' : ''
+                    )
+                      if assignment
+                        .daily-task-current-assignment
+                          .daily-task-assignee-line
+                            strong= assignment.assigneeDisplayName
+                            if assignment.hasConflict
+                              span.badge.badge-warning= `Reschedule · ${assignment.scheduleLabel}`
+                            else if assignment.scheduleCategory === 'unknown'
+                              span.badge.badge-secondary= assignment.scheduleLabel
+                            else if assignment.scheduleCategory === 'partial'
+                              span.badge.badge-warning= assignment.scheduleLabel
+                            else
+                              span.badge.badge-success= assignment.scheduleLabel
+                          small Last saved by #{assignment.assignedByDisplayName}
+                          if assignment.note
+                            p= assignment.note
+                      else
+                        p.daily-task-unassigned Unassigned
+
+                      if !taskType.archived
+                        form.daily-task-assignment-form(method='post', action='/daily-tasks/assign')
+                          input(type='hidden', name='date', value=day.date)
+                          input(type='hidden', name='taskTypeId', value=taskType.id)
+                          input(type='hidden', name='viewStart', value=filters.start)
+                          input(type='hidden', name='viewDays', value=filters.days)
+                          input(type='hidden', name='viewTeam', value=filters.team)
+                          label.sr-only(for=`assignee-${day.date}-${taskType.id}`) Assignee for #{taskType.name} on #{day.date}
+                          select.form-control.form-control-sm(
+                            id=`assignee-${day.date}-${taskType.id}`,
+                            name='assigneeUserId',
+                            required=true
+                          )
+                            if assignment && !currentChoiceIsAllowed
+                              option(
+                                value='',
+                                selected=true,
+                                disabled=true
+                              )= `Current: ${assignment.assigneeDisplayName}; choose a permitted replacement`
+                            else
+                              option(value='', selected=!assignment, disabled=true) Choose staff
+                            each staffUser in taskType.assignableUsers
+                              - const availability = staffUser.availability[day.date]
+                              - const teamSuffix = role === 'admin' ? ` · ${staffUser.shortTeamLabel}` : ''
+                              - const offSuffix = availability.category === 'off' ? ' · DAY OFF' : ''
+                              option(
+                                value=staffUser.id,
+                                selected=assignment && assignment.assigneeUserId === staffUser.id
+                              )= `${staffUser.userid} — ${availability.label}${teamSuffix}${offSuffix}`
+                          label.sr-only(for=`note-${day.date}-${taskType.id}`) Optional note for #{taskType.name} on #{day.date}
+                          input.form-control.form-control-sm(
+                            id=`note-${day.date}-${taskType.id}`,
+                            type='text',
+                            name='note',
+                            maxlength='500',
+                            value=assignment ? assignment.note : '',
+                            placeholder='Optional note'
+                          )
+                          button.btn.btn-sm.btn-primary(type='submit')= assignment ? 'Save changes' : 'Assign'
+
+                      if assignment
+                        form.daily-task-remove-form(method='post', action=`/daily-tasks/assignments/${assignment.id}/remove`)
+                          input(type='hidden', name='viewStart', value=filters.start)
+                          input(type='hidden', name='viewDays', value=filters.days)
+                          input(type='hidden', name='viewTeam', value=filters.team)
+                          button.btn.btn-sm.btn-outline-danger(
+                            type='submit',
+                            onclick="return confirm('Remove this task assignment?')"
+                          ) Remove
+      else
+        .app-empty-state
+          h3 No active task types for this team
+          if role === 'admin'
+            p Add a task type below, or restore an archived one after selecting a view that includes it.
+          else
+            p An administrator can add task types for this team.
+
+    section.app-panel.daily-task-summary-panel(aria-labelledby='assignment-summary-title')
+      .daily-task-section-heading
+        div
+          p.app-page-kicker Fairness overview
+          h2#assignment-summary-title #{selectedYear} assignment totals
+          p Counts include the full selected calendar year, not only the dates currently displayed above.
+      if summaryTaskTypes.length && summaryRows.length
+        .table-responsive
+          table.table.table-striped.daily-task-summary
+            caption.sr-only Number of assignments per staff member and task type in #{selectedYear}
+            thead
+              tr
+                th(scope='col') Staff member
+                each taskType in summaryTaskTypes
+                  th(scope='col')
+                    span= taskType.name
+                    if taskType.archived
+                      small Archived
+                th(scope='col') Total
+            tbody
+              each summaryRow in summaryRows
+                tr
+                  th(scope='row')
+                    strong= summaryRow.name
+                    small= summaryRow.teamLabel
+                  each taskType in summaryTaskTypes
+                    - const count = summaryRow.counts[taskType.id] || 0
+                    td(class=count ? '' : 'daily-task-zero')= count
+                  td.daily-task-summary-total= summaryRow.total
+            tfoot
+              tr
+                th(scope='row') Overall total
+                each taskType in summaryTaskTypes
+                  td= taskType.total
+                td.daily-task-summary-total= summaryTaskTypes.reduce((total, taskType) => total + taskType.total, 0)
+      else
+        .app-empty-state
+          h3 No assignment totals yet
+          p Assign a task in #{selectedYear} to begin tracking the workload.
+
+    if role === 'admin'
+      section.app-panel.daily-task-admin-panel(aria-labelledby='task-type-admin-title')
+        .daily-task-section-heading
+          div
+            p.app-page-kicker Administration
+            h2#task-type-admin-title Task types
+            p Add reusable task types, assign each one to a team, or archive types that are no longer needed. Archiving preserves existing assignments and yearly totals.
+
+        form.daily-task-type-form(method='post', action='/daily-tasks/types')
+          input(type='hidden', name='viewStart', value=filters.start)
+          input(type='hidden', name='viewDays', value=filters.days)
+          input(type='hidden', name='viewTeam', value=filters.team)
+          .form-group
+            label(for='newTaskTypeName') Task name
+            input#newTaskTypeName.form-control(
+              type='text',
+              name='name',
+              maxlength='120',
+              required=true,
+              placeholder='Example: Process address changes'
+            )
+          .form-group
+            label(for='newTaskTypeTeam') Responsible team
+            select#newTaskTypeTeam.form-control(name='team', required=true)
+              each teamOption in teamOptions
+                option(value=teamOption.value, selected=filters.team === teamOption.value)= teamOption.label
+          .form-group.daily-task-description-field
+            label(for='newTaskTypeDescription') Description
+            input#newTaskTypeDescription.form-control(
+              type='text',
+              name='description',
+              maxlength='500',
+              placeholder='What the person in charge is responsible for'
+            )
+          .daily-task-type-submit
+            button.btn.btn-primary(type='submit') Add task type
+
+        if taskTypes.length
+          .table-responsive
+            table.table.daily-task-type-table
+              caption.sr-only Task types in the selected team view
+              thead
+                tr
+                  th(scope='col') Task type
+                  th(scope='col') Team
+                  th(scope='col') Status
+                  th(scope='col') Action
+              tbody
+                each taskType in taskTypes
+                  tr
+                    th(scope='row')
+                      strong= taskType.name
+                      if taskType.description
+                        small= taskType.description
+                    td= taskType.teamLabel
+                    td
+                      if taskType.archived
+                        span.badge.badge-warning Archived
+                      else
+                        span.badge.badge-success Active
+                    td
+                      form(method='post', action=`/daily-tasks/types/${taskType.id}/archive`)
+                        input(type='hidden', name='archived', value=taskType.archived ? 'false' : 'true')
+                        input(type='hidden', name='viewStart', value=filters.start)
+                        input(type='hidden', name='viewDays', value=filters.days)
+                        input(type='hidden', name='viewTeam', value=filters.team)
+                        if taskType.archived
+                          button.btn.btn-sm.btn-outline-success(type='submit') Restore
+                        else
+                          button.btn.btn-sm.btn-outline-warning(
+                            type='submit',
+                            onclick="return confirm('Archive this task type? Existing assignments will remain visible.')"
+                          ) Archive

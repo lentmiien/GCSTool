@@ -1,0 +1,395 @@
+.daily-tasks-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.daily-tasks-page .app-page-header,
+.daily-tasks-page .app-toolbar,
+.daily-tasks-page .alert,
+.daily-tasks-page .app-panel {
+  margin-bottom: 0;
+}
+
+.daily-tasks-page .daily-task-filters {
+  display: grid;
+  align-items: end;
+  gap: 0.85rem;
+  grid-template-columns: minmax(12rem, 1.2fr) minmax(10rem, 1fr) minmax(8rem, 0.7fr) auto;
+}
+
+.daily-tasks-page .daily-task-filter-field {
+  min-width: 0;
+}
+
+.daily-tasks-page .daily-task-filter-field label {
+  margin-bottom: 0.3rem;
+  color: var(--gcs-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.daily-tasks-page .daily-task-filter-actions,
+.daily-tasks-page .daily-task-range-nav,
+.daily-tasks-page .daily-task-section-heading,
+.daily-tasks-page .daily-task-type-heading,
+.daily-tasks-page .daily-task-assignee-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.daily-tasks-page .daily-task-range-nav {
+  justify-content: space-between;
+  padding: 0 0.25rem;
+}
+
+.daily-tasks-page .daily-task-range-nav > span {
+  display: grid;
+  text-align: center;
+}
+
+.daily-tasks-page .daily-task-range-nav strong {
+  color: var(--gcs-heading);
+}
+
+.daily-tasks-page .daily-task-range-nav small {
+  color: var(--gcs-muted);
+}
+
+.daily-tasks-page .daily-task-metrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.daily-tasks-page .daily-task-metric {
+  display: grid;
+  gap: 0.1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius);
+  background: var(--gcs-surface);
+  box-shadow: var(--gcs-shadow-sm);
+}
+
+.daily-tasks-page .daily-task-metric > span,
+.daily-tasks-page .daily-task-metric small {
+  color: var(--gcs-muted);
+}
+
+.daily-tasks-page .daily-task-metric strong {
+  color: var(--gcs-heading);
+  font-size: 1.55rem;
+  line-height: 1.2;
+}
+
+.daily-tasks-page .daily-task-metric--warning {
+  border-color: color-mix(in srgb, var(--gcs-warning) 48%, var(--gcs-border));
+  background: var(--gcs-warning-soft);
+}
+
+.daily-tasks-page .daily-task-conflicts p {
+  color: inherit;
+}
+
+.daily-tasks-page .daily-task-section-heading {
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.daily-tasks-page .daily-task-section-heading h2,
+.daily-tasks-page .daily-task-section-heading p {
+  margin-bottom: 0;
+}
+
+.daily-tasks-page .daily-task-section-heading p:not(.app-page-kicker) {
+  max-width: 55rem;
+  color: var(--gcs-muted);
+}
+
+.daily-tasks-page .daily-task-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.daily-tasks-page .daily-task-legend-item,
+.daily-tasks-page .daily-task-staff-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: 999px;
+  line-height: 1.25;
+}
+
+.daily-tasks-page .daily-task-legend-item {
+  padding: 0.27rem 0.55rem;
+  color: var(--gcs-muted);
+  background: var(--gcs-surface-muted);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.daily-tasks-page .daily-task-legend-item::before,
+.daily-tasks-page .daily-task-staff-chip::before {
+  width: 0.48rem;
+  height: 0.48rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--gcs-subtle);
+  content: '';
+}
+
+.daily-tasks-page .daily-task-legend-item--working::before,
+.daily-tasks-page .daily-task-staff-chip--working::before {
+  background: var(--gcs-success);
+}
+
+.daily-tasks-page .daily-task-legend-item--partial::before,
+.daily-tasks-page .daily-task-staff-chip--partial::before {
+  background: var(--gcs-warning);
+}
+
+.daily-tasks-page .daily-task-legend-item--off::before {
+  background: var(--gcs-danger);
+}
+
+.daily-tasks-page .daily-task-board-scroll {
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+}
+
+.daily-tasks-page .daily-task-board {
+  min-width: 70rem;
+  margin-bottom: 0;
+}
+
+.daily-tasks-page .daily-task-board th,
+.daily-tasks-page .daily-task-board td {
+  vertical-align: top;
+}
+
+.daily-tasks-page .daily-task-board thead th {
+  border-top: 0;
+  background: var(--gcs-surface-muted);
+}
+
+.daily-tasks-page .daily-task-date-column {
+  width: 8rem;
+  min-width: 8rem;
+}
+
+.daily-tasks-page .daily-task-staff-column {
+  width: 15rem;
+  min-width: 15rem;
+}
+
+.daily-tasks-page .daily-task-type-column,
+.daily-tasks-page .daily-task-cell {
+  min-width: 18rem;
+}
+
+.daily-tasks-page .daily-task-cell {
+  scroll-margin-top: 7rem;
+}
+
+.daily-tasks-page .daily-task-cell:target {
+  outline: 2px solid var(--gcs-focus);
+  outline-offset: -2px;
+}
+
+.daily-tasks-page .daily-task-type-heading {
+  margin-bottom: 0.25rem;
+}
+
+.daily-tasks-page .daily-task-type-heading strong {
+  color: var(--gcs-heading);
+}
+
+.daily-tasks-page .daily-task-type-column > small {
+  display: block;
+  color: var(--gcs-muted);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.daily-tasks-page .daily-task-row--today > * {
+  box-shadow: inset 0.18rem 0 0 var(--gcs-accent);
+}
+
+.daily-tasks-page .daily-task-date {
+  background: var(--gcs-surface);
+}
+
+.daily-tasks-page .daily-task-date strong,
+.daily-tasks-page .daily-task-date > span {
+  display: block;
+}
+
+.daily-tasks-page .daily-task-date > span:not(.badge) {
+  color: var(--gcs-muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
+.daily-tasks-page .daily-task-date .badge {
+  display: inline-block;
+  margin-top: 0.35rem;
+}
+
+.daily-tasks-page .daily-task-staff-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.daily-tasks-page .daily-task-staff-chip {
+  flex-wrap: wrap;
+  padding: 0.3rem 0.5rem;
+  color: var(--gcs-text);
+  background: var(--gcs-surface-muted);
+  font-size: 0.7rem;
+}
+
+.daily-tasks-page .daily-task-staff-chip small {
+  color: var(--gcs-muted);
+}
+
+.daily-tasks-page .daily-task-no-staff,
+.daily-tasks-page .daily-task-unassigned {
+  color: var(--gcs-muted);
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
+.daily-tasks-page .daily-task-unassigned {
+  margin-bottom: 0.55rem;
+}
+
+.daily-tasks-page .daily-task-cell--conflict {
+  background: var(--gcs-warning-soft);
+  box-shadow: inset 0.2rem 0 0 var(--gcs-warning);
+}
+
+.daily-tasks-page .daily-task-current-assignment {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--gcs-border);
+}
+
+.daily-tasks-page .daily-task-current-assignment > small {
+  color: var(--gcs-muted);
+}
+
+.daily-tasks-page .daily-task-current-assignment p {
+  margin: 0.2rem 0 0;
+  color: var(--gcs-text);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.daily-tasks-page .daily-task-assignment-form {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.daily-tasks-page .daily-task-assignment-form .btn {
+  justify-self: start;
+}
+
+.daily-tasks-page .daily-task-remove-form {
+  margin-top: 0.45rem;
+}
+
+.daily-tasks-page .daily-task-summary th small,
+.daily-tasks-page .daily-task-type-table th small {
+  display: block;
+  color: var(--gcs-muted);
+  font-weight: 400;
+}
+
+.daily-tasks-page .daily-task-summary td:not(:first-child),
+.daily-tasks-page .daily-task-summary thead th:not(:first-child) {
+  text-align: center;
+}
+
+.daily-tasks-page .daily-task-summary tbody th {
+  min-width: 10rem;
+}
+
+.daily-tasks-page .daily-task-zero {
+  color: var(--gcs-subtle);
+}
+
+.daily-tasks-page .daily-task-summary-total {
+  color: var(--gcs-heading);
+  font-weight: 800;
+}
+
+.daily-tasks-page .daily-task-type-form {
+  display: grid;
+  align-items: end;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-surface-muted);
+  grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 0.8fr) minmax(16rem, 1.5fr) auto;
+}
+
+.daily-tasks-page .daily-task-type-form .form-group {
+  margin-bottom: 0;
+}
+
+.daily-tasks-page .daily-task-type-submit {
+  padding-bottom: 0.02rem;
+}
+
+.daily-tasks-page .daily-task-type-table {
+  margin-bottom: 0;
+}
+
+.daily-tasks-page .daily-task-type-table th:first-child {
+  min-width: 16rem;
+}
+
+@media (max-width: 1199.98px) {
+  .daily-tasks-page .daily-task-filters,
+  .daily-tasks-page .daily-task-type-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-tasks-page .daily-task-filter-actions,
+  .daily-tasks-page .daily-task-type-submit {
+    align-self: end;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .daily-tasks-page .daily-task-filters,
+  .daily-tasks-page .daily-task-type-form,
+  .daily-tasks-page .daily-task-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-tasks-page .daily-task-filter-actions,
+  .daily-tasks-page .daily-task-range-nav,
+  .daily-tasks-page .daily-task-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .daily-tasks-page .daily-task-range-nav > span {
+    order: -1;
+  }
+
+  .daily-tasks-page .daily-task-range-nav .btn {
+    width: 100%;
+  }
+}

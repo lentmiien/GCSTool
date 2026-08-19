@@ -27,6 +27,8 @@ const InternalCountryListModel = require('./models/InternalCountryList');
 const JapanPostCountryListModel = require('./models/JapanPostCountryList');
 const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 const DHLCompensationEntryModel = require('./models/dhl_compensation_entry');
+const DailyTaskTypeModel = require('./models/dailyTaskType');
+const DailyTaskAssignmentModel = require('./models/dailyTaskAssignment');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -102,6 +104,8 @@ const OfficialCountryList = OfficialCountryListModel(sequelize, Sequelize);
 const InternalCountryList = InternalCountryListModel(sequelize, Sequelize);
 const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
 const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
+const DailyTaskType = DailyTaskTypeModel(sequelize, Sequelize);
+const DailyTaskAssignment = DailyTaskAssignmentModel(sequelize, Sequelize);
 const DHLCompensationEntry = DHLCompensationEntryModel(sequelize_dhl_compensation, Sequelize);
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -134,6 +138,28 @@ const PMTLog = PMTLogModel(sequelize, Sequelize);
 Entry.Content = Entry.hasMany(Content);
 Staff.Schedule = Staff.hasMany(Schedule);
 Staff.Schedule2 = Staff.hasMany(Schedule2);
+DailyTaskType.Assignments = DailyTaskType.hasMany(DailyTaskAssignment, {
+  as: 'assignments',
+  foreignKey: { name: 'taskTypeId', allowNull: false },
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
+});
+DailyTaskAssignment.TaskType = DailyTaskAssignment.belongsTo(DailyTaskType, {
+  as: 'taskType',
+  foreignKey: { name: 'taskTypeId', allowNull: false },
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
+});
+DailyTaskAssignment.Assignee = DailyTaskAssignment.belongsTo(User, {
+  as: 'assignee',
+  foreignKey: 'assigneeUserId',
+  constraints: false,
+});
+DailyTaskAssignment.Assigner = DailyTaskAssignment.belongsTo(User, {
+  as: 'assigner',
+  foreignKey: 'assignedByUserId',
+  constraints: false,
+});
 
 const Op = Sequelize.Op;
 const fn = Sequelize.fn;
@@ -236,6 +262,36 @@ async function seedVersionHistoryData() {
   }
 }
 
+async function seedDailyTaskTypes() {
+  const initialTypes = [
+    {
+      name: 'Splitting emails',
+      description: 'Person in charge of splitting incoming email among the staff working that day.',
+      team: 'ohami_gcs_mail',
+    },
+    {
+      name: 'DHL email',
+      description: 'Person in charge of the daily DHL email work.',
+      team: 'ohami_gcs_mail',
+    },
+    {
+      name: 'Shorten item names',
+      description: 'Person in charge of shortening item names for the day.',
+      team: 'ohami_gcs_mail',
+    },
+  ];
+
+  for (const taskType of initialTypes) {
+    await DailyTaskType.findOrCreate({
+      where: {
+        name: taskType.name,
+        team: taskType.team,
+      },
+      defaults: taskType,
+    });
+  }
+}
+
 async function ensureCaseTrackerSchema() {
   const queryInterface = sequelize.getQueryInterface();
   const caseTable = Case.getTableName();
@@ -297,6 +353,7 @@ async function ensureCaseTrackerSchema() {
 // Create all necessary tables: GCS Tool
 sequelize.sync().then(async () => {
   await seedAppSettings(AppSetting);
+  await seedDailyTaskTypes();
   await ensureCaseTrackerSchema();
   await ensureIrelandWorkSummarySchema();
   await seedVersionHistoryData();
@@ -347,6 +404,8 @@ module.exports = {
   InternalCountryList,
   JapanPostCountryList,
   CountryCodeEntryIdLink,
+  DailyTaskType,
+  DailyTaskAssignment,
   Country,
   Countrylist,
   Tracking,

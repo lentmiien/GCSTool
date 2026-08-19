@@ -10,6 +10,11 @@ module.exports = [
         item('Introduced a shared token-based design system for page surfaces, typography, forms, buttons, cards, tables, alerts, focus states, spacing, and responsive layouts'),
         item('Standardized a polished dark default and a complete light theme across the application, with persisted theme preference, early theme application, and live theme updates for interactive visualizations'),
       ]),
+      item('Task management', [
+        item('Added a dedicated daily tasks system for the GCS Mail Team with team-owned task types, admin-only create/archive workflow, role-aware assignments, and schedule-aware assignment warnings for off-days'),
+        item('Added assignment pages with role-based staffing visibility, weekly and annual assignment summaries, and a new /daily-tasks management view'),
+        item('Integrated assigned daily tasks into the Next 7 days schedule section so each user can see their upcoming task responsibilities directly from the home page'),
+      ]),
       item('Shipping', [
         item('Added the /hs/compact shipping CSV compactor utility with automatic deduplication across Japan Post, ePacket, and DHL by order, HS/TARIC, and unit price, preserving first item names and summing quantities'),
         item('Enhanced /hs/compact with side-by-side before/after preview of up to 100 orders, including an on-page toggle, while preserving full CSV download behavior for all entries'),
