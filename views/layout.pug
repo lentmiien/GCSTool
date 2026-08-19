@@ -201,11 +201,12 @@ html(lang='en', data-color-mode='dark')
       audio#alertsound_4(src='/sounds/398346__henrocker01__wheep-wheep.mp3', preload='none')
 
       if typeof workschedule !== 'undefined' && workschedule && workschedule.days && workschedule.days.length
-        section#workschedule.app-schedule-strip(aria-label='Your next seven days')
+        section#workschedule.app-schedule-strip.app-schedule-strip--collapsed(aria-label='Your schedule for today')
           .app-schedule-label
-            span Next 7 days
+            span.app-schedule-label-expanded Next 7 days
+            span.app-schedule-label-collapsed Today
             small Your schedule
-          .app-schedule-days
+          #workschedule-days.app-schedule-days
             each day in workschedule.days
               .wsday(class=day.category || 'ws_unknown')
                 strong= day.date
@@ -220,6 +221,17 @@ html(lang='en', data-color-mode='dark')
                         title=taskTitle,
                         aria-label=taskTitle
                       )= task.name
+          .app-schedule-controls
+            button.app-schedule-toggle(
+              type='button',
+              onclick='ToggleWorkSchedule(this)',
+              aria-expanded='false',
+              aria-controls='workschedule-days',
+              aria-label='Show next 7 days',
+              title='Show next 7 days'
+            )
+              span.app-schedule-toggle-label Show 7 days
+              span.app-schedule-toggle-icon(aria-hidden='true')
 
       main#main-content.app-main(class=!isSignedIn || requiresPasswordChange ? 'app-main--auth' : '')
         block content

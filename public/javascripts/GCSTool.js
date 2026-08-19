@@ -247,6 +247,27 @@ function ToggleColorMode() {
   PersistSettings();
 }
 
+function ToggleWorkSchedule(toggleButton) {
+  const scheduleStrip = document.getElementById('workschedule');
+  if (!scheduleStrip || !toggleButton) {
+    return;
+  }
+
+  const isCollapsed = scheduleStrip.classList.toggle('app-schedule-strip--collapsed');
+  const actionLabel = isCollapsed ? 'Show next 7 days' : 'Show today only';
+  const visibleLabel = isCollapsed ? 'Show 7 days' : 'Show today';
+  const toggleLabel = toggleButton.querySelector('.app-schedule-toggle-label');
+
+  toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+  toggleButton.setAttribute('aria-label', actionLabel);
+  toggleButton.setAttribute('title', actionLabel);
+  scheduleStrip.setAttribute('aria-label', isCollapsed ? 'Your schedule for today' : 'Your next 7 days');
+
+  if (toggleLabel) {
+    toggleLabel.textContent = visibleLabel;
+  }
+}
+
 function UpdateLanguageSettings() {
   const languageSelect = document.getElementById('lg_language');
   if (!languageSelect || !['japanese', 'english', 'swedish'].includes(languageSelect.value)) {
