@@ -43,6 +43,7 @@ module.exports = [
         item('Analyze schedule - Added Sunday/holiday row highlighting, team-member pills (including bordered pills for team leaders), and warning styles with per-team totals for the selected period'),
         item('Analyze schedule - Added support for start-date filtering via query parameter for historical period analysis and improved month/week divider styling for dark/light themes'),
         item('Your schedule - Added a minimize control so the Next 7 days section defaults to a compact today-only view and can be expanded back to the full 7-day layout'),
+        item('Your schedule - Updated personal schedule calendar theme support for dark/light modes, moved year navigation above the calendar with styled link buttons, modernized title styling, and improved Work/Telework color distinction while preserving existing status semantics'),
       ]),
     ],
   },

@@ -1,0 +1,421 @@
+.personal-schedule-page {
+  --schedule-month-surface: #18242c;
+  --schedule-month-border: #334854;
+  --schedule-day-empty: #202e37;
+  --schedule-day-empty-border: #405560;
+  --schedule-work: #236147;
+  --schedule-work-border: #62d4a9;
+  --schedule-telwork: #246f82;
+  --schedule-telwork-border: #75d4e6;
+  --schedule-partial: #6e5726;
+  --schedule-partial-border: #f2c46d;
+  --schedule-off: #344f80;
+  --schedule-off-border: #8eb9ff;
+  --schedule-holiday: #793d43;
+  --schedule-holiday-border: #ff9b9b;
+  --schedule-vacation: #684071;
+  --schedule-vacation-border: #dda5e5;
+  --schedule-day-text: #edf6f4;
+  --schedule-sunday: #f1a0a6;
+  --schedule-saturday: #9ac4f5;
+  max-width: 84rem;
+  margin: 0 auto;
+  padding-bottom: 1.5rem;
+}
+
+html[data-color-mode='light'] .personal-schedule-page {
+  --schedule-month-surface: #f8fbfc;
+  --schedule-month-border: #d6e2e5;
+  --schedule-day-empty: #ffffff;
+  --schedule-day-empty-border: #c8d5d9;
+  --schedule-work: #c8ecd7;
+  --schedule-work-border: #4a9b77;
+  --schedule-telwork: #9fd5e4;
+  --schedule-telwork-border: #347f9c;
+  --schedule-partial: #ffefbd;
+  --schedule-partial-border: #c49334;
+  --schedule-off: #dce5ff;
+  --schedule-off-border: #6f8ed0;
+  --schedule-holiday: #ffdadd;
+  --schedule-holiday-border: #c76870;
+  --schedule-vacation: #f5dcf7;
+  --schedule-vacation-border: #a565aa;
+  --schedule-day-text: #1c353d;
+  --schedule-sunday: #b94a54;
+  --schedule-saturday: #496fa8;
+}
+
+.personal-schedule-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.personal-schedule-eyebrow {
+  margin: 0 0 0.3rem;
+  color: var(--gcs-accent-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.personal-schedule-header h1 {
+  margin: 0;
+  color: var(--gcs-heading);
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.personal-schedule-year-nav {
+  display: grid;
+  width: min(100%, 34rem);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0 auto 1.1rem;
+  padding: 0.35rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: 0.85rem;
+  background: var(--gcs-surface);
+  box-shadow: var(--gcs-shadow-sm);
+}
+
+.personal-schedule-year-link {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 0.62rem;
+  color: var(--gcs-text);
+  background: transparent;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  transition: color var(--gcs-transition), border-color var(--gcs-transition), background-color var(--gcs-transition), transform var(--gcs-transition);
+}
+
+.personal-schedule-year-link:hover,
+.personal-schedule-year-link:focus-visible {
+  border-color: var(--gcs-border-strong);
+  color: var(--gcs-heading);
+  background: var(--gcs-surface-hover);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.personal-schedule-year-link:focus-visible {
+  outline: 2px solid var(--gcs-focus);
+  outline-offset: 2px;
+}
+
+.personal-schedule-year-link[aria-current='page'] {
+  border-color: color-mix(in srgb, var(--gcs-accent) 45%, var(--gcs-border));
+  color: var(--gcs-heading);
+  background: var(--gcs-accent-soft);
+}
+
+.personal-schedule-year-link__direction {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--gcs-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-schedule-year-link strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-schedule-calendar-panel {
+  overflow: hidden;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-lg);
+  background: var(--gcs-surface);
+  box-shadow: var(--gcs-shadow);
+}
+
+.personal-schedule-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.25rem, 1fr));
+  gap: 0.55rem;
+  padding: clamp(0.8rem, 2vw, 1.1rem);
+  border-bottom: 1px solid var(--gcs-border);
+  background: var(--gcs-surface-muted);
+}
+
+.personal-schedule-legend-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.42rem 0.5rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: 0.62rem;
+  background: var(--gcs-surface);
+}
+
+.personal-schedule-legend-swatch {
+  width: 1.45rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  border: 1px solid;
+  border-radius: 0.42rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.personal-schedule-legend-swatch--work {
+  border-color: var(--schedule-work-border);
+  background: var(--schedule-work);
+}
+
+.personal-schedule-legend-swatch--telwork {
+  border-color: var(--schedule-telwork-border);
+  background: var(--schedule-telwork);
+}
+
+.personal-schedule-legend-swatch--partial {
+  border-color: var(--schedule-partial-border);
+  background: var(--schedule-partial);
+}
+
+.personal-schedule-legend-swatch--off {
+  border-color: var(--schedule-off-border);
+  background: var(--schedule-off);
+}
+
+.personal-schedule-legend-swatch--holiday {
+  border-color: var(--schedule-holiday-border);
+  background: var(--schedule-holiday);
+}
+
+.personal-schedule-legend-swatch--vacation {
+  border-color: var(--schedule-vacation-border);
+  background: var(--schedule-vacation);
+}
+
+.personal-schedule-legend-swatch--unknown {
+  border-color: var(--schedule-day-empty-border);
+  background: var(--schedule-day-empty);
+}
+
+.personal-schedule-legend-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.personal-schedule-legend-copy strong {
+  overflow: hidden;
+  color: var(--gcs-heading);
+  font-size: 0.76rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-schedule-legend-copy small {
+  color: var(--gcs-muted);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.personal-schedule-calendar-scroll {
+  overflow-x: auto;
+  padding: clamp(0.65rem, 2vw, 1.25rem);
+  background: var(--gcs-bg-subtle);
+  scrollbar-color: var(--gcs-border-strong) var(--gcs-surface-muted);
+  scrollbar-width: thin;
+}
+
+.personal-schedule-calendar-scroll:focus-visible {
+  outline: 2px solid var(--gcs-focus);
+  outline-offset: -3px;
+}
+
+.personal-schedule-calendar {
+  display: block;
+  width: 100%;
+  min-width: 62rem;
+  max-width: 77.5rem;
+  height: auto;
+  margin: 0 auto;
+  color: var(--gcs-text);
+  font-family: inherit;
+}
+
+.personal-schedule-month__surface {
+  fill: var(--schedule-month-surface);
+  stroke: var(--schedule-month-border);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.personal-schedule-month__title {
+  fill: var(--gcs-heading);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.personal-schedule-weekday {
+  fill: var(--gcs-muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.personal-schedule-weekday--sunday {
+  fill: var(--schedule-sunday);
+}
+
+.personal-schedule-weekday--saturday {
+  fill: var(--schedule-saturday);
+}
+
+.personal-schedule-day {
+  cursor: pointer;
+  outline: none;
+}
+
+.personal-schedule-day__cell {
+  fill: var(--schedule-day-empty);
+  stroke: var(--schedule-day-empty-border);
+  stroke-width: 1.5;
+  transition: fill var(--gcs-transition), stroke var(--gcs-transition), filter var(--gcs-transition);
+  vector-effect: non-scaling-stroke;
+}
+
+.personal-schedule-day__number {
+  fill: var(--schedule-day-text);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+
+.personal-schedule-day--sunday[data-status=''] .personal-schedule-day__number {
+  fill: var(--schedule-sunday);
+}
+
+.personal-schedule-day--saturday[data-status=''] .personal-schedule-day__number {
+  fill: var(--schedule-saturday);
+}
+
+.personal-schedule-day[data-status='work'] .personal-schedule-day__cell {
+  fill: var(--schedule-work);
+  stroke: var(--schedule-work-border);
+}
+
+.personal-schedule-day[data-status='telwork'] .personal-schedule-day__cell {
+  fill: var(--schedule-telwork);
+  stroke: var(--schedule-telwork-border);
+}
+
+.personal-schedule-day[data-status='2hoff_m'] .personal-schedule-day__cell,
+.personal-schedule-day[data-status='2hoff_e'] .personal-schedule-day__cell,
+.personal-schedule-day[data-status='halfoff_m'] .personal-schedule-day__cell,
+.personal-schedule-day[data-status='halfoff_e'] .personal-schedule-day__cell {
+  fill: var(--schedule-partial);
+  stroke: var(--schedule-partial-border);
+}
+
+.personal-schedule-day[data-status='off'] .personal-schedule-day__cell {
+  fill: var(--schedule-off);
+  stroke: var(--schedule-off-border);
+}
+
+.personal-schedule-day[data-status='holiday'] .personal-schedule-day__cell {
+  fill: var(--schedule-holiday);
+  stroke: var(--schedule-holiday-border);
+}
+
+.personal-schedule-day[data-status='vacation'] .personal-schedule-day__cell {
+  fill: var(--schedule-vacation);
+  stroke: var(--schedule-vacation-border);
+}
+
+.personal-schedule-day:hover .personal-schedule-day__cell,
+.personal-schedule-day:focus-visible .personal-schedule-day__cell {
+  stroke: var(--gcs-accent-strong);
+  stroke-width: 3;
+  filter: brightness(1.08);
+}
+
+.personal-schedule-day:focus-visible .personal-schedule-day__cell {
+  filter: drop-shadow(0 0 4px var(--gcs-focus));
+}
+
+.personal-schedule-popup {
+  z-index: 1080;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.personal-schedule-popup .popup-center {
+  width: min(100%, 30rem);
+  margin: 0;
+  padding: 1.25rem;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.personal-schedule-popup .popup-center h3 {
+  margin-bottom: 0.45rem;
+  color: var(--gcs-heading);
+  font-size: 1.15rem;
+}
+
+.personal-schedule-popup .popup-center p {
+  color: var(--gcs-muted);
+}
+
+@media (max-width: 575.98px) {
+  .personal-schedule-header {
+    text-align: left;
+  }
+
+  .personal-schedule-year-link {
+    min-height: 3rem;
+    padding-right: 0.3rem;
+    padding-left: 0.3rem;
+  }
+
+  .personal-schedule-year-link__direction {
+    font-size: 0.62rem;
+  }
+
+  .personal-schedule-year-link strong {
+    font-size: 0.78rem;
+  }
+
+  .personal-schedule-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .personal-schedule-legend-copy strong {
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .personal-schedule-year-link,
+  .personal-schedule-day__cell {
+    transition: none;
+  }
+}

@@ -1,66 +1,156 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/css/personal_schedule.css')
+
 block content
-  h1(style="position: sticky;top: 0;background-color:black;")= `年間スケジュール（${show_year}年） ${schedule_name}`
-  - const iyear = (new Date()).getFullYear()
-  a.btn.btn-link(href=`/scheduler/${id}/personal_schedule?year=${iyear - 1}`)= `${iyear - 1}年`
-  a.btn.btn-link(href=`/scheduler/${id}/personal_schedule?year=${iyear}`)= `${iyear}年`
-  a.btn.btn-link(href=`/scheduler/${id}/personal_schedule?year=${iyear + 1}`)= `${iyear + 1}年`
-  - let has_unknown_days = false
-  svg(width="1240" height="1700" viewBox="0 0 1240 1700" fill="none" xmlns="http://www.w3.org/2000/svg")
-    rect#background(width="1240" height="1700" fill="white")
-    - let year = parseInt(show_year)
-    - let month = 0
-    - let x_offset = month % 3
-    - let y_offset = Math.floor(month / 3)
-    - let week_offset = 1
-    - let num_used_holidays = 0
-    - let num_days_off = 0
-    - let num_vacation = 0
-    text(x=`${x_offset * 420 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
-    - const days = ["日", "月", "火", "水", "木", "金", "土"]
-    - let i = 0
-      while i < 7
-        text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
-        - i++
-    - let d = new Date(year, month, 1)
-    - let colormap = { "work":"rgb(120,255,120)", "telwork":"rgb(180,255,180)","2hoff_m":"rgb(255,255,120)","2hoff_e":"rgb(255,255,120)","halfoff_m":"rgb(255,255,120)","halfoff_e":"rgb(255,255,120)","off":"rgb(120,120,255)","holiday":"rgb(255,120,120)","vacation":"rgb(255,120,255)" }
-    while d.getFullYear() == year
-      if d.getMonth() != month
-        - month++
-        - x_offset = month % 3
-        - y_offset = Math.floor(month / 3)
-        - week_offset = 1
-        text(x=`${x_offset * 420 + 200}` y=`${y_offset * 400 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= (month + 1) + "月"
-        - i = 0
-        while i < 7
-          text(x=`${x_offset * 420 + i * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 90}` dominant-baseline="middle" text-anchor="middle" fill="black")= days[i]
-          - i++
-      - let day = d.getDay()
-      - let ckey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
-      if schedule[ckey] == "off"
-        - num_days_off++
-      if schedule[ckey] == "holiday"
-        - num_used_holidays++
-      if schedule[ckey] == "vacation"
-        - num_vacation++
-      if schedule[ckey] == undefined
-        - has_unknown_days = true
-      rect(id=`day_${year}_${month+1}_${d.getDate()}`, x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`${schedule[ckey] ? colormap[schedule[ckey]] : "white"}` stroke="black")
-      text(x=`${x_offset * 420 + day * 57 + 27.5}` y=`${y_offset * 400 + week_offset * 57 + 127.5}` dominant-baseline="middle" text-anchor="middle" fill="black")= d.getDate()
-      rect(x=`${x_offset * 420 + day * 57}` y=`${y_offset * 400 + week_offset * 57 + 100}` width=`55` height=`55` fill=`rgba(0, 0, 0, 0)` stroke="black", onclick=`ClickOnDate(${year},${month+1},${d.getDate()},"${schedule[ckey]}",${id})`)
-      - d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-      if d.getDay() == 0
-        - week_offset++
-    rect(x=`${100}` y=`${50}` width=`55` height=`27` fill=`rgb(120,255,120)` stroke="black")
-    rect(x=`${100}` y=`${77}` width=`55` height=`28` fill=`rgb(180,255,180)` stroke="black")
-    text(x=`${160}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black" lg_language='_work_')
-    rect(x=`${300}` y=`${50}` width=`55` height=`55` fill=`rgb(255,255,120)` stroke="black")
-    text(x=`${360}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black" lg_language='_work_nf_')
-    rect(x=`${500}` y=`${50}` width=`55` height=`55` fill=`rgb(120,120,255)` stroke="black")
-    text(x=`${560}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `定休 (${num_days_off} of ${total_days_off[show_year]})`
-    rect(x=`${740}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,120)` stroke="black")
-    text(x=`${800}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `祝日 (${num_used_holidays} of ${total_holidays[show_year]})`
-    rect(x=`${940}` y=`${50}` width=`55` height=`55` fill=`rgb(255,120,255)` stroke="black")
-    text(x=`${1000}` y=`${77.5}` dominant-baseline="middle" text-anchor="left" fill="black")= `休暇 (${num_vacation})`
-  script(src="/javascripts/editschedule.js")
+  - const year = Number.parseInt(show_year, 10)
+  - const currentYear = (new Date()).getFullYear()
+  - const previousYear = currentYear - 1
+  - const nextYear = currentYear + 1
+  - const daysInYear = new Date(year, 1, 29).getMonth() === 1 ? 366 : 365
+  - const scheduleValues = Object.keys(schedule).map((key) => schedule[key])
+  - const knownStatuses = ['work', 'telwork', '2hoff_m', '2hoff_e', 'halfoff_m', 'halfoff_e', 'off', 'holiday', 'vacation']
+  - const numDaysOff = scheduleValues.filter((status) => status === 'off').length
+  - const numUsedHolidays = scheduleValues.filter((status) => status === 'holiday').length
+  - const numVacationDays = scheduleValues.filter((status) => status === 'vacation').length
+  - const hasUnknownDays = scheduleValues.length < daysInYear || scheduleValues.some((status) => !knownStatuses.includes(status))
+  - const totalDaysOff = total_days_off && total_days_off[show_year] !== undefined ? total_days_off[show_year] : '—'
+  - const totalHolidays = total_holidays && total_holidays[show_year] !== undefined ? total_holidays[show_year] : '—'
+  - const days = ['日', '月', '火', '水', '木', '金', '土']
+
+  .personal-schedule-page
+    header.personal-schedule-header
+      p.personal-schedule-eyebrow Personal schedule
+      h1= `年間スケジュール（${year}年） ${schedule_name}`
+
+    nav.personal-schedule-year-nav(aria-label='表示する年を変更')
+      a.personal-schedule-year-link(
+        href=`/scheduler/${id}/personal_schedule?year=${previousYear}`,
+        aria-label=`前年の${previousYear}年を表示`,
+        aria-current=year === previousYear ? 'page' : undefined
+      )
+        span.personal-schedule-year-link__direction(aria-hidden='true') ‹ 前年
+        strong= `${previousYear}年`
+      a.personal-schedule-year-link(
+        href=`/scheduler/${id}/personal_schedule?year=${currentYear}`,
+        aria-label=`今年の${currentYear}年を表示`,
+        aria-current=year === currentYear ? 'page' : undefined
+      )
+        span.personal-schedule-year-link__direction 今年
+        strong= `${currentYear}年`
+      a.personal-schedule-year-link(
+        href=`/scheduler/${id}/personal_schedule?year=${nextYear}`,
+        aria-label=`翌年の${nextYear}年を表示`,
+        aria-current=year === nextYear ? 'page' : undefined
+      )
+        span.personal-schedule-year-link__direction(aria-hidden='true') 翌年 ›
+        strong= `${nextYear}年`
+
+    section.personal-schedule-calendar-panel(aria-labelledby='personal-schedule-calendar-heading')
+      h2#personal-schedule-calendar-heading.sr-only= `${year}年の年間カレンダー`
+      .personal-schedule-legend(role='list', aria-label='スケジュール区分')
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--work(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_work_') 仕事
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--telwork(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_telwork_') テレワーク
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--partial(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_work_nf_') 仕事（丸一日ではない）
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--off(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_day_off_') 定休
+            small= `${numDaysOff} / ${totalDaysOff}`
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--holiday(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_holiday_') 祝日
+            small= `${numUsedHolidays} / ${totalHolidays}`
+        .personal-schedule-legend-item(role='listitem')
+          span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--vacation(aria-hidden='true')
+          span.personal-schedule-legend-copy
+            strong(lg_language='_vacation_') 休暇
+            small= `${numVacationDays}`
+        if hasUnknownDays
+          .personal-schedule-legend-item(role='listitem')
+            span.personal-schedule-legend-swatch.personal-schedule-legend-swatch--unknown(aria-hidden='true')
+            span.personal-schedule-legend-copy
+              strong 未設定
+
+      .personal-schedule-calendar-scroll(tabindex='0', aria-label='年間カレンダー。横方向にスクロールできます。')
+        svg.personal-schedule-calendar(
+          width='1240',
+          height='1600',
+          viewBox='0 0 1240 1600',
+          fill='none',
+          xmlns='http://www.w3.org/2000/svg',
+          aria-labelledby='personal-schedule-svg-title personal-schedule-svg-description'
+        )
+          title#personal-schedule-svg-title= `${year}年 ${schedule_name}の年間スケジュール`
+          desc#personal-schedule-svg-description 日付を選択すると、その日のスケジュールを変更できます。
+          - let month = 0
+          while month < 12
+            - const xOffset = (month % 3) * 420
+            - const yOffset = Math.floor(month / 3) * 400
+            g.personal-schedule-month
+              rect.personal-schedule-month__surface(x=xOffset, y=yOffset + 4, width='400', height='388', rx='18', ry='18')
+              text.personal-schedule-month__title(
+                x=xOffset + 200,
+                y=yOffset + 31,
+                dominant-baseline='middle',
+                text-anchor='middle'
+              )= `${month + 1}月`
+              - let dayIndex = 0
+              while dayIndex < 7
+                - const weekdayClass = dayIndex === 0 ? 'personal-schedule-weekday--sunday' : dayIndex === 6 ? 'personal-schedule-weekday--saturday' : ''
+                text.personal-schedule-weekday(
+                  class=weekdayClass,
+                  x=xOffset + 30 + dayIndex * 56,
+                  y=yOffset + 67,
+                  dominant-baseline='middle',
+                  text-anchor='middle'
+                )= days[dayIndex]
+                - dayIndex++
+              - let date = new Date(year, month, 1)
+              - let weekIndex = 0
+              while date.getMonth() === month
+                - const weekday = date.getDay()
+                - const dateKey = `${year}-${month}-${date.getDate()}`
+                - const scheduleStatus = schedule[dateKey] || ''
+                - const dateClass = weekday === 0 ? 'personal-schedule-day--sunday' : weekday === 6 ? 'personal-schedule-day--saturday' : ''
+                - const dayX = xOffset + 5 + weekday * 56
+                - const dayY = yOffset + 86 + weekIndex * 49
+                g.personal-schedule-day(
+                  id=`day_${year}_${month + 1}_${date.getDate()}`,
+                  class=dateClass,
+                  role='button',
+                  tabindex='0',
+                  data-year=year,
+                  data-month=month + 1,
+                  data-date=date.getDate(),
+                  data-status=scheduleStatus,
+                  data-staff=id,
+                  aria-label=`${year}年${month + 1}月${date.getDate()}日のスケジュールを編集`,
+                  onclick='ClickOnScheduleDay(this)',
+                  onkeydown='HandleScheduleDayKeydown(event)'
+                )
+                  rect.personal-schedule-day__cell(x=dayX, y=dayY, width='50', height='45', rx='9', ry='9')
+                  text.personal-schedule-day__number(
+                    x=dayX + 25,
+                    y=dayY + 23,
+                    dominant-baseline='middle',
+                    text-anchor='middle'
+                  )= date.getDate()
+                - date = new Date(year, month, date.getDate() + 1)
+                if date.getDay() === 0
+                  - weekIndex++
+            - month++
+
+block scripts
+  script(src='/javascripts/editschedule.js')
