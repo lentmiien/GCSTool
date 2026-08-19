@@ -8,47 +8,48 @@ block content
             span= entry.title
             span(lg_language='_update_entry_2_')
             hr
-            form(action='/entry/' + entry.id + '/update', method="post")
-                div.form-group
-                    input#creator(type='hidden', name='creator')
-                    label(for='title', lg_language='_title_')
-                    input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=entry.title)
-                    br
-                    label(for='category', lg_language='_category_')
-                    select#category.form-control(name='category')
-                        if entry.category==='template'
-                            option(value='template', lg_language='_template_', selected)
-                        else
-                            option(value='template', lg_language='_template_')
-                        if entry.category==='manual'
-                            option(value='manual', lg_language='_manual_', selected)
-                        else
-                            option(value='manual', lg_language='_manual_')
-                        if entry.category==='ccontact'
-                            option(value='ccontact', lg_language='_ccontact_', selected)
-                        else
-                            option(value='ccontact', lg_language='_ccontact_')
-                    br
-                    if role === 'admin'
-                        div
-                            label(for='ismaster', lg_language='_is_master_')
-                            input#ismaster.form-control(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
-                            br
-                    label(for='tag', lg_language='_tag_')
-                    - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
-                    select#tag.form-control(name='tag')
-                        each tag in tags
-                            if entry.tag===tag
-                                option(value=tag, lg_language=tag, selected)
+            form.entry-editor-form(action='/entry/' + entry.id + '/update', method="post")
+                input#creator(type='hidden', name='creator')
+                .form-group.entry-metadata-grid
+                    .entry-metadata-field.entry-metadata-field--title
+                        label(for='title', lg_language='_title_')
+                        input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=entry.title)
+                    .entry-metadata-field.entry-metadata-field--category
+                        label(for='category', lg_language='_category_')
+                        select#category.form-control(name='category')
+                            if entry.category==='template'
+                                option(value='template', lg_language='_template_', selected)
                             else
-                                option(value=tag, lg_language=tag)
-                    br
-                    label(for='team', lg_language='_team_')
-                    select#team.form-control(name='team')
-                        if entry.team==='ohami_gcs_mail'
-                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
-                        else
-                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
+                                option(value='template', lg_language='_template_')
+                            if entry.category==='manual'
+                                option(value='manual', lg_language='_manual_', selected)
+                            else
+                                option(value='manual', lg_language='_manual_')
+                            if entry.category==='ccontact'
+                                option(value='ccontact', lg_language='_ccontact_', selected)
+                            else
+                                option(value='ccontact', lg_language='_ccontact_')
+                    if role === 'admin'
+                        .entry-metadata-field.entry-metadata-field--master
+                            label(for='ismaster', lg_language='_is_master_')
+                            .entry-master-control
+                                input#ismaster(type='checkbox', name='ismaster', checked=(entry.ismaster==1 ? true : false))
+                    .entry-metadata-field.entry-metadata-field--tag
+                        label(for='tag', lg_language='_tag_')
+                        - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+                        select#tag.form-control(name='tag')
+                            each tag in tags
+                                if entry.tag===tag
+                                    option(value=tag, lg_language=tag, selected)
+                                else
+                                    option(value=tag, lg_language=tag)
+                    .entry-metadata-field.entry-metadata-field--team
+                        label(for='team', lg_language='_team_')
+                        select#team.form-control(name='team')
+                            if entry.team==='ohami_gcs_mail'
+                                option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
+                            else
+                                option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
                 div.form-group
                     a.btn.btn-dark(onclick="ResizeAll()") Re-size all
                     br
@@ -61,10 +62,7 @@ block content
                         if (i == 0)
                             span.tooltip TIP
                                 span.tooltiptextright(lg_language='_tooltip_enter_data_')
-                        .input-group.mb-3
-                            textarea.form-control(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
-                            .input-group-append
-                                button.btn.btn-warning.input-group-text(data-label='content' + (i+1), onclick="AI(event)") AI
+                        textarea.form-control.mb-3(id='content' + (i+1), name='content' + (i+1), cols='30', rows='10')= (undefined===entry.contents[i] ? '' : entry.contents[i].data)
                 button.btn.btn-primary(type='submit', lg_language='_submit_update_')
     else
         h2(lg_language='_couldnt_update_')
@@ -73,5 +71,3 @@ block content
                 li= error.msg
         hr
         a(href="/entry", lg_language='_back_')
-    script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js", defer) 
-    script(src="/javascripts/edit_controller.js", defer) 

@@ -1699,6 +1699,53 @@ div.entry_c.ccontact {
   gap: 0.45rem;
 }
 
+.entry-metadata-grid {
+  display: grid;
+  max-width: 72rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.entry-metadata-field {
+  min-width: 0;
+}
+
+.entry-metadata-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.entry-metadata-field--title {
+  grid-column: span 4;
+}
+
+.entry-metadata-field--category,
+.entry-metadata-field--team {
+  grid-column: span 2;
+}
+
+.entry-metadata-field--master {
+  grid-column: span 1;
+}
+
+.entry-metadata-field--tag {
+  grid-column: span 3;
+}
+
+.entry-master-control {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+}
+
+.entry-master-control input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+}
+
 .entry-list {
   display: grid;
   gap: 0.7rem;
@@ -2725,6 +2772,15 @@ div.home-entry {
   .entry-filter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .entry-metadata-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .entry-metadata-field--title,
+  .entry-metadata-field--tag {
+    grid-column: span 3;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -2821,6 +2877,21 @@ div.home-entry {
     grid-template-columns: 1fr;
   }
 
+  .entry-metadata-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .entry-metadata-field--title {
+    grid-column: span 2;
+  }
+
+  .entry-metadata-field--category,
+  .entry-metadata-field--master,
+  .entry-metadata-field--tag,
+  .entry-metadata-field--team {
+    grid-column: span 1;
+  }
+
   article.entry > .title_button {
     width: 100%;
     max-width: none;
@@ -2834,6 +2905,20 @@ div.home-entry {
 
   .entry-actions {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .entry-metadata-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .entry-metadata-field--title,
+  .entry-metadata-field--category,
+  .entry-metadata-field--master,
+  .entry-metadata-field--tag,
+  .entry-metadata-field--team {
+    grid-column: span 1;
   }
 }
 

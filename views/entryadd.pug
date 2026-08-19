@@ -7,88 +7,72 @@ block content
                 li= error.msg
         hr
     h1(lg_language='_new_entry_')
-    form(action='/entry/create', method='post')
-        div.form-group
-            label(for='title', lg_language='_title_')
-            input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=(undefined===request.title ? '' : request.title))
-            br
-            label(for='category', lg_language='_category_')
-            select#category.form-control(name='category')
-                if undefined===request.category
-                    option(value='template', lg_language='_template_')
-                    option(value='manual', lg_language='_manual_')
-                    option(value='ccontact', lg_language='_ccontact_')
-                else
-                    if request.category==='template'
-                        option(value='template', lg_language='_template_', selected)
-                    else
+    form.entry-editor-form(action='/entry/create', method='post')
+        .form-group.entry-metadata-grid
+            .entry-metadata-field.entry-metadata-field--title
+                label(for='title', lg_language='_title_')
+                input#title.form-control(type='text' placeholder='The title' name='title' required='true' value=(undefined===request.title ? '' : request.title))
+            .entry-metadata-field.entry-metadata-field--category
+                label(for='category', lg_language='_category_')
+                select#category.form-control(name='category')
+                    if undefined===request.category
                         option(value='template', lg_language='_template_')
-                    if request.category==='manual'
-                        option(value='manual', lg_language='_manual_', selected)
-                    else
                         option(value='manual', lg_language='_manual_')
-                    if request.category==='ccontact'
-                        option(value='ccontact', lg_language='_ccontact_', selected)
-                    else
                         option(value='ccontact', lg_language='_ccontact_')
-            br
-            if role === 'admin'
-                div
-                    label(for='ismaster', lg_language='_is_master_')
-                    input#ismaster.form-control(type='checkbox', name='ismaster', checked=(undefined===request.ismaster ? false : true))
-                    br
-            label(for='tag', lg_language='_tag_')
-            - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
-            select#tag.form-control(name='tag')
-                if undefined===request.tag
-                    each tag in tags
-                        option(value=tag lg_language=tag)
-                else
-                    each tag in tags
-                        if request.tag===tag
-                            option(value=tag, lg_language=tag, selected)
-                        else
-                            option(value=tag, lg_language=tag)
-            br
-            label(for='team', lg_language='_team_')
-            select#team.form-control(name='team')
-                if undefined===request.team
-                    option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
-                else
-                    if request.team==='ohami_gcs_mail'
-                        option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
                     else
+                        if request.category==='template'
+                            option(value='template', lg_language='_template_', selected)
+                        else
+                            option(value='template', lg_language='_template_')
+                        if request.category==='manual'
+                            option(value='manual', lg_language='_manual_', selected)
+                        else
+                            option(value='manual', lg_language='_manual_')
+                        if request.category==='ccontact'
+                            option(value='ccontact', lg_language='_ccontact_', selected)
+                        else
+                            option(value='ccontact', lg_language='_ccontact_')
+            if role === 'admin'
+                .entry-metadata-field.entry-metadata-field--master
+                    label(for='ismaster', lg_language='_is_master_')
+                    .entry-master-control
+                        input#ismaster(type='checkbox', name='ismaster', checked=(undefined===request.ismaster ? false : true))
+            .entry-metadata-field.entry-metadata-field--tag
+                label(for='tag', lg_language='_tag_')
+                - const tags = ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
+                select#tag.form-control(name='tag')
+                    if undefined===request.tag
+                        each tag in tags
+                            option(value=tag lg_language=tag)
+                    else
+                        each tag in tags
+                            if request.tag===tag
+                                option(value=tag, lg_language=tag, selected)
+                            else
+                                option(value=tag, lg_language=tag)
+            .entry-metadata-field.entry-metadata-field--team
+                label(for='team', lg_language='_team_')
+                select#team.form-control(name='team')
+                    if undefined===request.team
                         option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
+                    else
+                        if request.team==='ohami_gcs_mail'
+                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail', selected)
+                        else
+                            option(value='ohami_gcs_mail', lg_language='ohami_gcs_mail')
         div.form-group
             a.btn.btn-dark(onclick="ResizeAll()") Re-size all
             br
             label(for='content1', lg_language='_content_')
             span.tooltip TIP
                 span.tooltiptextright(lg_language='_tooltip_enter_data_')
-            .input-group.mb-3
-                textarea.form-control(id='content1', name='content1', cols='30', rows='10', required='true')= (undefined===request.content1 ? '' : request.content1)
-                .input-group-append
-                    button.btn.btn-warning.input-group-text(data-label="content1", onclick=`AI(event)`) AI
+            textarea.form-control.mb-3(id='content1', name='content1', cols='30', rows='10', required='true')= (undefined===request.content1 ? '' : request.content1)
             label(for='content2', lg_language='_content_')
-            .input-group.mb-3
-                textarea.form-control(id='content2', name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)
-                .input-group-append
-                    button.btn.btn-warning.input-group-text(data-label="content2", onclick=`AI(event)`) AI
+            textarea.form-control.mb-3(id='content2', name='content2', cols='30', rows='10')= (undefined===request.content2 ? '' : request.content2)
             label(for='content3', lg_language='_content_')
-            .input-group.mb-3
-                textarea.form-control(id='content3', name='content3', cols='30', rows='10')= (undefined===request.content3 ? '' : request.content3)
-                .input-group-append
-                    button.btn.btn-warning.input-group-text(data-label="content3", onclick=`AI(event)`) AI
+            textarea.form-control.mb-3(id='content3', name='content3', cols='30', rows='10')= (undefined===request.content3 ? '' : request.content3)
             label(for='content4', lg_language='_content_')
-            .input-group.mb-3
-                textarea.form-control(id='content4', name='content4', cols='30', rows='10')= (undefined===request.content4 ? '' : request.content4)
-                .input-group-append
-                    button.btn.btn-warning.input-group-text(data-label="content4", onclick=`AI(event)`) AI
+            textarea.form-control.mb-3(id='content4', name='content4', cols='30', rows='10')= (undefined===request.content4 ? '' : request.content4)
             label(for='content5', lg_language='_content_')
-            .input-group.mb-3
-                textarea.form-control(id='content5', name='content5', cols='30', rows='10')= (undefined===request.content5 ? '' : request.content5)
-                .input-group-append
-                    button.btn.btn-warning.input-group-text(data-label="content5", onclick=`AI(event)`) AI
+            textarea.form-control.mb-3(id='content5', name='content5', cols='30', rows='10')= (undefined===request.content5 ? '' : request.content5)
         button.btn.btn-primary(type='submit', lg_language='_submit_')
-    script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js", defer) 
-    script(src="/javascripts/edit_controller.js", defer) 
