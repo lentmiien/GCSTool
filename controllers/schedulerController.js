@@ -2,7 +2,11 @@ const async = require('async');
 const fs = require('fs');
 
 // Require necessary database models
-const { User, Staff, Holiday, Schedule2 } = require('../sequelize');
+const { User, Staff, Holiday, Schedule2, Op } = require('../sequelize');
+const {
+  buildScheduleAnalysis,
+  resolveScheduleAnalysisPeriod,
+} = require('../utils/scheduleAnalysis');
 
 // Require settings
 const settings = require('../data/Scheduler_settings.json');
@@ -563,68 +567,41 @@ scheduler_change_log.push({
 */
 
 // Analyze for potential problems
-exports.analyze_schedule = function (req, res) {
-  async.parallel(
-    {
-      staff: function (callback) {
-        Staff.findAll({ include: [{ model: Schedule2 }] }).then((staff) => callback(null, staff));
-      },
-      holidays: function (callback) {
-        Holiday.findAll().then((holidays) => callback(null, holidays));
-      },
-      users: function (callback) {
-        User.findAll().then((users) => callback(null, users));
-      },
-    },
-    function (err, results) {
-      const teams = [];
-      results.users.forEach((u) => {
-        if (teams.indexOf(u.team) == -1) {
-          teams.push(u.team);
-        }
-        for (let i = 0; i < results.staff.length; i++) {
-          if (u.userid == results.staff[i].name) {
-            results.staff[i]['team'] = u.team;
-          }
-        }
-      });
-      const schedule = [];
-      let d = new Date(parseInt(req.query.year), 0, 1);
-      if (d.getTime() < Date.now()) {
-        d = new Date();
-      }
-      for(; d.getFullYear() == req.query.year; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
-        let dstr = `${d.getFullYear()}-${d.getMonth() > 8 ? (d.getMonth() + 1) : '0' + (d.getMonth() + 1)}-${d.getDate() > 9 ? d.getDate() : '0' + d.getDate()}`;
-        const index = schedule.length;
-        schedule.push({date : dstr, day: d.getDay()});
-        teams.forEach(team => {
-          schedule[index][team] = {staff: 0, kanri: 0, stafflist: ''};
-        });
-        results.staff.forEach(staff => {
-          staff.schedule2s.forEach(schedule_day => {
-            if(dstr == schedule_day.date) {
-              // not (off, holiday, vacation)
-              if(!(schedule_day.work == 'off' || schedule_day.work == 'holiday' || schedule_day.work == 'vacation')) {
-                if(staff.name == 'Lennart' || staff.name == 'Nick' || staff.name == 'Hwang' || staff.name == 'Yokoyama') {
-                  schedule[index][staff.team].kanri++;
-                } else {
-                  schedule[index][staff.team].staff++;
-                }
-                schedule[index][staff.team].stafflist += staff.name + ',';
-              }
-            }
-          });
-        });
-      }
-      const holidays = [];
-      results.holidays.forEach(h => {
-        if (h.date.split('-')[0] == req.query.year) {
-          holidays.push(h.date);
-        }
-      });
-      res.render('analyze_schedule', { data: schedule, teams, year: req.query.year, holidays });
-    }
-  );
+exports.analyze_schedule = async function (req, res, next) {
+  const period = resolveScheduleAnalysisPeriod(req.query.year, req.query.startDate);
+
+  try {
+    const dateRange = { [Op.between]: [period.startDate, period.endDate] };
+    const [staffRows, holidayRows, userRows] = await Promise.all([
+      Staff.findAll({
+        include: [{
+          model: Schedule2,
+          required: false,
+          where: { date: dateRange },
+        }],
+      }),
+      Holiday.findAll({ where: { date: dateRange } }),
+      User.findAll(),
+    ]);
+    const analysis = buildScheduleAnalysis({
+      endDate: period.endDate,
+      holidayRows,
+      staffRows,
+      startDate: period.startDate,
+      userRows,
+    });
+
+    res.render('analyze_schedule', {
+      ...analysis,
+      endDate: period.endDate,
+      pagetitle: `Analyze schedule ${period.year}`,
+      startDate: period.startDate,
+      startDateError: period.startDateError,
+      year: period.year,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 exports.schedule_csv = (req, res) => {

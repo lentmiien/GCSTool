@@ -1,28 +1,81 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/css/analyze_schedule.css')
+
 block content
-  h1= `Analyze schedule ${year}`
   - const days = ['日', '月', '火', '水', '木', '金', '土']
-  - const teamerror = {ohami_gcs_mail:1, ohami_gcs_order:0, ohami_gcs_korea:0, ohami_gcs_boss:-1}
-  - const teamwarning = {ohami_gcs_mail:2, ohami_gcs_order:1, ohami_gcs_korea:1, ohami_gcs_boss:-1}
-  - let month = 0
-  table.table.table-dark.table-striped
-    thead.stickyheader
-      tr
-        th(span="col") Date
+  .analyze-schedule-page
+    .analyze-schedule-heading
+      div
+        p.analyze-schedule-eyebrow Staffing overview
+        h1= `Analyze schedule ${year}`
+        p.analyze-schedule-period.mb-0 Displaying #{startDate} through #{endDate}
+      form.analyze-period-form(method='get', action='/scheduler/analyze')
+        input(type='hidden', name='year', value=year)
+        label(for='analyze-start-date') Start date
+        .analyze-period-form__controls
+          input#analyze-start-date.form-control.form-control-sm(
+            type='date',
+            name='startDate',
+            value=startDate,
+            min=`${year}-01-01`,
+            max=endDate
+          )
+          button.btn.btn-sm.btn-outline-secondary(type='submit') Apply
+
+    if startDateError
+      .alert.alert-warning.analyze-start-date-alert(role='alert')= startDateError
+
+    section.analyze-warning-summary(aria-labelledby='warning-summary-title')
+      .analyze-warning-summary__header
+        div
+          h2#warning-summary-title Warnings in displayed period
+          p.mb-0 Each number is the total number of warning cells for that team.
+      .analyze-warning-summary__grid
         each team in teams
-          th(span="col", lg_language=`${team}`)
-    tbody
-      each date_data in data
-        - let this_month = parseInt(date_data.date.split("-")[1])
-        if month != this_month
+          - const teamStats = warningStats[team]
+          - const severity = teamStats.highestSeverity || 'ok'
+          article.analyze-warning-stat(class=`analyze-warning-stat--${severity}`)
+            span.analyze-warning-stat__team(lg_language=team)= team
+            span.analyze-warning-stat__value= teamStats.total
+            span.analyze-warning-stat__label= teamStats.total === 1 ? 'warning' : 'warnings'
+
+    .analyze-schedule-table-wrap
+      table.table.table-dark.table-striped.analyze-schedule-table
+        caption.sr-only Staff scheduled to work by date and team
+        thead.stickyheader
           tr
-            td(colspan=`${teams.length + 1}`, style="background-color:black;")
-              h2= `${this_month}月`
-          - month = this_month
-        tr
-          td(class=`${date_data.day == 0 || holidays.indexOf(date_data.date) >= 0 ? "staff_off" : ""}`)= `${date_data.date}(${days[date_data.day]})`
-          each team in teams
-            td(class=`${date_data.day == 0 ? "staff_off" : teamerror[team] >= date_data[team].staff ? "staff_error" : teamwarning[team]  >= date_data[team].staff ? "staff_warning" : ""}`)= `${date_data[team].staff} (${date_data[team].kanri})`
-              br
-              i(style="font-size:60%;")= `(${date_data[team].stafflist})`
+            th(scope='col') Date
+            each team in teams
+              th(scope='col', lg_language=team)= team
+        tbody
+          - let month = 0
+          each dateData in data
+            - const thisMonth = Number.parseInt(dateData.date.slice(5, 7), 10)
+            if month !== thisMonth
+              tr.analyze-month-divider
+                th(scope='rowgroup', colspan=teams.length + 1)
+                  span= `${thisMonth}月`
+              - month = thisMonth
+
+            - const dayRowClass = `${dateData.day === 0 ? 'analyze-day-row--sunday' : ''} ${dateData.isHoliday ? 'analyze-day-row--holiday' : ''}`
+            tr.analyze-day-row(class=dayRowClass)
+              th.analyze-date-cell(scope='row')
+                span.analyze-date-cell__date= `${dateData.date} (${days[dateData.day]})`
+              each team in teams
+                - const teamData = dateData.teams[team]
+                - const warningClass = teamData.warningLevel ? `analyze-staff-cell--${teamData.warningLevel}` : ''
+                td.analyze-staff-cell(class=warningClass)
+                  if teamData.members.length > 0
+                    .analyze-staff-list
+                      each member in teamData.members
+                        span.analyze-staff-pill(
+                          class=member.isLeader ? 'analyze-staff-pill--leader' : ''
+                        )= member.name
+                  else
+                    span.analyze-no-staff(aria-label='No working staff') —
+
+            if dateData.day === 0
+              tr.analyze-week-divider(aria-hidden='true')
+                td(colspan=teams.length + 1)

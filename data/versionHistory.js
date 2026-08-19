@@ -39,6 +39,10 @@ module.exports = [
         item('Added enforced temporary-password change flow after admin reset, including session blocking until password update'),
         item('Removed the Zendesk Talk status notice and fixed meeting comment and news-body color/overflow regressions'),
       ]),
+      item('Scheduler', [
+        item('Analyze schedule - Added Sunday/holiday row highlighting, team-member pills (including bordered pills for team leaders), and warning styles with per-team totals for the selected period'),
+        item('Analyze schedule - Added support for start-date filtering via query parameter for historical period analysis and improved month/week divider styling for dark/light themes'),
+      ]),
     ],
   },
   {
