@@ -79,7 +79,7 @@ block content
         div
           p.app-page-kicker Assignment board
           h2#assignment-board-title Schedule by day
-          p Each staff option includes that person's schedule for the selected date. A saved day-off assignment is highlighted until it is reassigned or removed.
+          p Each staff option includes that person's schedule for the selected date. A saved day-off assignment is highlighted until it is reassigned or cleared.
         .daily-task-legend(aria-label='Schedule status legend')
           span.daily-task-legend-item.daily-task-legend-item--working Working
           span.daily-task-legend-item.daily-task-legend-item--partial Partial day
@@ -133,7 +133,7 @@ block content
                       class=assignment && assignment.hasConflict ? 'daily-task-cell--conflict' : ''
                     )
                       if assignment
-                        .daily-task-current-assignment
+                        .daily-task-current-assignment(title=`Last saved by ${assignment.assignedByDisplayName}`)
                           .daily-task-assignee-line
                             strong= assignment.assigneeDisplayName
                             if assignment.hasConflict
@@ -144,13 +144,10 @@ block content
                               span.badge.badge-warning= assignment.scheduleLabel
                             else
                               span.badge.badge-success= assignment.scheduleLabel
-                          small Last saved by #{assignment.assignedByDisplayName}
-                          if assignment.note
-                            p= assignment.note
                       else
                         p.daily-task-unassigned Unassigned
 
-                      if !taskType.archived
+                      if !taskType.archived || assignment
                         form.daily-task-assignment-form(method='post', action='/daily-tasks/assign')
                           input(type='hidden', name='date', value=day.date)
                           input(type='hidden', name='taskTypeId', value=taskType.id)
@@ -163,42 +160,29 @@ block content
                             name='assigneeUserId',
                             required=true
                           )
-                            if assignment && !currentChoiceIsAllowed
+                            if assignment && taskType.archived
+                              option(
+                                value='',
+                                selected=true,
+                                disabled=true
+                              )= `Current: ${assignment.assigneeDisplayName}; select None to clear`
+                            else if assignment && !currentChoiceIsAllowed
                               option(
                                 value='',
                                 selected=true,
                                 disabled=true
                               )= `Current: ${assignment.assigneeDisplayName}; choose a permitted replacement`
-                            else
-                              option(value='', selected=!assignment, disabled=true) Choose staff
-                            each staffUser in taskType.assignableUsers
-                              - const availability = staffUser.availability[day.date]
-                              - const teamSuffix = role === 'admin' ? ` · ${staffUser.shortTeamLabel}` : ''
-                              - const offSuffix = availability.category === 'off' ? ' · DAY OFF' : ''
-                              option(
-                                value=staffUser.id,
-                                selected=assignment && assignment.assigneeUserId === staffUser.id
-                              )= `${staffUser.userid} — ${availability.label}${teamSuffix}${offSuffix}`
-                          label.sr-only(for=`note-${day.date}-${taskType.id}`) Optional note for #{taskType.name} on #{day.date}
-                          input.form-control.form-control-sm(
-                            id=`note-${day.date}-${taskType.id}`,
-                            type='text',
-                            name='note',
-                            maxlength='500',
-                            value=assignment ? assignment.note : '',
-                            placeholder='Optional note'
-                          )
+                            option(value='none', selected=!assignment) None
+                            if !taskType.archived
+                              each staffUser in taskType.assignableUsers
+                                - const availability = staffUser.availability[day.date]
+                                - const teamSuffix = role === 'admin' ? ` · ${staffUser.shortTeamLabel}` : ''
+                                - const offSuffix = availability.category === 'off' ? ' · DAY OFF' : ''
+                                option(
+                                  value=staffUser.id,
+                                  selected=assignment && assignment.assigneeUserId === staffUser.id
+                                )= `${staffUser.userid} — ${availability.label}${teamSuffix}${offSuffix}`
                           button.btn.btn-sm.btn-primary(type='submit')= assignment ? 'Save changes' : 'Assign'
-
-                      if assignment
-                        form.daily-task-remove-form(method='post', action=`/daily-tasks/assignments/${assignment.id}/remove`)
-                          input(type='hidden', name='viewStart', value=filters.start)
-                          input(type='hidden', name='viewDays', value=filters.days)
-                          input(type='hidden', name='viewTeam', value=filters.team)
-                          button.btn.btn-sm.btn-outline-danger(
-                            type='submit',
-                            onclick="return confirm('Remove this task assignment?')"
-                          ) Remove
       else
         .app-empty-state
           h3 No active task types for this team

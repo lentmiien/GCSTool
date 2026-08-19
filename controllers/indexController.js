@@ -186,7 +186,6 @@ exports.all = async function (req, res, next) {
       id: assignment.id,
       name: assignment.taskType.name,
       team: assignment.taskType.team,
-      note: assignment.note,
       archived: assignment.taskType.archived,
     });
   });

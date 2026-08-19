@@ -24,11 +24,6 @@ module.exports = (sequelize, type) => {
       type: type.STRING(120),
       allowNull: false,
     },
-    note: {
-      type: type.STRING(500),
-      allowNull: false,
-      defaultValue: '',
-    },
   }, {
     tableName: 'daily_task_assignments',
     indexes: [

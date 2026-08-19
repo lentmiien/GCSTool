@@ -312,15 +312,8 @@
   border-bottom: 1px solid var(--gcs-border);
 }
 
-.daily-tasks-page .daily-task-current-assignment > small {
-  color: var(--gcs-muted);
-}
-
-.daily-tasks-page .daily-task-current-assignment p {
-  margin: 0.2rem 0 0;
-  color: var(--gcs-text);
-  font-size: 0.76rem;
-  overflow-wrap: anywhere;
+.daily-tasks-page .daily-task-current-assignment[title] {
+  cursor: help;
 }
 
 .daily-tasks-page .daily-task-assignment-form {
@@ -330,10 +323,6 @@
 
 .daily-tasks-page .daily-task-assignment-form .btn {
   justify-self: start;
-}
-
-.daily-tasks-page .daily-task-remove-form {
-  margin-top: 0.45rem;
 }
 
 .daily-tasks-page .daily-task-summary th small,

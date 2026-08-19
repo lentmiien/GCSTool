@@ -213,7 +213,7 @@ html(lang='en', data-color-mode='dark')
                 if day.tasks && day.tasks.length
                   .app-schedule-tasks
                     each task in day.tasks
-                      - const taskTitle = `${task.name}${task.note ? `: ${task.note}` : ''}${task.hasConflict ? ' — assigned on a day off' : ''}`
+                      - const taskTitle = `${task.name}${task.hasConflict ? ' — assigned on a day off' : ''}`
                       a.app-schedule-task(
                         class=task.hasConflict ? 'app-schedule-task--conflict' : '',
                         href=`/daily-tasks?start=${day.date}&days=7&team=${encodeURIComponent(task.team)}`,

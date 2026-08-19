@@ -358,24 +358,29 @@ exports.index = async function (req, res, next) {
 
 exports.assign = async function (req, res, next) {
   const taskTypeId = parsePositiveInteger(req.body.taskTypeId);
-  const assigneeUserId = parsePositiveInteger(req.body.assigneeUserId);
+  const assigneeValue = typeof req.body.assigneeUserId === 'string'
+    ? req.body.assigneeUserId.trim()
+    : '';
+  const shouldRemove = assigneeValue === 'none';
+  const assigneeUserId = shouldRemove ? null : parsePositiveInteger(assigneeValue);
   const date = typeof req.body.date === 'string' ? req.body.date : '';
-  const note = typeof req.body.note === 'string' ? req.body.note.trim() : '';
   const assignmentAnchor = taskTypeId && isValidDateString(date)
     ? `task-${date}-${taskTypeId}`
     : '';
 
-  if (!taskTypeId || !assigneeUserId || !isValidDateString(date) || note.length > 500) {
-    return redirectWithMessage(res, req.body, 'error', 'Enter a valid task, date, assignee, and note of at most 500 characters.');
+  if (!taskTypeId || (!shouldRemove && !assigneeUserId) || !isValidDateString(date)) {
+    return redirectWithMessage(res, req.body, 'error', 'Select a valid task, date, and assignee or None.');
   }
 
   try {
     const [taskType, assignee] = await Promise.all([
       DailyTaskType.findByPk(taskTypeId),
-      User.findByPk(assigneeUserId, { attributes: ['id', 'userid', 'team'] }),
+      shouldRemove
+        ? Promise.resolve(null)
+        : User.findByPk(assigneeUserId, { attributes: ['id', 'userid', 'team'] }),
     ]);
 
-    if (!taskType || !assignee) {
+    if (!taskType || (!shouldRemove && !assignee)) {
       return redirectWithMessage(
         res,
         req.body,
@@ -384,6 +389,17 @@ exports.assign = async function (req, res, next) {
         assignmentAnchor
       );
     }
+
+    if (shouldRemove) {
+      const removedCount = await DailyTaskAssignment.destroy({
+        where: { date, taskTypeId },
+      });
+      const message = removedCount
+        ? `${taskType.name} assignment removed from ${date}.`
+        : `${taskType.name} was already unassigned on ${date}.`;
+      return redirectWithMessage(res, req.body, 'success', message, assignmentAnchor);
+    }
+
     const staff = await Staff.findOne({ where: { name: assignee.userid } });
     if (taskType.archived) {
       return redirectWithMessage(
@@ -411,7 +427,6 @@ exports.assign = async function (req, res, next) {
       assigneeName: assignee.userid,
       assignedByUserId: req.user.id,
       assignedByName: req.user.userid,
-      note,
     });
 
     let scheduleStatus = 'no_staff_record';
@@ -439,25 +454,6 @@ exports.assign = async function (req, res, next) {
       );
     }
     return redirectWithMessage(res, req.body, 'success', savedMessage, assignmentAnchor);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-exports.removeAssignment = async function (req, res, next) {
-  const assignmentId = parsePositiveInteger(req.params.id);
-  if (!assignmentId) {
-    return redirectWithMessage(res, req.body, 'error', 'Invalid assignment.');
-  }
-
-  try {
-    const assignment = await DailyTaskAssignment.findByPk(assignmentId);
-    if (!assignment) {
-      return redirectWithMessage(res, req.body, 'error', 'That assignment no longer exists.');
-    }
-    const assignmentAnchor = `task-${assignment.date}-${assignment.taskTypeId}`;
-    await assignment.destroy();
-    return redirectWithMessage(res, req.body, 'success', 'Assignment removed.', assignmentAnchor);
   } catch (error) {
     return next(error);
   }
