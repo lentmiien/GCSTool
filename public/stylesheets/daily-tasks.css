@@ -1,6 +1,8 @@
 .daily-tasks-page {
   display: grid;
+  min-width: 0;
   gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .daily-tasks-page .app-page-header,
@@ -157,9 +159,19 @@
   background: var(--gcs-danger);
 }
 
+.daily-tasks-page .daily-task-board-panel {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .daily-tasks-page .daily-task-board-scroll {
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 6rem);
   border: 1px solid var(--gcs-border);
   border-radius: var(--gcs-radius-sm);
+  overflow: auto;
 }
 
 .daily-tasks-page .daily-task-board {
@@ -173,13 +185,23 @@
 }
 
 .daily-tasks-page .daily-task-board thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   border-top: 0;
   background: var(--gcs-surface-muted);
+  box-shadow: 0 0.3rem 0.65rem rgba(4, 13, 18, 0.18);
 }
 
 .daily-tasks-page .daily-task-date-column {
   width: 8rem;
   min-width: 8rem;
+}
+
+.daily-tasks-page .daily-task-board thead .daily-task-date-column {
+  left: 0;
+  z-index: 3;
+  box-shadow: 0.3rem 0.3rem 0.65rem rgba(4, 13, 18, 0.18);
 }
 
 .daily-tasks-page .daily-task-staff-column {
@@ -221,7 +243,15 @@
 }
 
 .daily-tasks-page .daily-task-date {
+  position: sticky;
+  left: 0;
+  z-index: 1;
   background: var(--gcs-surface);
+  box-shadow: 0.3rem 0 0.65rem rgba(4, 13, 18, 0.18);
+}
+
+.daily-tasks-page .daily-task-row--today > .daily-task-date {
+  box-shadow: inset 0.18rem 0 0 var(--gcs-accent), 0.3rem 0 0.65rem rgba(4, 13, 18, 0.18);
 }
 
 .daily-tasks-page .daily-task-date strong,
