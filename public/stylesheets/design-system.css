@@ -2290,7 +2290,7 @@ html[data-color-mode='light'] .pmt-review-count {
   background: var(--gcs-surface-muted);
 }
 
-.meeting-page .comment pre {
+.meeting-page .alert pre {
   color: var(--gcs-text);
 }
 
