@@ -17,6 +17,8 @@ block content
         a.btn.btn-link(href=`/scheduler/analyze?year=${d.getFullYear()+1}`)= `${d.getFullYear()+1} schedule`
     hr
     - const today = new Date(new Date().getTime() + 9 * 3600 * 1000)
+    - const dateString = date => `${date.getFullYear()}-${date.getMonth() > 8 ? date.getMonth() + 1 : '0' + (date.getMonth() + 1)}-${date.getDate() > 9 ? date.getDate() : '0' + date.getDate()}`
+    - const nonWorkStatuses = ['off', 'holiday', 'vacation']
     div.hidden= today.toUTCString()
     - const a_week = []
     - let wcnt = 0
@@ -26,7 +28,7 @@ block content
         - wcnt++
         - a_week.push({date: `${wdate.getMonth() + 1}/${wdate.getDate()}`, day: wdays[wdate.getDay()]})
     h3(lg_language='_team_members_')
-    table.table.table-dark.table-striped
+    table.table.table-dark.table-striped.scheduler-table
         thead
             tr
                 th(lg_language="_name_")
@@ -38,8 +40,8 @@ block content
         tbody
             - const grouping = ['ohami_gcs_boss', 'ohami_gcs_mail', 'ohami_gcs_korea', 'ohami_gcs_order']
             each g in grouping
-                tr
-                    td(colspan="15", style="height:10px;background-color:black;")
+                tr.scheduler-team-divider(aria-hidden='true')
+                    td(colspan="8")
                 each s in data.staff
                     if g == s.team
                         tr
@@ -49,35 +51,39 @@ block content
                                     span (
                                         a(href=`/scheduler/editstaff?id=${s.id}`) Edit
                                         | )
-                            - wcnt = 0
-                            - let longtime_off = 0
-                            while wcnt < 7
-                                - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
-                                - wcnt++
-                                - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
-                                each sdate in s.schedule2s
-                                    if dstr == sdate.date
-                                        if sdate.work == "off" || sdate.work == "holiday" || sdate.work == "vacation"
-                                            - longtime_off++
-                            - wcnt = 0
-                            while wcnt < 7
-                                if longtime_off === 7
-                                    td(style=`color:rgb(150, 70, 70);`, colspan="7") -- No work scheduled for next week, or longer --
-                                    - wcnt = 7
-                                else
+                            - const staffSchedule = s.schedule2s || []
+                            - const weekStart = dateString(today)
+                            - const weekEnd = dateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6))
+                            - const followingWeekStart = dateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7))
+                            - const isWorkDay = sdate => !nonWorkStatuses.includes(sdate.work)
+                            - const hasWorkNextWeek = staffSchedule.some(sdate => sdate.date >= weekStart && sdate.date <= weekEnd && isWorkDay(sdate))
+                            - const nextWorkDay = staffSchedule.filter(sdate => sdate.date >= followingWeekStart && isWorkDay(sdate)).sort((a, b) => a.date.localeCompare(b.date))[0]
+                            if !hasWorkNextWeek
+                                td.scheduler-empty-state(colspan="7")
+                                    = '-- '
+                                    if nextWorkDay
+                                        span(lg_language='_next_scheduled_work_') Next scheduled work at
+                                        = ` ${nextWorkDay.date} `
+                                    else
+                                        span(lg_language='_no_scheduled_next_work_day_') No scheduled next work day
+                                        = ' '
+                                    | --
+                            else
+                                - wcnt = 0
+                                while wcnt < 7
                                     - const wdate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + wcnt)
                                     - wcnt++
-                                    - const dstr = `${wdate.getFullYear()}-${wdate.getMonth() > 8 ? wdate.getMonth() + 1 : '0' + (wdate.getMonth() + 1)}-${wdate.getDate() > 9 ? wdate.getDate() : '0' + wdate.getDate()}`
-                                    each sdate in s.schedule2s
+                                    - const dstr = dateString(wdate)
+                                    each sdate in staffSchedule
                                         if dstr == sdate.date
-                                            - let w_style = "rgb(220, 255, 100)"
+                                            - let w_class = "scheduler-status--partial"
                                             if sdate.work == "off" || sdate.work == "holiday"
-                                                - w_style = "rgb(150, 70, 70)"
+                                                - w_class = "scheduler-status--off"
                                             if sdate.work == "work" || sdate.work == "telwork"
-                                                - w_style = "rgb(100, 255, 100)"
+                                                - w_class = "scheduler-status--work"
                                             if sdate.work == "vacation"
-                                                - w_style = "rgb(255, 120, 255)"
-                                            td(style=`color:${w_style};` lg_language='_' + sdate.work + '_')
+                                                - w_class = "scheduler-status--vacation"
+                                            td.scheduler-status(class=w_class, lg_language='_' + sdate.work + '_')
     a.btn.btn-link(href="/scheduler/compact", lg_language="_2_week_schedule_")
     a.btn.btn-link(href="/scheduler/lastmonth") Last month
     if name === "Lennart"

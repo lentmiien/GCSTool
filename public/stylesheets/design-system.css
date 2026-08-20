@@ -1266,6 +1266,40 @@ th[scope='row'] {
   margin-bottom: 0;
 }
 
+/* Scheduler */
+.scheduler-table .scheduler-team-divider td {
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: var(--gcs-bg-deep);
+}
+
+.scheduler-table .scheduler-status,
+.scheduler-table .scheduler-empty-state {
+  font-weight: 700;
+}
+
+.scheduler-table .scheduler-status--work {
+  color: var(--gcs-success);
+}
+
+.scheduler-table .scheduler-status--partial {
+  color: var(--gcs-warning);
+}
+
+.scheduler-table .scheduler-status--off,
+.scheduler-table .scheduler-empty-state {
+  color: var(--gcs-danger);
+}
+
+.scheduler-table .scheduler-status--vacation {
+  color: var(--gcs-violet);
+}
+
+.scheduler-table .scheduler-empty-state {
+  background: var(--gcs-danger-soft);
+}
+
 label {
   color: var(--gcs-heading);
   font-size: 0.84rem;

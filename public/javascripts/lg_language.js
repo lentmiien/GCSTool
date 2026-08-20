@@ -29,6 +29,16 @@ var json_language = {
     swedish: '2 veckors schema',
     japanese: '2週間スケジュール',
   },
+  _next_scheduled_work_: {
+    english: 'Next scheduled work at',
+    swedish: 'Nästa schemalagda arbetsdag:',
+    japanese: '次の出勤予定日：',
+  },
+  _no_scheduled_next_work_day_: {
+    english: 'No scheduled next work day',
+    swedish: 'Ingen nästa arbetsdag är schemalagd',
+    japanese: '次の出勤予定日はありません',
+  },
   _welcome_gcs_tool_: {
     english:
       'Welcome to GCS Support Tool. You can find the latest updated content below, and at the bottom you can specify your personal settings.',
