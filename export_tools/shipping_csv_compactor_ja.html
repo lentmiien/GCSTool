@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>配送CSV 明細まとめツール</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1120;
+      --surface: #111a2c;
+      --surface-raised: #172238;
+      --surface-soft: #0f1829;
+      --border: #2c3b55;
+      --border-strong: #445674;
+      --text: #e8edf5;
+      --muted: #a7b3c7;
+      --heading: #ffffff;
+      --accent: #68d4bd;
+      --accent-strong: #8be8d4;
+      --accent-soft: rgba(104, 212, 189, 0.12);
+      --success: #6de0a0;
+      --success-soft: rgba(64, 190, 120, 0.13);
+      --warning: #ffd277;
+      --warning-soft: rgba(255, 184, 77, 0.13);
+      --danger: #ff8b98;
+      --danger-soft: rgba(232, 85, 103, 0.14);
+      --focus: #9ee8ff;
+      --shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+      --radius: 16px;
+      --radius-small: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(68, 116, 166, 0.18), transparent 34rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+      line-height: 1.65;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    .drop-zone:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 52px 0 72px;
+    }
+
+    .hero {
+      max-width: 850px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 9px;
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+    }
+
+    .eyebrow::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 5px var(--accent-soft);
+      content: "";
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: var(--heading);
+      font-size: clamp(1.9rem, 5vw, 3.25rem);
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .privacy-note {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0;
+      padding: 10px 14px;
+      border: 1px solid rgba(104, 212, 189, 0.3);
+      border-radius: 999px;
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .privacy-note-icon {
+      flex: 0 0 auto;
+      line-height: 1.45;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(17, 26, 44, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .tool-card {
+      padding: clamp(20px, 4vw, 34px);
+    }
+
+    .instructions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0 0 25px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .instructions li {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .step-number {
+      display: grid;
+      flex: 0 0 30px;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      color: var(--heading);
+      background: var(--surface-raised);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .drop-zone {
+      display: grid;
+      min-height: 190px;
+      padding: 26px;
+      place-items: center;
+      border: 2px dashed var(--border-strong);
+      border-radius: 14px;
+      text-align: center;
+      background: var(--surface-soft);
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.is-dragging {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .drop-zone.is-dragging {
+      transform: scale(1.006);
+    }
+
+    .drop-zone-icon {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 13px;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      border-radius: 15px;
+      color: var(--accent-strong);
+      background: var(--surface-raised);
+      font-size: 0.86rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .drop-zone-title {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--heading);
+      font-size: 1.07rem;
+      font-weight: 800;
+    }
+
+    .drop-zone-help {
+      display: block;
+      color: var(--muted);
+      font-size: 0.87rem;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .selected-file {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      min-height: 47px;
+      margin-top: 14px;
+      padding: 10px 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      background: var(--surface-soft);
+    }
+
+    .selected-file[hidden] {
+      display: none;
+    }
+
+    .selected-file-name {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--heading);
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .selected-file-size {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 16px;
+      margin-top: 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 150ms ease;
+    }
+
+    .button:not(:disabled):active {
+      transform: translateY(1px);
+    }
+
+    .button-primary {
+      color: #06261f;
+      background: var(--accent);
+    }
+
+    .button-primary:not(:disabled):hover {
+      background: var(--accent-strong);
+    }
+
+    .button-secondary {
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      background: var(--surface-raised);
+    }
+
+    .button-secondary:not(:disabled):hover {
+      border-color: #617697;
+      background: #1d2a43;
+    }
+
+    .button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .status {
+      min-height: 50px;
+      margin: 20px 0 0;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      color: var(--muted);
+      background: var(--surface-soft);
+      font-size: 0.91rem;
+    }
+
+    .status[data-kind="busy"] {
+      border-color: rgba(104, 212, 189, 0.35);
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+    }
+
+    .status[data-kind="success"] {
+      border-color: rgba(109, 224, 160, 0.35);
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .status[data-kind="warning"] {
+      border-color: rgba(255, 210, 119, 0.4);
+      color: var(--warning);
+      background: var(--warning-soft);
+    }
+
+    .status[data-kind="danger"] {
+      border-color: rgba(255, 139, 152, 0.4);
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .result-grid[hidden] {
+      display: none;
+    }
+
+    .result-item {
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      background: var(--surface-soft);
+    }
+
+    .result-label {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .result-value {
+      display: block;
+      overflow: hidden;
+      color: var(--heading);
+      font-size: 1.07rem;
+      font-weight: 850;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview {
+      margin-top: 34px;
+    }
+
+    .preview[hidden] {
+      display: none;
+    }
+
+    .section-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 9px 20px;
+      margin-bottom: 15px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 2px;
+      color: var(--heading);
+      font-size: 1.35rem;
+      line-height: 1.35;
+    }
+
+    .preview-summary {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .order-card {
+      margin-bottom: 15px;
+    }
+
+    .order-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+
+    .order-header h3 {
+      margin: 0;
+      color: var(--heading);
+      font-size: 0.96rem;
+    }
+
+    .count-badge {
+      display: inline-flex;
+      padding: 3px 9px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .count-badge.is-changed {
+      border-color: rgba(109, 224, 160, 0.35);
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .order-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .preview-panel {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      background: var(--surface-soft);
+    }
+
+    .preview-panel.is-after {
+      border-color: rgba(104, 212, 189, 0.45);
+    }
+
+    .panel-heading {
+      margin: 0;
+      padding: 9px 11px;
+      border-bottom: 1px solid var(--border);
+      color: var(--heading);
+      background: var(--surface-raised);
+      font-size: 0.82rem;
+    }
+
+    .preview-panel.is-after .panel-heading {
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 570px;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    th,
+    td {
+      padding: 8px 9px;
+      border-bottom: 1px solid rgba(44, 59, 85, 0.72);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      color: var(--muted);
+      background: #111b2e;
+      font-size: 0.71rem;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child th,
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.018);
+    }
+
+    .cell-number {
+      width: 44px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .cell-name {
+      min-width: 190px;
+      overflow-wrap: anywhere;
+    }
+
+    .cell-code {
+      min-width: 90px;
+      white-space: nowrap;
+    }
+
+    .cell-value {
+      min-width: 72px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .format-note {
+      margin-top: 28px;
+      padding: 17px 19px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      color: var(--muted);
+      background: rgba(15, 24, 41, 0.78);
+      font-size: 0.86rem;
+    }
+
+    .format-note h2 {
+      margin-bottom: 7px;
+      color: var(--heading);
+      font-size: 0.98rem;
+    }
+
+    .format-note p {
+      margin-bottom: 5px;
+    }
+
+    .format-note p:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 850px) {
+      .instructions {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+
+      .result-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .order-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: min(100% - 20px, 1180px);
+        padding-top: 28px;
+      }
+
+      .privacy-note {
+        border-radius: 12px;
+      }
+
+      .tool-card {
+        padding: 16px;
+      }
+
+      .drop-zone {
+        min-height: 165px;
+        padding: 20px 14px;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .toggle {
+        margin: 4px 0 0;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .selected-file {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">完全オフライン</p>
+      <h1>配送CSV 明細まとめツール</h1>
+      <p class="lead">
+        同じ注文内で、HS/TARICコードと単価が完全に一致する商品明細を1件にまとめ、数量を合算します。
+        日本郵便、ePacketの配送CSVに対応しています。
+      </p>
+      <p class="privacy-note">
+        <span class="privacy-note-icon" aria-hidden="true">✓</span>
+        <span>ファイルはこのPCのブラウザ内だけで処理され、外部へ送信されません。</span>
+      </p>
+    </header>
+
+    <section class="card tool-card" aria-labelledby="upload-heading">
+      <h2 id="upload-heading" class="visually-hidden">CSVファイルを選択</h2>
+      <ol class="instructions" aria-label="使い方">
+        <li><span class="step-number">1</span><span>配送CSVを選択</span></li>
+        <li><span class="step-number">2</span><span>自動で形式判定・明細集約</span></li>
+        <li><span class="step-number">3</span><span>処理済みCSVを保存</span></li>
+      </ol>
+
+      <label id="drop-zone" class="drop-zone" for="shipping-compact-file" tabindex="0">
+        <span>
+          <span class="drop-zone-icon" aria-hidden="true">CSV</span>
+          <span class="drop-zone-title">CSV / TSV ファイルを選択</span>
+          <span class="drop-zone-help">ここへドラッグ＆ドロップすることもできます</span>
+        </span>
+      </label>
+      <input
+        id="shipping-compact-file"
+        class="visually-hidden"
+        type="file"
+        accept=".csv,.tsv,text/csv,text/tab-separated-values"
+      >
+
+      <div id="selected-file" class="selected-file" hidden>
+        <span id="selected-file-name" class="selected-file-name"></span>
+        <span id="selected-file-size" class="selected-file-size"></span>
+      </div>
+
+      <div class="actions">
+        <button id="shipping-compact-download" class="button button-primary" type="button" disabled>
+          処理済みCSVをダウンロード
+        </button>
+        <button id="shipping-compact-reset" class="button button-secondary" type="button" disabled>
+          クリア
+        </button>
+        <label class="toggle" for="shipping-compact-preview-toggle">
+          <input
+            id="shipping-compact-preview-toggle"
+            type="checkbox"
+            checked
+            aria-controls="shipping-compact-preview"
+            aria-expanded="false"
+          >
+          <span>処理前後を表示（最大100注文）</span>
+        </label>
+      </div>
+
+      <p
+        id="shipping-compact-status"
+        class="status"
+        role="status"
+        aria-live="polite"
+        data-kind="info"
+      >CSVファイルを選択してください。</p>
+
+      <div id="result-grid" class="result-grid" hidden aria-label="処理結果">
+        <div class="result-item">
+          <span class="result-label">検出形式</span>
+          <span id="result-format" class="result-value">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">処理対象明細</span>
+          <span id="result-items" class="result-value">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">まとめた明細</span>
+          <span id="result-removed" class="result-value">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">一致グループ</span>
+          <span id="result-groups" class="result-value">—</span>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="shipping-compact-preview"
+      class="preview"
+      aria-labelledby="shipping-compact-preview-heading"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="section-heading">
+        <div>
+          <h2 id="shipping-compact-preview-heading">処理前と処理後</h2>
+          <p id="shipping-compact-preview-summary" class="preview-summary" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <div id="shipping-compact-preview-orders"></div>
+    </section>
+
+    <aside class="format-note" aria-labelledby="format-note-heading">
+      <h2 id="format-note-heading">処理ルール</h2>
+      <p>アプリ内の Ireland / Greece CSV editor と同じ形式の日本郵便・ePacketファイルを使用してください。</p>
+      <p>一致判定は注文ごとに行います。最初の商品名を残し、数量だけを合算します。数量が0以上の整数でないグループは変更しません。</p>
+    </aside>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const PREVIEW_ORDER_LIMIT = 100;
+
+      const formatConfigs = {
+        japanPost: {
+          label: '日本郵便',
+          blockStartIndex: 25,
+          blockSize: 6,
+          nameOffset: 0,
+          quantityOffset: 1,
+          priceOffset: 2,
+          hsOffset: 4,
+        },
+        ePacket: {
+          label: 'ePacket',
+          blockStartIndex: 22,
+          blockSize: 6,
+          nameOffset: 0,
+          hsOffset: 1,
+          quantityOffset: 3,
+          priceOffset: 4,
+        },
+        dhl: {
+          label: 'DHL',
+          orderIndex: 0,
+          itemNumberIndex: 16,
+          nameIndex: 17,
+          priceIndex: 19,
+          quantityIndex: 20,
+          hsIndex: 29,
+        },
+      };
+
+      const detectRowDelimiter = (text) => {
+        if (text.indexOf('\r\n') !== -1) {
+          return '\r\n';
+        }
+        if (text.indexOf('\r') !== -1) {
+          return '\r';
+        }
+        if (text.indexOf('\n') !== -1) {
+          return '\n';
+        }
+        return '\r\n';
+      };
+
+      const parseCsvLine = (line, delimiter, quoted) => {
+        if (!quoted) {
+          return line.split(delimiter);
+        }
+
+        const columns = [];
+        let field = '';
+        let inQuotes = false;
+        for (let index = 0; index < line.length; index += 1) {
+          const character = line[index];
+          if (character === '"') {
+            if (inQuotes && line[index + 1] === '"') {
+              field += '"';
+              index += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (character === delimiter && !inQuotes) {
+            columns.push(field);
+            field = '';
+          } else {
+            field += character;
+          }
+        }
+        columns.push(field);
+        return columns;
+      };
+
+      const toCellText = (value) => (value == null ? '' : String(value));
+
+      const detectCsvType = (lines) => {
+        const sampleLines = lines.filter((line) => line.length).slice(0, 100);
+        const sampleLine = sampleLines[0];
+        if (!sampleLine) {
+          return { type: 'japanPost', delimiter: ',', quoted: false };
+        }
+        if (sampleLine.indexOf('\t') !== -1) {
+          return { type: 'ePacket', delimiter: '\t', quoted: false };
+        }
+
+        let dhlCountryMatches = 0;
+        let multiItemCountryMatches = 0;
+        sampleLines.forEach((line) => {
+          const row = parseCsvLine(line, ',', true);
+          if (/^[A-Z]{2}$/i.test(toCellText(row[14]).trim())) {
+            dhlCountryMatches += 1;
+          }
+          if (/^[A-Z]{2}$/i.test(toCellText(row[12]).trim())) {
+            multiItemCountryMatches += 1;
+          }
+        });
+        if (dhlCountryMatches > multiItemCountryMatches) {
+          return { type: 'dhl', delimiter: ',', quoted: true };
+        }
+        if (multiItemCountryMatches > dhlCountryMatches) {
+          return { type: 'japanPost', delimiter: ',', quoted: false };
+        }
+
+        const quotedLinePattern = /^"(?:[^"]|"")*"(?:,"(?:[^"]|"")*")*$/;
+        const quotedLineCount = sampleLines.filter((line) => quotedLinePattern.test(line)).length;
+        if (quotedLineCount > sampleLines.length / 2) {
+          return { type: 'dhl', delimiter: ',', quoted: true };
+        }
+        return { type: 'japanPost', delimiter: ',', quoted: false };
+      };
+
+      const parseCsv = (text) => {
+        const inputText = String(text || '');
+        const hasBom = inputText.charAt(0) === '\uFEFF';
+        const safeText = hasBom ? inputText.slice(1) : inputText;
+        const rowDelimiter = detectRowDelimiter(safeText);
+        const lines = safeText.split(rowDelimiter);
+        const format = detectCsvType(lines);
+
+        return {
+          type: format.type,
+          delimiter: format.delimiter,
+          quoted: format.quoted,
+          rowDelimiter,
+          hasBom,
+          rows: lines.map((line) => (line.length
+            ? parseCsvLine(line, format.delimiter, format.quoted)
+            : [])),
+        };
+      };
+
+      const parseQuantity = (value) => {
+        const text = toCellText(value).trim();
+        if (!/^\d+$/.test(text)) {
+          return null;
+        }
+        const quantity = Number(text);
+        if (!Number.isSafeInteger(quantity) || quantity < 0) {
+          return null;
+        }
+        return quantity;
+      };
+
+      const buildMatchKey = (hsCode, unitPrice) => JSON.stringify([
+        toCellText(hsCode),
+        toCellText(unitPrice),
+      ]);
+
+      const hasExactMatchValues = (hsCode, unitPrice) => (
+        toCellText(hsCode).trim() !== '' && toCellText(unitPrice).trim() !== ''
+      );
+
+      const makeStats = () => ({
+        itemsFound: 0,
+        combinedEntries: 0,
+        duplicateItemsRemoved: 0,
+        rowsRemoved: 0,
+        itemBlocksRemoved: 0,
+        skippedGroups: 0,
+        warnings: [],
+      });
+
+      const addWarning = (stats, message) => {
+        stats.skippedGroups += 1;
+        if (stats.warnings.length < 5) {
+          stats.warnings.push(message);
+        }
+      };
+
+      const combineGroup = (group, stats, context, removeItem) => {
+        if (group.length < 2) {
+          return;
+        }
+
+        const quantities = group.map((item) => parseQuantity(item.quantity));
+        if (quantities.some((quantity) => quantity === null)) {
+          addWarning(stats, `${context}：数量が整数でないため、一致した明細を別々のまま残しました。`);
+          return;
+        }
+
+        const combinedQuantity = quantities.reduce((total, quantity) => total + quantity, 0);
+        if (!Number.isSafeInteger(combinedQuantity)) {
+          addWarning(stats, `${context}：合計数量が大きすぎるため、一致した明細を別々のまま残しました。`);
+          return;
+        }
+
+        group[0].row[group[0].quantityIndex] = String(combinedQuantity);
+        group.slice(1).forEach(removeItem);
+        stats.combinedEntries += 1;
+        stats.duplicateItemsRemoved += group.length - 1;
+      };
+
+      const getMaximumItemOffset = (config) => Math.max(
+        config.nameOffset,
+        config.quantityOffset,
+        config.priceOffset,
+        config.hsOffset
+      );
+
+      const extractMultiItemPreviewItems = (row, config) => {
+        const items = [];
+        const maximumOffset = getMaximumItemOffset(config);
+
+        for (
+          let blockStart = config.blockStartIndex;
+          blockStart + maximumOffset < row.length;
+          blockStart += config.blockSize
+        ) {
+          const item = {
+            itemNumber: String(items.length + 1),
+            name: toCellText(row[blockStart + config.nameOffset]),
+            hsCode: toCellText(row[blockStart + config.hsOffset]),
+            unitPrice: toCellText(row[blockStart + config.priceOffset]),
+            quantity: toCellText(row[blockStart + config.quantityOffset]),
+          };
+          if ([item.name, item.hsCode, item.unitPrice, item.quantity].some((value) => value !== '')) {
+            items.push(item);
+          }
+        }
+
+        return items;
+      };
+
+      const compactMultiItemRows = (rows, config) => {
+        const stats = makeStats();
+        const maximumOffset = getMaximumItemOffset(config);
+
+        rows.forEach((row, rowIndex) => {
+          const groups = new Map();
+          const blockStartsToRemove = [];
+
+          for (
+            let blockStart = config.blockStartIndex;
+            blockStart + maximumOffset < row.length;
+            blockStart += config.blockSize
+          ) {
+            const name = toCellText(row[blockStart + config.nameOffset]);
+            const quantity = toCellText(row[blockStart + config.quantityOffset]);
+            const unitPrice = toCellText(row[blockStart + config.priceOffset]);
+            const hsCode = toCellText(row[blockStart + config.hsOffset]);
+            if ([name, quantity, unitPrice, hsCode].some((value) => value !== '')) {
+              stats.itemsFound += 1;
+            }
+            if (!hasExactMatchValues(hsCode, unitPrice)) {
+              continue;
+            }
+
+            const key = buildMatchKey(hsCode, unitPrice);
+            if (!groups.has(key)) {
+              groups.set(key, []);
+            }
+            groups.get(key).push({
+              row,
+              blockStart,
+              quantity,
+              quantityIndex: blockStart + config.quantityOffset,
+            });
+          }
+
+          groups.forEach((group) => {
+            combineGroup(group, stats, `CSV ${rowIndex + 1}行目`, (item) => {
+              blockStartsToRemove.push(item.blockStart);
+            });
+          });
+
+          blockStartsToRemove
+            .sort((first, second) => second - first)
+            .forEach((blockStart) => {
+              row.splice(blockStart, config.blockSize);
+            });
+          stats.itemBlocksRemoved += blockStartsToRemove.length;
+        });
+
+        return { rows, stats };
+      };
+
+      const isDhlItemRow = (row, config) => {
+        if (row.length <= config.hsIndex || toCellText(row[config.orderIndex]).trim() === '') {
+          return false;
+        }
+
+        const hasItemContent = [
+          row[config.nameIndex],
+          row[config.priceIndex],
+          row[config.quantityIndex],
+          row[config.hsIndex],
+        ].some((value) => toCellText(value) !== '');
+        const itemNumber = toCellText(row[config.itemNumberIndex]).trim();
+        return hasItemContent && (parseQuantity(row[config.quantityIndex]) !== null || /^\d+$/.test(itemNumber));
+      };
+
+      const buildMultiItemPreviewSnapshot = (rows, config) => {
+        const orders = [];
+        let totalOrders = 0;
+
+        rows.forEach((row, rowIndex) => {
+          const items = extractMultiItemPreviewItems(row, config);
+          if (!items.length) {
+            return;
+          }
+
+          totalOrders += 1;
+          if (orders.length >= PREVIEW_ORDER_LIMIT) {
+            return;
+          }
+
+          const orderNumber = toCellText(row[0]).trim();
+          orders.push({
+            id: `row:${rowIndex}`,
+            label: orderNumber ? `注文 ${orderNumber}` : `CSV ${rowIndex + 1}行目`,
+            items,
+          });
+        });
+
+        return { orders, totalOrders };
+      };
+
+      const buildDhlPreviewSnapshot = (rows, config) => {
+        const allOrderNumbers = new Set();
+        const previewOrdersByNumber = new Map();
+        const orders = [];
+
+        rows.forEach((row) => {
+          if (!isDhlItemRow(row, config)) {
+            return;
+          }
+
+          const orderNumber = toCellText(row[config.orderIndex]);
+          if (!allOrderNumbers.has(orderNumber)) {
+            allOrderNumbers.add(orderNumber);
+            if (orders.length < PREVIEW_ORDER_LIMIT) {
+              const order = {
+                id: `order:${orderNumber}`,
+                label: `注文 ${orderNumber.trim()}`,
+                items: [],
+              };
+              orders.push(order);
+              previewOrdersByNumber.set(orderNumber, order);
+            }
+          }
+
+          const previewOrder = previewOrdersByNumber.get(orderNumber);
+          if (!previewOrder) {
+            return;
+          }
+
+          previewOrder.items.push({
+            itemNumber: toCellText(row[config.itemNumberIndex]) || String(previewOrder.items.length + 1),
+            name: toCellText(row[config.nameIndex]),
+            hsCode: toCellText(row[config.hsIndex]),
+            unitPrice: toCellText(row[config.priceIndex]),
+            quantity: toCellText(row[config.quantityIndex]),
+          });
+        });
+
+        return {
+          orders,
+          totalOrders: allOrderNumbers.size,
+        };
+      };
+
+      const buildPreviewSnapshot = (rows, type, config) => (
+        type === 'dhl'
+          ? buildDhlPreviewSnapshot(rows, config)
+          : buildMultiItemPreviewSnapshot(rows, config)
+      );
+
+      const buildPreview = (beforeSnapshot, afterSnapshot) => {
+        const afterOrdersById = new Map(
+          afterSnapshot.orders.map((order) => [order.id, order])
+        );
+
+        return {
+          limit: PREVIEW_ORDER_LIMIT,
+          totalOrders: beforeSnapshot.totalOrders,
+          orders: beforeSnapshot.orders.map((order) => {
+            const afterOrder = afterOrdersById.get(order.id);
+            return {
+              label: order.label,
+              before: order.items,
+              after: afterOrder ? afterOrder.items : [],
+            };
+          }),
+        };
+      };
+
+      const compactDhlRows = (rows, config) => {
+        const stats = makeStats();
+        const orders = new Map();
+        const rowIndexesToRemove = new Set();
+
+        rows.forEach((row, rowIndex) => {
+          if (!isDhlItemRow(row, config)) {
+            return;
+          }
+
+          stats.itemsFound += 1;
+          const orderNumber = toCellText(row[config.orderIndex]);
+          if (!orders.has(orderNumber)) {
+            orders.set(orderNumber, {
+              groups: new Map(),
+            });
+          }
+
+          const hsCode = toCellText(row[config.hsIndex]);
+          const unitPrice = toCellText(row[config.priceIndex]);
+          if (!hasExactMatchValues(hsCode, unitPrice)) {
+            return;
+          }
+
+          const groupKey = buildMatchKey(hsCode, unitPrice);
+          const order = orders.get(orderNumber);
+          if (!order.groups.has(groupKey)) {
+            order.groups.set(groupKey, []);
+          }
+          order.groups.get(groupKey).push({
+            row,
+            rowIndex,
+            quantity: row[config.quantityIndex],
+            quantityIndex: config.quantityIndex,
+          });
+        });
+
+        orders.forEach((order, orderNumber) => {
+          order.groups.forEach((group) => {
+            combineGroup(group, stats, `注文 ${orderNumber}`, (item) => {
+              rowIndexesToRemove.add(item.rowIndex);
+            });
+          });
+        });
+
+        const compactedRows = rows.filter((row, rowIndex) => !rowIndexesToRemove.has(rowIndex));
+        const nextItemNumberByOrder = new Map();
+        compactedRows.forEach((row) => {
+          if (!isDhlItemRow(row, config)) {
+            return;
+          }
+
+          const orderNumber = toCellText(row[config.orderIndex]);
+          const nextItemNumber = (nextItemNumberByOrder.get(orderNumber) || 0) + 1;
+          nextItemNumberByOrder.set(orderNumber, nextItemNumber);
+          row[config.itemNumberIndex] = String(nextItemNumber);
+        });
+
+        stats.rowsRemoved = rowIndexesToRemove.size;
+        return { rows: compactedRows, stats };
+      };
+
+      const formatDhlValue = (value) => `"${toCellText(value).replace(/"/g, '""')}"`;
+
+      const buildCsv = (parsed, rows) => {
+        const output = rows.map((row) => {
+          if (!row.length) {
+            return '';
+          }
+          if (parsed.type === 'dhl') {
+            return row.map(formatDhlValue).join(parsed.delimiter);
+          }
+          return row.join(parsed.delimiter);
+        }).join(parsed.rowDelimiter);
+        return `${parsed.hasBom ? '\uFEFF' : ''}${output}`;
+      };
+
+      const compactCsv = (text) => {
+        if (!String(text || '').replace(/^\uFEFF/, '').trim()) {
+          throw new Error('選択されたCSVファイルは空です。');
+        }
+
+        const parsed = parseCsv(text);
+        const config = formatConfigs[parsed.type];
+        const beforePreview = buildPreviewSnapshot(parsed.rows, parsed.type, config);
+        const result = parsed.type === 'dhl'
+          ? compactDhlRows(parsed.rows, config)
+          : compactMultiItemRows(parsed.rows, config);
+
+        if (!result.stats.itemsFound) {
+          throw new Error(`${config.label}形式の商品明細が見つかりません。Ireland / Greece CSV editor と同じ形式のファイルか確認してください。`);
+        }
+
+        return {
+          csv: buildCsv(parsed, result.rows),
+          type: parsed.type,
+          label: config.label,
+          stats: result.stats,
+          preview: buildPreview(
+            beforePreview,
+            buildPreviewSnapshot(result.rows, parsed.type, config)
+          ),
+        };
+      };
+
+      const makeOutputFileName = (fileName) => {
+        const safeName = toCellText(fileName) || 'shipping.csv';
+        if (/\.csv$/i.test(safeName)) {
+          return safeName.replace(/\.csv$/i, '_compacted.csv');
+        }
+        return `${safeName}_compacted.csv`;
+      };
+
+      const api = {
+        compactCsv,
+        makeOutputFileName,
+        parseCsv,
+      };
+
+      if (typeof module !== 'undefined' && module.exports) {
+        module.exports = api;
+      }
+      if (typeof window !== 'undefined') {
+        window.ShippingCsvCompactor = api;
+      }
+
+      if (typeof document === 'undefined') {
+        return;
+      }
+
+      const fileInput = document.getElementById('shipping-compact-file');
+      const dropZone = document.getElementById('drop-zone');
+      const downloadButton = document.getElementById('shipping-compact-download');
+      const resetButton = document.getElementById('shipping-compact-reset');
+      const status = document.getElementById('shipping-compact-status');
+      const selectedFile = document.getElementById('selected-file');
+      const selectedFileName = document.getElementById('selected-file-name');
+      const selectedFileSize = document.getElementById('selected-file-size');
+      const resultGrid = document.getElementById('result-grid');
+      const resultFormat = document.getElementById('result-format');
+      const resultItems = document.getElementById('result-items');
+      const resultRemoved = document.getElementById('result-removed');
+      const resultGroups = document.getElementById('result-groups');
+      const previewToggle = document.getElementById('shipping-compact-preview-toggle');
+      const previewSection = document.getElementById('shipping-compact-preview');
+      const previewSummary = document.getElementById('shipping-compact-preview-summary');
+      const previewOrders = document.getElementById('shipping-compact-preview-orders');
+
+      let outputCsv = '';
+      let outputFileName = '';
+      let previewData = null;
+      let previewIsRendered = false;
+      let readSequence = 0;
+
+      const formatNumber = (value) => Number(value || 0).toLocaleString('ja-JP');
+
+      const formatFileSize = (bytes) => {
+        if (!Number.isFinite(bytes) || bytes < 0) {
+          return '';
+        }
+        if (bytes < 1024) {
+          return `${bytes.toLocaleString('ja-JP')} B`;
+        }
+        if (bytes < 1024 * 1024) {
+          return `${(bytes / 1024).toFixed(1)} KB`;
+        }
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      };
+
+      const removeAllChildren = (element) => {
+        while (element.firstChild) {
+          element.removeChild(element.firstChild);
+        }
+      };
+
+      const hidePreview = () => {
+        previewSection.hidden = true;
+        previewSection.setAttribute('aria-hidden', 'true');
+        previewToggle.setAttribute('aria-expanded', 'false');
+      };
+
+      const resetPreview = () => {
+        previewData = null;
+        previewIsRendered = false;
+        previewSummary.textContent = '';
+        removeAllChildren(previewOrders);
+        hidePreview();
+      };
+
+      const clearResult = () => {
+        outputCsv = '';
+        outputFileName = '';
+        downloadButton.disabled = true;
+        resultGrid.hidden = true;
+        resultFormat.textContent = '—';
+        resultItems.textContent = '—';
+        resultRemoved.textContent = '—';
+        resultGroups.textContent = '—';
+        resetPreview();
+      };
+
+      const setStatus = (message, kind) => {
+        status.textContent = message || '';
+        status.dataset.kind = kind || 'info';
+        status.setAttribute('aria-busy', kind === 'busy' ? 'true' : 'false');
+      };
+
+      const showSelectedFile = (file) => {
+        selectedFileName.textContent = file.name || '名称未設定ファイル';
+        selectedFileSize.textContent = formatFileSize(file.size);
+        selectedFile.hidden = false;
+        resetButton.disabled = false;
+      };
+
+      const buildResultMessage = (result) => {
+        const stats = result.stats;
+        const details = [`${result.label}形式を検出しました。`];
+        if (stats.duplicateItemsRemoved) {
+          details.push(`${formatNumber(stats.combinedEntries)}個の一致グループから、重複明細${formatNumber(stats.duplicateItemsRemoved)}件をまとめました。`);
+          if (result.type === 'dhl') {
+            details.push(`${formatNumber(stats.rowsRemoved)}行を削除し、明細番号を振り直しました。`);
+          } else {
+            details.push(`6列の明細ブロックを${formatNumber(stats.itemBlocksRemoved)}個削除しました。`);
+          }
+        } else {
+          details.push('まとめる必要がある一致明細はありませんでした。');
+          if (result.type === 'dhl') {
+            details.push('明細番号は振り直しました。');
+          }
+        }
+        if (stats.skippedGroups) {
+          details.push(`${formatNumber(stats.skippedGroups)}個の一致グループはまとめられませんでした。${stats.warnings.join(' ')}`);
+        }
+        details.push('処理済みファイルをダウンロードできます。');
+        return details.join(' ');
+      };
+
+      const showResult = (result) => {
+        resultFormat.textContent = result.label;
+        resultItems.textContent = `${formatNumber(result.stats.itemsFound)}件`;
+        resultRemoved.textContent = `${formatNumber(result.stats.duplicateItemsRemoved)}件`;
+        resultGroups.textContent = `${formatNumber(result.stats.combinedEntries)}個`;
+        resultGrid.hidden = false;
+      };
+
+      const createElement = (tagName, className, textContent) => {
+        const element = document.createElement(tagName);
+        if (className) {
+          element.className = className;
+        }
+        if (textContent !== undefined) {
+          element.textContent = textContent;
+        }
+        return element;
+      };
+
+      const displayPreviewValue = (value) => {
+        const text = toCellText(value);
+        return text === '' ? '—' : text;
+      };
+
+      const appendPreviewCell = (row, tagName, value, className) => {
+        const cell = createElement(tagName, className, displayPreviewValue(value));
+        if (tagName === 'th') {
+          cell.setAttribute('scope', 'row');
+        }
+        row.appendChild(cell);
+      };
+
+      const buildPreviewTable = (items, stage, orderLabel, isAfter) => {
+        const panel = createElement('section', `preview-panel${isAfter ? ' is-after' : ''}`);
+        panel.appendChild(createElement('h4', 'panel-heading', `${stage}・${formatNumber(items.length)}件`));
+
+        const tableWrapper = createElement('div', 'table-wrap');
+        const table = document.createElement('table');
+        const caption = createElement('caption', 'visually-hidden', `${orderLabel}の${stage}の商品明細`);
+        const tableHead = document.createElement('thead');
+        const headingRow = document.createElement('tr');
+        [
+          ['#', 'cell-number'],
+          ['商品名', 'cell-name'],
+          ['HS/TARIC', 'cell-code'],
+          ['単価', 'cell-value'],
+          ['数量', 'cell-value'],
+        ].forEach(([label, className]) => {
+          const heading = createElement('th', className, label);
+          heading.setAttribute('scope', 'col');
+          headingRow.appendChild(heading);
+        });
+        tableHead.appendChild(headingRow);
+
+        const tableBody = document.createElement('tbody');
+        items.forEach((item, itemIndex) => {
+          const row = document.createElement('tr');
+          appendPreviewCell(row, 'th', item.itemNumber || String(itemIndex + 1), 'cell-number');
+          appendPreviewCell(row, 'td', item.name, 'cell-name');
+          appendPreviewCell(row, 'td', item.hsCode, 'cell-code');
+          appendPreviewCell(row, 'td', item.unitPrice, 'cell-value');
+          appendPreviewCell(row, 'td', item.quantity, 'cell-value');
+          tableBody.appendChild(row);
+        });
+
+        table.appendChild(caption);
+        table.appendChild(tableHead);
+        table.appendChild(tableBody);
+        tableWrapper.appendChild(table);
+        panel.appendChild(tableWrapper);
+        return panel;
+      };
+
+      const buildPreviewOrder = (order) => {
+        const orderCard = createElement('article', 'card order-card');
+        const header = createElement('header', 'order-header');
+        header.appendChild(createElement('h3', '', order.label));
+
+        const itemCountChanged = order.before.length !== order.after.length;
+        const countBadge = createElement(
+          'span',
+          `count-badge${itemCountChanged ? ' is-changed' : ''}`,
+          `${formatNumber(order.before.length)}件 → ${formatNumber(order.after.length)}件`
+        );
+        header.appendChild(countBadge);
+        orderCard.appendChild(header);
+
+        const body = createElement('div', 'order-body');
+        body.appendChild(buildPreviewTable(order.before, '処理前', order.label, false));
+        body.appendChild(buildPreviewTable(order.after, '処理後', order.label, true));
+        orderCard.appendChild(body);
+        return orderCard;
+      };
+
+      const renderPreview = () => {
+        if (!previewData) {
+          return;
+        }
+
+        removeAllChildren(previewOrders);
+        const fragment = document.createDocumentFragment();
+        previewData.orders.forEach((order) => {
+          fragment.appendChild(buildPreviewOrder(order));
+        });
+        previewOrders.appendChild(fragment);
+
+        const shownOrders = previewData.orders.length;
+        const totalOrders = previewData.totalOrders;
+        if (totalOrders > shownOrders) {
+          previewSummary.textContent = `全${formatNumber(totalOrders)}注文のうち、先頭${formatNumber(shownOrders)}注文を表示しています。ダウンロードファイルには全注文が含まれます。`;
+        } else {
+          previewSummary.textContent = `全${formatNumber(totalOrders)}注文を表示しています。`;
+        }
+        previewIsRendered = true;
+      };
+
+      const updatePreviewVisibility = () => {
+        if (!previewData || !previewToggle.checked) {
+          if (!previewToggle.checked && previewIsRendered) {
+            removeAllChildren(previewOrders);
+            previewIsRendered = false;
+          }
+          hidePreview();
+          return;
+        }
+
+        if (!previewIsRendered) {
+          renderPreview();
+        }
+        previewSection.hidden = false;
+        previewSection.setAttribute('aria-hidden', 'false');
+        previewToggle.setAttribute('aria-expanded', 'true');
+      };
+
+      const processFile = (file) => {
+        readSequence += 1;
+        const currentReadSequence = readSequence;
+        clearResult();
+
+        if (!file) {
+          selectedFile.hidden = true;
+          resetButton.disabled = true;
+          setStatus('CSVファイルを選択してください。', 'info');
+          return;
+        }
+
+        showSelectedFile(file);
+        setStatus('CSVファイルを読み込み、明細をまとめています…', 'busy');
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (currentReadSequence !== readSequence) {
+            return;
+          }
+
+          window.setTimeout(() => {
+            if (currentReadSequence !== readSequence) {
+              return;
+            }
+            try {
+              const result = compactCsv(reader.result || '');
+              outputCsv = result.csv;
+              outputFileName = makeOutputFileName(file.name);
+              previewData = result.preview;
+              downloadButton.disabled = false;
+              showResult(result);
+              updatePreviewVisibility();
+              setStatus(
+                buildResultMessage(result),
+                result.stats.skippedGroups ? 'warning' : 'success'
+              );
+            } catch (error) {
+              setStatus(
+                error && error.message ? error.message : 'このCSVファイルを処理できませんでした。',
+                'danger'
+              );
+            }
+          }, 0);
+        };
+        reader.onerror = () => {
+          if (currentReadSequence === readSequence) {
+            setStatus('選択されたファイルを読み込めませんでした。', 'danger');
+          }
+        };
+        reader.readAsText(file, 'utf-8');
+      };
+
+      fileInput.addEventListener('change', () => {
+        processFile(fileInput.files[0]);
+      });
+
+      dropZone.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropZone.classList.add('is-dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'copy';
+          }
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropZone.classList.remove('is-dragging');
+        });
+      });
+
+      dropZone.addEventListener('drop', (event) => {
+        const files = event.dataTransfer && event.dataTransfer.files;
+        if (files && files.length) {
+          processFile(files[0]);
+        }
+      });
+
+      downloadButton.addEventListener('click', () => {
+        if (!outputCsv || !outputFileName) {
+          return;
+        }
+
+        const blob = new Blob([outputCsv], { type: 'text/csv;charset=utf-8' });
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = outputFileName;
+        link.hidden = true;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      });
+
+      resetButton.addEventListener('click', () => {
+        readSequence += 1;
+        fileInput.value = '';
+        selectedFile.hidden = true;
+        selectedFileName.textContent = '';
+        selectedFileSize.textContent = '';
+        resetButton.disabled = true;
+        clearResult();
+        setStatus('CSVファイルを選択してください。', 'info');
+        dropZone.focus();
+      });
+
+      previewToggle.addEventListener('change', updatePreviewVisibility);
+    })();
+  </script>
+</body>
+</html>
