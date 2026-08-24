@@ -1,0 +1,205 @@
+.daily-task-import-page {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.daily-task-import-page .app-page-header,
+.daily-task-import-page .alert,
+.daily-task-import-page .app-panel {
+  margin-bottom: 0;
+}
+
+.daily-task-import-layout {
+  display: grid;
+  align-items: start;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.8fr);
+}
+
+.daily-task-import-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.daily-task-import-section-heading h2,
+.daily-task-import-section-heading p {
+  margin-bottom: 0;
+}
+
+.daily-task-import-section-heading p:not(.app-page-kicker) {
+  max-width: 48rem;
+  color: var(--gcs-muted);
+}
+
+.daily-task-import-files {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.daily-task-import-file {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-surface-muted);
+}
+
+.daily-task-import-file label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--gcs-heading);
+  font-weight: 750;
+}
+
+.daily-task-import-file small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--gcs-muted);
+}
+
+.daily-task-import-page .form-control-file {
+  width: 100%;
+  color: var(--gcs-text);
+}
+
+.daily-task-import-page .form-control-file::file-selector-button {
+  margin-right: 0.65rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--gcs-border-strong);
+  border-radius: 0.4rem;
+  color: var(--gcs-text);
+  background: var(--gcs-input);
+  cursor: pointer;
+}
+
+.daily-task-import-confirmation {
+  display: grid;
+  align-items: start;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--gcs-warning);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-warning-soft);
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.daily-task-import-confirmation input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.2rem;
+  accent-color: var(--gcs-warning);
+}
+
+.daily-task-import-confirmation label {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  color: var(--gcs-text);
+  cursor: pointer;
+}
+
+.daily-task-import-confirmation strong {
+  color: var(--gcs-heading);
+}
+
+.daily-task-import-confirmation span,
+.daily-task-import-note {
+  color: var(--gcs-muted);
+  font-size: 0.82rem;
+}
+
+.daily-task-import-safeguards ul {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--gcs-muted);
+}
+
+.daily-task-import-safeguards li::marker {
+  color: var(--gcs-accent);
+}
+
+.daily-task-import-scope {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gcs-border);
+}
+
+.daily-task-import-scope > strong {
+  color: var(--gcs-heading);
+}
+
+.daily-task-import-scope dl {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.7rem 0 0;
+}
+
+.daily-task-import-scope dl > div {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 5rem minmax(0, 1fr);
+}
+
+.daily-task-import-scope dt {
+  color: var(--gcs-muted);
+  font-weight: 650;
+}
+
+.daily-task-import-scope dd {
+  margin: 0;
+  color: var(--gcs-heading);
+  font-weight: 700;
+}
+
+.daily-task-import-metrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.daily-task-import-metric {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-surface-muted);
+}
+
+.daily-task-import-metric span,
+.daily-task-import-metric small {
+  color: var(--gcs-muted);
+}
+
+.daily-task-import-metric strong {
+  color: var(--gcs-heading);
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.daily-task-import-note {
+  margin: 0.8rem 0 0;
+}
+
+@media (max-width: 991.98px) {
+  .daily-task-import-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .daily-task-import-files,
+  .daily-task-import-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

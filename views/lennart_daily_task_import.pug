@@ -1,0 +1,115 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/lennart-daily-task-import.css')
+
+block content
+  section.daily-task-import-page(aria-labelledby='daily-task-import-title')
+    header.app-page-header
+      div
+        p.app-page-kicker Lennart tool · One-time setup
+        h1#daily-task-import-title Splitting emails CSV import
+        p Import the supplied past and future assignment sheets into Daily task assignments.
+      .app-page-actions
+        a.btn.btn-outline-secondary(href='/lennart') Lennart tools
+        a.btn.btn-outline-secondary(href='/daily-tasks?start=2026-02-02&days=31&team=ohami_gcs_mail') View daily tasks
+
+    if error
+      .alert.alert-danger(role='alert')
+        strong Import stopped. No assignments were changed.
+        div= error
+
+    if result
+      .alert.alert-success(role='status')
+        strong Import complete.
+        div #{result.imported} unique #{taskName} assignments were saved for #{importStartDate} through #{importEndDate}.
+
+      section.app-panel.daily-task-import-result(aria-labelledby='daily-task-import-result-title')
+        .daily-task-import-section-heading
+          div
+            p.app-page-kicker Import result
+            h2#daily-task-import-result-title Saved assignment distribution
+        .daily-task-import-metrics
+          article.daily-task-import-metric
+            span Imported
+            strong= result.imported
+            small Unique dated assignments
+          article.daily-task-import-metric
+            span Created
+            strong= result.created
+            small Previously empty dates
+          article.daily-task-import-metric
+            span Overwritten
+            strong= result.overwritten
+            small Existing overlapping dates
+          article.daily-task-import-metric
+            span Outside range
+            strong= result.ignored
+            small Entries intentionally ignored
+        if result.duplicates
+          p.daily-task-import-note #{result.duplicates} identical duplicate #{result.duplicates === 1 ? 'row was' : 'rows were'} consolidated before saving.
+
+    .daily-task-import-layout
+      section.app-panel(aria-labelledby='daily-task-import-upload-title')
+        .daily-task-import-section-heading
+          div
+            p.app-page-kicker Upload
+            h2#daily-task-import-upload-title Select both source files
+            p Each assignment must occupy three cells—date, weekday, and exact staff name—with one empty separator cell before the next assignment.
+
+        form(method='post', action='/lennart/daily-task-import', enctype='multipart/form-data')
+          .daily-task-import-files
+            .daily-task-import-file
+              label(for='pastCsv') Past data CSV
+              input#pastCsv.form-control-file(
+                type='file',
+                name='pastCsv',
+                accept='.csv,text/csv',
+                required=true
+              )
+              small Covers the beginning of the import period from 2026/2/2.
+            .daily-task-import-file
+              label(for='futureCsv') Future data CSV
+              input#futureCsv.form-control-file(
+                type='file',
+                name='futureCsv',
+                accept='.csv,text/csv',
+                required=true
+              )
+              small Covers the end of the import period through 2026/12/30.
+
+          .daily-task-import-confirmation
+            input#confirmOverwrite(type='checkbox', name='confirmOverwrite', value='yes', required=true)
+            label(for='confirmOverwrite')
+              strong I understand that overlapping assignments will be overwritten.
+              span Only #{taskName} assignments on dates present in these files are affected.
+
+          button.btn.btn-warning(
+            type='submit',
+            onclick="return confirm('Import these assignments now? Overlapping Splitting emails assignments will be replaced.')"
+          ) Import and overwrite overlaps
+
+      aside.app-panel.daily-task-import-safeguards(aria-labelledby='daily-task-import-safeguards-title')
+        .daily-task-import-section-heading
+          div
+            p.app-page-kicker Validation
+            h2#daily-task-import-safeguards-title Before anything is saved
+        ul
+          li Both files must contain valid three-cell entries—date, weekday, and staff name—with an empty separator between adjacent entries.
+          li Only dates from #{importStartDate} through #{importEndDate}, inclusive, are imported. Later and earlier entries are ignored.
+          li Weekday values are checked against their dates, and every in-range staff name must exactly match both a user account and staff schedule record.
+          li Conflicting duplicate dates stop the import. Identical duplicates are safely consolidated.
+          li Validation and saving run as one transaction, so an error leaves all existing assignments unchanged.
+
+        .daily-task-import-scope
+          strong Fixed import target
+          dl
+            div
+              dt Task
+              dd= taskName
+            div
+              dt Team
+              dd GCS Mail Team
+            div
+              dt Date range
+              dd #{importStartDate} – #{importEndDate}

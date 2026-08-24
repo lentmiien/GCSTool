@@ -7,9 +7,28 @@ if (!globalThis.crypto) globalThis.crypto = webcrypto;
 const { ready } = require('zpl-renderer-js');
 
 // Require necessary database models
-const { Content, HostSample, Op } = require('../sequelize');
+const {
+  Content,
+  DailyTaskAssignment,
+  DailyTaskType,
+  HostSample,
+  Op,
+  Staff,
+  User,
+  sequelize,
+} = require('../sequelize');
+const {
+  IMPORT_END_DATE,
+  IMPORT_START_DATE,
+  createImportError,
+  isImportError,
+  parseDailyTaskCsvFiles,
+} = require('../utils/dailyTaskCsvImport');
 const TMP_DIR = path.join(__dirname, '..', 'public', 'tmp');
 let zplRenderer = null;
+const DAILY_TASK_IMPORT_MAX_FILE_BYTES = 2 * 1024 * 1024;
+const DAILY_TASK_IMPORT_NAME = 'Splitting emails';
+const DAILY_TASK_IMPORT_TEAM = 'ohami_gcs_mail';
 const DEFAULT_SAMPLE_LIMIT = 50;
 const MAX_SAMPLE_LIMIT = 200;
 const LONG_TERM_WINDOW_DAYS = 30;
@@ -30,6 +49,74 @@ const CHART_COLORS = [
   '#2c3e50',
   '#f39c12',
 ];
+
+function parseImportResultCount(value) {
+  if (typeof value !== 'string' || !/^\d{1,5}$/.test(value)) {
+    return null;
+  }
+  return Number.parseInt(value, 10);
+}
+
+function getDailyTaskImportResult(query) {
+  if (!query || query.done !== '1') {
+    return null;
+  }
+
+  const imported = parseImportResultCount(query.imported);
+  const created = parseImportResultCount(query.created);
+  const overwritten = parseImportResultCount(query.overwritten);
+  const ignored = parseImportResultCount(query.ignored);
+  const duplicates = parseImportResultCount(query.duplicates);
+  if ([imported, created, overwritten, ignored, duplicates].some((value) => value === null)) {
+    return null;
+  }
+
+  return {
+    imported,
+    created,
+    overwritten,
+    ignored,
+    duplicates,
+  };
+}
+
+function getDailyTaskImportViewData(overrides = {}) {
+  return {
+    pagetitle: 'Splitting emails CSV import · GCS Support Tool',
+    taskName: DAILY_TASK_IMPORT_NAME,
+    importStartDate: IMPORT_START_DATE,
+    importEndDate: IMPORT_END_DATE,
+    error: null,
+    result: null,
+    ...overrides,
+  };
+}
+
+function readDailyTaskCsvUpload(req, fieldName, label) {
+  const upload = req.files && req.files[fieldName];
+  if (!upload) {
+    throw createImportError(`Select the ${label}.`);
+  }
+  if (Array.isArray(upload)) {
+    throw createImportError(`Select only one file for the ${label}.`);
+  }
+  if (upload.truncated) {
+    throw createImportError(`The ${label} exceeded the upload limit.`);
+  }
+  if (!Buffer.isBuffer(upload.data) || upload.data.length === 0) {
+    throw createImportError(`The ${label} is empty.`);
+  }
+  if (upload.data.length > DAILY_TASK_IMPORT_MAX_FILE_BYTES) {
+    throw createImportError(`The ${label} is larger than the 2 MB limit.`);
+  }
+
+  const fallbackName = `${fieldName}.csv`;
+  const sourceName = path.basename(String(upload.name || fallbackName)).slice(0, 160);
+  return {
+    content: upload.data.toString('utf8'),
+    sourceName,
+  };
+}
 
 async function getRenderer() {
   if (zplRenderer) {
@@ -1725,6 +1812,173 @@ exports.all = function (req, res, next) {
 // Landing page
 exports.index = (req, res) => {
   res.render('lennart_top', { i18n: res.__ });
+};
+
+exports.dailyTaskImport = (req, res) => {
+  return res.render('lennart_daily_task_import', getDailyTaskImportViewData({
+    result: getDailyTaskImportResult(req.query),
+  }));
+};
+
+exports.importDailyTaskCsv = async (req, res, next) => {
+  try {
+    if (!req.body || req.body.confirmOverwrite !== 'yes') {
+      throw createImportError('Confirm that overlapping Splitting emails assignments may be overwritten.');
+    }
+
+    const files = [
+      readDailyTaskCsvUpload(req, 'pastCsv', 'past data CSV'),
+      readDailyTaskCsvUpload(req, 'futureCsv', 'future data CSV'),
+    ];
+    const parsed = await parseDailyTaskCsvFiles(files);
+    const firstAssignment = parsed.assignments[0];
+    const lastAssignment = parsed.assignments[parsed.assignments.length - 1];
+
+    if (firstAssignment.date !== IMPORT_START_DATE || lastAssignment.date !== IMPORT_END_DATE) {
+      throw createImportError(
+        `The combined in-range assignments must start on ${IMPORT_START_DATE} and end on ${IMPORT_END_DATE}. `
+        + 'Check that the past and future files are both selected.'
+      );
+    }
+
+    const importResult = await sequelize.transaction(async (transaction) => {
+      const taskType = await DailyTaskType.findOne({
+        where: {
+          name: DAILY_TASK_IMPORT_NAME,
+          team: DAILY_TASK_IMPORT_TEAM,
+        },
+        transaction,
+      });
+      if (
+        !taskType
+        || taskType.name !== DAILY_TASK_IMPORT_NAME
+        || taskType.team !== DAILY_TASK_IMPORT_TEAM
+      ) {
+        throw createImportError(
+          `The active ${DAILY_TASK_IMPORT_NAME} task type for the GCS Mail Team could not be found.`
+        );
+      }
+      if (taskType.archived) {
+        throw createImportError(`${DAILY_TASK_IMPORT_NAME} is archived. Restore it before importing assignments.`);
+      }
+
+      const assigneeNames = Array.from(new Set(
+        parsed.assignments.map((assignment) => assignment.assigneeName)
+      )).sort((left, right) => left.localeCompare(right));
+      const [userRecords, staffRecords] = await Promise.all([
+        User.findAll({
+          attributes: ['id', 'userid'],
+          where: { userid: { [Op.in]: assigneeNames } },
+          transaction,
+        }),
+        Staff.findAll({
+          attributes: ['name'],
+          where: { name: { [Op.in]: assigneeNames } },
+          transaction,
+        }),
+      ]);
+
+      const requestedNames = new Set(assigneeNames);
+      const usersByName = new Map();
+      const duplicateUserNames = new Set();
+      userRecords.forEach((user) => {
+        if (!requestedNames.has(user.userid)) {
+          return;
+        }
+        if (usersByName.has(user.userid)) {
+          duplicateUserNames.add(user.userid);
+        } else {
+          usersByName.set(user.userid, user);
+        }
+      });
+      if (duplicateUserNames.size > 0) {
+        throw createImportError(
+          `More than one user account exactly matches: ${Array.from(duplicateUserNames).sort().join(', ')}.`
+        );
+      }
+
+      const missingUserNames = assigneeNames.filter((assigneeName) => !usersByName.has(assigneeName));
+      if (missingUserNames.length > 0) {
+        throw createImportError(
+          `No exact user account match was found for: ${missingUserNames.join(', ')}. No assignments were changed.`
+        );
+      }
+
+      const staffNames = new Set(
+        staffRecords
+          .map((staff) => staff.name)
+          .filter((staffName) => requestedNames.has(staffName))
+      );
+      const missingStaffNames = assigneeNames.filter((assigneeName) => !staffNames.has(assigneeName));
+      if (missingStaffNames.length > 0) {
+        throw createImportError(
+          `No exact staff schedule match was found for: ${missingStaffNames.join(', ')}. No assignments were changed.`
+        );
+      }
+
+      const importDates = parsed.assignments.map((assignment) => assignment.date);
+      const existingAssignments = await DailyTaskAssignment.findAll({
+        attributes: ['date'],
+        where: {
+          taskTypeId: taskType.id,
+          date: { [Op.in]: importDates },
+        },
+        lock: transaction.LOCK.UPDATE,
+        raw: true,
+        transaction,
+      });
+      const existingDates = new Set(existingAssignments.map((assignment) => String(assignment.date)));
+      const timestamp = new Date();
+      const assignmentRows = parsed.assignments.map((assignment) => {
+        const assignee = usersByName.get(assignment.assigneeName);
+        return {
+          date: assignment.date,
+          taskTypeId: taskType.id,
+          assigneeUserId: assignee.id,
+          assigneeName: assignee.userid,
+          assignedByUserId: req.user.id,
+          assignedByName: req.user.userid,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      });
+
+      await DailyTaskAssignment.bulkCreate(assignmentRows, {
+        transaction,
+        updateOnDuplicate: [
+          'assigneeUserId',
+          'assigneeName',
+          'assignedByUserId',
+          'assignedByName',
+          'updatedAt',
+        ],
+        validate: true,
+      });
+
+      return {
+        imported: assignmentRows.length,
+        overwritten: existingDates.size,
+        created: assignmentRows.length - existingDates.size,
+      };
+    });
+
+    const query = new URLSearchParams({
+      done: '1',
+      imported: String(importResult.imported),
+      created: String(importResult.created),
+      overwritten: String(importResult.overwritten),
+      ignored: String(parsed.ignoredOutOfRange),
+      duplicates: String(parsed.duplicateRows),
+    });
+    return res.redirect(303, `/lennart/daily-task-import?${query.toString()}`);
+  } catch (error) {
+    if (isImportError(error)) {
+      return res.status(400).render('lennart_daily_task_import', getDailyTaskImportViewData({
+        error: error.message,
+      }));
+    }
+    return next(error);
+  }
 };
 
 exports.zpl = (req, res) => {
