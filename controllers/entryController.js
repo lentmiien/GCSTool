@@ -53,16 +53,20 @@ function visibleEntryWhere(req, extraWhere) {
   return where;
 }
 
-function canModifyEntry(req, entry) {
+function canEditEntry(req, entry) {
   if (isGuest(req) || entry.team !== req.user.team) {
     return false;
   }
 
-  if (entry.ismaster) {
-    return isAdmin(req);
+  return isAdmin(req) || entry.ismaster || entry.creator === req.user.userid;
+}
+
+function canDeleteEntry(req, entry) {
+  if (isGuest(req) || entry.team !== req.user.team) {
+    return false;
   }
 
-  return isAdmin(req) || entry.creator === req.user.userid;
+  return isAdmin(req) || (!entry.ismaster && entry.creator === req.user.userid);
 }
 
 function sortEntryContents(entry) {
@@ -229,7 +233,7 @@ exports.entry_delete_get = async function (req, res, next) {
     if (!entry) {
       return res.redirect('/entry');
     }
-    if (!canModifyEntry(req, entry)) {
+    if (!canDeleteEntry(req, entry)) {
       return renderForbidden(res);
     }
 
@@ -255,7 +259,7 @@ exports.entry_delete_post = async function (req, res, next) {
       if (isGuest(req)) {
         return 'guest';
       }
-      if (!canModifyEntry(req, entry)) {
+      if (!canDeleteEntry(req, entry)) {
         return 'forbidden';
       }
 
@@ -295,7 +299,7 @@ exports.entry_update_get = async function (req, res, next) {
     if (!entry) {
       return res.redirect('/entry');
     }
-    if (!canModifyEntry(req, entry)) {
+    if (!canEditEntry(req, entry)) {
       return renderForbidden(res);
     }
 
@@ -324,7 +328,7 @@ exports.entry_update_post = [
       if (isGuest(req)) {
         return res.render('entryupdated', { warning: 'Non-registered users can not update data...' });
       }
-      if (!canModifyEntry(req, currentEntry)) {
+      if (!canEditEntry(req, currentEntry)) {
         return renderForbidden(res);
       }
 
@@ -341,7 +345,7 @@ exports.entry_update_post = [
         if (!entry) {
           return 'not-found';
         }
-        if (!canModifyEntry(req, entry)) {
+        if (!canEditEntry(req, entry)) {
           return 'forbidden';
         }
 
@@ -354,7 +358,7 @@ exports.entry_update_post = [
 
         await entry.update({
           category: bodyString(req.body.category).slice(0, 255),
-          ismaster: isAdmin(req) ? Boolean(req.body.ismaster) : false,
+          ismaster: isAdmin(req) ? Boolean(req.body.ismaster) : entry.ismaster,
           tag: bodyString(req.body.tag).slice(0, 255),
           title: bodyString(req.body.title),
         }, { transaction });
@@ -380,6 +384,11 @@ exports.entry_update_post = [
             await Content.create({ data, entryId: entry.id }, { transaction });
           }
         }
+
+        // The home-page NEWS query uses the parent entry timestamp, while
+        // the editable text is stored in associated Content rows.
+        entry.changed('updatedAt', true);
+        await entry.save({ fields: ['updatedAt'], transaction });
 
         return 'updated';
       });
