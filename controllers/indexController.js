@@ -20,7 +20,6 @@ const {
   MeetingComment,
 } = require('../sequelize');
 const { version: currentVersion } = require('../package.json');
-const sanitizeHtml = require('../utils/sanitizeHtml');
 const { hashPassword, isTemporaryPassword, verifyPassword } = require('../utils/password');
 const { addDays, getJapanToday } = require('../utils/dailyTasks');
 
@@ -300,11 +299,6 @@ exports.index = async function (req, res, next) {
       const entry = entryInstance.get({ plain: true });
       if (Array.isArray(entry.contents)) {
         entry.contents.sort((left, right) => left.id - right.id);
-      }
-      if (entry.category === 'manual' && Array.isArray(entry.contents)) {
-        entry.contents.forEach((content) => {
-          content.sanitizedData = sanitizeHtml(content.data);
-        });
       }
       return entry;
     });

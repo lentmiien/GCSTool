@@ -69,7 +69,7 @@ block content
                 div.home-entry-detail(id=`entry${entry.id}`, style='display:none;')
                   each content in entry.contents
                     if entry.category === 'manual'
-                      .home-entry-manual !{content.sanitizedData}
+                      .home-entry-manual !{content.data}
                     else
                       textarea.form-control.home-entry-template(onclick='Selector(this)', readonly)= content.data
                   footer.home-entry-footer

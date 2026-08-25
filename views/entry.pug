@@ -76,7 +76,7 @@ block content
           div.entry-detail(id=`entry${entry.id}`, style='display:none;')
             each content in entry.contents
               if entry.category === 'manual'
-                .entry-manual !{content.sanitizedData}
+                .entry-manual !{content.data}
               else
                 textarea.form-control.entry-template(onclick='Selector(this)', readonly)= content.data
             footer.entry-footer

@@ -11,7 +11,6 @@ const { body, validationResult } = require('express-validator');
 
 // Require necessary database models
 const { Entry, Content, Op, sequelize } = require('../sequelize');
-const sanitizeHtml = require('../utils/sanitizeHtml');
 
 const CONTENT_LIMIT = 5;
 
@@ -80,13 +79,6 @@ function entriesForDisplay(entries) {
   return entries.map((entryInstance) => {
     const entry = entryInstance.get({ plain: true });
     sortEntryContents(entry);
-
-    if (entry.category === 'manual') {
-      entry.contents.forEach((content) => {
-        content.sanitizedData = sanitizeHtml(content.data);
-      });
-    }
-
     return entry;
   });
 }
