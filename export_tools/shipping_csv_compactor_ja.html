@@ -681,6 +681,7 @@
       <p class="lead">
         同じ注文内で、HS/TARICコードと単価が完全に一致する商品明細を1件にまとめ、数量を合算します。
         日本郵便、ePacketの配送CSVに対応しています。
+        ePacketの単位重量は数量で加重平均し、小数点以下3桁に四捨五入します（例：.123）。
       </p>
       <p class="privacy-note">
         <span class="privacy-note-icon" aria-hidden="true">✓</span>
@@ -809,6 +810,7 @@
           hsOffset: 1,
           quantityOffset: 3,
           priceOffset: 4,
+          weightOffset: 5,
         },
         dhl: {
           label: 'DHL',
@@ -932,6 +934,15 @@
         return quantity;
       };
 
+      const parseUnitWeight = (value) => {
+        const text = toCellText(value).trim();
+        if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) {
+          return null;
+        }
+        const weight = Number(text);
+        return Number.isFinite(weight) ? weight : null;
+      };
+
       const buildMatchKey = (hsCode, unitPrice) => JSON.stringify([
         toCellText(hsCode),
         toCellText(unitPrice),
@@ -975,6 +986,23 @@
           return;
         }
 
+        if (group[0].weightIndex !== undefined) {
+          const weights = group.map((item) => parseUnitWeight(item.row[item.weightIndex]));
+          if (weights.some((weight) => weight === null) || combinedQuantity === 0) {
+            addWarning(stats, `${context}：単位重量が無効、または合計数量が0のため、一致した明細を別々のまま残しました。`);
+            return;
+          }
+          const totalWeight = weights.reduce((total, weight, index) => total + weight * quantities[index], 0);
+          if (!Number.isFinite(totalWeight)) {
+            addWarning(stats, `${context}：合計重量が大きすぎるため、一致した明細を別々のまま残しました。`);
+            return;
+          }
+          // Round only once, after weighting every original item by its quantity.
+          const averageWeight = totalWeight / combinedQuantity;
+          const roundedWeight = Math.round((averageWeight + Number.EPSILON) * 1000) / 1000;
+          group[0].row[group[0].weightIndex] = roundedWeight.toFixed(3).replace(/^0\./, '.');
+        }
+
         group[0].row[group[0].quantityIndex] = String(combinedQuantity);
         group.slice(1).forEach(removeItem);
         stats.combinedEntries += 1;
@@ -1004,6 +1032,9 @@
             unitPrice: toCellText(row[blockStart + config.priceOffset]),
             quantity: toCellText(row[blockStart + config.quantityOffset]),
           };
+          if (config.weightOffset !== undefined) {
+            item.unitWeight = toCellText(row[blockStart + config.weightOffset]);
+          }
           if ([item.name, item.hsCode, item.unitPrice, item.quantity].some((value) => value !== '')) {
             items.push(item);
           }
@@ -1045,6 +1076,7 @@
               blockStart,
               quantity,
               quantityIndex: blockStart + config.quantityOffset,
+              weightIndex: config.weightOffset === undefined ? undefined : blockStart + config.weightOffset,
             });
           }
 
@@ -1453,12 +1485,14 @@
         const caption = createElement('caption', 'visually-hidden', `${orderLabel}の${stage}の商品明細`);
         const tableHead = document.createElement('thead');
         const headingRow = document.createElement('tr');
+        const showWeights = items.some((item) => item.unitWeight !== undefined);
         [
           ['#', 'cell-number'],
           ['商品名', 'cell-name'],
           ['HS/TARIC', 'cell-code'],
           ['単価', 'cell-value'],
           ['数量', 'cell-value'],
+          ...(showWeights ? [['単位重量', 'cell-value']] : []),
         ].forEach(([label, className]) => {
           const heading = createElement('th', className, label);
           heading.setAttribute('scope', 'col');
@@ -1474,6 +1508,9 @@
           appendPreviewCell(row, 'td', item.hsCode, 'cell-code');
           appendPreviewCell(row, 'td', item.unitPrice, 'cell-value');
           appendPreviewCell(row, 'td', item.quantity, 'cell-value');
+          if (showWeights) {
+            appendPreviewCell(row, 'td', item.unitWeight, 'cell-value');
+          }
           tableBody.appendChild(row);
         });
 

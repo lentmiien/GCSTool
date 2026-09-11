@@ -19,6 +19,7 @@
       hsOffset: 1,
       quantityOffset: 3,
       priceOffset: 4,
+      weightOffset: 5,
     },
     dhl: {
       label: 'DHL',
@@ -142,6 +143,15 @@
     return quantity;
   };
 
+  const parseUnitWeight = (value) => {
+    const text = toCellText(value).trim();
+    if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) {
+      return null;
+    }
+    const weight = Number(text);
+    return Number.isFinite(weight) ? weight : null;
+  };
+
   const buildMatchKey = (hsCode, unitPrice) => JSON.stringify([
     toCellText(hsCode),
     toCellText(unitPrice),
@@ -185,6 +195,23 @@
       return;
     }
 
+    if (group[0].weightIndex !== undefined) {
+      const weights = group.map((item) => parseUnitWeight(item.row[item.weightIndex]));
+      if (weights.some((weight) => weight === null) || combinedQuantity === 0) {
+        addWarning(stats, `${context}: matching items were left separate because a unit weight is invalid or their combined quantity is zero.`);
+        return;
+      }
+      const totalWeight = weights.reduce((total, weight, index) => total + weight * quantities[index], 0);
+      if (!Number.isFinite(totalWeight)) {
+        addWarning(stats, `${context}: matching items were left separate because their combined weight is too large.`);
+        return;
+      }
+      // Round only once, after weighting every original item by its quantity.
+      const averageWeight = totalWeight / combinedQuantity;
+      const roundedWeight = Math.round((averageWeight + Number.EPSILON) * 1000) / 1000;
+      group[0].row[group[0].weightIndex] = roundedWeight.toFixed(3).replace(/^0\./, '.');
+    }
+
     group[0].row[group[0].quantityIndex] = String(combinedQuantity);
     group.slice(1).forEach(removeItem);
     stats.combinedEntries += 1;
@@ -214,6 +241,9 @@
         unitPrice: toCellText(row[blockStart + config.priceOffset]),
         quantity: toCellText(row[blockStart + config.quantityOffset]),
       };
+      if (config.weightOffset !== undefined) {
+        item.unitWeight = toCellText(row[blockStart + config.weightOffset]);
+      }
       if ([item.name, item.hsCode, item.unitPrice, item.quantity].some((value) => value !== '')) {
         items.push(item);
       }
@@ -255,6 +285,7 @@
           blockStart,
           quantity,
           quantityIndex: blockStart + config.quantityOffset,
+          weightIndex: config.weightOffset === undefined ? undefined : blockStart + config.weightOffset,
         });
       }
 
@@ -636,12 +667,14 @@
     const caption = createElement('caption', 'sr-only', `${stage} items for ${orderLabel}`);
     const tableHead = document.createElement('thead');
     const headingRow = document.createElement('tr');
+    const showWeights = items.some((item) => item.unitWeight !== undefined);
     [
       ['#', 'shipping-compact-preview-number'],
       ['Item name', 'shipping-compact-preview-name'],
       ['HS/TARIC', 'shipping-compact-preview-code'],
       ['Unit price', 'shipping-compact-preview-value'],
       ['Quantity', 'shipping-compact-preview-value'],
+      ...(showWeights ? [['Unit weight', 'shipping-compact-preview-value']] : []),
     ].forEach(([label, className]) => {
       const heading = createElement('th', className, label);
       heading.setAttribute('scope', 'col');
@@ -662,6 +695,9 @@
       appendPreviewCell(row, 'td', item.hsCode, 'shipping-compact-preview-code');
       appendPreviewCell(row, 'td', item.unitPrice, 'shipping-compact-preview-value');
       appendPreviewCell(row, 'td', item.quantity, 'shipping-compact-preview-value');
+      if (showWeights) {
+        appendPreviewCell(row, 'td', item.unitWeight, 'shipping-compact-preview-value');
+      }
       tableBody.appendChild(row);
     });
 

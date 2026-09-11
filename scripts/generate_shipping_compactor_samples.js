@@ -256,7 +256,7 @@ function buildEPacketRow(order) {
       item.productId,
       String(item.quantity),
       item.unitPrice,
-      `LINE-${padNumber(item.sourceLineNumber, 3)}`
+      ((item.sourceLineNumber % 20 + 1) / 100).toFixed(3).replace(/^0\./, '.')
     );
   });
   return columns.join('\t');
