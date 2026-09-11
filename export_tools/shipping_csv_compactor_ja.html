@@ -681,7 +681,7 @@
       <p class="lead">
         同じ注文内で、HS/TARICコードと単価が完全に一致する商品明細を1件にまとめ、数量を合算します。
         日本郵便、ePacketの配送CSVに対応しています。
-        ePacketの単位重量は数量で加重平均し、小数点以下3桁に四捨五入します（例：.123）。
+        日本郵便・ePacketの単位重量は数量で加重平均し、小数点以下3桁に四捨五入します（例：.123）。日本郵便でまとめる明細の単位重量がすべて0の場合は、0のまま保持します。
       </p>
       <p class="privacy-note">
         <span class="privacy-note-icon" aria-hidden="true">✓</span>
@@ -727,7 +727,6 @@
           <input
             id="shipping-compact-preview-toggle"
             type="checkbox"
-            checked
             aria-controls="shipping-compact-preview"
             aria-expanded="false"
           >
@@ -800,7 +799,9 @@
           nameOffset: 0,
           quantityOffset: 1,
           priceOffset: 2,
+          weightOffset: 3,
           hsOffset: 4,
+          preserveZeroWeight: true,
         },
         ePacket: {
           label: 'ePacket',
@@ -1000,7 +1001,9 @@
           // Round only once, after weighting every original item by its quantity.
           const averageWeight = totalWeight / combinedQuantity;
           const roundedWeight = Math.round((averageWeight + Number.EPSILON) * 1000) / 1000;
-          group[0].row[group[0].weightIndex] = roundedWeight.toFixed(3).replace(/^0\./, '.');
+          group[0].row[group[0].weightIndex] = group[0].preserveZeroWeight && weights.every((weight) => weight === 0)
+            ? '0'
+            : roundedWeight.toFixed(3).replace(/^0\./, '.');
         }
 
         group[0].row[group[0].quantityIndex] = String(combinedQuantity);
@@ -1077,6 +1080,7 @@
               quantity,
               quantityIndex: blockStart + config.quantityOffset,
               weightIndex: config.weightOffset === undefined ? undefined : blockStart + config.weightOffset,
+              preserveZeroWeight: config.preserveZeroWeight,
             });
           }
 

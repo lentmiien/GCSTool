@@ -221,7 +221,7 @@ function buildJapanPostRow(order) {
       item.itemName,
       String(item.quantity),
       item.unitPrice,
-      item.productId,
+      '0',
       item.hsCode,
       `LINE-${padNumber(item.sourceLineNumber, 3)}`
     );

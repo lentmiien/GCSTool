@@ -9,7 +9,9 @@
       nameOffset: 0,
       quantityOffset: 1,
       priceOffset: 2,
+      weightOffset: 3,
       hsOffset: 4,
+      preserveZeroWeight: true,
     },
     ePacket: {
       label: 'ePacket',
@@ -209,7 +211,9 @@
       // Round only once, after weighting every original item by its quantity.
       const averageWeight = totalWeight / combinedQuantity;
       const roundedWeight = Math.round((averageWeight + Number.EPSILON) * 1000) / 1000;
-      group[0].row[group[0].weightIndex] = roundedWeight.toFixed(3).replace(/^0\./, '.');
+      group[0].row[group[0].weightIndex] = group[0].preserveZeroWeight && weights.every((weight) => weight === 0)
+        ? '0'
+        : roundedWeight.toFixed(3).replace(/^0\./, '.');
     }
 
     group[0].row[group[0].quantityIndex] = String(combinedQuantity);
@@ -286,6 +290,7 @@
           quantity,
           quantityIndex: blockStart + config.quantityOffset,
           weightIndex: config.weightOffset === undefined ? undefined : blockStart + config.weightOffset,
+          preserveZeroWeight: config.preserveZeroWeight,
         });
       }
 
