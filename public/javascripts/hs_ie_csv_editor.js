@@ -241,7 +241,16 @@
     exportBtn.disabled = !hasItems || exportInFlight || workflowLocksTools;
   };
 
+  const predictor = window.createIrelandTaricPredictor({
+    selectCode: code => selectReviewTaricSuggestion(code),
+    splitName: splitItemBarcode,
+  });
+
+  let reviewAdvanceToken = 0;
+  let reviewSaving = false;
   const closeReviewModal = () => {
+    reviewAdvanceToken += 1;
+    predictor.close();
     amiAmiResponseRenderToken += 1;
     reviewOverlay.classList.add('d-none');
   };
@@ -1376,6 +1385,7 @@
     reviewInput.value = item.currentHsCode;
     renderReviewTaricSuggestions(item);
     renderAmiAmiResponse(item.currentProductName);
+    predictor.show(item);
     reviewNextBtn.textContent = reviewIndex === reviewQueue.length - 1 ? 'Finish' : 'Next';
     reviewOverlay.classList.remove('d-none');
     reviewInput.focus();
@@ -1403,15 +1413,15 @@
     showReviewItem();
   };
 
-  const saveCurrentReview = () => {
+  const saveCurrentReview = async () => {
     if (!reviewQueue.length || reviewIndex < 0 || reviewIndex >= reviewQueue.length) {
       return false;
     }
 
     const item = reviewQueue[reviewIndex];
     const nextTaric = sanitizeCode(reviewInput.value);
-    if (!nextTaric) {
-      alert('Enter a TARIC code before moving to the next item.');
+    if (!/^[0-9]{10}$/.test(nextTaric)) {
+      alert('Enter a 10-digit TARIC code before moving to the next item.');
       reviewInput.focus();
       return false;
     }
@@ -1420,13 +1430,19 @@
     item.reviewCompleted = true;
     item.requiresReview = true;
     reviewCurrentHs.value = nextTaric;
+    await predictor.selected(item, nextTaric);
     return true;
   };
 
-  const advanceReview = () => {
-    if (!saveCurrentReview()) {
-      return;
-    }
+  const advanceReview = async () => {
+    if (reviewSaving || reviewOverlay.classList.contains('d-none')) return;
+    reviewSaving = true;
+    reviewNextBtn.disabled = true;
+    const token = reviewAdvanceToken;
+    let saved;
+    try { saved = await saveCurrentReview(); }
+    finally { reviewSaving = false; reviewNextBtn.disabled = false; }
+    if (!saved || token !== reviewAdvanceToken) return;
 
     if (reviewIndex >= reviewQueue.length - 1) {
       closeReviewModal();
@@ -1778,7 +1794,11 @@
     showReviewItem();
   };
 
+  let fileReadToken = 0;
   fileInput.addEventListener('change', () => {
+    const readToken = ++fileReadToken;
+    predictor.newRun();
+    closeReviewModal();
     const file = fileInput.files[0];
     if (!file) {
       resetState();
@@ -1789,11 +1809,13 @@
     fileName = file.name;
     const reader = new FileReader();
     reader.onload = () => {
+      if (readToken !== fileReadToken) return;
       parseCsv(reader.result || '');
       buildEditor();
       startAutomatedWorkflow();
     };
     reader.onerror = () => {
+      if (readToken !== fileReadToken) return;
       resetState();
       setStatus('Could not read file.');
     };

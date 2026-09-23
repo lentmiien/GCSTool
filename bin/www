@@ -25,6 +25,14 @@ var server = http.createServer(app);
 
 startTmpCleanup();
 
+// Recover durable TARIC work after schema readiness; page GETs do not start jobs.
+const taricDatabase = require('../sequelize');
+taricDatabase.gcsDatabaseReady.then(() => {
+  require('../services/irelandTaricWorker').createWorker(
+    require('../services/irelandTaricStore').createStore(taricDatabase)
+  ).start();
+}).catch(() => console.warn('Ireland TARIC outbox could not start; check database readiness.'));
+
 /**
  * Setup socket.io
  */

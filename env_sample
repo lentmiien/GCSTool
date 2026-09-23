@@ -29,3 +29,7 @@ SEED_ADMIN_USER=xxxxxx
 SEED_ADMIN_PASS=xxxxxx
 SEED_ADMIN_TEAM=xxxxxx
 SEED_ADMIN_NAME=xxxxxx
+
+# Ireland manual-review test predictor (server only; never configure these in the browser)
+TARIC_TOOL_BASE_URL=https://your-taric-service.example
+TARIC_TOOL_KEY=REPLACE_WITH_DEDICATED_TARIC_KEY

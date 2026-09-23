@@ -730,6 +730,7 @@ exports.ireland_editor = async (req, res, next) => {
       }),
     ]);
     res.render('hs_ireland_editor', {
+      taricCsrfToken: require('../routes/irelandTaric').csrfToken(req),
       taricMappings: buildTaricMappingsForEditor(taricMappings, taricExplanations),
       trackingUpdated: Number(req.query.trackingUpdated || 0),
       trackingCreated: Number(req.query.trackingCreated || 0),

@@ -12,6 +12,10 @@ block content
     input#inputfile.form-control.ie-dark-input(type='file', name='inputfile', accept='.csv')
     p#file-status.ie-dark-muted.mt-2
     p#tool-status.ie-dark-muted.mt-1
+    p#taric-feedback-status.ie-dark-muted.mt-1(role='status', aria-live='polite')
+    button#taric-feedback-refresh.btn.btn-sm.btn-secondary.mb-2(type='button') Check queued AI feedback
+    #taric-feedback-list
+    input#taric-csrf(type='hidden', value=taricCsrfToken)
     if trackingUpdated || trackingCreated
       .alert.alert-success
         span Tracking numbers saved. Updated #{trackingUpdated || 0} existing row(s).
@@ -69,6 +73,14 @@ block content
               a.small(href='/hs/ireland/taric-explanations', target='_blank') Manage explanations
             p#review-suggestions-empty.ie-dark-muted.mb-0
             div#review-suggestions-list
+          #review-predictor.form-group.ie-taric-suggestions
+            strong AI TARIC predictor — test pilot
+            p.small.ie-dark-muted.mb-2 Advisory, model-generated and unverified. Confirm your final code with Next/Finish.
+            p#predictor-status.mb-2(role='status', aria-live='polite')
+            p#predictor-result.mb-2
+            p#predictor-rejected.small.mb-2
+            button#predictor-use.btn.btn-sm.btn-info.mr-2.d-none(type='button') Use suggestion
+            button#predictor-retry.btn.btn-sm.btn-secondary.d-none(type='button') Retry / check request
           #review-amiami-response-group.form-group.ie-amiami-response.d-none
             .d-flex.justify-content-between.align-items-center.mb-2
               label.mb-0 AmiAmi item data
@@ -234,4 +246,5 @@ block content
     }
 
   script(src='/javascripts/FileSaver.js', defer)
+  script(src='/javascripts/ireland_taric_predictor.js', defer)
   script(src='/javascripts/hs_ie_csv_editor.js', defer)

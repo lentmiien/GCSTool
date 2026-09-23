@@ -10,6 +10,7 @@ const UserModel = require('./models/user');
 const UsernameModel = require('./models/username');
 const HSCodeListModel = require('./models/hscodelist');
 const IrelandTaricMappingModel = require('./models/irelandtaricmapping');
+const IrelandTaricJobModel = require('./models/irelandtaricjob');
 const IrelandTaricExplanationModel = require('./models/irelandtaricexplanation');
 const IrelandWorkSummaryModel = require('./models/irelandworksummary');
 const ShipcostModel = require('./models/shipcost');
@@ -88,6 +89,7 @@ const User = UserModel(sequelize, Sequelize);
 const Username = UsernameModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const IrelandTaricMapping = IrelandTaricMappingModel(sequelize, Sequelize);
+const IrelandTaricJob = IrelandTaricJobModel(sequelize, Sequelize);
 const IrelandTaricExplanation = IrelandTaricExplanationModel(sequelize, Sequelize);
 const IrelandWorkSummary = IrelandWorkSummaryModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
@@ -351,7 +353,7 @@ async function ensureCaseTrackerSchema() {
 }
 
 // Create all necessary tables: GCS Tool
-sequelize.sync().then(async () => {
+const gcsDatabaseReady = sequelize.sync().then(async () => {
   await seedAppSettings(AppSetting);
   await seedDailyTaskTypes();
   await ensureCaseTrackerSchema();
@@ -376,6 +378,8 @@ sequelize_dhl_compensation.sync()
 // Export models
 module.exports = {
   sequelize,
+  gcsDatabaseReady,
+  IrelandTaricJob,
   sequelize_tracker,
   sequelize_dhl_compensation,
   Entry,

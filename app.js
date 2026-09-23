@@ -75,6 +75,9 @@ app.use(
     },
   })
 );
+app.use('/hs/ireland/predictor', express.json({ limit: '4kb', inflate: false }), (error, req, res, next) => {
+  res.status(error.status === 413 ? 413 : 400).json({ error: 'INVALID_REQUEST' });
+});
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: false }));
 app.use(cookieParser());

@@ -152,7 +152,7 @@ npm run codex-commit         Ask Codex to draft a commit message for pending cha
 - Keep route files thin when possible. Newer code generally belongs in a service under `services/`, with controllers handling request/response mapping.
 - Use existing Sequelize exports from `sequelize.js`; model factories under `models/` are wired there.
 - `views/layout.pug` is the shared shell for nav, user status, common scripts, Socket.IO client setup, and content blocks.
-- There is no automated test suite configured. Before shipping changes, smoke-test affected routes plus auth, Entries, Scheduler, CT, PMT, uploads, locale switching, and any DB migrations/sync behavior you touched.
+- Run `npm test` for the focused Jest integration/security/DOM suite. The optional outbox database tests require an isolated MySQL database; see the [TARIC integration runbook](documentation/ireland-taric-predictor.md). Before shipping changes, also smoke-test auth, Entries, Scheduler, CT, PMT, uploads, locale switching, and startup sync behavior.
 - When dependencies or scripts change, keep `package-lock.json` in sync.
 
 ## Host Monitor Cron Jobs
@@ -192,3 +192,7 @@ Test both commands manually on the host before enabling cron.
 - Use a non-root MySQL user with only the privileges this app needs.
 - Back up databases before schema-affecting changes. Startup sync can create or alter expected tables.
 - Avoid logging credentials, uploaded file contents, personal data, or API responses that may contain sensitive support information.
+
+## Ireland TARIC predictor
+
+The existing `/hs/ireland` manual assignment modal includes an advisory, server-forced test predictor and durable manual-feedback outbox. Page load and automatic JAN matches never request predictions. See [deployment, limits, tests and manual checks](documentation/ireland-taric-predictor.md).
