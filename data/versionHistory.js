@@ -2,6 +2,17 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.10.1',
+    releaseDate: '2026-10-24',
+    updateDate: '2026-09-24',
+    items: [
+      item('HS', [
+        item('Ireland TARIC review - Added an advisory test predictor to manual review, preserving the source JAN and HS and requiring confirmation before use'),
+        item('Ireland TARIC feedback - Added durable delivery of final manual choices, including choices made before a prediction completes or after it fails'),
+      ]),
+    ],
+  },
+  {
     version: '2.10.0',
     releaseDate: '2026-08-24',
     updateDate: '2026-08-17',
