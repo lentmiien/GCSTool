@@ -7,6 +7,8 @@ block content
       h1= entry.entry.title
       p Browse the current document, its history, and connected guidance.
     .app-page-actions
+      if entry.entry.type === 'Template'
+        button#copy-markdown.btn.btn-outline-primary(type='button', onclick='CopySelectedVersion(this)', aria-live='polite') Copy Markdown
       a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit entry
       a.btn.btn-outline-secondary(href='/pmt') Back to library
 
@@ -15,9 +17,9 @@ block content
       section.app-panel.pmt-document-panel
         label(for='version') Document version
         select#version.form-control(name='version', onchange='UpdateVersion(this)')
-          option(value=entry.entry.html) Latest
+          option(value=entry.entry.html, data-md=entry.entry.type === 'Template' ? entry.entry.content_md : undefined) Latest
           each v in entry.versions
-            option(value=v.html)= `Version ${v.version_number} (${v.createdAt.toISOString().split('T')[0]})`
+            option(value=v.html, data-md=entry.entry.type === 'Template' ? v.content_md : undefined)= `Version ${v.version_number} (${v.createdAt.toISOString().split('T')[0]})`
         #content.pmt-entry-content!= entry.entry.html
     .col-lg-4.mt-3.mt-lg-0
       aside.app-panel.pmt-related-panel
@@ -30,7 +32,20 @@ block content
           h2 Child documents
           .pmt-related-links
             each c in entry.children
-              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${c.child_id}`)= entryMap[c.child_id].title
+              - const child = entryMap[c.child_id]
+              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${c.child_id}`)
+                span.pmt-document-type(class=`pmt-document-type--${child.type.toLowerCase()}`)= child.type
+                = child.title
+        if entry.parents.length > 0
+          h2 Related documents
+          if entry.relatedEntries.length > 0
+            .pmt-related-links
+              each related in entry.relatedEntries
+                button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${related.id}`)
+                  span.pmt-document-type(class=`pmt-document-type--${related.type.toLowerCase()}`)= related.type
+                  = related.title
+          else
+            p.text-muted No other documents under these parent policies.
         if entry.entry.type === 'Policy'
           h2 Create a child
           .pmt-related-links
@@ -56,14 +71,16 @@ block content
                     td= log.details
                     td= log.createdAt.toISOString().split('T')[0]
 
-  each obj in [...entry.parents.map(p => p.parent_id), ...entry.children.map(c => c.child_id)]
-    - const ref = obj
+  each ref in Object.keys(entryMap)
     - const ent = entryMap[ref]
     .modal.fade(id=`m${ref}`, tabindex='-1', role='dialog', aria-hidden='true')
       .modal-dialog.modal-lg(role='document')
         .modal-content
           .modal-header
-            h2.modal-title.h5= ent.title || `Entry ${ref}`
+            div
+              h2.modal-title.h5= ent.title || `Entry ${ref}`
+              if ent.type === 'Template'
+                button.btn.btn-sm.btn-outline-primary.mt-2(type='button', data-md=ent.content_md, onclick="CopyThis(this, 'md')", aria-live='polite') Copy Markdown
             button.close(type='button', data-dismiss='modal', aria-label='Close')
               span(aria-hidden='true') ×
           .modal-body.pmt-entry-content!= ent.html
@@ -72,4 +89,5 @@ block content
             button.btn.btn-sm.btn-secondary(type='button', data-dismiss='modal') Close
 
 block scripts
+  script(src='/js/pmt/pmt.js')
   script(src='/js/pmt/details.js')

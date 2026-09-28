@@ -4,8 +4,12 @@ module.exports = [
   {
     version: '2.10.1',
     releaseDate: '2026-10-24',
-    updateDate: '2026-09-24',
+    updateDate: '2026-09-28',
     items: [
+      item('Policy, manual & template library', [
+        item('Details - Added a Related documents section showing documents connected through direct parent policies, with colored type labels for child documents'),
+        item('Templates - Added Copy Markdown buttons to template previews and detail pages, copying the selected document version'),
+      ]),
       item('HS', [
         item('Ireland TARIC review - Added an advisory test predictor to manual review, preserving the source JAN and HS and requiring confirmation before use'),
         item('Ireland TARIC feedback - Added durable delivery of final manual choices, including choices made before a prediction completes or after it fails'),

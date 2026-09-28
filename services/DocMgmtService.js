@@ -230,6 +230,23 @@ class DocMgmtService {
     return await pmt.PMTDependencies.findAll({where: {parent_id: entryId}});
   }
 
+  async fetchRelatedEntries(entryId, parentIds) {
+    if (parentIds.length === 0) return [];
+
+    // Only the children of direct parents; never traverse ancestors or descendants.
+    const dependencies = await pmt.PMTDependencies.findAll({
+      where: { parent_id: parentIds },
+    });
+    const relatedIds = [...new Set(dependencies.map(dependency => dependency.child_id))]
+      .filter(id => Number(id) !== Number(entryId));
+    if (relatedIds.length === 0) return [];
+
+    return pmt.PMTEntry.findAll({
+      where: { id: relatedIds },
+      order: [['type', 'ASC'], ['title', 'ASC']],
+    });
+  }
+
   async fetchVersionHistory(entryId) {
     return await pmt.PMTVersion.findAll({where: {entry_id: entryId}});
   }

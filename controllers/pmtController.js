@@ -130,14 +130,17 @@ exports.savenew = asyncHandler(async (req, res) => {
 exports.details = asyncHandler(async (req, res) => {
   const entryId = parsePositiveId(req.params.id, 'entry ID');
   const entry = await pmt.fetchEntry(entryId);
+  entry.relatedEntries = await pmt.fetchRelatedEntries(entryId, entry.parentEntries.map(parent => parent.id));
   entry.entry.html = renderMarkdown(entry.entry.content_md);
   entry.versions.forEach((version) => {
     version.html = renderMarkdown(version.content_md);
   });
   const entryMap = {};
-  for (const relatedEntry of entry.parentEntries.concat(entry.childEntries)) {
+  for (const relatedEntry of entry.parentEntries.concat(entry.childEntries, entry.relatedEntries)) {
     entryMap[relatedEntry.id] = {
       title: relatedEntry.title,
+      type: relatedEntry.type,
+      content_md: relatedEntry.content_md,
       html: renderMarkdown(relatedEntry.content_md),
     };
   }

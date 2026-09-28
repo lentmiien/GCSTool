@@ -2166,6 +2166,36 @@ html[data-color-mode='light'] .pmt-review-count {
   gap: 0.4rem;
 }
 
+.pmt-related-links .btn {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.pmt-document-type {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.pmt-document-type--policy {
+  color: var(--gcs-info);
+  background: var(--gcs-info-soft);
+}
+
+.pmt-document-type--manual {
+  color: var(--gcs-success);
+  background: var(--gcs-success-soft);
+}
+
+.pmt-document-type--template {
+  color: var(--gcs-warning);
+  background: var(--gcs-warning-soft);
+}
+
 .pmt-log-panel {
   margin-top: 1rem;
 }
