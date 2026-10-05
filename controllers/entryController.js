@@ -10,7 +10,10 @@
 const { body, validationResult } = require('express-validator');
 
 // Require necessary database models
-const { Entry, Content, Op, sequelize } = require('../sequelize');
+const { Entry, Content, pmt, sequelize } = require('../sequelize');
+const { visibleEntryWhere } = require('../services/legacyContentService');
+const marked = require('marked');
+const sanitizeHtml = require('../utils/sanitizeHtml');
 
 const CONTENT_LIMIT = 5;
 
@@ -34,22 +37,6 @@ function parsePositiveInteger(value) {
 
 function bodyString(value) {
   return typeof value === 'string' ? value : '';
-}
-
-function visibleEntryWhere(req, extraWhere) {
-  const where = {
-    team: req.user.team,
-    ...extraWhere,
-  };
-
-  if (!isAdmin(req)) {
-    where[Op.or] = [
-      { ismaster: true },
-      { creator: req.user.userid },
-    ];
-  }
-
-  return where;
 }
 
 function canEditEntry(req, entry) {
@@ -124,94 +111,41 @@ exports.entry_list = async function (req, res, next) {
     });
     const search = typeof req.query.search === 'string' ? req.query.search.slice(0, 500) : '';
 
-    res.render('entry', { entries: entriesForDisplay(entries), search });
+    const libraryEntries = await pmt.PMTEntry.findAll({ order: [['updatedAt', 'DESC']] });
+    const sharedEntries = libraryEntries.map(instance => {
+      const entry = instance.get({ plain: true });
+      return {
+        ...entry,
+        source: 'pmt',
+        detailId: `pmt-entry${entry.id}`,
+        category: entry.type.toLowerCase(),
+        tag: entry.category,
+        ismaster: true,
+        contents: [{ data: entry.type === 'Template'
+          ? entry.content_md
+          : sanitizeHtml(marked.parse(String(entry.content_md || ''))) }],
+      };
+    });
+    const legacyEntries = entriesForDisplay(entries).map(entry => ({ ...entry, detailId: `entry${entry.id}` }));
+    res.render('entry', { entries: legacyEntries.concat(sharedEntries), search });
   } catch (error) {
     next(error);
   }
 };
 
-// Display Entry create form on GET
+// New content is authored in PMT. Old links still lead to the appropriate form.
 exports.entry_create_get = function (req, res) {
-  res.render('entryadd', { request: {} });
+  return res.redirect('/pmt/create');
 };
 
-// Copy entry
-exports.entry_createcopy_get = async function (req, res, next) {
+exports.entry_createcopy_get = function (req, res) {
   const entryId = parsePositiveInteger(req.params.id);
-  if (!entryId) {
-    return res.redirect('/entry');
-  }
-
-  try {
-    const entry = await findVisibleEntry(req, entryId, { includeContents: true });
-    if (!entry) {
-      return res.redirect('/entry');
-    }
-
-    const request = {
-      category: entry.category,
-      ismaster: isAdmin(req) && entry.ismaster ? 1 : 0,
-      tag: entry.tag,
-      team: req.user.team,
-      title: entry.title,
-    };
-    entry.contents.slice(0, CONTENT_LIMIT).forEach((content, index) => {
-      request[`content${index + 1}`] = content.data;
-    });
-
-    return res.render('entryadd', { request });
-  } catch (error) {
-    return next(error);
-  }
+  return res.redirect(entryId ? `/pmt/create?legacy=${entryId}` : '/entry');
 };
 
-// Handle Entry create on POST.
-exports.entry_create_post = [
-  // Validation fields
-  body('title').isLength({ min: 1, max: 255 }).trim().withMessage('A title is needed.'),
-  body('content1').isLength({ min: 1 }).trim().withMessage('Content 1 is needed.'),
-
-  async (req, res, next) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).render('entryadd', { errors: errors.array(), request: req.body });
-    }
-
-    if (isGuest(req)) {
-      return res.render('entryadded', { warning: 'Non-registered users can not add data...' });
-    }
-
-    const wantsMaster = Boolean(req.body.ismaster);
-    const inputData = {
-      creator: req.user.userid,
-      category: bodyString(req.body.category).slice(0, 255),
-      ismaster: isAdmin(req) && wantsMaster,
-      tag: bodyString(req.body.tag).slice(0, 255),
-      team: req.user.team,
-      title: bodyString(req.body.title),
-      contents: [],
-    };
-
-    for (let contentIndex = 1; contentIndex <= CONTENT_LIMIT; contentIndex += 1) {
-      const data = bodyString(req.body[`content${contentIndex}`]);
-      if (data.length > 0) {
-        inputData.contents.push({ data });
-      }
-    }
-
-    const warning = wantsMaster && !isAdmin(req)
-      ? 'You can not add master data, added as personal data instead.'
-      : '';
-
-    try {
-      await Entry.create(inputData, { include: Entry.Content });
-      return res.render('entryadded', { warning });
-    } catch (error) {
-      return next(error);
-    }
-  },
-];
+exports.entry_create_post = function (req, res) {
+  return renderForbidden(res, 'New Content entries are disabled. Create entries in the Policy, manual & template library (/pmt/create).');
+};
 
 // Display Entry delete form on GET.
 exports.entry_delete_get = async function (req, res, next) {
@@ -423,61 +357,5 @@ exports.backup = async function (req, res, next) {
   }
 };
 
-// Handle Entry restore on POST.
-exports.restore = async function (req, res, next) {
-  if (!isAdmin(req)) {
-    return res.redirect('/');
-  }
-
-  let data;
-  try {
-    data = JSON.parse(bodyString(req.body.restore));
-  } catch (error) {
-    return res.status(400).render('error', {
-      message: 'The backup data is not valid JSON.',
-      error: { status: 400 },
-    });
-  }
-
-  if (!Array.isArray(data)) {
-    return res.status(400).render('error', {
-      message: 'The backup data must contain a list of entries.',
-      error: { status: 400 },
-    });
-  }
-
-  const inputData = [];
-  for (const entry of data) {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      return res.status(400).render('error', {
-        message: 'The backup contains an invalid entry.',
-        error: { status: 400 },
-      });
-    }
-
-    const contents = Array.isArray(entry.contents)
-      ? entry.contents.slice(0, CONTENT_LIMIT)
-        .filter((content) => content && typeof content.data === 'string')
-        .map((content) => ({ data: content.data }))
-      : [];
-
-    inputData.push({
-      creator: req.user.userid,
-      category: bodyString(entry.category).slice(0, 255),
-      ismaster: entry.ismaster === true || entry.ismaster === 1 || entry.ismaster === '1',
-      tag: bodyString(entry.tag).slice(0, 255),
-      team: req.user.team,
-      title: bodyString(entry.title).slice(0, 255),
-      contents,
-    });
-  }
-
-  try {
-    await sequelize.transaction(async (transaction) => {
-      await Entry.bulkCreate(inputData, { include: Entry.Content, transaction });
-    });
-    return res.redirect('/');
-  } catch (error) {
-    return next(error);
-  }
-};
+// Restoring a backup would create new legacy entries as well.
+exports.restore = exports.entry_create_post;

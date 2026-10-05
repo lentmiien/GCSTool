@@ -34,25 +34,37 @@ block content
   if entries.length > 0
     .pmt-entry-grid
       each entry in entries
+        - const legacy = entry.source === 'legacy'
+        - const detailsUrl = legacy ? `/pmt/legacy/${entry.id}` : `/pmt/details/${entry.id}`
         - const updatedRecently = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)) < entry.updatedAt
         article.pmt-entry-card
           header.pmt-entry-card-header
             div
               p.app-page-kicker= entry.type
               h2
-                a(href=`/pmt/details/${entry.id}`)= entry.title
+                a(href=detailsUrl)= entry.title
               p.pmt-entry-meta
-                span= `Version ${entry.current_version}`
+                if legacy
+                  span Legacy Content · Read only
+                else
+                  span= `Version ${entry.current_version}`
                 span(aria-hidden='true') ·
                 span(lg_language=entry.category)= entry.category
             if updatedRecently
               span.badge.badge-success Recently updated
-          if updatedRecently
+          if legacy
+            details.pmt-entry-content
+              summary Read legacy content
+              include legacy-content
+          else if updatedRecently
             .pmt-entry-content!= entry.html
           footer.pmt-entry-actions
-            a.btn.btn-sm.btn-outline-primary(href=`/pmt/details/${entry.id}`) Details
-            a.btn.btn-sm.btn-outline-secondary(href=`/pmt/edit/${entry.id}`) Edit
-            button.btn.btn-sm.btn-link(type='button', data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy Markdown
+            a.btn.btn-sm.btn-outline-primary(href=detailsUrl) Details
+            if legacy
+              a.btn.btn-sm.btn-outline-primary(href=`/pmt/create?legacy=${entry.id}`) Create Policy, manual & template library
+            else
+              a.btn.btn-sm.btn-outline-secondary(href=`/pmt/edit/${entry.id}`) Edit
+              button.btn.btn-sm.btn-link(type='button', data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy Markdown
   else
     .app-empty-state
       h2 No entries found

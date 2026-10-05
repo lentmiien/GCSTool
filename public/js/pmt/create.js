@@ -1,4 +1,4 @@
-const allPolicies = JSON.parse(document.getElementById("policies_data").innerHTML);
+const allPolicies = JSON.parse(document.getElementById("policies_data").textContent);
 
 const editor = new toastui.Editor({
   el: document.querySelector('#editor'),
@@ -7,6 +7,13 @@ const editor = new toastui.Editor({
   theme: document.documentElement.getAttribute('data-color-mode') === 'dark' ? 'dark' : '',
   usageStatistics: false,
 });
+
+const initialContent = document.getElementById('content_md');
+if (initialContent.dataset.format === 'html') {
+  editor.setHTML(initialContent.value);
+} else {
+  editor.setMarkdown(initialContent.value);
+}
 
 document.getElementById("form").addEventListener('submit', function(event) {
   document.getElementById('content_md').value = editor.getMarkdown();

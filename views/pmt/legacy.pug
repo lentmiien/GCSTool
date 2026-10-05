@@ -1,0 +1,19 @@
+extends ../layout
+
+block content
+  header.app-page-header
+    div
+      p.app-page-kicker Legacy Content · Read only
+      h1= entry.title
+      p.pmt-entry-meta
+        span= entry.type
+        span(lg_language=entry.category)= entry.category
+        span= `Created by ${entry.creator}`
+        span= entry.ismaster ? 'Master' : 'Private'
+    .app-page-actions
+      a.btn.btn-primary(href=`/pmt/create?legacy=${entry.id}`) Create Policy, manual & template library
+      a.btn.btn-outline-secondary(href='/pmt') Back to library
+
+  section.app-panel.pmt-document-panel
+    .pmt-entry-content
+      include legacy-content

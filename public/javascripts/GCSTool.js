@@ -411,11 +411,13 @@ function SetFilter(q_string, q_tag, q_template, q_manual, q_ccontact) {
       template: document.getElementById('s_template').checked,
       manual: document.getElementById('s_manual').checked,
       ccontact: document.getElementById('s_ccontact').checked,
+      policy: document.getElementById('s_policy') ? document.getElementById('s_policy').checked : true,
     };
     document.getElementById('s_box').value = String(q_string || '');
     document.getElementById('s_tag').value = String(q_tag || '_');
     document.getElementById('s_template').checked = q_template == 'true' ? true : false;
     document.getElementById('s_manual').checked = q_manual == 'true' ? true : false;
+    if (document.getElementById('s_policy')) document.getElementById('s_policy').checked = q_manual == 'true';
     document.getElementById('s_ccontact').checked = q_ccontact == 'true' ? true : false;
     Filter();
     back.dataset.filterState = JSON.stringify(oldData);
@@ -444,6 +446,7 @@ function SetFilterBack() {
   document.getElementById('s_tag').value = back.tag || '_';
   document.getElementById('s_template').checked = Boolean(back.template);
   document.getElementById('s_manual').checked = Boolean(back.manual);
+  if (document.getElementById('s_policy')) document.getElementById('s_policy').checked = back.policy !== false;
   document.getElementById('s_ccontact').checked = Boolean(back.ccontact);
   Filter();
 }
@@ -453,6 +456,7 @@ function Clear() {
   document.getElementById('s_tag').value = '_';
   document.getElementById('s_template').checked = true;
   document.getElementById('s_manual').checked = true;
+  if (document.getElementById('s_policy')) document.getElementById('s_policy').checked = true;
   document.getElementById('s_ccontact').checked = true;
   Filter();
 }
@@ -494,6 +498,7 @@ function Filter() {
         if (
           (e[i].className.indexOf('template') >= 0 && document.getElementById('s_template').checked == true) ||
           (e[i].className.indexOf('manual') >= 0 && document.getElementById('s_manual').checked == true) ||
+          (e[i].classList.contains('policy') && document.getElementById('s_policy') && document.getElementById('s_policy').checked) ||
           (e[i].className.indexOf('ccontact') >= 0 && document.getElementById('s_ccontact').checked == true)
         ) {
           e[i].style.display = 'block';

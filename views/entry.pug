@@ -9,7 +9,8 @@ block content
       h1(lg_language='_content_') Content library
       p Search team templates, manuals, and customer-contact references.
     .app-page-actions
-      a.btn.btn-primary(href='/entry/create', lg_language='_create_new_') Create new
+      button.btn.btn-secondary(type='button', disabled, lg_language='_create_new_') Create new
+      a.btn.btn-primary(href='/pmt/create') Create in Policy, manual & template library
 
   section.app-panel.entry-filter-panel(aria-labelledby='entry-filter-title')
     h2#entry-filter-title.h5(lg_language='_filter_') Filter
@@ -32,6 +33,9 @@ block content
         label.entry-filter-check(for='s_manual')
           input#s_manual(name='search', type='checkbox', checked, onclick='UpdateFilter()')
           span(lg_language='_manuals_') Manuals
+        label.entry-filter-check(for='s_policy')
+          input#s_policy(name='search', type='checkbox', checked, onclick='UpdateFilter()')
+          span Policies
         label.entry-filter-check(for='s_ccontact')
           input#s_ccontact(name='search', type='checkbox', checked, onclick='UpdateFilter()')
           span(lg_language='_ccontact_') Customer contact
@@ -65,30 +69,38 @@ block content
           button.title_button(
             class=entry.tag,
             type='button',
-            onclick=`DisplayEntry('entry${entry.id}')`,
-            aria-controls=`entry${entry.id}`,
+            onclick=`DisplayEntry('${entry.detailId}')`,
+            aria-controls=entry.detailId,
             aria-expanded='false'
           )
             each titlePart in titleParts
               span(class=titlePart.label ? 'highlight' : '')= titlePart.text
-          span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
+          if entry.source === 'pmt'
+            span.badge.badge-secondary= `Library · ${entry.type}`
+          else
+            span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
 
-          div.entry-detail(id=`entry${entry.id}`, style='display:none;')
+          div.entry-detail(id=entry.detailId, style='display:none;')
             each content in entry.contents
-              if entry.category === 'manual'
+              if entry.category === 'manual' || entry.category === 'policy'
                 .entry-manual !{content.data}
               else
-                textarea.form-control.entry-template(onclick='Selector(this)', readonly)= content.data
+                textarea.form-control.entry-template(onclick='Selector(this)', readonly)= '\n' + content.data
             footer.entry-footer
-              span
-                span(lg_language='_created_') Created by
-                strong= entry.creator
-              nav.entry-actions(aria-label=`Actions for ${entry.title}`)
-                a.entry_control(href=`/entry/${entry.id}/update`, lg_language='_edit_data_') Edit
-                if role === 'admin' || entry.ismaster === false
-                  a.entry_control(href=`/entry/${entry.id}/delete`, lg_language='_delete_data_') Delete
-                a.entry_control(href=`/entry/${entry.id}/createcopy`, lg_language='_submit_create_copy_') Create copy
+              if entry.source === 'pmt'
+                span Read only · Policy, manual & template library
+                nav.entry-actions(aria-label=`Actions for ${entry.title}`)
+                  a.entry_control(href=`/pmt/details/${entry.id}`) Open in Policy, manual & template library
+              else
+                span
+                  span(lg_language='_created_') Created by
+                  strong= entry.creator
+                nav.entry-actions(aria-label=`Actions for ${entry.title}`)
+                  a.entry_control(href=`/entry/${entry.id}/update`, lg_language='_edit_data_') Edit
+                  if role === 'admin' || entry.ismaster === false
+                    a.entry_control(href=`/entry/${entry.id}/delete`, lg_language='_delete_data_') Delete
+                  a.entry_control(href=`/pmt/create?legacy=${entry.id}`) Create in Policy, manual & template library
   else
     .app-empty-state
       h2 No content found
-      p Create the first entry for this team or change the current search.
+      p Create an entry in the Policy, manual & template library or change the current search.

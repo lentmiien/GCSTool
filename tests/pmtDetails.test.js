@@ -4,6 +4,8 @@ jest.mock('../services/DocMgmtService', () => ({
   fetchRelatedEntries: jest.fn(),
 }));
 
+jest.mock('../services/legacyContentService', () => ({}));
+
 const fs = require('fs');
 const pug = require('pug');
 const service = require('../services/DocMgmtService');

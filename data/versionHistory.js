@@ -7,8 +7,12 @@ module.exports = [
     updateDate: '2026-09-28',
     items: [
       item('Policy, manual & template library', [
+        item('Added read-only access to legacy Content entries, with options to create new library entries prefilled from legacy data'),
         item('Details - Added a Related documents section showing documents connected through direct parent policies, with colored type labels for child documents'),
         item('Templates - Added Copy Markdown buttons to template previews and detail pages, copying the selected document version'),
+      ]),
+      item('Content library', [
+        item('Kept legacy entries available for reading alongside library entries and directed new entry creation to the Policy, manual & template library'),
       ]),
       item('Home page', [
         item('News - Combined recent Content and Policy, manual & template library updates with Japan Post news, including expandable policy/manual Markdown and copyable templates'),

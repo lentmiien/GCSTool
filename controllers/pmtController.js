@@ -1,5 +1,6 @@
 const marked = require('marked');
 const pmt = require('../services/DocMgmtService');
+const legacyContent = require('../services/legacyContentService');
 const sanitizeHtml = require('../utils/sanitizeHtml');
 
 const PMT_TYPES = new Set(['Policy', 'Manual', 'Template']);
@@ -86,7 +87,8 @@ exports.top = asyncHandler(async (req, res) => {
   });
   const logs = await pmt.fetchAllLogs({ action: 'flagged-for-review' });
   res.render('pmt/pmt', {
-    entries,
+    entries: entries.concat(await legacyContent.fetchEntries(req, { type, category }))
+      .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)),
     query: { type: type || '', category: category || '' },
     reviews: logs.length,
   });
@@ -100,7 +102,20 @@ exports.create = asyncHandler(async (req, res) => {
     await validateParentIds([parentId], policies);
     selected.push(parentId);
   }
-  res.render('pmt/create', { query: req.query, policies, selected });
+  let draft = {};
+  if (req.query.legacy !== undefined) {
+    const legacyId = parsePositiveId(req.query.legacy, 'legacy entry ID');
+    const entry = await legacyContent.fetchEntry(req, legacyId);
+    draft = {
+      legacyId,
+      title: entry.title,
+      type: entry.type,
+      category: PMT_CATEGORIES.has(entry.category) ? entry.category : '_other_',
+      content: entry.contents.map(content => content.data).join('\n\n'),
+      format: entry.type === 'Manual' ? 'html' : 'text',
+    };
+  }
+  res.render('pmt/create', { query: req.query, policies, selected, draft });
 });
 
 exports.savenew = asyncHandler(async (req, res) => {
@@ -125,6 +140,12 @@ exports.savenew = asyncHandler(async (req, res) => {
     });
   }
   res.redirect(`/pmt/details/${id}`);
+});
+
+exports.legacyDetails = asyncHandler(async (req, res) => {
+  const entryId = parsePositiveId(req.params.id, 'legacy entry ID');
+  const entry = await legacyContent.fetchEntry(req, entryId);
+  res.render('pmt/legacy', { entry });
 });
 
 exports.details = asyncHandler(async (req, res) => {

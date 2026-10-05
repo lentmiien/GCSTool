@@ -5,33 +5,39 @@ block styles
   link(rel='stylesheet', href='https://uicdn.toast.com/editor/3.2.2/theme/toastui-editor-dark.min.css')
 
 block content
+  - const initial = typeof draft === 'undefined' ? {} : draft
   h2 Create a new entry 
+  if initial.legacyId
+    p This form is prefilled from legacy Content. Review it before saving as a shared library entry. The original remains available.
+    if initial.format === 'html'
+      p The legacy manual is converted from HTML to Markdown for editing. Check formatting before saving.
+    a(href=`/pmt/legacy/${initial.legacyId}`) View original Content entry
   form#form(action="/pmt/savenew", method="post") 
     label(for='title') Title 
-    input#title.form-control(type='text' placeholder='The title' name='title' required='true')
+    input#title.form-control(type='text' placeholder='The title' name='title' value=initial.title required='true')
     label(for="type") Type 
     select#type.form-control(name="type") 
-      - const pre = query.type || ''
+      - const pre = initial.type || query.type || ''
       option(value='Template' selected=(pre=='Template')) Template
       option(value='Manual' selected=(pre=='Manual')) Manual
       option(value='Policy' selected=(pre=='Policy')) Policy 
     label(for="category") Category 
     select#category.form-control(name="category")
-      option(value="_account_related_") Account related
-      option(value="_order_item_statuses_") Order item statuses
-      option(value="_order_modifying_") Order modifying
-      option(value="_payment_shipping_") Payment shipping
-      option(value="_after_service_shipping_") After service shipping
-      option(value="_after_service_defect_") After service defect
-      option(value="_after_service_preowned_") After service preowned
-      option(value="_returns_refunds_") Returns refunds
-      option(value="_claims_cases_") Claims cases
-      option(value="_work_related_") Work related
-      option(value="_case_assist_") Case assist
-      option(value="_customer_dep_") Customer dep
-      option(value="_logistics_dep_") Logistics dep
-      option(value="_feedback_") Feedback
-      option(value="_other_") Other
+      option(value="_account_related_" selected=(initial.category === "_account_related_")) Account related
+      option(value="_order_item_statuses_" selected=(initial.category === "_order_item_statuses_")) Order item statuses
+      option(value="_order_modifying_" selected=(initial.category === "_order_modifying_")) Order modifying
+      option(value="_payment_shipping_" selected=(initial.category === "_payment_shipping_")) Payment shipping
+      option(value="_after_service_shipping_" selected=(initial.category === "_after_service_shipping_")) After service shipping
+      option(value="_after_service_defect_" selected=(initial.category === "_after_service_defect_")) After service defect
+      option(value="_after_service_preowned_" selected=(initial.category === "_after_service_preowned_")) After service preowned
+      option(value="_returns_refunds_" selected=(initial.category === "_returns_refunds_")) Returns refunds
+      option(value="_claims_cases_" selected=(initial.category === "_claims_cases_")) Claims cases
+      option(value="_work_related_" selected=(initial.category === "_work_related_")) Work related
+      option(value="_case_assist_" selected=(initial.category === "_case_assist_")) Case assist
+      option(value="_customer_dep_" selected=(initial.category === "_customer_dep_")) Customer dep
+      option(value="_logistics_dep_" selected=(initial.category === "_logistics_dep_")) Logistics dep
+      option(value="_feedback_" selected=(initial.category === "_feedback_")) Feedback
+      option(value="_other_" selected=(initial.category === "_other_")) Other
     label(for='policies') Parent policy / policies
     select#policies.form-control(name='policyIds' multiple size=5 onchange='showPreview()')
       each p in policies
@@ -40,7 +46,7 @@ block content
     .row 
       .col-12.col-xl-8
         #editor 
-        input#content_md(type="hidden", name="content_md")
+        input#content_md(type="hidden", name="content_md", value=initial.content, data-format=initial.format)
       .col-12.col-xl-4.mt-3.mt-xl-0
         h4 Preview selected Policies
         #policyPreview.pmt-policy-preview

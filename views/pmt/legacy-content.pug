@@ -1,0 +1,5 @@
+each content in entry.contents
+  if entry.type === 'Manual'
+    .entry-manual!= content.data
+  else
+    textarea.form-control.entry-template(readonly, aria-label='Legacy template content', onclick='Selector(this)')= '\n' + content.data
