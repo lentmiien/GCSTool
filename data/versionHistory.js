@@ -4,7 +4,7 @@ module.exports = [
   {
     version: '2.10.1',
     releaseDate: '2026-10-24',
-    updateDate: '2026-09-28',
+    updateDate: '2026-10-05',
     items: [
       item('Policy, manual & template library', [
         item('Added read-only access to legacy Content entries, with options to create new library entries prefilled from legacy data'),
@@ -21,6 +21,7 @@ module.exports = [
       item('HS', [
         item('Ireland TARIC review - Added an advisory test predictor to manual review, preserving the source JAN and HS and requiring confirmation before use'),
         item('Ireland TARIC feedback - Added durable delivery of final manual choices, including choices made before a prediction completes or after it fails'),
+        item('Ireland TARIC export - Added a download for all unique TARIC codes as a single-column CSV'),
       ]),
     ],
   },

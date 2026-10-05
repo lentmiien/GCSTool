@@ -18,6 +18,7 @@ router.get('/v2', controller.index_v2);
 
 // Ireland CSV editor
 router.get('/ireland', controller.ireland_editor);
+router.get('/ireland/taric-codes.csv', controller.ireland_export_taric_codes);
 router.use('/ireland/predictor', require('./irelandTaric').createRouter(
   require('../services/irelandTaricStore').createStore(require('../sequelize'))
 ));

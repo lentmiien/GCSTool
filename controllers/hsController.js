@@ -740,6 +740,28 @@ exports.ireland_editor = async (req, res, next) => {
   }
 };
 
+exports.ireland_export_taric_codes = async (req, res, next) => {
+  try {
+    const mappings = await IrelandTaricMapping.findAll({
+      attributes: ['taricCode'],
+      where: { taricCode: { [Op.ne]: null } },
+      group: ['taricCode'],
+      raw: true,
+    });
+    const codes = [...new Set(mappings.map((mapping) => sanitizeMappingCode(mapping.taricCode)).filter(Boolean))].sort();
+    const rows = codes.map((code) => {
+      const safeCode = /^[=+\-@]/.test(code) ? `'${code}` : code;
+      return `"${safeCode.replace(/"/g, '""')}"`;
+    });
+
+    res.attachment('ireland-taric-codes.csv');
+    res.type('text/csv; charset=utf-8');
+    res.send(['taricCode', ...rows].join('\r\n') + '\r\n');
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.ireland_amiami_items = async (req, res) => {
   const barcodes = Array.isArray(req.body)
     ? req.body.map((barcode) => collapseWhitespace(barcode))
