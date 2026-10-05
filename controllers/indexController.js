@@ -1,5 +1,7 @@
 ﻿const async = require('async');
 const axios = require('axios');
+const marked = require('marked');
+const sanitizeHtml = require('../utils/sanitizeHtml');
 var parseString = require('xml2js').parseString;
 
 // Require necessary database models
@@ -7,6 +9,7 @@ const {
   sequelize,
   Entry,
   Content,
+  pmt,
   User,
   Username,
   Op,
@@ -289,22 +292,50 @@ exports.index = async function (req, res, next) {
       ];
     }
 
-    const entries = await Entry.findAll({
-      include: [{ model: Content }],
-      order: [['updatedAt', 'DESC']],
-      where,
-    });
+    const [entries, libraryEntries] = await Promise.all([
+      Entry.findAll({
+        include: [{ model: Content }],
+        order: [['updatedAt', 'DESC']],
+        where,
+      }),
+      pmt.PMTEntry.findAll({
+        where: { updatedAt: { [Op.gt]: d } },
+        order: [['updatedAt', 'DESC']],
+      }),
+    ]);
 
     const visibleEntries = entries.map((entryInstance) => {
       const entry = entryInstance.get({ plain: true });
       if (Array.isArray(entry.contents)) {
         entry.contents.sort((left, right) => left.id - right.id);
       }
-      return entry;
+      return { ...entry, source: 'content', detailId: `entry${entry.id}` };
     });
+    const visibleLibraryEntries = libraryEntries.map((entryInstance) => {
+      const entry = entryInstance.get({ plain: true });
+      const category = entry.type.toLowerCase();
+      return {
+        ...entry,
+        source: 'pmt',
+        detailId: `pmt-entry${entry.id}`,
+        category,
+        tag: entry.category,
+        contents: [{
+          data: category === 'template'
+            ? entry.content_md
+            : sanitizeHtml(marked.parse(String(entry.content_md || ''))),
+        }],
+      };
+    });
+    const japanPostNews = normalizeJapanPostNews(res.locals.jp);
+    const newsItems = visibleEntries.concat(visibleLibraryEntries, japanPostNews.recent.map((item) => ({
+      ...item,
+      source: 'japan-post',
+      updatedAt: new Date(item.pubDate),
+    }))).sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
     return res.render('index', {
-      entries: visibleEntries,
-      japanPostNews: normalizeJapanPostNews(res.locals.jp),
+      newsItems,
+      japanPostNews,
     });
   } catch (error) {
     return next(error);

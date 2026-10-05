@@ -158,41 +158,6 @@ html(lang='en', data-color-mode='dark')
                   else
                     span.dropdown-header Not signed in
 
-      - const jpItems = typeof jp !== 'undefined' && Array.isArray(jp) ? jp : []
-      - const now = new Date()
-      - const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-      - const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      - const jpCandidate = jpItems.length ? jpItems[0] : null
-      - const jpHasFields = jpCandidate && Array.isArray(jpCandidate.pubDate) && typeof jpCandidate.pubDate[0] === 'string' && Array.isArray(jpCandidate.title) && typeof jpCandidate.title[0] === 'string' && Array.isArray(jpCandidate.link) && typeof jpCandidate.link[0] === 'string'
-      - const jpNotice = jpHasFields && /^https?:\/\//i.test(jpCandidate.link[0]) ? { date: jpCandidate.pubDate[0], title: jpCandidate.title[0], link: jpCandidate.link[0] } : null
-      - const jpDate = jpNotice ? jpNotice.date : ''
-      - const jpIsRecent = jpDate.indexOf(`${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`) >= 0 || jpDate.indexOf(`${yesterday.getDate()} ${monthNames[yesterday.getMonth()]} ${yesterday.getFullYear()}`) >= 0
-
-      .app-notice-region(aria-label='Application notices')
-        if jpNotice && jpIsRecent
-          .app-notice.app-notice--info(role='status')
-            span.app-notice-icon(aria-hidden='true') JP
-            .app-notice-content
-              strong Japan Post news
-              a(href=jpNotice.link, target='_blank', rel='noopener noreferrer')= jpNotice.title
-
-        if typeof holidays_next_week !== 'undefined' && holidays_next_week && holidays_next_week.length > 0
-          .app-notice.app-notice--warning(role='note')
-            span.app-notice-icon(aria-hidden='true') !
-            .app-notice-content
-              strong 次の10日間の祝日出勤
-              .app-holiday-list
-                each holiday in holidays_next_week
-                  .app-holiday-item
-                    span
-                      strong= `${holiday.date}: `
-                      = holiday.work_staff.join(', ')
-                    if displayRole === 'admin'
-                      span.app-notice-actions
-                        button(type='button', data-copy-text=holiday.message_title, onclick='Copy(this.dataset.copyText)') Title
-                        button(type='button', data-copy-text=holiday.message_body, onclick='Copy(this.dataset.copyText)') Body
-                        button(type='button', data-copy-text=`[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]`, onclick='Copy(this.dataset.copyText)') CW
-
       #debug.app-debug-region(aria-live='polite')
       #ask_labels.app-dialog-region
 

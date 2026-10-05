@@ -17,8 +17,8 @@ block content
           a.btn.btn-outline-light(href='/ct') Open case tracker
           a.btn.btn-outline-light(href='/scheduler') View schedule
       .home-hero-summary(aria-label='Workspace summary')
-        span.home-summary-label Recent knowledge updates
-        strong= entries.length
+        span.home-summary-label Recent updates
+        strong= newsItems.length
         small From the last 30 days
 
     .home-content-grid
@@ -27,58 +27,94 @@ block content
           div
             p.app-page-kicker Shared knowledge
             h2#home-updates-title(lg_language='_news_') Latest updates
-            p(lg_language='_news_update_') Content created or updated during the last month.
-          a.btn.btn-outline-secondary.btn-sm(href='/entry') View all content
+            p(lg_language='_news_update_') Content, library updates, and Japan Post news from the last month.
+          .app-page-actions
+            a.btn.btn-outline-secondary.btn-sm(href='/entry') View all content
+            a.btn.btn-outline-secondary.btn-sm(href='/pmt') View library
 
-        if entries.length
+        - const upcomingHolidays = typeof holidays_next_week !== 'undefined' && Array.isArray(holidays_next_week) ? holidays_next_week.filter(holiday => holiday.work_staff && holiday.work_staff.length) : []
+        if upcomingHolidays.length
+          article.home-pinned-notice.app-notice.app-notice--warning(aria-labelledby='holiday-news-title')
+            span.app-notice-icon(aria-hidden='true') !
+            .app-notice-content
+              p.home-pinned-label Pinned
+              strong#holiday-news-title 次の10日間の祝日出勤
+              .app-holiday-list
+                each holiday in upcomingHolidays
+                  .app-holiday-item
+                    span
+                      strong= `${holiday.date}: `
+                      = holiday.work_staff.join(', ')
+                    if displayRole === 'admin'
+                      span.app-notice-actions
+                        button(type='button', data-copy-text=holiday.message_title, onclick='Copy(this.dataset.copyText)') Title
+                        button(type='button', data-copy-text=holiday.message_body, onclick='Copy(this.dataset.copyText)') Body
+                        button(type='button', data-copy-text=`[info][title]${holiday.message_title}[/title]${holiday.message_body}[/info]`, onclick='Copy(this.dataset.copyText)') CW
+
+        if newsItems.length
           .home-entry-list
-            each entry in entries
-              - const createdValue = dateValue(entry.createdAt)
-              - const updatedValue = dateValue(entry.updatedAt)
-              - const titleParts = []
-              if entry.title.indexOf('[') >= 0
-                each part in entry.title.split('[')
-                  if part.indexOf(']') >= 0
-                    - const subParts = part.split(']')
-                    - titleParts.push({ label: true, text: subParts[0] })
-                    if subParts[1].length > 0
-                      - titleParts.push({ label: false, text: subParts[1] })
-                  else if part.length > 0
-                    - titleParts.push({ label: false, text: part })
+            each entry in newsItems
+              if entry.source === 'japan-post'
+                a.home-news-item.home-japan-post-update(href=entry.link, target='_blank', rel='noopener noreferrer')
+                  .home-japan-post-copy
+                    strong.home-external-label Japan Post news ↗
+                    span= entry.title
+                  time= entry.pubDate
               else
-                - titleParts.push({ label: false, text: entry.title })
+                - const createdValue = dateValue(entry.createdAt)
+                - const updatedValue = dateValue(entry.updatedAt)
+                - const titleParts = []
+                if entry.title.indexOf('[') >= 0
+                  each part in entry.title.split('[')
+                    if part.indexOf(']') >= 0
+                      - const subParts = part.split(']')
+                      - titleParts.push({ label: true, text: subParts[0] })
+                      if subParts[1].length > 0
+                        - titleParts.push({ label: false, text: subParts[1] })
+                    else if part.length > 0
+                      - titleParts.push({ label: false, text: part })
+                else
+                  - titleParts.push({ label: false, text: entry.title })
 
-              article(class=`entry home-entry ${entry.category}`, data-creator=entry.creator, data-private=entry.ismaster ? 'false' : 'true')
-                .home-entry-heading
-                  button.home-entry-toggle.title_button(
-                    class=entry.tag,
-                    type='button',
-                    onclick=`DisplayEntry('entry${entry.id}')`,
-                    aria-controls=`entry${entry.id}`,
-                    aria-expanded='false'
-                  )
-                    each titlePart in titleParts
-                      span(class=titlePart.label ? 'highlight' : '')= titlePart.text
-                    if createdValue > recentBoundaryValue
-                      b.update-status New
-                    else if updatedValue > recentBoundaryValue
-                      b.update-status Updated
-                  .home-entry-meta
-                    span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
+                article(class=`entry home-entry ${entry.category}`, data-creator=entry.creator, data-private=entry.source === 'content' ? (entry.ismaster ? 'false' : 'true') : undefined)
+                  .home-entry-heading
+                    button.home-entry-toggle.title_button(
+                      class=entry.tag,
+                      type='button',
+                      onclick=`DisplayEntry('${entry.detailId}')`,
+                      aria-controls=entry.detailId,
+                      aria-expanded='false'
+                    )
+                      each titlePart in titleParts
+                        span(class=titlePart.label ? 'highlight' : '')= titlePart.text
+                      if createdValue > recentBoundaryValue
+                        b.update-status New
+                      else if updatedValue > recentBoundaryValue
+                        b.update-status Updated
+                    .home-entry-meta
+                      if entry.source === 'pmt'
+                        span.home-entry-source= `Library · ${entry.type}`
+                      else
+                        span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'
 
-                div.home-entry-detail(id=`entry${entry.id}`, style='display:none;')
-                  each content in entry.contents
-                    if entry.category === 'manual'
-                      .home-entry-manual !{content.data}
-                    else
-                      textarea.form-control.home-entry-template(onclick='Selector(this)', readonly)= content.data
-                  footer.home-entry-footer
-                    span(lg_language='_created_') Created by
-                    strong= entry.creator
+                  div.home-entry-detail(id=entry.detailId, style='display:none;')
+                    each content in entry.contents
+                      if entry.category === 'manual' || entry.category === 'policy'
+                        .home-entry-manual !{content.data}
+                      else
+                        //- HTML strips the first newline after a textarea opening tag; add one to preserve the original text.
+                        textarea.form-control.home-entry-template(onclick='Selector(this)', aria-label='Template text — click to copy', title='Click to copy', readonly)= '\n' + content.data
+                    footer.home-entry-footer
+                      if entry.source === 'pmt'
+                        a(href=`/pmt/details/${entry.id}`) View library entry
+                        span= `Version ${entry.current_version}`
+                      else
+                        span(lg_language='_created_') Created by
+                        strong= entry.creator
         else
           .app-empty-state
             h3 No recent updates
-            p Shared content created or updated during the last month will appear here.
+            p Content, library updates, and Japan Post news from the last month will appear here.
 
       aside.home-preferences(aria-label='Personal preferences')
         section.home-panel(aria-labelledby='preferences-title')
@@ -136,27 +172,18 @@ block content
           div
             p.app-page-kicker External updates
             h2#jp-news-title Japan Post news
-        .home-news-list
-          each newsItem in recentJapanPostNews
-            a.home-news-item(href=newsItem.link, target='_blank', rel='noopener noreferrer')
-              span= newsItem.title
-              if newsItem.pubDate
-                time= newsItem.pubDate
-        if !recentJapanPostNews.length
-          p.home-news-empty No Japan Post news was published during the last 30 days.
-        if olderJapanPostNews.length
-          .home-news-more
-            button.btn.btn-outline-secondary.btn-sm(
-              type='button',
-              data-toggle='collapse',
-              data-target='#older-japan-post-news',
-              aria-expanded='false',
-              aria-controls='older-japan-post-news'
-            )= `Show older news (${olderJapanPostNews.length})`
-            #older-japan-post-news.collapse
-              .home-news-list
-                each newsItem in olderJapanPostNews
-                  a.home-news-item(href=newsItem.link, target='_blank', rel='noopener noreferrer')
-                    span= newsItem.title
-                    if newsItem.pubDate
-                      time= newsItem.pubDate
+        .home-news-more
+          button.btn.btn-outline-secondary.btn-sm(
+            type='button',
+            data-toggle='collapse',
+            data-target='#older-japan-post-news',
+            aria-expanded='false',
+            aria-controls='older-japan-post-news'
+          )= `Show older news (${recentJapanPostNews.length + olderJapanPostNews.length})`
+          #older-japan-post-news.collapse
+            .home-news-list
+              each newsItem in recentJapanPostNews.concat(olderJapanPostNews)
+                a.home-news-item(href=newsItem.link, target='_blank', rel='noopener noreferrer')
+                  span= newsItem.title
+                  if newsItem.pubDate
+                    time= newsItem.pubDate

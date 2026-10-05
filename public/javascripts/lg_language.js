@@ -52,9 +52,9 @@ var json_language = {
     japanese: '＊＊　ニュース　＊＊',
   },
   _news_update_: {
-    english: '*Updated within last month (NEW = Created within last 7 days, UPDATED = Updated within last 7 days)',
-    swedish: '*Updaterad inom senaste månaden (NEW = Skapade de senaste 7 dagarna, UPDATED = Updaterad de senaste 7 dagarna)',
-    japanese: '＊最近の1ヶ月以内更新された（NEW＝1週間以内新規作成された、UPDATED＝1週間以内更新された）',
+    english: 'Content, library updates, and Japan Post news from the last month (NEW = Created within last 7 days, UPDATED = Updated within last 7 days)',
+    swedish: 'Innehåll, biblioteksuppdateringar och nyheter från Japan Post från den senaste månaden (NEW = Skapat de senaste 7 dagarna, UPDATED = Uppdaterat de senaste 7 dagarna)',
+    japanese: '最近1ヶ月のコンテンツ・ライブラリの更新と日本郵便のお知らせ（NEW＝1週間以内に新規作成、UPDATED＝1週間以内に更新）',
   },
   _template_: {
     english: 'Template',
