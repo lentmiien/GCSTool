@@ -127,7 +127,11 @@ exports.entry_list = async function (req, res, next) {
       };
     });
     const legacyEntries = entriesForDisplay(entries).map(entry => ({ ...entry, detailId: `entry${entry.id}` }));
-    res.render('entry', { entries: legacyEntries.concat(sharedEntries), search });
+    const displayEntries = legacyEntries.concat(sharedEntries).sort((left, right) => {
+      const categoryOrder = String(left.tag || '').localeCompare(String(right.tag || ''));
+      return categoryOrder || new Date(right.updatedAt) - new Date(left.updatedAt);
+    });
+    res.render('entry', { entries: displayEntries, search });
   } catch (error) {
     next(error);
   }
