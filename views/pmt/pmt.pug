@@ -29,7 +29,11 @@ block content
           option(value='') All categories
           each cat in ['_account_related_','_order_item_statuses_','_order_modifying_','_payment_shipping_','_after_service_shipping_','_after_service_defect_','_after_service_preowned_','_returns_refunds_','_claims_cases_','_work_related_','_case_assist_','_customer_dep_','_logistics_dep_','_feedback_','_other_']
             option(value=cat selected=(query.category === cat), lg_language=cat)= cat
+      .pmt-filter-field.pmt-filter-field--wide
+        label(for='pmt-search') Search text
+        input#pmt-search.form-control(type='search', name='search', value=query.search, placeholder='Words or "exact phrase"', aria-describedby='pmt-search-help')
       button.btn.btn-secondary(type='submit') Apply filters
+      small#pmt-search-help.pmt-filter-help All words must appear in the title or content. Use double quotes for an exact phrase.
 
   if entries.length > 0
     .pmt-entry-grid
@@ -56,15 +60,17 @@ block content
             details.pmt-entry-content
               summary Read legacy content
               include legacy-content
-          else if updatedRecently
-            .pmt-entry-content!= entry.html
+          else
+            details.pmt-entry-content
+              summary Read content
+              div!= entry.html
           footer.pmt-entry-actions
             a.btn.btn-sm.btn-outline-primary(href=detailsUrl) Details
             if legacy
               a.btn.btn-sm.btn-outline-primary(href=`/pmt/create?legacy=${entry.id}`) Create Policy, manual & template library
             else
               a.btn.btn-sm.btn-outline-secondary(href=`/pmt/edit/${entry.id}`) Edit
-              button.btn.btn-sm.btn-link(type='button', data-md=entry.content_md, onclick="CopyThis(this, 'md')") Copy Markdown
+              button.btn.btn-sm.pmt-copy-button(type='button', data-md=entry.content_md, onclick="CopyThis(this, 'md')", aria-live='polite') Copy
   else
     .app-empty-state
       h2 No entries found

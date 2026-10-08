@@ -1,4 +1,6 @@
 const { pmt, Op } = require('../sequelize');
+const { fn, col, where: sqlWhere } = require('sequelize');
+const parseSearchTerms = require('../utils/parseSearchTerms');
 
 class DocMgmtService {
   async createEntry({type, title, content_md, category, user}) {
@@ -179,18 +181,26 @@ class DocMgmtService {
     });
   }
 
-  async fetchEntries({ type = null, category = null } = {}) {
+  async fetchEntries({ type = null, category = null, search = '' } = {}) {
     const where = {};
     if (type) where.type = type;
     if (category) where.category = category;
+    const terms = parseSearchTerms(search);
+    if (terms.length > 0) {
+      where[Op.and] = terms.map(term => ({
+        // LOCATE treats %, _ and backslashes as literal text, not LIKE wildcards.
+        [Op.or]: ['title', 'content_md'].map(field =>
+          sqlWhere(fn('LOCATE', term, col(field)), { [Op.gt]: 0 })),
+      }));
+    }
   
     const options = {
       where,
       order: [['updatedAt', 'DESC']]
     };
   
-    // If neither type nor category is provided, limit the results to 25
-    if (!type && !category) {
+    // Only the unfiltered library is limited to the 25 most recent entries.
+    if (!type && !category && terms.length === 0) {
       options.limit = 25;
     }
   

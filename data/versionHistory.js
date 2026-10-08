@@ -4,12 +4,15 @@ module.exports = [
   {
     version: '2.10.1',
     releaseDate: '2026-10-24',
-    updateDate: '2026-10-05',
+    updateDate: '2026-10-08',
     items: [
       item('Policy, manual & template library', [
         item('Added read-only access to legacy Content entries, with options to create new library entries prefilled from legacy data'),
         item('Details - Added a Related documents section showing documents connected through direct parent policies, with colored type labels for child documents'),
-        item('Templates - Added Copy Markdown buttons to template previews and detail pages, copying the selected document version'),
+        item('Templates - Added Copy buttons to template previews and detail pages, copying the selected document version'),
+        item('Search - Added a text filter alongside Type and Category, requiring every word or quoted phrase to appear in the title or content, including legacy entries'),
+        item('Copy - Renamed Copy Markdown to Copy and added distinct styling for library entries, detail pages, and template previews in both themes'),
+        item('Library entries - Added a Read content toggle, closed by default, for all entries instead of automatically displaying recently updated content'),
       ]),
       item('Content library', [
         item('Kept legacy entries available for reading alongside library entries and directed new entry creation to the Policy, manual & template library'),

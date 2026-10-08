@@ -2040,6 +2040,30 @@ article.entry > .title_button {
   flex: 1 1 19rem;
 }
 
+.pmt-filter-help {
+  flex-basis: 100%;
+  color: var(--gcs-muted);
+}
+
+.btn.pmt-copy-button {
+  border-color: var(--gcs-violet);
+  color: var(--gcs-violet);
+  background: var(--gcs-violet-soft);
+}
+
+.btn.pmt-copy-button:hover:not(:disabled),
+.btn.pmt-copy-button:focus:not(:disabled),
+.btn.pmt-copy-button:active:not(:disabled) {
+  color: var(--gcs-bg-deep);
+  background: var(--gcs-violet);
+}
+
+.btn.pmt-copy-button:focus {
+  box-shadow: 0 0 0 0.2rem var(--gcs-violet-soft);
+  outline: 2px solid var(--gcs-violet);
+  outline-offset: 2px;
+}
+
 .pmt-filter-field label,
 .pmt-document-panel > label {
   display: block;

@@ -1,4 +1,5 @@
 const { Entry, Content, Op } = require('../sequelize');
+const parseSearchTerms = require('../utils/parseSearchTerms');
 
 function visibleEntryWhere(req, extraWhere) {
   const where = { team: req.user.team, ...extraWhere };
@@ -20,13 +21,19 @@ function normalizeEntry(instance) {
   };
 }
 
-async function fetchEntries(req, { type, category } = {}) {
+async function fetchEntries(req, { type, category, search = '' } = {}) {
+  const terms = parseSearchTerms(search).map(term => term.toLowerCase());
   const entries = await Entry.findAll({
     where: visibleEntryWhere(req, category ? { tag: category } : {}),
     include: [{ model: Content }],
     order: [['updatedAt', 'DESC']],
   });
-  return entries.map(normalizeEntry).filter(entry => !type || entry.type === type);
+  return entries.map(normalizeEntry).filter(entry => {
+    if (type && entry.type !== type) return false;
+    const fields = [entry.title, ...entry.contents.map(content => content.data)]
+      .map(value => String(value || '').toLowerCase());
+    return terms.every(term => fields.some(field => field.includes(term)));
+  });
 }
 
 async function fetchEntry(req, id) {

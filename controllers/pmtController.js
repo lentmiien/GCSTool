@@ -81,15 +81,16 @@ function renderMarkdown(markdown) {
 exports.top = asyncHandler(async (req, res) => {
   const type = PMT_TYPES.has(req.query.type) ? req.query.type : null;
   const category = PMT_CATEGORIES.has(req.query.category) ? req.query.category : null;
-  const entries = await pmt.fetchEntries({ type, category });
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const entries = await pmt.fetchEntries({ type, category, search });
   entries.forEach((entry) => {
     entry.html = renderMarkdown(entry.content_md);
   });
   const logs = await pmt.fetchAllLogs({ action: 'flagged-for-review' });
   res.render('pmt/pmt', {
-    entries: entries.concat(await legacyContent.fetchEntries(req, { type, category }))
+    entries: entries.concat(await legacyContent.fetchEntries(req, { type, category, search }))
       .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)),
-    query: { type: type || '', category: category || '' },
+    query: { type: type || '', category: category || '', search },
     reviews: logs.length,
   });
 });

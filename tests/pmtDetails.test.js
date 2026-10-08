@@ -61,7 +61,7 @@ test('template detail copies raw Markdown for latest, historical, and reselected
   expect(button.textContent).toBe('Copied!');
   version.selectedIndex = 1;
   window.UpdateVersion(version);
-  expect(button.textContent).toBe('Copy Markdown');
+  expect(button.textContent).toBe('Copy');
   expect(document.querySelector('#content h1').textContent).toBe('Old reply');
   await window.CopySelectedVersion(button);
   expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(oldMarkdown);
