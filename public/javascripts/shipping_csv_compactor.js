@@ -1,9 +1,14 @@
 (() => {
   const PREVIEW_ORDER_LIMIT = 100;
+  const countrySettings = typeof document !== 'undefined'
+    ? document.getElementById('shipping-compact-countries') : null;
+  const configuredCountryCodes = countrySettings
+    ? JSON.parse(countrySettings.dataset.countryCodes || '[]') : [];
 
   const formatConfigs = {
     japanPost: {
       label: 'Japan Post',
+      countryIndex: 12,
       blockStartIndex: 25,
       blockSize: 6,
       nameOffset: 0,
@@ -15,6 +20,7 @@
     },
     ePacket: {
       label: 'ePacket',
+      countryIndex: 12,
       blockStartIndex: 22,
       blockSize: 6,
       nameOffset: 0,
@@ -25,6 +31,7 @@
     },
     dhl: {
       label: 'DHL',
+      countryIndex: 14,
       orderIndex: 0,
       itemNumberIndex: 16,
       nameIndex: 17,
@@ -165,6 +172,7 @@
 
   const makeStats = () => ({
     itemsFound: 0,
+    itemsExcluded: 0,
     combinedEntries: 0,
     duplicateItemsRemoved: 0,
     rowsRemoved: 0,
@@ -256,7 +264,7 @@
     return items;
   };
 
-  const compactMultiItemRows = (rows, config) => {
+  const compactMultiItemRows = (rows, config, eligibleRows) => {
     const stats = makeStats();
     const maximumOffset = getMaximumItemOffset(config);
 
@@ -275,8 +283,11 @@
         const hsCode = toCellText(row[blockStart + config.hsOffset]);
         if ([name, quantity, unitPrice, hsCode].some((value) => value !== '')) {
           stats.itemsFound += 1;
+          if (!eligibleRows.has(row)) {
+            stats.itemsExcluded += 1;
+          }
         }
-        if (!hasExactMatchValues(hsCode, unitPrice)) {
+        if (!eligibleRows.has(row) || !hasExactMatchValues(hsCode, unitPrice)) {
           continue;
         }
 
@@ -352,6 +363,12 @@
     return { orders, totalOrders };
   };
 
+  // Keep destinations separate even when an order number is reused.
+  const dhlOrderKey = (row, config) => JSON.stringify([
+    toCellText(row[config.countryIndex]).trim().toUpperCase(),
+    toCellText(row[config.orderIndex]),
+  ]);
+
   const buildDhlPreviewSnapshot = (rows, config) => {
     const allOrderNumbers = new Set();
     const previewOrdersByNumber = new Map();
@@ -363,20 +380,21 @@
       }
 
       const orderNumber = toCellText(row[config.orderIndex]);
-      if (!allOrderNumbers.has(orderNumber)) {
-        allOrderNumbers.add(orderNumber);
+      const orderKey = dhlOrderKey(row, config);
+      if (!allOrderNumbers.has(orderKey)) {
+        allOrderNumbers.add(orderKey);
         if (orders.length < PREVIEW_ORDER_LIMIT) {
           const order = {
-            id: `order:${orderNumber}`,
+            id: `order:${orderKey}`,
             label: `Order ${orderNumber.trim()}`,
             items: [],
           };
           orders.push(order);
-          previewOrdersByNumber.set(orderNumber, order);
+          previewOrdersByNumber.set(orderKey, order);
         }
       }
 
-      const previewOrder = previewOrdersByNumber.get(orderNumber);
+      const previewOrder = previewOrdersByNumber.get(orderKey);
       if (!previewOrder) {
         return;
       }
@@ -421,7 +439,7 @@
     };
   };
 
-  const compactDhlRows = (rows, config) => {
+  const compactDhlRows = (rows, config, eligibleRows) => {
     const stats = makeStats();
     const orders = new Map();
     const rowIndexesToRemove = new Set();
@@ -432,9 +450,15 @@
       }
 
       stats.itemsFound += 1;
+      if (!eligibleRows.has(row)) {
+        stats.itemsExcluded += 1;
+        return;
+      }
       const orderNumber = toCellText(row[config.orderIndex]);
-      if (!orders.has(orderNumber)) {
-        orders.set(orderNumber, {
+      const orderKey = dhlOrderKey(row, config);
+      if (!orders.has(orderKey)) {
+        orders.set(orderKey, {
+          orderNumber,
           groups: new Map(),
         });
       }
@@ -446,7 +470,7 @@
       }
 
       const groupKey = buildMatchKey(hsCode, unitPrice);
-      const order = orders.get(orderNumber);
+      const order = orders.get(orderKey);
       if (!order.groups.has(groupKey)) {
         order.groups.set(groupKey, []);
       }
@@ -458,7 +482,8 @@
       });
     });
 
-    orders.forEach((order, orderNumber) => {
+    orders.forEach((order) => {
+      const orderNumber = order.orderNumber;
       order.groups.forEach((group) => {
         combineGroup(group, stats, `Order ${orderNumber}`, (item) => {
           rowIndexesToRemove.add(item.rowIndex);
@@ -469,13 +494,13 @@
     const compactedRows = rows.filter((row, rowIndex) => !rowIndexesToRemove.has(rowIndex));
     const nextItemNumberByOrder = new Map();
     compactedRows.forEach((row) => {
-      if (!isDhlItemRow(row, config)) {
+      if (!eligibleRows.has(row) || !isDhlItemRow(row, config)) {
         return;
       }
 
-      const orderNumber = toCellText(row[config.orderIndex]);
-      const nextItemNumber = (nextItemNumberByOrder.get(orderNumber) || 0) + 1;
-      nextItemNumberByOrder.set(orderNumber, nextItemNumber);
+      const orderKey = dhlOrderKey(row, config);
+      const nextItemNumber = (nextItemNumberByOrder.get(orderKey) || 0) + 1;
+      nextItemNumberByOrder.set(orderKey, nextItemNumber);
       row[config.itemNumberIndex] = String(nextItemNumber);
     });
 
@@ -485,8 +510,11 @@
 
   const formatDhlValue = (value) => `"${toCellText(value).replace(/"/g, '""')}"`;
 
-  const buildCsv = (parsed, rows) => {
+  const buildCsv = (parsed, rows, passthroughLines) => {
     const output = rows.map((row) => {
+      if (passthroughLines.has(row)) {
+        return passthroughLines.get(row);
+      }
       if (!row.length) {
         return '';
       }
@@ -498,24 +526,37 @@
     return `${parsed.hasBom ? '\uFEFF' : ''}${output}`;
   };
 
-  const compactCsv = (text) => {
+  const compactCsv = (text, countryCodes = configuredCountryCodes) => {
     if (!String(text || '').replace(/^\uFEFF/, '').trim()) {
       throw new Error('The selected CSV file is empty.');
     }
 
     const parsed = parseCsv(text);
     const config = formatConfigs[parsed.type];
+    const allowedCountries = new Set(countryCodes.map((code) => toCellText(code).trim().toUpperCase()).filter((code) => /^[A-Z]{2}$/.test(code)));
+    const eligibleRows = new Set();
+    const passthroughLines = new Map();
+    const originalLines = String(text).replace(/^\uFEFF/, '').split(parsed.rowDelimiter);
+    parsed.rows.forEach((row, index) => {
+      const country = toCellText(row[config.countryIndex]).trim().toUpperCase();
+      if (allowedCountries.has(country)) {
+        eligibleRows.add(row);
+      } else {
+        // Preserve excluded rows verbatim, including quoting and item numbers.
+        passthroughLines.set(row, originalLines[index]);
+      }
+    });
     const beforePreview = buildPreviewSnapshot(parsed.rows, parsed.type, config);
     const result = parsed.type === 'dhl'
-      ? compactDhlRows(parsed.rows, config)
-      : compactMultiItemRows(parsed.rows, config);
+      ? compactDhlRows(parsed.rows, config, eligibleRows)
+      : compactMultiItemRows(parsed.rows, config, eligibleRows);
 
     if (!result.stats.itemsFound) {
       throw new Error(`No ${config.label} item rows were found. Check that this file uses the same format as the Ireland/Greece CSV editor.`);
     }
 
     return {
-      csv: buildCsv(parsed, result.rows),
+      csv: buildCsv(parsed, result.rows, passthroughLines),
       type: parsed.type,
       label: config.label,
       stats: result.stats,
@@ -620,13 +661,14 @@
       }
     } else {
       details.push('No matching items needed to be combined.');
-      if (result.type === 'dhl') {
-        details.push('Item numbers were recalculated.');
+      if (result.type === 'dhl' && stats.itemsFound > stats.itemsExcluded) {
+        details.push('Item numbers for processed countries were recalculated.');
       }
     }
     if (stats.skippedGroups) {
       details.push(`${stats.skippedGroups} matching group(s) could not be combined. ${stats.warnings.join(' ')}`);
     }
+    details.push(`${stats.itemsExcluded} item(s) for excluded countries were left unchanged.`);
     details.push('The compacted file is ready to download.');
     return details.join(' ');
   };

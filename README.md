@@ -68,6 +68,12 @@ env_sample             Template for required and optional environment variables
 
 Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.sync()` for the configured databases, seeds default app settings and version history, and applies a small DHL compensation schema check for PDF columns.
 
+### Shipping CSV compactor country filter
+
+`/hs/compact` only edits destinations listed in `SHIPPING_COMPACTOR_COUNTRIES` under `/admin/app-settings`. The existing `app_settings.value` TEXT column stores a comma-separated list of two-letter CSV destination codes; no schema change is needed. Startup seeds a broad Europe list if the setting is missing, including transcontinental destinations and European territories with separate shipping codes. Existing settings are never overwritten. An empty list passes every entry through unchanged.
+
+After saving the list, reload `/hs/compact` to use it. The **Download standalone tool (Japanese HTML)** link at `/hs/compact/download` embeds the current list into the offline HTML. Download and redistribute a new copy after changing countries; previously downloaded copies retain their list. `export_tools/shipping_csv_compactor_ja.html` is the source template, whose empty placeholder processes no countries when opened directly.
+
 ## Prerequisites
 
 - Node.js `16.20.2`

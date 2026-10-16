@@ -1,8 +1,11 @@
 // Require used packages
 const csv = require('csvtojson');
+const fs = require('fs').promises;
+const path = require('path');
+const { getShippingCompactorCountries } = require('../services/appSettings');
 
 // Require necessary database models
-const { HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSummary, Op } = require('../sequelize');
+const { AppSetting, HSCodeList, IrelandTaricMapping, IrelandTaricExplanation, IrelandWorkSummary, Op } = require('../sequelize');
 const {
   hasAmiAmiApiKey,
   requestAmiAmiItems,
@@ -894,8 +897,30 @@ exports.ireland_work_summary = async (req, res, next) => {
   }
 };
 
-exports.shipping_compactor = (req, res) => {
-  res.render('hs_shipping_compactor');
+exports.shipping_compactor = async (req, res, next) => {
+  try {
+    const countryCodes = await getShippingCompactorCountries(AppSetting);
+    res.render('hs_shipping_compactor', { countryCodes });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.shipping_compactor_download = async (req, res, next) => {
+  try {
+    const countryCodes = await getShippingCompactorCountries(AppSetting);
+    const template = await fs.readFile(path.join(__dirname, '../export_tools/shipping_csv_compactor_ja.html'), 'utf8');
+    const placeholder = '/* SHIPPING_COMPACTOR_COUNTRIES */ []';
+    if (template.split(placeholder).length !== 2) {
+      throw new Error('The standalone compactor country placeholder is missing or duplicated.');
+    }
+    // The settings parser restricts every code to two ASCII letters.
+    const html = template.replace(placeholder, JSON.stringify(countryCodes));
+    res.set('Cache-Control', 'no-store');
+    res.attachment('shipping_csv_compactor_ja.html').type('html').send(html);
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Manual editor

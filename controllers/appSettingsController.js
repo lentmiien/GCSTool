@@ -5,6 +5,7 @@ const {
   REASONING_EFFORTS,
   parseAppSettingDate,
   parseInvoiceShippingMethods,
+  parseShippingCompactorCountries,
 } = require('../services/appSettings');
 
 const SETTING_KEY_PATTERN = /^[A-Z][A-Z0-9_]{0,127}$/;
@@ -23,6 +24,13 @@ function redirectWithMessage(res, type, message) {
 }
 
 function validateValue(key, value) {
+  if (key === APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES) {
+    try {
+      parseShippingCompactorCountries(value);
+    } catch (error) {
+      return error.message;
+    }
+  }
   if (
     key === APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT
     && !parseAppSettingDate(value)
@@ -64,6 +72,7 @@ exports.index = async (req, res, next) => {
       message: req.query.message,
       reasoningEffortKey: APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_REASONING_EFFORT,
       reasoningEfforts: REASONING_EFFORTS,
+      compactorCountriesKey: APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES,
       settings,
     });
   } catch (error) {
@@ -93,7 +102,8 @@ exports.create = async (req, res) => {
   }
 
   try {
-    await AppSetting.create({ key, value });
+    await AppSetting.create({ key, value: key === APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES
+      ? parseShippingCompactorCountries(value).join(', ') : value });
     return redirectWithMessage(res, 'message', `Added ${key}.`);
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
@@ -122,7 +132,8 @@ exports.update = async (req, res) => {
       return redirectWithMessage(res, 'error', validationError);
     }
 
-    await setting.update({ value });
+    await setting.update({ value: setting.key === APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES
+      ? parseShippingCompactorCountries(value).join(', ') : value });
     return redirectWithMessage(res, 'message', `Updated ${setting.key}.`);
   } catch (error) {
     console.error('Failed to update app setting:', error);

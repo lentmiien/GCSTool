@@ -20,7 +20,7 @@ block content
         p.mb-0 No app settings have been added yet.
       else
         each setting in settings
-          form.border.rounded.p-3.mb-3(method='post', action=`/admin/app-settings/${setting.id}`)
+          form.border.rounded.p-3.mb-3(id=setting.key, method='post', action=`/admin/app-settings/${setting.id}`)
             .form-row.align-items-end
               .col-md-5.mb-2
                 label.mb-1(for=`setting_${setting.id}`)
@@ -33,6 +33,8 @@ block content
                   select.form-control(id=`setting_${setting.id}`, name='value')
                     each effort in reasoningEfforts
                       option(value=effort, selected=setting.value === effort)= effort
+                else if setting.key === compactorCountriesKey
+                  textarea.form-control(id=`setting_${setting.id}`, name='value', rows='3', placeholder='IE, GR', spellcheck='false')= setting.value
                 else
                   input.form-control(id=`setting_${setting.id}`, type='text', name='value', value=setting.value)
               .col-md-2.mb-2

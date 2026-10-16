@@ -32,6 +32,7 @@ router.post('/ireland/taric-explanations', controller.ireland_save_taric_explana
 
 // Shipping CSV compactor
 router.get('/compact', controller.shipping_compactor);
+router.get('/compact/download', controller.shipping_compactor_download);
 
 // For the orders with HS codes in separate file
 router.get('/manualedit', controller.manual_edit);

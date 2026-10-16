@@ -1,4 +1,5 @@
 const APP_SETTING_KEYS = Object.freeze({
+  SHIPPING_COMPACTOR_COUNTRIES: 'SHIPPING_COMPACTOR_COUNTRIES',
   INVOICE_SHIPPING_METHODS: 'INVOICE_SHIPPING_METHODS',
   SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT: 'SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT',
   SHORTEN_ITEM_NAMES_MODEL: 'SHORTEN_ITEM_NAMES_MODEL',
@@ -17,6 +18,15 @@ const REASONING_EFFORTS = Object.freeze([
 ]);
 
 const DEFAULT_APP_SETTINGS = Object.freeze({
+  // Broad Europe, including transcontinental destinations and territories with
+  // their own shipping codes. Admins can replace this list in App settings.
+  [APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES]: [
+    'AD', 'AL', 'AM', 'AT', 'AX', 'AZ', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY',
+    'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GE', 'GG', 'GI',
+    'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'KZ', 'LI', 'LT', 'LU',
+    'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS',
+    'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'TR', 'UA', 'VA', 'XK',
+  ].join(', '),
   [APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS]: [
     'Air Parcel',
     'Air Small Packet',
@@ -37,6 +47,7 @@ const DEFAULT_APP_SETTINGS = Object.freeze({
 });
 
 const APP_SETTING_DESCRIPTIONS = Object.freeze({
+  [APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES]: 'Country codes processed by /hs/compact, separated by commas (for example IE, GR). Use two-letter destination codes from the CSV. Empty means no countries are processed. Reload the compactor and download a new standalone HTML after changes.',
   [APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS]: 'Comma-separated shipping methods shown by /api/invoice.',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT]: 'ISO date-time of the last /chatgpt/language_tools run.',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_MODEL]: 'OpenAI model used by /chatgpt/language_tools.',
@@ -55,6 +66,22 @@ function parseInvoiceShippingMethods(value) {
     .split(',')
     .map((method) => method.trim())
     .filter((method, index, methods) => method && methods.indexOf(method) === index);
+}
+
+function parseShippingCompactorCountries(value) {
+  const codes = String(value || '').split(',').map((code) => code.trim().toUpperCase()).filter(Boolean);
+  if (codes.some((code) => !/^[A-Z]{2}$/.test(code))) {
+    throw new TypeError('Compactor countries must be comma-separated two-letter country codes (for example IE, GR).');
+  }
+  return [...new Set(codes)];
+}
+
+async function getShippingCompactorCountries(AppSetting) {
+  const entry = await AppSetting.findOne({
+    where: { key: APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES },
+  });
+  return parseShippingCompactorCountries(entry
+    ? entry.value : DEFAULT_APP_SETTINGS[APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES]);
 }
 
 async function seedAppSettings(AppSetting) {
@@ -150,10 +177,12 @@ module.exports = {
   DEFAULT_APP_SETTINGS,
   REASONING_EFFORTS,
   getInvoiceShippingMethods,
+  getShippingCompactorCountries,
   getShortenItemNamesLastProcessedAt,
   getShortenItemNamesSettings,
   parseAppSettingDate,
   parseInvoiceShippingMethods,
+  parseShippingCompactorCountries,
   seedAppSettings,
   setShortenItemNamesLastProcessedAt,
 };

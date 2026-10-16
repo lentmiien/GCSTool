@@ -9,6 +9,15 @@ block content
     p Upload a Japan Post, ePacket, or DHL CSV in the same format used by the Ireland/Greece CSV editor.
     p Items with exactly the same HS/TARIC code and unit price are combined within each order. The first item name is kept and the quantities are added together.
     p For Japan Post and ePacket, unit weights are averaged by quantity and rounded to three decimal places (for example, .123). Japan Post weights stay as 0 when all combined unit weights are zero.
+    p#shipping-compact-countries(data-country-codes=JSON.stringify(countryCodes))
+      strong Processed countries: #{countryCodes.length ? countryCodes.join(', ') : 'None (all entries pass through unchanged)'}.
+      |  Entries for other or missing country codes pass through unchanged.
+    if role === 'admin'
+      p
+        a(href='/admin/app-settings#SHIPPING_COMPACTOR_COUNTRIES') Edit processed countries in App settings
+    p
+      a.btn.btn-outline-secondary(href='/hs/compact/download', download) Download standalone tool (Japanese HTML)
+      small.form-text.text-muted The download includes the current country list and works offline. Download it again after changing the setting; reload this page to update the built-in tool.
 
     .card.mt-4
       .card-body
