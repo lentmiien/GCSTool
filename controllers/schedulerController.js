@@ -11,14 +11,17 @@ const {
 // Require settings
 const settings = require('../data/Scheduler_settings.json');
 const schedule = require('../models/schedule');
+const { getPaidLeavePeriod, countPaidLeave } = require('../utils/paidLeave');
 
 // Schedule change log
 const scheduler_change_log = [];
 
 // Display all Entries
 exports.view = function (req, res) {
+  const paidLeavePeriod = getPaidLeavePeriod();
   if (req.user.role === 'guest') {
     res.render('scheduler', {
+      paidLeavePeriod,
       data: {
         staff: [{ name: 'sample staff', dayoff1: 0, dayoff2: 6, schedules: [] }],
         holidays: [],
@@ -45,7 +48,10 @@ exports.view = function (req, res) {
             }
           }
         });
-        res.render('scheduler', { data: results });
+        results.staff.forEach((staff) => {
+          staff.paidLeaveDays = countPaidLeave(staff.schedule2s, paidLeavePeriod);
+        });
+        res.render('scheduler', { data: results, paidLeavePeriod });
       }
     );
   }

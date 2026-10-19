@@ -34,6 +34,31 @@ var json_language = {
     swedish: 'Nästa schemalagda arbetsdag:',
     japanese: '次の出勤予定日：',
   },
+  _paid_leave_business_year_: {
+    english: 'Paid leave for the current business year',
+    swedish: 'Betald ledighet för innevarande verksamhetsår',
+    japanese: '今年度の有給休暇',
+  },
+  _paid_leave_through_: {
+    english: 'Consumed through',
+    swedish: 'Uttagen till och med',
+    japanese: '取得日数の集計対象最終日：',
+  },
+  _paid_leave_counting_: {
+    english: 'Scheduled days are after today. Full days count as 1; half days as 0.5. Two-hour leave is excluded.',
+    swedish: 'Planerade dagar ligger efter idag. Hela dagar räknas som 1 och halvdagar som 0,5. Tvåtimmarsledighet räknas inte.',
+    japanese: '取得予定日数は明日以降が対象です。全休は1日、半休は0.5日として集計します。2時間休は対象外です。',
+  },
+  _paid_leave_consumed_days_: {
+    english: 'Paid leave consumed (days)',
+    swedish: 'Uttagen betald ledighet (dagar)',
+    japanese: '有給休暇取得日数',
+  },
+  _paid_leave_scheduled_days_: {
+    english: 'Paid leave scheduled (days)',
+    swedish: 'Planerad betald ledighet (dagar)',
+    japanese: '有給休暇取得予定日数',
+  },
   _no_scheduled_next_work_day_: {
     english: 'No scheduled next work day',
     swedish: 'Ingen nästa arbetsdag är schemalagd',

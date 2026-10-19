@@ -2,6 +2,16 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.10.2',
+    releaseDate: '2026-11-19',
+    updateDate: '2026-10-19',
+    items: [
+      item('Scheduler', [
+        item('Paid leave - Added consumed and scheduled day totals for the current April–March business year, counting full and half days and excluding two-hour leave'),
+      ]),
+    ],
+  },
+  {
     version: '2.10.1',
     releaseDate: '2026-10-19',
     updateDate: '2026-10-16',

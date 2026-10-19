@@ -1267,6 +1267,20 @@ th[scope='row'] {
 }
 
 /* Scheduler */
+.scheduler-paid-leave-note {
+  color: var(--gcs-muted);
+  font-size: 0.85rem;
+}
+
+.scheduler-table .scheduler-paid-leave {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.scheduler-table th.scheduler-paid-leave {
+  width: 9rem;
+}
+
 .scheduler-table .scheduler-team-divider td {
   height: 0.5rem;
   padding: 0;
