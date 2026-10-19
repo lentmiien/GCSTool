@@ -1,3 +1,16 @@
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || event.isComposing) return;
+
+  const searchInput = document.getElementById('pmt-search');
+  if (!searchInput) return;
+
+  event.preventDefault();
+  document.getElementById('pmt-type').value = '';
+  document.getElementById('pmt-category').value = '';
+  searchInput.value = '';
+  searchInput.focus();
+});
+
 function CopyThis(e, key) {
   return CopyMarkdown(e, e.dataset[key]);
 }

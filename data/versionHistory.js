@@ -9,6 +9,9 @@ module.exports = [
       item('Scheduler', [
         item('Paid leave - Added consumed and scheduled day totals for the current April–March business year, counting full and half days and excluding two-hour leave'),
       ]),
+      item('Policy, manual & template library', [
+        item('Search - Pressing Escape clears the Type, Category, and Search text filters and focuses Search text for a new search'),
+      ]),
     ],
   },
   {
