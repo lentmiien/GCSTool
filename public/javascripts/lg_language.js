@@ -49,6 +49,11 @@ var json_language = {
     swedish: 'Planerade dagar ligger efter idag. Hela dagar räknas som 1 och halvdagar som 0,5. Tvåtimmarsledighet räknas inte.',
     japanese: '取得予定日数は明日以降が対象です。全休は1日、半休は0.5日として集計します。2時間休は対象外です。',
   },
+  _paid_leave_: {
+    english: 'Paid leave (+planned)',
+    swedish: 'Betald ledighet (+planerad)',
+    japanese: '有給休暇日数(+予定)',
+  },
   _paid_leave_consumed_days_: {
     english: 'Paid leave consumed (days)',
     swedish: 'Uttagen betald ledighet (dagar)',
