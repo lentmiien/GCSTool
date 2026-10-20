@@ -41,8 +41,8 @@ block content
             tr
                 th(lg_language="_name_")
                 if showPaidLeave
-                    th.scheduler-paid-leave(lg_language='_paid_leave_consumed_days_') Paid leave consumed (days)
-                    th.scheduler-paid-leave(lg_language='_paid_leave_scheduled_days_') Paid leave scheduled (days)
+                    th.scheduler-paid-leave(lg_language='_paid_leave_consumed_days_') Paid leave (+planned)
+                    //- th.scheduler-paid-leave(lg_language='_paid_leave_scheduled_days_') Paid leave scheduled (days)
                 each wday in a_week
                     th
                         small= wday.date + "("
@@ -63,8 +63,9 @@ block content
                                         a(href=`/scheduler/editstaff?id=${s.id}`) Edit
                                         | )
                             if showPaidLeave
-                                td.scheduler-paid-leave= s.paidLeaveDays ? s.paidLeaveDays.consumed : 0
-                                td.scheduler-paid-leave= s.paidLeaveDays ? s.paidLeaveDays.scheduled : 0
+                                td.scheduler-paid-leave= `${s.paidLeaveDays ? s.paidLeaveDays.consumed : 0} (+${s.paidLeaveDays ? s.paidLeaveDays.scheduled : 0})`
+                                //- td.scheduler-paid-leave= s.paidLeaveDays ? s.paidLeaveDays.consumed : 0
+                                //- td.scheduler-paid-leave= s.paidLeaveDays ? s.paidLeaveDays.scheduled : 0
                             - const staffSchedule = s.schedule2s || []
                             - const weekStart = dateString(today)
                             - const weekEnd = dateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6))
