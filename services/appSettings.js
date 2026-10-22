@@ -1,4 +1,5 @@
 const APP_SETTING_KEYS = Object.freeze({
+  SMALLEST_BOX_API_KEY: 'SMALLEST_BOX_API_KEY',
   SHIPPING_COMPACTOR_COUNTRIES: 'SHIPPING_COMPACTOR_COUNTRIES',
   INVOICE_SHIPPING_METHODS: 'INVOICE_SHIPPING_METHODS',
   SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT: 'SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT',
@@ -18,6 +19,7 @@ const REASONING_EFFORTS = Object.freeze([
 ]);
 
 const DEFAULT_APP_SETTINGS = Object.freeze({
+  [APP_SETTING_KEYS.SMALLEST_BOX_API_KEY]: '',
   // Broad Europe, including transcontinental destinations and territories with
   // their own shipping codes. Admins can replace this list in App settings.
   [APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES]: [
@@ -47,6 +49,7 @@ const DEFAULT_APP_SETTINGS = Object.freeze({
 });
 
 const APP_SETTING_DESCRIPTIONS = Object.freeze({
+  [APP_SETTING_KEYS.SMALLEST_BOX_API_KEY]: 'Bearer API key from my.lentmiien.com → binpacking-smallest → API access. Used by /smallest-box. Leave blank to keep the saved key, or select Remove key to clear it.',
   [APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES]: 'Country codes processed by /hs/compact, separated by commas (for example IE, GR). Use two-letter destination codes from the CSV. Empty means no countries are processed. Reload the compactor and download a new standalone HTML after changes.',
   [APP_SETTING_KEYS.INVOICE_SHIPPING_METHODS]: 'Comma-separated shipping methods shown by /api/invoice.',
   [APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_LAST_PROCESSED_AT]: 'ISO date-time of the last /chatgpt/language_tools run.',

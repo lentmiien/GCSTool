@@ -29,7 +29,12 @@ block content
                   small.form-text.text-muted= descriptions[setting.key]
               .col-md-5.mb-2
                 label.sr-only(for=`setting_${setting.id}`) Value
-                if setting.key === reasoningEffortKey
+                if setting.key === packingApiKey
+                  input.form-control(id=`setting_${setting.id}`, type='password', name='value', autocomplete='new-password', placeholder=setting.value ? 'Key saved — enter a replacement' : 'API key not configured')
+                  label.mt-2
+                    input.mr-2(type='checkbox', name='clearSecret', value='yes')
+                    | Remove key
+                else if setting.key === reasoningEffortKey
                   select.form-control(id=`setting_${setting.id}`, name='value')
                     each effort in reasoningEfforts
                       option(value=effort, selected=setting.value === effort)= effort

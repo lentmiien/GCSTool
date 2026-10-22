@@ -1,0 +1,82 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/smallest-box.css')
+
+block content
+  #smallest-box
+    .d-flex.flex-wrap.justify-content-between.align-items-start.mb-4
+      div
+        h1 Smallest box finder
+        p.text-muted Find one box for all your items, then explore the packing layer by layer.
+      a.btn.btn-outline-secondary(href='/binpack') Open original Binpacker
+    .sb-workspace
+      form#sb-form
+        fieldset#sb-inputs
+          .card.mb-3
+            .card-header
+              h2.h5.mb-0 Items
+            .card-body
+              label(for='sb-items') Paste your item list
+              textarea#sb-items.form-control(name='provideitems', rows='13', required, maxlength='65536', spellcheck='false', aria-describedby='sb-format', placeholder='GOODS-04825603 .07kg 235×154×9 \n1\nGOODS-04825608 .06kg 105×95×14 \n1')
+              small#sb-format.form-text.text-muted Two lines per item: ID, weight in kg, width × depth × height in mm; then quantity. Up to 100 item types and 200 total items.
+              label.mt-3(for='sb-algorithm') Algorithm
+              select#sb-algorithm.form-control
+                option(value='laff') LAFF (default)
+                option(value='plain') Plain
+                option(value='bruteforce') Brute force (up to 7 items)
+          .card.mb-3
+            .card-header.d-flex.justify-content-between.align-items-center
+              h2.h5.mb-0 Box tags
+              button#sb-refresh.btn.btn-sm.btn-outline-secondary(type='button') Refresh boxes
+            .card-body
+              p#sb-catalog-status.text-muted(role='status') Loading box catalog…
+              #sb-tags
+              p.small.text-muted.mt-3.mb-2 Require not excludes matching boxes. Require alone does not exclude other boxes; untagged boxes remain included. Require not takes priority. Up to 20 tags per filter.
+              details
+                summary Available boxes
+                #sb-catalog.sb-catalog
+          button#sb-generate.btn.btn-primary.btn-block(type='submit', disabled) Generate
+          p.small.text-muted.mt-2 Searches may take up to 75 seconds. All items may rotate in 3D.
+      section.sb-output(aria-label='Packing output')
+        #sb-status.alert.alert-info(role='status', aria-live='polite') Load the box catalog and enter your items to begin.
+        #sb-empty.card
+          .card-body.sb-empty
+            h2.h4 Your packing plan
+            p.text-muted.mb-0 The selected box, shipping weight, item placements, and interactive 3D preview will appear here.
+        #sb-result(hidden)
+          .card.mb-3
+            .card-body
+              p.sb-eyebrow Packing complete
+              h2#sb-box-name
+              p#sb-box-details.text-muted
+              #sb-metrics.sb-metrics
+              p#sb-search-details.small.text-muted.mt-3.mb-0
+          .card.mb-3
+            .card-header.d-flex.flex-wrap.justify-content-between.align-items-center
+              h3.h5.mb-0 3D packing preview
+              button#sb-reset-view.btn.btn-sm.btn-outline-secondary(type='button') Reset view
+            .card-body
+              #sb-preview.sb-preview(tabindex='0', aria-label='3D box preview. Drag to rotate, scroll to zoom. Use the layer controls below.')
+              p.small.text-muted.mt-2 Drag to rotate · Scroll or pinch to zoom · Right-drag to pan
+              .sb-layer-controls
+                button#sb-down.btn.btn-outline-primary(type='button') ↓ Down
+                strong#sb-layer-label(aria-live='polite')
+                button#sb-up.btn.btn-outline-primary(type='button') Up ↑
+              label.sr-only(for='sb-layer') Current layer
+              input#sb-layer.sb-layer-range(type='range', min='0', max='0', value='0', step='1')
+              label.d-block.mt-2
+                input#sb-show-above.mr-2(type='checkbox')
+                | Show higher layers as outlines
+              p.small.text-muted.mb-0 Current layer is highlighted; lower layers are faded. Layers share the same bottom height, even when item tops differ.
+          .card
+            .card-header
+              h3.h5.mb-0 Items by layer
+            #sb-layers.card-body
+
+block scripts
+  script(src='/javascripts/three.js', defer)
+  script(src='/javascripts/OrbitControls.js', defer)
+  script(src='/javascripts/smallest-box-data.js', defer)
+  script(src='/javascripts/smallest-box-preview.js', defer)
+  script(src='/javascripts/smallest-box.js', defer)

@@ -25,6 +25,7 @@ The app is server-rendered with Pug and Bootstrap-era static assets. Most featur
 | Country/shipping status | `/country` | Official/internal/Japan Post country list imports, shipping status views, update history, and country-code linking. |
 | API/PDF documents | `/api` | DHL return/tax PDF generation and invoice generation. |
 | Bin packing | `/binpack` | Box packing helpers using `binpackingjs`. |
+| Smallest box finder | `/smallest-box` | API-backed single-box search, tag filters, and a layered 3D packing preview. |
 | HS tools | `/hs` | HS code suggestions, history lookup, Ireland TARIC mapping/explanations, shipping CSV compaction, manifest checking, and DB editing. |
 | Tracker | `/tracker` | Tracking-data lookup and tracking-number upload tasks against the tracker database. |
 | Shipping monitor compare | `/shipping-monitor-compare`, `/shipping-monitor-shortcuts` | Read-only saved comparisons over shipping monitor groups and shortcuts. |
@@ -73,6 +74,20 @@ Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.
 `/hs/compact` only edits destinations listed in `SHIPPING_COMPACTOR_COUNTRIES` under `/admin/app-settings`. The existing `app_settings.value` TEXT column stores a comma-separated list of two-letter CSV destination codes; no schema change is needed. Startup seeds a broad Europe list if the setting is missing, including transcontinental destinations and European territories with separate shipping codes. Existing settings are never overwritten. An empty list passes every entry through unchanged.
 
 After saving the list, reload `/hs/compact` to use it. The **Download standalone tool (Japanese HTML)** link at `/hs/compact/download` embeds the current list into the offline HTML. Download and redistribute a new copy after changing countries; previously downloaded copies retain their list. `export_tools/shipping_csv_compactor_ja.html` is the source template, whose empty placeholder processes no countries when opened directly.
+
+### Smallest box finder
+
+`/smallest-box` runs alongside the original `/binpack` tool and is available to signed-in users through **Tools → Smallest box finder**. It uses the box catalog and packing API at `https://my.lentmiien.com`.
+
+1. On the source site's `/binpacking-smallest` page, create a key under **API access**.
+2. Restart GCS Tool to seed the empty `SMALLEST_BOX_API_KEY` setting, then save the key at `/admin/app-settings`. No schema change is needed. The key stays on the backend; the admin field does not redisplay it. A blank save preserves the key; **Remove key** clears it.
+3. Paste the existing two-line item format (item ID, kg weight, width × depth × height in mm, then quantity), choose tag filters and an algorithm, and select **Generate**.
+
+The catalog loads on opening and supports manual refresh. Searches use the source site's latest catalog. As defined by the API, **Require not** excludes matching boxes; **Require** alone does not exclude other boxes, and untagged boxes remain included. The preview uses the returned rotated dimensions and groups layers by each item's bottom `z` coordinate. Down/Up, the slider, and layer headings select the highlighted layer; lower layers fade and higher layers can be shown as outlines.
+
+Requests allow up to 100 item types and 200 total items (7 for brute force). Identical repeated IDs merge quantities; conflicting dimensions or weights are rejected. Searches run one at a time per GCS Tool process, use a 75-second upstream timeout, and never retry automatically. Configure any deployment reverse proxy to allow more than 75 seconds for `/smallest-box/pack`. Upstream rate limits are shared with other clients using the same key issuer.
+
+Focused verification: `npm test -- --runTestsByPath tests/smallestBox.test.js tests/smallestBoxBrowser.test.js tests/shippingCompactorSettings.test.js`. These tests mock the upstream service; a live check requires a valid API key.
 
 ## Prerequisites
 

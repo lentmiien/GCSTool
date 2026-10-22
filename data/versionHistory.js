@@ -4,13 +4,16 @@ module.exports = [
   {
     version: '2.10.2',
     releaseDate: '2026-11-19',
-    updateDate: '2026-10-19',
+    updateDate: '2026-10-22',
     items: [
       item('Scheduler', [
         item('Paid leave - Added consumed and scheduled day totals for the current April–March business year, counting full and half days and excluding two-hour leave'),
       ]),
       item('Policy, manual & template library', [
         item('Search - Pressing Escape clears the Type, Category, and Search text filters and focuses Search text for a new search'),
+      ]),
+      item('Bin packing', [
+        item('Added /smallest-box with API-backed box and tag loading, Require/Require not filters, algorithm selection, packing summaries, item placements, and an interactive 3D preview grouped by item bottom height'),
       ]),
     ],
   },

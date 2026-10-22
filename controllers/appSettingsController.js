@@ -73,6 +73,7 @@ exports.index = async (req, res, next) => {
       reasoningEffortKey: APP_SETTING_KEYS.SHORTEN_ITEM_NAMES_REASONING_EFFORT,
       reasoningEfforts: REASONING_EFFORTS,
       compactorCountriesKey: APP_SETTING_KEYS.SHIPPING_COMPACTOR_COUNTRIES,
+      packingApiKey: APP_SETTING_KEYS.SMALLEST_BOX_API_KEY,
       settings,
     });
   } catch (error) {
@@ -110,7 +111,7 @@ exports.create = async (req, res) => {
       return redirectWithMessage(res, 'error', `${key} already exists.`);
     }
 
-    console.error('Failed to create app setting:', error);
+    console.error('Failed to create app setting:', error.name);
     return redirectWithMessage(res, 'error', 'Failed to add the app setting.');
   }
 };
@@ -127,6 +128,12 @@ exports.update = async (req, res) => {
     }
 
     const value = String(req.body.value || '').trim();
+    if (setting.key === APP_SETTING_KEYS.SMALLEST_BOX_API_KEY) {
+      if (req.body.clearSecret === 'yes' || value) {
+        await setting.update({ value: req.body.clearSecret === 'yes' ? '' : value });
+      }
+      return redirectWithMessage(res, 'message', `Updated ${setting.key}.`);
+    }
     const validationError = validateValue(setting.key, value);
     if (validationError) {
       return redirectWithMessage(res, 'error', validationError);
@@ -136,7 +143,7 @@ exports.update = async (req, res) => {
       ? parseShippingCompactorCountries(value).join(', ') : value });
     return redirectWithMessage(res, 'message', `Updated ${setting.key}.`);
   } catch (error) {
-    console.error('Failed to update app setting:', error);
+    console.error('Failed to update app setting:', error.name);
     return redirectWithMessage(res, 'error', 'Failed to update the app setting.');
   }
 };

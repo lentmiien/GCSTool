@@ -75,7 +75,7 @@ html(lang='en', data-color-mode='dark')
                     a.dropdown-item(href='/shipcost/view') Shipping cost tables
                     a.dropdown-item(href='/tracker/return-shipping-cost-analytics') Return cost analytics
 
-                li.nav-item.dropdown(class=(pathIs('/hs') || pathIs('/binpack') || pathIs('/pmt') || pathIs('/form') || pathIs('/image-pdf') || pathIs('/chatgpt') || pathIs('/api')) ? 'active' : '')
+                li.nav-item.dropdown(class=(pathIs('/hs') || pathIs('/binpack') || pathIs('/smallest-box') || pathIs('/pmt') || pathIs('/form') || pathIs('/image-pdf') || pathIs('/chatgpt') || pathIs('/api')) ? 'active' : '')
                   a#toolsDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Tools
                   .dropdown-menu.app-dropdown-menu(aria-labelledby='toolsDropdown')
                     span.dropdown-header Knowledge
@@ -87,6 +87,7 @@ html(lang='en', data-color-mode='dark')
                     .dropdown-divider
                     span.dropdown-header Utilities
                     a.dropdown-item(href='/binpack') Binpacker
+                    a.dropdown-item(href='/smallest-box') Smallest box finder
                     a.dropdown-item(href='/hs/compact') Shipping CSV compactor
                     a.dropdown-item(href='/hs/manifest_check') Manifest check
                     a.dropdown-item(href='/chatgpt/language_tools') Shorten item names
