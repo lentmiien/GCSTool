@@ -62,14 +62,16 @@ async function callApi(AppSetting, payload) {
     const messages = {
       400: 'The packing service rejected the input. Check items and tag filters.',
       401: 'The packing API key has expired, was revoked, or lacks permissions. Ask an administrator to replace it in App settings.',
-      404: 'The packing API endpoint was not found.',
+      404: payload
+        ? 'The packing service at my.lentmiien.com is missing its search endpoint. Update and restart the source site, then try again.'
+        : 'The packing service at my.lentmiien.com is missing its box catalog endpoint. Update and restart the source site, then refresh boxes.',
       413: 'The packing request is too large.',
       429: 'The packing service is busy or its request limit was reached. Wait before trying again.',
       503: 'The packing service is temporarily unavailable. Please try again later.',
     };
     const retryAfter = response.headers && response.headers['retry-after'];
     throw new PackingError(messages[response.status] || 'The packing service returned an unexpected error.',
-      messages[response.status] ? response.status : 502, retryAfter);
+      response.status === 404 ? 502 : messages[response.status] ? response.status : 502, retryAfter);
   }
   const data = response.data;
   if (!data || typeof data !== 'object' || (payload

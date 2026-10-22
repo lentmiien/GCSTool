@@ -85,12 +85,24 @@ test('missing credentials and invalid input do not make API calls', async () => 
   expect(axios).not.toHaveBeenCalled();
 });
 
-test.each([400, 401, 404, 413, 429, 503])('handles API status %i without leaking upstream credentials', async (status) => {
+test.each([400, 401, 413, 429, 503])('handles API status %i without leaking upstream credentials', async (status) => {
   axios.mockResolvedValue({ status, data: { message: 'synthetic-private-key' }, headers: { 'retry-after': '17' } });
   const response = await request(appFor()).post('/smallest-box/pack').send({ provideitems: input });
   expect(response.status).toBe(status);
   expect(response.headers['retry-after']).toBe('17');
   expect(response.text).not.toContain('synthetic-private-key');
+});
+
+test('identifies missing upstream endpoints as service failures with source deployment guidance', async () => {
+  axios.mockResolvedValue({ status: 404, data: { success: false, message: 'API route not found.' } });
+  const app = appFor();
+  const catalogResponse = await request(app).get('/smallest-box/containers');
+  expect(catalogResponse.status).toBe(502);
+  expect(catalogResponse.body.message).toContain('my.lentmiien.com is missing its box catalog endpoint');
+  expect(catalogResponse.body.message).toContain('Update and restart the source site');
+  const searchResponse = await request(app).post('/smallest-box/pack').send({ provideitems: input });
+  expect(searchResponse.status).toBe(502);
+  expect(searchResponse.body.message).toContain('my.lentmiien.com is missing its search endpoint');
 });
 
 test('supports no-fit, non-JSON responses, network failures, and timeout failures', async () => {

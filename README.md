@@ -89,6 +89,8 @@ Requests allow up to 100 item types and 200 total items (7 for brute force). Ide
 
 Focused verification: `npm test -- --runTestsByPath tests/smallestBox.test.js tests/smallestBoxBrowser.test.js tests/shippingCompactorSettings.test.js`. These tests mock the upstream service; a live check requires a valid API key.
 
+If loading boxes reports a missing catalog endpoint, update and restart the source site at `my.lentmiien.com`. It must provide both `GET /api/binpacking-smallest/containers` and `POST /api/binpacking-smallest`; older versions support only the search endpoint. A valid key can therefore run searches while catalog loading fails. GCS Tool reports an upstream missing endpoint as HTTP 502, since its own `/smallest-box/containers` route exists.
+
 ## Prerequisites
 
 - Node.js `16.20.2`
