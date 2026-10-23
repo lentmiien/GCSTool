@@ -22,6 +22,10 @@ function buildRequest(body) {
   if (algorithm === 'bruteforce' && items.reduce((sum, item) => sum + item.qty, 0) > 7) {
     throw new PackingError('Brute force supports at most 7 total items. Choose LAFF or Plain.');
   }
+  const safetyMarginMm = body.safetyMarginMm === undefined ? 10 : body.safetyMarginMm;
+  if (!Number.isFinite(safetyMarginMm) || safetyMarginMm < 0 || safetyMarginMm > 500000) {
+    throw new PackingError('Safety margin must be a number from 0 to 500,000 mm.');
+  }
   const filter = body.tagFilter || {};
   const tagFilter = {};
   for (const key of ['require', 'requireNot']) {
@@ -31,7 +35,7 @@ function buildRequest(body) {
     }
     tagFilter[key] = [...new Set(tags.map((tag) => tag.trim().toLowerCase()))];
   }
-  const payload = { items, algorithm, tagFilter };
+  const payload = { items, algorithm, safetyMarginMm, tagFilter };
   if (Buffer.byteLength(JSON.stringify(payload)) > 64 * 1024) throw new PackingError('The packing request exceeds 64 KiB.', 413);
   return payload;
 }
@@ -60,7 +64,7 @@ async function callApi(AppSetting, payload) {
   }
   if (response.status !== 200) {
     const messages = {
-      400: 'The packing service rejected the input. Check items and tag filters.',
+      400: 'The packing service rejected the input. Check items, safety margin, and tag filters.',
       401: 'The packing API key has expired, was revoked, or lacks permissions. Ask an administrator to replace it in App settings.',
       404: payload
         ? 'The packing service at my.lentmiien.com is missing its search endpoint. Update and restart the source site, then try again.'
@@ -79,9 +83,17 @@ async function callApi(AppSetting, payload) {
     : !Array.isArray(data.containers) || !Array.isArray(data.tags))) {
     throw new PackingError('The packing service returned an invalid response.', 502);
   }
-  if (payload && data.success && (!data.container || !data.data || !Array.isArray(data.data.pallets)
-    || data.data.pallets.length !== 1 || !Array.isArray(data.data.pallets[0].placements))) {
-    throw new PackingError('The packing service returned an incomplete solution.', 502);
+  if (payload && data.success) {
+    const alternatives = data.alternatives === undefined ? [] : data.alternatives;
+    if (!Array.isArray(alternatives) || alternatives.length > 2) {
+      throw new PackingError('The packing service returned invalid alternative solutions.', 502);
+    }
+    if ([data, ...alternatives].some((solution) => !solution || solution.success !== true
+      || !solution.container || !solution.data || !Array.isArray(solution.data.pallets)
+      || solution.data.pallets.length !== 1 || !solution.data.pallets[0]
+      || !Array.isArray(solution.data.pallets[0].placements))) {
+      throw new PackingError('The packing service returned an incomplete solution.', 502);
+    }
   }
   return data;
 }

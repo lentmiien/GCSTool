@@ -20,7 +20,7 @@
 #smallest-box .sb-catalog p { padding-bottom: 0.65rem; border-bottom: 1px solid var(--gcs-border); }
 #smallest-box .sb-empty { padding: 4rem 2rem; text-align: center; }
 #smallest-box .sb-eyebrow { color: var(--gcs-success); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; font-weight: 700; }
-#smallest-box .sb-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+#smallest-box .sb-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 #smallest-box .sb-metric strong { display: block; color: var(--gcs-heading); font-size: 1.2rem; }
 #smallest-box .sb-metric span { color: var(--gcs-muted); font-size: 0.8rem; }
 #smallest-box .sb-preview {

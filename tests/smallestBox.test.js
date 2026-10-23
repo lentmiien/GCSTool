@@ -8,7 +8,7 @@ const { parseItems, buildLayers } = require('../public/javascripts/smallest-box-
 const { buildRequest } = require('../services/smallestBox');
 const router = require('../routes/smallestbox');
 const settingsController = require('../controllers/appSettingsController');
-const { catalog, result, input } = require('./fixtures/smallestBox');
+const { catalog, result, resultV2, input } = require('./fixtures/smallestBox');
 
 function appFor(user = { role: 'admin' }) {
   const app = express();
@@ -45,13 +45,33 @@ test.each([
 
 test('enforces API limits and emits only documented fields', () => {
   expect(buildRequest({ provideitems: input, revision: 99, containers: [], tagFilter: { require: [' Fold-Box '], requireNot: ['tube'] } })).toEqual({
-    items: parseItems(input), algorithm: 'laff', tagFilter: { require: ['fold-box'], requireNot: ['tube'] },
+    items: parseItems(input), algorithm: 'laff', safetyMarginMm: 10, tagFilter: { require: ['fold-box'], requireNot: ['tube'] },
   });
   expect(() => buildRequest({ provideitems: 'a 0kg 1×2×3\n8', algorithm: 'bruteforce' })).toThrow('7 total');
   expect(() => buildRequest({ provideitems: input, algorithm: 'invalid' })).toThrow('supported');
   expect(() => buildRequest({ provideitems: input, tagFilter: { require: Array(21).fill('tag') } })).toThrow('20 valid');
   expect(() => buildRequest({ provideitems: input, tagFilter: { requireNot: ['<script>'] } })).toThrow('valid tags');
   expect(() => parseItems(Array.from({ length: 101 }, (_, i) => `item-${i} 0kg 1×2×3\n1`).join('\n'))).toThrow('100 item types');
+});
+
+test.each([0, 2.5, 10, 500000])('forwards safety margin %s without changing item dimensions', async (safetyMarginMm) => {
+  axios.mockResolvedValueOnce({ status: 200, data: resultV2 });
+  const response = await request(appFor()).post('/smallest-box/pack').send({ provideitems: input, safetyMarginMm });
+  expect(response.status).toBe(200);
+  expect(axios.mock.calls[0][0].data).toMatchObject({ safetyMarginMm, items: parseItems(input) });
+  expect(response.body).toEqual(resultV2);
+});
+
+test.each([-1, 500001, null, '10', '', true, [], {}, Infinity, NaN])('rejects an invalid safety margin %j before calling the API', (safetyMarginMm) => {
+  expect(() => buildRequest({ provideitems: input, safetyMarginMm })).toThrow('Safety margin');
+  expect(axios).not.toHaveBeenCalled();
+});
+
+test('rejects incomplete alternative solutions', async () => {
+  axios.mockResolvedValueOnce({ status: 200, data: { ...resultV2, alternatives: [{ success: true, container: catalog.containers[0] }] } });
+  const response = await request(appFor()).post('/smallest-box/pack').send({ provideitems: input });
+  expect(response.status).toBe(502);
+  expect(response.body.message).toContain('incomplete solution');
 });
 
 test('layers group by bottom z, regardless of item height, ordered bottom to top', () => {

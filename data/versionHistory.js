@@ -2,6 +2,16 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.10.3',
+    releaseDate: '2026-11-23',
+    updateDate: '2026-10-23',
+    items: [
+      item('Bin packing', [
+        item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
+      ]),
+    ],
+  },
+  {
     version: '2.10.2',
     releaseDate: '2026-10-22',
     updateDate: '2026-10-22',

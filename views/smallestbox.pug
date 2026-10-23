@@ -25,6 +25,9 @@ block content
                 option(value='laff') LAFF (default)
                 option(value='plain') Plain
                 option(value='bruteforce') Brute force (up to 7 items)
+              label.mt-3(for='sb-safety-margin') Safety margin on each side (mm)
+              input#sb-safety-margin.form-control(type='number', name='safetyMarginMm', value='10', min='0', max='500000', step='any', required, aria-describedby='sb-margin-help')
+              small#sb-margin-help.form-text.text-muted Reserve space against every box wall, not between items. Set 0 for no margin.
           .card.mb-3
             .card-header.d-flex.justify-content-between.align-items-center
               h2.h5.mb-0 Box tags
@@ -43,14 +46,22 @@ block content
         #sb-empty.card
           .card-body.sb-empty
             h2.h4 Your packing plan
-            p.text-muted.mb-0 The selected box, shipping weight, item placements, and interactive 3D preview will appear here.
+            p.text-muted.mb-0 Up to three box choices, estimated shipping weights with cushion, item placements, and an interactive 3D preview will appear here.
         #sb-result(hidden)
+          #sb-solutions-panel.card.mb-3(hidden)
+            .card-body
+              label(for='sb-solution') Packing solution
+              select#sb-solution.form-control(aria-describedby='sb-solution-help')
+              p#sb-solution-help.small.text-muted.mt-2.mb-0 Each choice fits all items in one box. Choose one for your shipment.
+          #sb-alternatives-note.alert.alert-warning(role='status', hidden) More choices could not be checked because the search stopped early. The solutions shown are complete packing plans.
           .card.mb-3
             .card-body
               p.sb-eyebrow Packing complete
               h2#sb-box-name
               p#sb-box-details.text-muted
               #sb-metrics.sb-metrics
+              p#sb-weight-details.small.text-muted.mt-3.mb-0
+              p#sb-margin-details.small.text-muted.mt-2.mb-0
               p#sb-search-details.small.text-muted.mt-3.mb-0
           .card.mb-3
             .card-header.d-flex.flex-wrap.justify-content-between.align-items-center

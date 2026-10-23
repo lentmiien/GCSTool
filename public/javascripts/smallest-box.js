@@ -9,6 +9,7 @@
   let preview;
   let layers = [];
   let selectedLayer = 0;
+  let searchResults;
   const tagControls = new Map();
   const format = (value) => Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 });
   const dimensions = (item) => `${format(item.w)} × ${format(item.d)} × ${format(item.h)} mm`;
@@ -62,6 +63,10 @@
     if (preview) preview.dispose();
     preview = null;
     layers = [];
+    searchResults = null;
+    $('solution').replaceChildren();
+    $('solutions-panel').hidden = true;
+    $('alternatives-note').hidden = true;
     $('result').hidden = true;
     $('empty').hidden = false;
     $('layers').replaceChildren();
@@ -99,7 +104,7 @@
       $('catalog').replaceChildren();
       data.containers.forEach((box) => {
         const row = element('p');
-        row.append(element('strong', box.id), element('small', `${dimensions(box)} · empty ${format(box.emptyWeight)} kg · max contents ${format(box.maxLoadWeight)} kg`, 'd-block text-muted'));
+        row.append(element('strong', box.id), element('small', `${dimensions(box)} · empty ${format(box.emptyWeight)} kg · max load including cushion ${format(box.maxLoadWeight)} kg`, 'd-block text-muted'));
         row.appendChild(element('small', (box.tags || []).join(', ') || 'No tags', 'd-block text-muted'));
         $('catalog').appendChild(row);
       });
@@ -142,20 +147,37 @@
         || !['w', 'd', 'h'].every((key) => Number.isFinite(p[key]) && p[key] > 0))) {
       throw new Error('The packing service returned invalid placements. Please try again.');
     }
+    if (preview) preview.dispose();
+    preview = null;
+    $('preview').replaceChildren();
+    $('layers').replaceChildren();
     const colors = new Map(items.map((item, index) => [item.id, `hsl(${(index * 137.508 + 175) % 360}, 58%, 55%)`]));
     const contentsWeight = items.reduce((sum, item) => sum + item.weight * item.qty, 0);
+    const hasShipmentWeight = Number.isFinite(data.estimatedShipmentWeight) && data.estimatedShipmentWeight >= 0;
+    const hasCushionWeight = Number.isFinite(data.estimatedCushionWeight) && data.estimatedCushionWeight >= 0;
     const fill = 100 * placements.reduce((sum, p) => sum + p.w * p.d * p.h, 0) / (box.w * box.d * box.h);
     layers = buildLayers(placements);
     $('box-name').textContent = box.id;
     $('box-details').textContent = `${dimensions(box)} · ${(box.tags || []).join(', ') || 'No tags'}`;
     $('metrics').replaceChildren();
-    [[placements.length, 'Items packed'], [`${format(fill)}%`, 'Volume filled'], [`${format(contentsWeight + box.emptyWeight)} kg`, 'Shipping weight'], [layers.length, 'Layers']].forEach(([value, label]) => {
+    const metrics = [
+      [hasShipmentWeight ? `${format(data.estimatedShipmentWeight)} kg` : `${format(contentsWeight + box.emptyWeight)} kg`, hasShipmentWeight ? 'Estimated shipment weight' : 'Items + box (excl. cushion)'],
+      [hasCushionWeight ? `${format(data.estimatedCushionWeight)} kg` : 'Not provided', 'Estimated cushion weight'],
+      [`${format(contentsWeight)} kg`, 'Item weight'],
+      [placements.length, 'Items packed'], [`${format(fill)}%`, 'Volume filled'], [layers.length, 'Layers'],
+    ];
+    metrics.forEach(([value, label]) => {
       const metric = element('div', undefined, 'sb-metric');
       metric.append(element('strong', value), element('span', label));
       $('metrics').appendChild(metric);
     });
     const meta = data.meta || {};
-    $('search-details').textContent = `${meta.algorithm || algorithm} · Tried ${meta.attempts ?? '—'} of ${meta.eligibleContainers ?? '—'} eligible boxes · ${meta.filteredContainers ?? '—'} filtered out. Contents ${format(contentsWeight)} kg + box ${format(box.emptyWeight)} kg; maximum contents ${format(box.maxLoadWeight)} kg.`;
+    $('weight-details').textContent = `Box weight ${format(box.emptyWeight)} kg · Maximum load including cushion ${format(box.maxLoadWeight)} kg. ${hasShipmentWeight ? 'Shipment estimate includes items, box, and cushion; actual weight may vary.' : 'The service did not provide a shipment estimate including cushion.'}`;
+    const usable = meta.usableDimensions;
+    $('margin-details').textContent = Number.isFinite(meta.safetyMarginMm)
+      ? `Safety margin ${format(meta.safetyMarginMm)} mm on each side.${usable ? ` Usable space ${dimensions(usable)}.` : ''}`
+      : 'Safety margin was not reported by the service.';
+    $('search-details').textContent = `${meta.algorithm || algorithm} · ${meta.attempts ?? '—'} packing attempts across all choices · ${meta.eligibleContainers ?? '—'} eligible boxes · ${meta.filteredContainers ?? '—'} filtered out.`;
     layers.forEach((layer, index) => {
       const card = element('section', undefined, 'sb-layer-card');
       const heading = element('div', undefined, 'sb-layer-heading');
@@ -188,7 +210,27 @@
       $('reset-view').disabled = true;
     }
     selectLayer(0);
-    status(`Found ${box.id}. All ${placements.length} items fit in one box.`, 'success');
+    status(`Viewing ${box.id}. All ${placements.length} items fit in this box.`, 'success');
+  }
+
+  function showSolutions(data, items, algorithm) {
+    const alternatives = data.alternatives === undefined ? [] : data.alternatives;
+    if (!Array.isArray(alternatives) || alternatives.length > 2
+      || alternatives.some((solution) => !solution || solution.success !== true || !solution.container)) {
+      throw new Error('The packing service returned invalid alternative solutions.');
+    }
+    searchResults = { solutions: [data, ...alternatives], items, algorithm };
+    $('solution').replaceChildren();
+    searchResults.solutions.forEach((solution, index) => {
+      const weight = Number.isFinite(solution.estimatedShipmentWeight) ? ` · est. ${format(solution.estimatedShipmentWeight)} kg` : '';
+      const option = element('option', `${index + 1}. ${solution.container.id}${index === 0 ? ' (primary)' : ''}${weight}`);
+      option.value = index;
+      $('solution').appendChild(option);
+    });
+    $('solution').value = '0';
+    $('solutions-panel').hidden = searchResults.solutions.length === 1;
+    $('alternatives-note').hidden = !data.meta || data.meta.alternativesSearchComplete !== false;
+    showResult(data, items, algorithm);
   }
 
   $('form').addEventListener('submit', async (event) => {
@@ -202,15 +244,17 @@
     try {
       const items = parseItems($('items').value);
       const algorithm = $('algorithm').value;
+      const safetyMarginMm = $('safety-margin').valueAsNumber;
+      if (!Number.isFinite(safetyMarginMm) || safetyMarginMm < 0 || safetyMarginMm > 500000) throw new Error('Safety margin must be a number from 0 to 500,000 mm.');
       if (algorithm === 'bruteforce' && items.reduce((sum, item) => sum + item.qty, 0) > 7) throw new Error('Brute force supports at most 7 total items. Choose LAFF or Plain.');
       const tagFilter = { require: [], requireNot: [] };
       tagControls.forEach((select, tag) => { if (select.value) tagFilter[select.value].push(tag); });
       if (tagFilter.require.length > 20 || tagFilter.requireNot.length > 20) throw new Error('Choose at most 20 tags per filter.');
-      status('Searching for the smallest box… This may take up to 75 seconds.');
-      const data = await api('/pack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provideitems: $('items').value, algorithm, tagFilter }) });
+      status('Searching for box choices… This may take up to 75 seconds.');
+      const data = await api('/pack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provideitems: $('items').value, algorithm, safetyMarginMm, tagFilter }) });
       if (data.success === false) {
-        status(`${data.message || 'No complete packing was found.'} Try another algorithm or change the items or tag filters. A heuristic search may miss a possible fit.`, 'warning');
-      } else if (data.success === true) showResult(data, items, algorithm);
+        status(`${data.message || 'No complete packing was found.'} Try another algorithm or change the items, safety margin, or tag filters. A heuristic search may miss a possible fit.`, 'warning');
+      } else if (data.success === true) showSolutions(data, items, algorithm);
       else throw new Error('The packing service returned an invalid response.');
     } catch (error) {
       clearResult();
@@ -223,6 +267,16 @@
     }
   });
   $('refresh').addEventListener('click', loadCatalog);
+  $('solution').addEventListener('change', () => {
+    if (!searchResults) return;
+    try {
+      const { solutions, items, algorithm } = searchResults;
+      showResult(solutions[Number($('solution').value)], items, algorithm);
+    } catch (error) {
+      clearResult();
+      status(error.message, 'danger');
+    }
+  });
   $('down').addEventListener('click', () => selectLayer(selectedLayer - 1));
   $('up').addEventListener('click', () => selectLayer(selectedLayer + 1));
   $('layer').addEventListener('input', () => selectLayer(Number($('layer').value)));

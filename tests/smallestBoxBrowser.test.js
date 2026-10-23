@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 const fs = require('fs');
 const pug = require('pug');
-const { catalog, result, input } = require('./fixtures/smallestBox');
+const { catalog, result, resultV2, input } = require('./fixtures/smallestBox');
 const template = pug.compileFile('views/smallestbox.pug');
 const dataScript = fs.readFileSync('public/javascripts/smallest-box-data.js', 'utf8');
 const script = fs.readFileSync('public/javascripts/smallest-box.js', 'utf8');
@@ -36,6 +36,8 @@ test('loads tags, sends selected filters, shows rotated placements, and navigate
   expect(JSON.parse(window.fetch.mock.calls[1][1].body).tagFilter).toEqual({ require: ['fold-box'], requireNot: ['tube'] });
   expect(el('result').hidden).toBe(false);
   expect(el('metrics').textContent).toContain('0.8 kg');
+  expect(el('metrics').textContent).toContain('Items + box (excl. cushion)');
+  expect(el('solutions-panel').hidden).toBe(true);
   expect(el('layers').children).toHaveLength(2);
   expect(el('layers').textContent).toContain('80 × 50 × 100 mm');
   expect(el('down').disabled).toBe(true);
@@ -47,6 +49,88 @@ test('loads tags, sends selected filters, shows rotated placements, and navigate
   expect(preview.updateLayer).toHaveBeenLastCalledWith(50, true);
   el('down').click();
   expect(preview.updateLayer).toHaveBeenLastCalledWith(0, true);
+});
+
+test('defaults to 10 mm and switches all solution details without new requests or adding another margin', async () => {
+  expect(el('safety-margin').value).toBe('10');
+  el('items').value = input;
+  window.fetch.mockResolvedValueOnce(response(resultV2));
+  submit();
+  await tick();
+  expect(JSON.parse(window.fetch.mock.calls[1][1].body).safetyMarginMm).toBe(10);
+  expect(el('solutions-panel').hidden).toBe(false);
+  expect(el('solution').options).toHaveLength(3);
+  expect(el('solution').value).toBe('0');
+  expect(el('box-name').textContent).toBe('Box S');
+  expect(el('metrics').textContent).toContain('0.827 kg');
+  expect(el('metrics').textContent).toContain('0.027 kg');
+  expect(el('metrics').textContent).toContain('Estimated shipment weight');
+  expect(el('margin-details').textContent).toContain('200 × 150 × 100 mm');
+  expect(window.createSmallestBoxPreview.mock.calls[0][1]).toEqual(resultV2.container);
+  expect(window.createSmallestBoxPreview.mock.calls[0][2]).toEqual(resultV2.data.pallets[0].placements);
+  expect(preview.updateLayer).toHaveBeenLastCalledWith(10, false);
+  el('up').click();
+  expect(preview.updateLayer).toHaveBeenLastCalledWith(60, false);
+  // Editing the form must not alter the saved result's items, weights, or colors.
+  el('items').value = 'changed 99kg 1×1×1\n1';
+  for (const index of [1, 2, 0]) {
+    el('solution').value = String(index);
+    el('solution').dispatchEvent(new Event('change'));
+    const expected = [resultV2, ...resultV2.alternatives][index];
+    expect(el('box-name').textContent).toBe(expected.container.id);
+    expect(el('metrics').textContent).toContain(`${Number(expected.estimatedShipmentWeight.toFixed(3))} kg`);
+    expect(el('metrics').textContent).toContain('0.7 kg');
+    expect(window.createSmallestBoxPreview).toHaveBeenLastCalledWith(el('preview'), expected.container, expected.data.pallets[0].placements, expect.any(Map));
+    expect(preview.updateLayer).toHaveBeenLastCalledWith(10, false);
+    expect(el('layers').children).toHaveLength(index === 2 ? 1 : 2);
+    expect(el('down').disabled).toBe(true);
+    expect(el('up').disabled).toBe(index === 2);
+  }
+  expect(preview.dispose).toHaveBeenCalledTimes(3);
+  expect(window.fetch).toHaveBeenCalledTimes(2);
+});
+
+test('accepts zero and decimal margins and clears choices on a new no-fit search', async () => {
+  el('items').value = input;
+  el('safety-margin').value = '0';
+  window.fetch.mockResolvedValueOnce(response(resultV2));
+  submit();
+  await tick();
+  expect(JSON.parse(window.fetch.mock.calls[1][1].body).safetyMarginMm).toBe(0);
+  el('safety-margin').value = '2.5';
+  window.fetch.mockResolvedValueOnce(response({ success: false, alternatives: [], message: 'No fit' }));
+  submit();
+  expect(el('solution').options).toHaveLength(0);
+  expect(el('result').hidden).toBe(true);
+  await tick();
+  expect(JSON.parse(window.fetch.mock.calls[2][1].body).safetyMarginMm).toBe(2.5);
+  expect(el('solutions-panel').hidden).toBe(true);
+});
+
+test.each(['', '-1', '500001'])('rejects invalid safety margin %j without a search', async (value) => {
+  el('items').value = input;
+  el('safety-margin').value = value;
+  submit();
+  await tick();
+  expect(el('status').textContent).toContain('Safety margin');
+  expect(window.fetch).toHaveBeenCalledTimes(1);
+});
+
+test('keeps the incomplete-alternatives note when switching and displays zero weight estimates', async () => {
+  const partial = JSON.parse(JSON.stringify(resultV2));
+  partial.meta.alternativesSearchComplete = false;
+  partial.alternatives[0].estimatedCushionWeight = 0;
+  partial.alternatives[0].estimatedShipmentWeight = 0;
+  el('items').value = input;
+  window.fetch.mockResolvedValueOnce(response(partial));
+  submit();
+  await tick();
+  expect(el('alternatives-note').hidden).toBe(false);
+  el('solution').value = '1';
+  el('solution').dispatchEvent(new Event('change'));
+  expect(el('alternatives-note').hidden).toBe(false);
+  expect(el('metrics').children[0].textContent).toBe('0 kgEstimated shipment weight');
+  expect(el('metrics').children[1].textContent).toBe('0 kgEstimated cushion weight');
 });
 
 test('clears stale results immediately and prevents parallel searches', async () => {
