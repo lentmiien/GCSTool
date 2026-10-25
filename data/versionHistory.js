@@ -6,6 +6,9 @@ module.exports = [
     releaseDate: '2026-11-23',
     updateDate: '2026-10-23',
     items: [
+      item('Policy, manual & template library', [
+        item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
+      ]),
       item('Bin packing', [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
       ]),

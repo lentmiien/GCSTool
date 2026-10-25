@@ -79,7 +79,7 @@ function renderForbidden(res, message) {
 
 async function findVisibleEntry(req, id, options = {}) {
   const query = {
-    where: visibleEntryWhere(req, { id }),
+    where: visibleEntryWhere(req, { id, team: req.user.team }),
   };
 
   if (options.includeContents) {
@@ -101,7 +101,7 @@ exports.entry_list = async function (req, res, next) {
   try {
     const entries = await Entry.findAll({
       include: [{ model: Content }],
-      where: visibleEntryWhere(req),
+      where: visibleEntryWhere(req, { team: req.user.team }),
       order: [
         ['tag', 'ASC'],
         ['category', 'DESC'],
@@ -346,7 +346,7 @@ exports.backup = async function (req, res, next) {
   try {
     const entries = await Entry.findAll({
       include: [{ model: Content }],
-      where: visibleEntryWhere(req),
+      where: visibleEntryWhere(req, { team: req.user.team }),
       order: [
         ['tag', 'ASC'],
         ['category', 'DESC'],

@@ -98,15 +98,58 @@ test('Content search, categories, type controls, clear and back include PMT poli
   expect(policy.style.display).toBe('none');
 });
 
-test.each(['user', 'guest', 'admin'])('legacy listing and direct reads preserve %s visibility', async role => {
+test.each(['user', 'guest', 'admin'])('PMT legacy reads allow all teams and preserve %s private-entry visibility', async role => {
   const currentUser = { ...user, role };
   await invoke(entryController.entry_list, { user: currentUser });
+  expect(Entry.findAll.mock.calls[0][0].where.team).toBe('mail');
   await invoke(pmtController.top, { user: currentUser });
   await invoke(pmtController.legacyDetails, { user: currentUser, params: { id: '1' } });
   await invoke(pmtController.create, { user: currentUser, query: { legacy: '1' } });
-  for (const { where } of [...Entry.findAll.mock.calls, ...Entry.findOne.mock.calls].map(call => call[0])) {
-    expect(where.team).toBe('mail');
+  for (const { where } of [...Entry.findAll.mock.calls.slice(1), ...Entry.findOne.mock.calls].map(call => call[0])) {
+    expect(where.team).toBeUndefined();
     expect(where[Op.or]).toEqual(role === 'admin' ? undefined : [{ ismaster: true }, { creator: 'alice' }]);
+  }
+});
+
+test.each([
+  ['user', true, 'bob', 200],
+  ['guest', true, 'bob', 200],
+  ['admin', true, 'bob', 200],
+  ['user', false, 'alice', 200],
+  ['user', false, 'bob', 404],
+  ['guest', false, 'bob', 404],
+  ['admin', false, 'bob', 200],
+])('shared legacy URL for %s (master=%s, creator=%s) returns %s across teams', async (role, ismaster, creator, status) => {
+  const entry = legacy({ team: 'other-team', ismaster, creator });
+  const matches = where => Reflect.ownKeys(where).every(key => key === Op.or
+    ? where[key].some(matches)
+    : entry[key] === where[key]);
+  Entry.findOne.mockImplementation(async ({ where }) => matches(where) ? record(entry) : null);
+  const app = express();
+  app.use((req, res, next) => {
+    req.user = { ...user, role };
+    res.render = (_view, data) => res.json(data);
+    next();
+  });
+  app.use('/pmt', require('../routes/pmt'));
+  app.use((error, req, res, next) => res.status(error.status || 500).json({ message: error.message }));
+  const response = await request(app).get('/pmt/legacy/1').expect(status);
+  if (status === 200) {
+    expect(response.body.entry.team).toBe('other-team');
+    expect(response.body.entry.contents.map(content => content.id)).toEqual([1, 2]);
+  } else {
+    expect(response.body.message).toBe('Entry not found');
+  }
+  await request(app).get('/pmt/legacy/999').expect(404);
+});
+
+test('legacy management and backups remain scoped to the current team', async () => {
+  Entry.findOne.mockResolvedValue(null);
+  await invoke(entryController.entry_update_get, { params: { id: '1' } });
+  await invoke(entryController.entry_delete_get, { params: { id: '1' } });
+  await invoke(entryController.backup, { params: { team: 'mail' } });
+  for (const [options] of [...Entry.findOne.mock.calls, ...Entry.findAll.mock.calls]) {
+    expect(options.where.team).toBe('mail');
   }
 });
 

@@ -2,7 +2,7 @@ const { Entry, Content, Op } = require('../sequelize');
 const parseSearchTerms = require('../utils/parseSearchTerms');
 
 function visibleEntryWhere(req, extraWhere) {
-  const where = { team: req.user.team, ...extraWhere };
+  const where = { ...extraWhere };
   if (req.user.role !== 'admin') {
     where[Op.or] = [{ ismaster: true }, { creator: req.user.userid }];
   }
