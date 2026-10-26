@@ -1,0 +1,78 @@
+extends base
+include mixins
+
+block workflowContent
+  section.app-panel
+    h2= def.id ? `Edit ${def.name}` : 'Create a workflow'
+    p Instructions, task order, and required variables apply to future runs. Staff changes also update matching tasks in ongoing runs. Archiving preserves history and does not cancel ongoing runs.
+    form#workflow-editor(method='post', action=def.id ? `/workflows/definitions/${def.id}` : '/workflows/definitions', data-editor=true)
+      +csrf()
+      input(type='hidden', name='revision', value=def.revision)
+      label
+        span Workflow name
+        input.form-control(name='name', required=true, maxlength=160, value=def.name, placeholder='Example: Quarterly GST — Australia')
+      label
+        span Overview
+        textarea.form-control(name='description', rows=2, maxlength=10000)= def.description
+      .workflow-actions
+        label.workflow-check
+          input(type='checkbox', name='enabled', value='true', checked=def.enabled)
+          span Enable new runs
+        label.workflow-check
+          input(type='checkbox', name='locked', value='true', checked=def.locked)
+          span Lock staff membership
+        label.workflow-check
+          input(type='checkbox', name='archived', value='true', checked=def.archived)
+          span Archive workflow
+      label
+        span Start trigger
+        select.form-control(name='trigger', data-trigger=true)
+          option(value='manual', selected=def.trigger === 'manual') Manual — complete first task to start
+          option(value='scheduled', selected=def.trigger === 'scheduled') Automatic — time schedule
+      - const schedule = def.schedule || { frequency: 'monthly', interval: 3, startDate: new Date(Date.now() + 32400000).toISOString().slice(0, 7) + '-01', time: '09:00', weekdays: [1] }
+      fieldset.workflow-schedule(data-schedule=true, hidden=def.trigger !== 'scheduled')
+        legend Schedule (Japan time)
+        .workflow-variable-row
+          label
+            span Frequency
+            select.form-control(data-schedule-field='frequency')
+              each frequency in ['daily', 'weekly', 'monthly']
+                option(value=frequency, selected=schedule.frequency === frequency)= frequency
+          label
+            span Every (days / weeks / months)
+            input.form-control(type='number', min=1, max=60, value=schedule.interval, data-schedule-field='interval')
+          label
+            span First date
+            input.form-control(type='date', value=schedule.startDate, data-schedule-field='startDate')
+          label
+            span Time (JST)
+            input.form-control(type='time', value=schedule.time, data-schedule-field='time')
+        .workflow-actions(data-weekdays=true)
+          each day, i in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            label.workflow-check
+              input(type='checkbox', value=i, data-weekday=true, checked=(schedule.weekdays || [1]).includes(i))
+              span= day
+        p Monthly runs use the day of the first date (or the last day of shorter months). Weekly intervals count Monday-based weeks, starting with the week containing the first date.
+        p Past dates create missed runs after saving, in batches. Pausing keeps the schedule; resuming catches up missed runs. Change the first date to skip old periods. Each occurrence starts a separate run, even if an earlier run is still open.
+      input(type='hidden', name='schedule')
+      h3 Required variables
+      p Staff fill these in when starting manually. Automatic starts require a default; use {date}, {month}, or {year} for the scheduled date, YYYY-MM, or YYYY.
+      #workflow-required-rows
+        each variable in def.requiredVariables
+          +requiredEditor(variable)
+      button.btn.btn-outline-secondary(type='button', data-add-required=true) Add required variable
+      h3 Tasks in order
+      #workflow-step-rows
+        each step in def.steps
+          +stepEditor(step, users)
+      button.btn.btn-outline-secondary(type='button', data-add-step=true) Add task
+      input(type='hidden', name='steps')
+      input(type='hidden', name='requiredVariables')
+      .workflow-actions
+        button.btn.btn-primary(type='submit') Save workflow
+        a.btn.btn-outline-secondary(href=def.id ? `/workflows/definitions/${def.id}` : '/workflows/definitions') Cancel
+      noscript Please enable JavaScript to edit workflow definitions.
+    template#workflow-step-template
+      +stepEditor({ title: '', description: '', assignees: [] }, users)
+    template#workflow-required-template
+      +requiredEditor({ name: '', defaultValue: '' })

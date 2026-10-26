@@ -25,6 +25,12 @@ var server = http.createServer(app);
 
 startTmpCleanup();
 
+const workflowDatabase = require('../sequelize');
+workflowDatabase.gcsDatabaseReady.then(() => {
+  const { createService, startScheduler } = require('../services/workflows');
+  startScheduler(createService(workflowDatabase));
+}).catch(() => console.warn('Workflow scheduler could not start; check database readiness.'));
+
 // Recover durable TARIC work after schema readiness; page GETs do not start jobs.
 const taricDatabase = require('../sequelize');
 taricDatabase.gcsDatabaseReady.then(() => {

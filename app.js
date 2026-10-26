@@ -147,6 +147,7 @@ app.use('/pmt', requireAuthenticated, pmtRouter);
 app.use('/image-pdf', requireAuthenticated, imagePdfRouter);
 app.use('/dhl-compensation', requireAuthenticated, dhlCompensationRouter);
 app.use('/daily-tasks', requireAuthenticated, dailyTasksRouter);
+app.use('/workflows', requireAuthenticated, require('./routes/workflows'));
 
 app.get('/lang/:lang', (req, res) => {
   const { lang } = req.params;

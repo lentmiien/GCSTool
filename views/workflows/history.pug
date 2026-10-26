@@ -1,0 +1,53 @@
+extends base
+
+block workflowContent
+  section.app-panel
+    h2 Workflow history
+    p= isWorkflowAdmin ? 'All workflow runs, including open, completed, and cancelled runs.' : 'All runs that have included you, even if another staff member completed the tasks.'
+    form.workflow-filters(method='get')
+      label
+        span Workflow name
+        input.form-control(name='q', value=filters.q, maxlength=160)
+      label
+        span Status
+        select.form-control(name='status')
+          option(value='') All statuses
+          each status in ['open', 'completed', 'cancelled']
+            option(value=status, selected=filters.status === status)= status
+      label
+        span Started from (JST)
+        input.form-control(type='date', name='from', value=filters.from)
+      label
+        span Started through (JST)
+        input.form-control(type='date', name='to', value=filters.to)
+      button.btn.btn-primary(type='submit') Filter
+    p= `${total} runs found`
+    .table-responsive
+      table.table
+        thead
+          tr
+            th Workflow
+            th Started (JST)
+            th Status / progress
+            th Tasks
+        tbody
+          each run in runs
+            - const runTasks = tasks.filter(task => task.runId === run.id)
+            tr
+              td
+                a(href=`/workflows/runs/${run.id}`)= run.name
+              td= formatWorkflowDate(run.createdAt)
+              td= `${run.status} · ${runTasks.filter(task => task.state === 'completed').length}/${runTasks.length} completed`
+              td
+                each task in runTasks
+                  div
+                    a(href=`/workflows/runs/${run.id}#task-${task.id}`)= `${task.position + 1}. ${task.title} · ${task.state}`
+          if !runs.length
+            tr
+              td(colspan=4) No workflow runs match these filters.
+    nav.workflow-actions(aria-label='History pages')
+      if page > 1
+        a(href=pageUrl(page - 1)) Previous
+      span= `Page ${page} of ${pages}`
+      if page < pages
+        a(href=pageUrl(page + 1)) Next

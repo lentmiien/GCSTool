@@ -1,0 +1,17 @@
+extends base
+
+block workflowContent
+  section.app-panel
+    h2 Workflow library
+    p Everyone can read workflow definitions. Join or leave a task unless an administrator has locked membership.
+    if !definitions.length
+      .app-empty-state
+        h3 No workflows yet
+        p An administrator can create the first workflow.
+    .workflow-library
+      each def in definitions
+        a.workflow-library-item(href=`/workflows/definitions/${def.id}`)
+          strong= def.name
+          span= `${def.steps.filter(step => !step.archived).length} tasks · ${def.trigger === 'manual' ? 'Manual' : def.schedule.frequency} · ${def.archived ? 'Archived' : def.enabled ? 'Enabled' : 'Paused'}${def.locked ? ' · Staff locked' : ''}`
+          if def.description
+            span.workflow-text= def.description

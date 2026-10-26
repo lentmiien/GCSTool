@@ -1,0 +1,59 @@
+extends base
+include mixins
+
+block workflowContent
+  - const firstTask = def.steps.find(step => !step.archived)
+  section.app-panel
+    .workflow-card-heading
+      h2= def.name
+      if isWorkflowAdmin
+        a.btn.btn-outline-secondary(href=`/workflows/definitions/${def.id}/edit`) Edit workflow
+    p.workflow-text= def.description
+    p
+      strong= `${def.archived ? 'Archived' : def.enabled ? 'Enabled' : 'Paused'} · ${def.locked ? 'Staff membership locked' : 'Staff membership open'}`
+    if def.trigger === 'scheduled'
+      p= `Repeats every ${def.schedule.interval} ${def.schedule.frequency === 'daily' ? 'day(s)' : def.schedule.frequency === 'weekly' ? 'week(s)' : 'month(s)'} at ${def.schedule.time} JST, starting ${def.schedule.startDate}.`
+      if def.schedule.frequency === 'weekly'
+        p= `Days: ${def.schedule.weekdays.map(day => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]).join(', ')}`
+      if !def.archived && def.enabled
+        p= `Next scheduled start: ${formatWorkflowDate(def.nextStart)} JST`
+    else
+      p Manual: staff assigned to the first task start a run by completing it.
+    if def.requiredVariables.length
+      h3 Required variables
+      ul
+        each variable in def.requiredVariables
+          li= variable.name
+    each step, index in def.steps
+      article.workflow-definition-step
+        h3= `${index + 1}. ${step.title}${step.archived ? ' (archived)' : ''}`
+        p.workflow-text= step.description
+        - const staffNames = step.assignees.map(id => users.find(user => user.id === id)).filter(Boolean).map(user => user.userid)
+        p
+          strong Staff:
+          = staffNames.join(', ') || 'No staff assigned'
+        if !step.archived && !def.archived && (!def.locked || isWorkflowAdmin)
+          form(method='post', action=`/workflows/definitions/${def.id}/tasks/${step.id}/membership`)
+            +csrf()
+            input(type='hidden', name='revision', value=def.revision)
+            button.btn.btn-sm.btn-outline-secondary(type='submit', name='action', value=step.assignees.includes(workflowUser.id) ? 'leave' : 'join')= step.assignees.includes(workflowUser.id) ? 'Remove myself' : 'Add myself'
+    p Staff changes also apply to matching tasks in ongoing runs. Instructions and task order are preserved in each run.
+  if def.enabled && !def.archived && def.trigger === 'manual' && firstTask.assignees.includes(workflowUser.id)
+    section.app-panel
+      h2 Start a new run
+      h3= firstTask.title
+      p.workflow-text= firstTask.description
+      form(method='post', action=`/workflows/definitions/${def.id}/start`, data-variable-form=true)
+        +csrf()
+        input(type='hidden', name='revision', value=def.revision)
+        input(type='hidden', name='startKey', value=startKey)
+        each variable in def.requiredVariables
+          label
+            span= `${variable.name} (required)`
+            input.form-control(data-required-value=true, required=true, maxlength=1000, value=variable.defaultValue)
+        input(type='hidden', name='values', value='[]')
+        +customFields([])
+        label(for='start-comment') First task comment (optional)
+        textarea#start-comment.form-control(name='comment', rows=3, maxlength=10000)
+        button.btn.btn-primary(type='submit') Complete first task &amp; start workflow
+        noscript Please enable JavaScript to enter workflow variables and start a run.

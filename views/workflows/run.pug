@@ -1,0 +1,76 @@
+extends base
+include mixins
+
+block workflowContent
+  section.app-panel
+    .workflow-card-heading
+      div
+        h2= run.name
+        p= `${run.status} · Started ${formatWorkflowDate(run.createdAt)} JST`
+      a(href=`/workflows/definitions/${run.definitionId}`) Workflow definition
+    label(for='run-link') Unique workflow link — share this with an admin to request cancellation
+    input#run-link.form-control(type='text', readonly=true, value=`/workflows/runs/${run.id}`, data-run-link=true)
+    if run.scheduledFor
+      p= `Scheduled for ${formatWorkflowDate(run.scheduledFor)} JST`
+    if run.finishedAt
+      p= `Finished ${formatWorkflowDate(run.finishedAt)} JST`
+    if run.cancellationReason
+      p.workflow-text= `Cancellation reason: ${run.cancellationReason}`
+    +variables(run.variables)
+    if run.status === 'open'
+      details
+        summary Edit custom variables
+        form(method='post', action=`/workflows/runs/${run.id}/variables`, data-variable-form=true)
+          +csrf()
+          input(type='hidden', name='revision', value=run.revision)
+          +customFields(run.variables.filter(variable => !variable.required))
+          button.btn.btn-outline-secondary(type='submit') Save custom variables
+    .workflow-progress
+      each task in tasks
+        a(href=`#task-${task.id}`, class=`workflow-progress-${task.state}`)= `${task.position + 1}. ${task.title} · ${task.state}`
+  +comments(tasks.filter(task => task.comment))
+  each task in tasks
+    article.app-panel.workflow-card(id=`task-${task.id}`, class=task.state === 'active' ? 'workflow-card-active' : '')
+      h3= `${task.position + 1}. ${task.title}`
+      p
+        strong= task.state
+        = ' · '
+        = task.assignees.map(item => { const user = users.find(user => user.id === item.userId); return user ? user.userid : 'Deleted user'; }).join(', ') || 'No staff assigned'
+      p.workflow-text= task.description
+      if task.completedAt
+        small= `Completed by ${task.completedBy} · ${formatWorkflowDate(task.completedAt)} JST`
+      if run.status === 'open' && task.state === 'active' && task.assignees.some(item => item.userId === workflowUser.id)
+        +actionForm(task, run)
+  if isWorkflowAdmin && run.status === 'open'
+    details.app-panel
+      summary Cancel this workflow
+      form(method='post', action=`/workflows/runs/${run.id}/cancel`, data-cancel-run=true)
+        +csrf()
+        input(type='hidden', name='revision', value=run.revision)
+        label(for='cancel-reason') Cancellation reason
+        textarea#cancel-reason.form-control(name='reason', required=true, maxlength=2000, rows=2)
+        button.btn.btn-outline-danger(type='submit') Cancel workflow
+  section.app-panel
+    h2 Activity
+    p Times are shown in Japan time. Activity records actions; the current comment for each task appears above.
+    .table-responsive
+      table.table
+        thead
+          tr
+            th Time (JST)
+            th Staff
+            th Action
+            th Task
+        tbody
+          each event in events
+            tr
+              td= formatWorkflowDate(event.createdAt)
+              td= event.userName
+              td= event.action.replace(/_/g, ' ')
+              td= event.taskId ? (tasks.find(task => task.id === event.taskId) || {}).title : '—'
+    nav.workflow-actions(aria-label='Activity pages')
+      if eventPage > 1
+        a(href=`?eventPage=${eventPage - 1}`) Previous
+      span= `Page ${eventPage} of ${eventPages}`
+      if eventPage < eventPages
+        a(href=`?eventPage=${eventPage + 1}`) Next

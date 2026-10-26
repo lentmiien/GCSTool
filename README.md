@@ -21,6 +21,7 @@ The app is server-rendered with Pug and Bootstrap-era static assets. Most featur
 | Home/admin/about | `/`, `/admin`, `/admin/app-settings`, `/about`, `/timekeeper` | Recent content, user and app-settings administration, version history, and a lightweight in-memory timekeeper. |
 | Knowledge entries | `/entry` | Team-scoped support content with master/personal entries, multi-part content, backup, and restore. |
 | Scheduler | `/scheduler` | Staff defaults, holidays, day-by-day schedules, personal schedules, CSV exports, schedule analysis, and admin settings. |
+| Workflows | `/workflows` | Linear shared tasks, manual and scheduled starts, variables, handover comments, history, and admin analytics. |
 | Meeting board | `/meeting` | Meeting/comment board with Socket.IO updates. |
 | Country/shipping status | `/country` | Official/internal/Japan Post country list imports, shipping status views, update history, and country-code linking. |
 | API/PDF documents | `/api` | DHL return/tax PDF generation and invoice generation. |
@@ -68,6 +69,24 @@ env_sample             Template for required and optional environment variables
 - `DB_NAME_DHL_COMPENSATION`: optional DHL compensation database. If omitted, DHL compensation entries use `DB_NAME_GCS`.
 
 Startup side effect: requiring `sequelize.js` registers models, runs `sequelize.sync()` for the configured databases, seeds default app settings and version history, and applies a small DHL compensation schema check for PDF columns.
+
+### Workflows
+
+Open **Workflows** in the navigation. `/workflows` lists only your assigned active tasks; the Today schedule links to this list when you have work waiting. `/workflows/definitions` is the shared library, `/workflows/history` is paginated run history, and `/workflows/analytics` is admin-only.
+
+Admins create ordered tasks with instructions and any number of eligible staff. One staff member completes the active step to move forward; returning it moves back exactly one step and requires an error comment. The first step cannot be returned. Each task keeps exactly one editable comment, including across returns; action history stores who acted and when without retaining superseded comment text. Comment URLs are clickable. Only admins can cancel an open run, using its unique `/workflows/runs/:id` link.
+
+Manual runs start when a member of the first unarchived task completes that task. Required variable values are entered at that point; every run also supports up to three custom variables editable by its participants. Required values stay fixed for the run. Automatic runs start with the first task active and use admin-defined required-variable defaults; `{date}`, `{month}`, and `{year}` expand from the scheduled Japan date.
+
+Schedules support daily, selected weekdays, and monthly recurrence, with an interval of 1–60 days/weeks/months and a time in **Asia/Tokyo**. The first date anchors the interval. Weeks start Monday; a monthly date such as the 31st clamps to the last day of shorter months without shifting later runs. Every occurrence creates its own run, even while earlier runs remain open. A durable scheduler starts after GCS database readiness, polls every minute, and catches up at most 12 missed occurrences per definition per poll. Multiple app processes share database locks and a unique occurrence key. Pausing or downtime retains missed occurrences; resuming catches them up. Set a new first date to skip old periods. Changing other definition content preserves the schedule cursor.
+
+Runs snapshot task instructions, ordering, workflow name, and variable definitions. Definition edits apply to future runs; assignment edits also update matching tasks in all open runs. Anyone may add/remove themselves unless membership is locked. Zero staff is allowed and reported in analytics, including outstanding run tasks and deleted user accounts. Archive existing tasks rather than removing them to preserve the ability to assign staff on older runs. Archiving a task excludes it from future runs; archiving a workflow prevents new runs. Both suppress their unassigned-task warnings and preserve history. Neither cancels ongoing runs.
+
+Everyone can read definitions (including locked/archived definitions). Run details and history are limited to admins and staff who have been included in that run; leaving a task retains historical access. Staff can act only on an assigned active task, including admins. Transactions and revision checks reject stale submissions; manual start tokens prevent duplicate runs from double submissions. New forms use session CSRF tokens.
+
+Startup creates six additive tables in `DB_NAME_GCS`: `workflowDefinitions`, `workflowRuns`, `workflowTasks`, `workflowAssignees`, `workflowParticipants`, and `workflowEvents`. No existing columns are changed and no default workflows are seeded. Back up the database before the normal application restart that creates these tables.
+
+Focused checks: `npx jest tests/workflows.test.js tests/workflowBrowser.test.js --runInBand`. Database and route checks are opt-in and **erase only a disposable `gcs_workflow_test` database** on localhost: set `WORKFLOW_TEST_MYSQL_PORT` to a dedicated MySQL container's published port and run `npx jest tests/workflowDatabase.test.js --runInBand`. The tests never load the application's `.env`. They cover simultaneous completion, rejection, membership changes, cancellation, history isolation/pagination, scheduling catch-up, and zero-staff analytics.
 
 ### Shipping CSV compactor country filter
 

@@ -1,0 +1,62 @@
+extends base
+
+block workflowContent
+  section.app-panel
+    h2 Unassigned tasks (#{unassigned.length})
+    p Tasks with no current staff, excluding archived workflows and archived tasks. Includes definitions and outstanding tasks in ongoing runs.
+    if !unassigned.length
+      p All unarchived tasks have staff assigned.
+    else
+      .table-responsive
+        table.table
+          thead
+            tr
+              th Workflow
+              th Task
+              th Location
+          tbody
+            each item in unassigned
+              tr
+                td
+                  a(href=item.href)= item.name
+                td= item.task
+                td= item.source
+  section.app-panel
+    h2 Workflow totals
+    p All-time overview, including archived workflows. Average duration measures elapsed calendar time.
+    .workflow-metrics
+      each status in ['open', 'completed', 'cancelled']
+        - const metric = statuses.find(item => item.status === status)
+        article
+          span= status
+          strong= metric ? metric.total : 0
+          if status === 'completed' && metric && metric.averageSeconds !== null
+            small= `Average completion: ${(Number(metric.averageSeconds) / 3600).toFixed(1)} hours`
+    h3 Task counts
+    .workflow-metrics
+      each state in ['active', 'pending', 'completed', 'cancelled']
+        - const metric = taskCounts.find(item => item.state === state)
+        article
+          span= state
+          strong= metric ? metric.total : 0
+  section.app-panel
+    h2 Staff interactions &amp; progress speed
+    p Counts include repeat completions after returns. Step time measures how long a task was active before an action, including nonworking hours. Manual first-task completions have no measured active time.
+    .table-responsive
+      table.table
+        thead
+          tr
+            th Staff
+            th Interaction
+            th Count
+            th Average active time (hours)
+        tbody
+          each item in activity
+            tr
+              td= item.userName
+              td= item.action.replace(/_/g, ' ')
+              td= item.total
+              td= item.averageSeconds === null ? '—' : (Number(item.averageSeconds) / 3600).toFixed(1)
+          if !activity.length
+            tr
+              td(colspan=4) No interactions yet.

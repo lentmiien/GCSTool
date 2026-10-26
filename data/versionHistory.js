@@ -4,7 +4,7 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-10-23',
+    updateDate: '2026-10-26',
     items: [
       item('Policy, manual & template library', [
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
@@ -13,6 +13,11 @@ module.exports = [
       ]),
       item('Bin packing', [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
+      ]),
+      item('Workflows', [
+        item('Added linear workflows with ordered tasks, assigned staff, single-comment handovers, completion and return steps, unique run links, and administrator cancellation'),
+        item('Added manual and scheduled starts with daily, weekday, monthly, and quarterly recurrence, plus required and custom run variables'),
+        item('Added self-service task membership, locking and archiving, Today reminders, paginated history, and administrator analytics including unassigned tasks'),
       ]),
     ],
   },

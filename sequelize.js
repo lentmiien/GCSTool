@@ -86,6 +86,7 @@ const Holiday = HolidayModel(sequelize, Sequelize);
 const Schedule = ScheduleModel(sequelize, Sequelize);
 const Schedule2 = Schedule2Model(sequelize, Sequelize);
 const User = UserModel(sequelize, Sequelize);
+const workflowModels = require('./models/workflow')(sequelize, Sequelize);
 const Username = UsernameModel(sequelize, Sequelize);
 const HSCodeList = HSCodeListModel(sequelize, Sequelize);
 const IrelandTaricMapping = IrelandTaricMappingModel(sequelize, Sequelize);
@@ -377,6 +378,7 @@ sequelize_dhl_compensation.sync()
 
 // Export models
 module.exports = {
+  ...workflowModels,
   sequelize,
   gcsDatabaseReady,
   IrelandTaricJob,

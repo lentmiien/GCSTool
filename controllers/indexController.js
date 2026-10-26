@@ -198,6 +198,8 @@ exports.all = async function (req, res, next) {
     }));
   });
 
+  res.locals.workflowTaskCount = await require('../services/workflows').createService(require('../sequelize')).countActive(req.user.id);
+
   // Holiday schedule next week
   res.locals.holidays_next_week = [];
   const date_lookup = [];

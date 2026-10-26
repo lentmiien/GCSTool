@@ -1,0 +1,89 @@
+mixin csrf()
+  input(type='hidden', name='_csrf', value=workflowCsrf)
+
+mixin variables(items)
+  if items.length
+    dl.workflow-variables(aria-label='Workflow variables')
+      each variable in items
+        div
+          dt= variable.name
+          dd.workflow-text= variable.value
+
+mixin customFields(items)
+  p Up to 3 custom variables. Leave both fields empty to remove one.
+  each i in [0, 1, 2]
+    - const variable = items[i] || { name: '', value: '' }
+    .workflow-variable-row(data-custom-row=true)
+      label
+        span= `Custom name ${i + 1}`
+        input.form-control(data-custom-name=true, value=variable.name, maxlength=80)
+      label
+        span= `Value ${i + 1}`
+        input.form-control(data-custom-value=true, value=variable.value, maxlength=1000)
+  input(type='hidden', name='custom', value='[]')
+
+mixin actionForm(task, run)
+  form.workflow-action(method='post', action=`/workflows/runs/${run.id}/tasks/${task.id}`)
+    +csrf()
+    input(type='hidden', name='revision', value=run.revision)
+    label(for=`comment-${task.id}`) Handover comment (optional when completing)
+    textarea.form-control(id=`comment-${task.id}`, name='comment', rows=3, maxlength=10000)= task.comment
+    small Edit or keep the existing comment, or clear it. Each task has only one current comment.
+    .workflow-actions
+      button.btn.btn-primary(type='submit', name='action', value='complete') Complete &amp; continue
+      if task.position > 0
+        button.btn.btn-outline-warning(type='submit', name='action', value='reject', data-reject=true) Return to previous task
+    if task.position > 0
+      small Returning a task requires a comment explaining the error.
+
+mixin comments(items)
+  if items.length
+    details.workflow-comments(open=true)
+      summary Current comments from all steps
+      each item in items
+        article
+          strong= `${item.position + 1}. ${item.title}`
+          p.workflow-text
+            each part in item.comment.split(/(https?:\/\/[^\s<>"']+)/g)
+              if /^https?:\/\//.test(part)
+                a(href=part, target='_blank', rel='noopener noreferrer')= part
+              else
+                = part
+          small= `${item.commentBy || 'Staff'} · ${formatWorkflowDate(item.commentAt)} JST`
+
+mixin stepEditor(step, users)
+  fieldset.workflow-step-editor(data-step-row=true)
+    legend Task
+    input(type='hidden', data-field='id', value=step.id || '')
+    label
+      span Task title
+      input.form-control(data-field='title', value=step.title, required=true, maxlength=160)
+    label
+      span Instructions
+      textarea.form-control(data-field='description', required=true, rows=3, maxlength=10000)= step.description
+    details.workflow-staff-picker(open=true)
+      summary Staff who can complete this task
+      .workflow-staff-options
+        each user in users
+          label.workflow-check
+            input(type='checkbox', data-assignee=true, value=user.id, checked=step.assignees.includes(user.id))
+            span= user.userid
+      small No staff selected? The task will appear in admin analytics as unassigned.
+    label.workflow-check
+      input(type='checkbox', data-field='archived', checked=step.archived)
+      span Archive this task (exclude from future runs)
+    .workflow-actions
+      button.btn.btn-sm.btn-outline-secondary(type='button', data-move='up') Move up
+      button.btn.btn-sm.btn-outline-secondary(type='button', data-move='down') Move down
+      if !step.id
+        button.btn.btn-sm.btn-outline-danger(type='button', data-remove-row=true) Remove
+
+mixin requiredEditor(variable)
+  .workflow-variable-row(data-required-row=true)
+    label
+      span Required variable name
+      input.form-control(data-field='name', value=variable.name, required=true, maxlength=80)
+    label
+      span Default value
+      input.form-control(data-field='defaultValue', value=variable.defaultValue, maxlength=1000)
+    button.btn.btn-sm.btn-outline-danger(type='button', data-remove-row=true) Remove
