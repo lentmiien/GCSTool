@@ -7,6 +7,13 @@ const sanitizeHtml = require('../utils/sanitizeHtml');
 const renderTemplate = pug.compileFile(path.join(__dirname, '../views/pmt/template-content.pug'));
 
 const PMT_TYPES = new Set(['Policy', 'Manual', 'Template']);
+const TEMPLATE_TITLE_LABELS = new Set([
+  'title', 'subject', 'subject line', 'subj', 'subj.',
+  'email subject', 'e-mail subject', 'mail subject',
+  'email title', 'e-mail title', 'mail title',
+  '件名', '題名', '表題', 'タイトル',
+  'メール件名', 'メールの件名', 'メールタイトル', 'メールのタイトル',
+]);
 const PMT_CATEGORIES = new Set([
   '_account_related_', '_order_item_statuses_', '_order_modifying_', '_payment_shipping_',
   '_after_service_shipping_', '_after_service_defect_', '_after_service_preowned_',
@@ -83,8 +90,9 @@ function renderContent(markdown, type) {
     return sanitizeHtml(marked.parse(text));
   }
 
-  const titleLine = text.match(/^Title:[ \t]*([^\r\n]+)(?:\r\n|\r|\n|$)/);
-  const title = titleLine ? titleLine[1].trim() : '';
+  const titleLine = text.match(/^([^:：\r\n]+)[:：]([^\r\n]*)(?:\r\n|\r|\n|$)/);
+  const label = titleLine ? titleLine[1].trim().replace(/[ \t\u3000]+/g, ' ').toLowerCase() : '';
+  const title = TEMPLATE_TITLE_LABELS.has(label) ? titleLine[2].trim() : '';
   // Remove only the title line; preserve the remaining body exactly for copying.
   const body = title ? text.slice(titleLine[0].length) : text;
   return renderTemplate({

@@ -144,9 +144,13 @@ test('HTTP clipboard fallback selects raw text inside the modal and cleans up', 
   expect(button.textContent).toBe('Copied!');
 });
 
-test('template title and body render and copy separately across version changes', async () => {
+test.each([
+  'Title: ', 'Title:', 'Subject: ', 'Subject:', 'SUBJECT : ',
+  'Subject line:', 'E-mail subject: ', 'Subj.:',
+  '件名：', '件名： ', '件名：　', '件名:', '題名：', 'タイトル：', 'メール件名：',
+])('template prefix %j renders and copies title and body separately across version changes', async prefix => {
   const body = '\nDear **customer**,\nThank you!\nRegards,\nSupport\n';
-  const content = `Title: Your order & "update"\n${body}`;
+  const content = `${prefix}Your order & "update"\n${body}`;
   await mount('Template', {
     entry: { id: 3, type: 'Template', title: 'Order reply', content_md: content },
   });
@@ -173,7 +177,10 @@ test('template title and body render and copy separately across version changes'
   await checkParts();
 });
 
-test.each(['Hello\nWorld', 'Title:   \nHello\nWorld', 'Hello\nTitle: Later title\nWorld', ''])('template without an opening title keeps its full body: %j', async content => {
+test.each([
+  'Hello\nWorld', 'Title:   \nHello\nWorld', 'Subject:\nHello\nWorld', '件名：　\nHello\nWorld',
+  'Hello\nSubject: Later title\nWorld', 'Note: Keep this in the body\nHello\nWorld', '',
+])('template without an opening title keeps its full body: %j', async content => {
   await mount('Template', {
     entry: { id: 3, type: 'Template', title: 'Reply', content_md: content },
   });
