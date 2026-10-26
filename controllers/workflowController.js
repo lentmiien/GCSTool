@@ -14,6 +14,12 @@ const handle = fn => async (req, res, next) => {
 const plain = record => record.get({ plain: true });
 const formatDate = value => value ? new Date(value).toLocaleString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false }) : '—';
 
+function reportingRunWhere() {
+  const value = (process.env.TEST_WORKFLOW_ID || '').trim();
+  const id = Number(value);
+  return /^\d+$/.test(value) && Number.isSafeInteger(id) && id > 0 ? { definitionId: { [Op.ne]: id } } : {};
+}
+
 async function workflowSteps(runIds, includeAssignees = false) {
   if (!runIds.length) return [];
   const [steps, history] = await Promise.all([
@@ -126,7 +132,7 @@ exports.history = handle(async (req, res) => {
     from: typeof req.query.from === 'string' ? req.query.from : '',
     to: typeof req.query.to === 'string' ? req.query.to : '',
   };
-  const where = {};
+  const where = reportingRunWhere();
   if (filters.status) {
     if (!['open', 'completed', 'cancelled'].includes(filters.status)) rules.fail('Invalid status filter.');
     where.status = filters.status;
@@ -148,19 +154,21 @@ exports.history = handle(async (req, res) => {
 
 exports.analytics = handle(async (req, res) => {
   service.requireAdmin(req.user);
+  const where = reportingRunWhere();
+  const include = where.definitionId ? [{ model: Run, as: 'run', attributes: [], where, required: true }] : [];
   // Aggregate in SQL so the analytics placeholder need not load the event history.
-  const statuses = await Run.findAll({ attributes: ['status', [fn('COUNT', col('id')), 'total'],
+  const statuses = await Run.findAll({ where, attributes: ['status', [fn('COUNT', col('id')), 'total'],
     [fn('AVG', literal('TIMESTAMPDIFF(SECOND, createdAt, finishedAt)')), 'averageSeconds']], group: ['status'], raw: true });
-  const activity = await Event.findAll({ attributes: ['userId', 'userName', 'action', [fn('COUNT', col('id')), 'total'],
+  const activity = await Event.findAll({ include, attributes: ['userId', 'userName', 'action', [fn('COUNT', col('workflowEvent.id')), 'total'],
     [fn('AVG', col('durationSeconds')), 'averageSeconds']], group: ['userId', 'userName', 'action'], raw: true });
-  const taskCounts = await Task.findAll({ attributes: ['state', [fn('COUNT', col('id')), 'total']], group: ['state'], raw: true });
-  const definitions = await Definition.findAll({ where: { archived: false }, order: [['name', 'ASC']] });
+  const taskCounts = await Task.findAll({ include, attributes: ['state', [fn('COUNT', col('workflowTask.id')), 'total']], group: ['state'], raw: true });
+  const definitions = await Definition.findAll({ where: { archived: false, ...(where.definitionId ? { id: where.definitionId } : {}) }, order: [['name', 'ASC']] });
   const users = await User.findAll({ attributes: ['id'] });
   const existingUsers = new Set(users.map(user => user.id));
   const unassigned = definitions.flatMap(def => def.steps.filter(step => !step.archived && !step.assignees.some(id => existingUsers.has(id)))
     .map(step => ({ name: def.name, task: step.title, href: `/workflows/definitions/${def.id}/edit`, source: 'Definition' })));
   const openTasks = await Task.findAll({ where: { state: { [Op.in]: ['active', 'pending'] } }, include: [
-    { model: Run, as: 'run', where: { status: 'open' }, required: true, include: [{ model: Definition, as: 'definition', where: { archived: false }, required: true }] },
+    { model: Run, as: 'run', where: { ...where, status: 'open' }, required: true, include: [{ model: Definition, as: 'definition', where: { archived: false }, required: true }] },
     { model: Assignee, as: 'assignees' },
   ] });
   for (const task of openTasks) {

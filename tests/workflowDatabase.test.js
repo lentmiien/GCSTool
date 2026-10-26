@@ -9,6 +9,7 @@ const suite = process.env.WORKFLOW_TEST_MYSQL_PORT ? describe : describe.skip;
 
 suite('workflow transactions and HTTP routes on disposable MySQL', () => {
   let db, models, service, admin, alice, bob, outsider, app;
+  const originalTestWorkflowId = process.env.TEST_WORKFLOW_ID;
   const csrf = 'a'.repeat(64);
   const input = (overrides = {}) => ({ name: 'Quarterly GST', description: 'Prepare country GST', trigger: 'manual', enabled: true,
     requiredVariables: [{ name: 'Period', defaultValue: '' }], steps: [
@@ -41,8 +42,13 @@ suite('workflow transactions and HTTP routes on disposable MySQL', () => {
     app.use('/workflows', require('../routes/workflows'));
     app.use((error, req, res, next) => res.status(error.status || 500).send(error.message));
   }, 20000);
-  afterAll(async () => { if (db) await db.close(); });
+  afterAll(async () => {
+    if (originalTestWorkflowId === undefined) delete process.env.TEST_WORKFLOW_ID;
+    else process.env.TEST_WORKFLOW_ID = originalTestWorkflowId;
+    if (db) await db.close();
+  });
   beforeEach(async () => {
+    delete process.env.TEST_WORKFLOW_ID;
     for (const name of ['WorkflowEvent', 'WorkflowAssignee', 'WorkflowParticipant', 'WorkflowTask', 'WorkflowRun', 'WorkflowDefinition', 'User']) {
       await models[name].destroy({ where: {} });
     }
@@ -321,5 +327,71 @@ suite('workflow transactions and HTTP routes on disposable MySQL', () => {
     data.steps[2].assignees = [];
     def = await service.saveDefinition(def.id, { ...data, archived: true }, admin);
     expect((await get('/workflows/analytics', admin)).text).toContain('Unassigned tasks (0)');
+  });
+
+  test('test workflow stays usable but is excluded from history and every analytics section', async () => {
+    const normal = await service.saveDefinition(null, input({ name: 'Real workflow' }), admin);
+    const realRun = await service.start(normal.id, startInput(), alice);
+    const realTasks = await tasksFor(realRun);
+    await service.act(realRun.id, realTasks[1].id, { revision: 0, action: 'complete' }, bob);
+    await service.act(realRun.id, realTasks[2].id, { revision: 1, action: 'complete' }, admin);
+    const baseline = await get('/workflows/analytics', admin);
+    expect(baseline.status).toBe(200);
+
+    let testDef = await service.saveDefinition(null, input({ name: 'Testing scenarios' }), admin);
+    process.env.TEST_WORKFLOW_ID = String(testDef.id);
+    const completed = await service.start(testDef.id, startInput(), alice);
+    const completedTasks = await tasksFor(completed);
+    await service.act(completed.id, completedTasks[1].id, { revision: 0, action: 'complete' }, bob);
+    await service.act(completed.id, completedTasks[2].id, { revision: 1, action: 'complete' }, admin);
+    // Make duration contamination observable even when the test runs quickly.
+    await completed.update({ finishedAt: new Date(completed.createdAt.getTime() + 86400000) });
+    await models.WorkflowEvent.update({ durationSeconds: 86400000 }, { where: { runId: completed.id } });
+    const cancelled = await service.start(testDef.id, startInput(), alice);
+    await service.cancel(cancelled.id, { revision: 0, reason: 'Test only' }, admin);
+    const open = await service.start(testDef.id, startInput(), alice);
+    const openTasks = await tasksFor(open);
+
+    expect(await service.countActive(alice.id)).toBe(1);
+    expect((await get('/workflows')).text).toContain('Testing scenarios');
+    expect((await get('/workflows/definitions')).text).toContain('Testing scenarios');
+    expect((await get(`/workflows/definitions/${testDef.id}`)).status).toBe(200);
+    expect((await post(`/workflows/runs/${open.id}/tasks/${openTasks[1].id}`, {
+      revision: 0, action: 'reject', comment: 'Test correction',
+    }, bob)).status).toBe(303);
+    expect((await models.WorkflowRun.findByPk(open.id)).activePosition).toBe(0);
+    await service.act(open.id, openTasks[0].id, { revision: 1, action: 'complete' }, alice);
+    // Both the definition warning and the outstanding run warning must disappear.
+    const data = testDef.get({ plain: true });
+    data.steps[1].assignees = [];
+    testDef = await service.saveDefinition(testDef.id, data, admin);
+    const analytics = await get('/workflows/analytics', admin);
+    expect(analytics.status).toBe(200);
+    expect(analytics.text).toBe(baseline.text);
+    for (const user of [admin, alice, bob]) {
+      const history = await get('/workflows/history', user);
+      expect(history.status).toBe(200);
+      expect(history.text).toContain('1 runs found');
+      expect(history.text).toContain(`/workflows/runs/${realRun.id}`);
+      expect(history.text).not.toContain('Testing scenarios');
+      expect((await get('/workflows/history?q=Testing', user)).text).toContain('0 runs found');
+      expect((await get('/workflows/history?status=open', user)).text).toContain('0 runs found');
+      expect((await get('/workflows/history?status=cancelled', user)).text).toContain('0 runs found');
+      expect((await get('/workflows/history?status=completed', user)).text).toContain('1 runs found');
+    }
+    for (const run of [open, completed, cancelled]) {
+      expect((await get(`/workflows/runs/${run.id}`)).status).toBe(200);
+    }
+    expect(await models.WorkflowRun.count()).toBe(4);
+
+    for (const value of [undefined, '', 'invalid', '0', '-1', `${testDef.id}oops`]) {
+      if (value === undefined) delete process.env.TEST_WORKFLOW_ID;
+      else process.env.TEST_WORKFLOW_ID = value;
+      expect((await get('/workflows/history', admin)).text).toContain('4 runs found');
+      const restored = await get('/workflows/analytics', admin);
+      expect(restored.status).toBe(200);
+      expect(restored.text).toContain('Unassigned tasks (2)');
+      expect(restored.text).not.toBe(baseline.text);
+    }
   });
 });

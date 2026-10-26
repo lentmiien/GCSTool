@@ -20,6 +20,7 @@ module.exports = [
         item('Added self-service task membership, locking and archiving, Today reminders, paginated history, and administrator analytics including unassigned tasks'),
         item('Simplified the task view and allowed required and custom variable corrections alongside handover comments when completing or returning tasks, with each variable showing its last editor and edit time'),
         item('Added a compact progress line with return-history indicators, always-visible handover comments, and Markdown overviews and instructions with editor previews and links that open in new tabs'),
+        item('Added an optional TEST_WORKFLOW_ID setting to exclude a test workflow from history and administrator analytics while retaining normal task functionality'),
       ]),
     ],
   },

@@ -19,6 +19,9 @@ LENTMIIEN_API_KEY=/*For Lentmiien API integrations*/
 HOSTNAME_OVERRIDE=
 PM2_BIN=
 HOST_SAMPLE_RETENTION_DAYS=30
+# Optional workflow definition ID to exclude from history and all workflow analytics.
+# Leave blank for normal reporting; set to 2 in the live environment for the test workflow.
+TEST_WORKFLOW_ID=
 LINK_1=xxx HELPDESK LINK xxx
 LINK_2=xxx INTERNAL COMMUNICATION LINK 1 xxx
 LINK_3=xxx INTERNAL COMMUNICATION LINK 2 xxx
