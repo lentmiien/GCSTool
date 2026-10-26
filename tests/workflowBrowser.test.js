@@ -51,6 +51,8 @@ test('manual starts serialize required and custom variables, and reject incomple
   mount('definition', { startKey: 'start-key' });
   const form = document.querySelector('[data-variable-form]');
   form.querySelector('[data-required-value]').value = '1234';
+  expect(form.querySelectorAll('[data-custom-row]')).toHaveLength(0);
+  form.querySelector('[data-add-custom]').click();
   form.querySelector('[data-custom-name]').value = 'Country';
   expect(submit(form).defaultPrevented).toBe(true);
   form.querySelector('[data-custom-value]').value = 'Australia';
@@ -62,16 +64,54 @@ test('manual starts serialize required and custom variables, and reject incomple
 
 test('task comments are escaped, rejection requires an error and completion can clear an old comment', () => {
   const task = { id: 1, position: 1, title: 'Check', description: 'Review', comment: '<script>unsafe()</script>', runId: 'run',
-    run: { id: 'run', name: 'GST', variables: [{ name: 'Order', value: '<b>1234</b>' }], revision: 4 } };
-  mount('tasks', { tasks: [task], starters: [], comments: [task] });
+    run: { id: 'run', name: 'GST', variables: [{ name: 'Order', value: '<b>1234</b>', required: true }], revision: 4 } };
+  mount('tasks', { tasks: [task], starters: [], comments: [task, { ...task, id: 2, position: 0 }] });
   expect(document.querySelector('.workflow-comments script')).toBeNull();
   expect(document.querySelector('.workflow-comments p').textContent).toBe('<script>unsafe()</script>');
-  expect(document.querySelector('.workflow-variables b')).toBeNull();
+  expect(document.querySelector('.workflow-comments').open).toBe(false);
+  expect(document.querySelectorAll('.workflow-comments article')).toHaveLength(1);
+  expect(document.querySelector('.workflow-variable-fields b')).toBeNull();
+  expect(document.querySelector('[data-required-value]').value).toBe('<b>1234</b>');
   const form = document.querySelector('.workflow-action');
   form.elements.comment.value = '';
   form.elements.comment.reportValidity = jest.fn();
   expect(submit(form, form.querySelector('[value="reject"]')).defaultPrevented).toBe(true);
   expect(submit(form, form.querySelector('[value="complete"]')).defaultPrevented).toBe(false);
+});
+
+test('task forms submit variable corrections and the comment together and show edit attribution', () => {
+  const task = { id: 1, position: 1, title: 'Check', description: 'Review', comment: 'Earlier note', runId: 'run',
+    run: { id: 'run', name: 'GST', revision: 4, variables: [
+      { name: 'Order', value: '1234', required: true, editedBy: 'Bob', editedAt: '2026-10-26T01:00:00.000Z' },
+      { name: 'Country', value: 'AU', required: false },
+    ] } };
+  mount('tasks', { tasks: [task], starters: [], comments: [] });
+  const form = document.querySelector('.workflow-action');
+  expect(form.querySelector('[type="submit"]').disabled).toBe(false);
+  expect(form.textContent).toContain('Edited by Bob · 26/10/2026 JST');
+  expect(form.textContent).toContain('Edit history unavailable');
+  form.querySelector('[data-required-value]').value = '5678';
+  form.querySelector('[data-custom-value]').value = 'NZ';
+  form.elements.comment.value = 'Corrected the order and country';
+  expect(submit(form, form.querySelector('[value="reject"]')).defaultPrevented).toBe(false);
+  const payload = new FormData(form);
+  expect(JSON.parse(payload.get('values'))).toEqual(['5678']);
+  expect(JSON.parse(payload.get('custom'))).toEqual([{ name: 'Country', value: 'NZ' }]);
+  expect(payload.get('comment')).toBe('Corrected the order and country');
+  expect(payload.get('revision')).toBe('4');
+});
+
+test('custom variables are added on demand, limited to three, and can be removed', () => {
+  mount('definition', { startKey: 'start-key' });
+  const form = document.querySelector('[data-variable-form]');
+  const add = form.querySelector('[data-add-custom]');
+  for (let i = 0; i < 3; i++) add.click();
+  expect(add.hidden).toBe(true);
+  add.click();
+  expect(form.querySelectorAll('[data-custom-row]')).toHaveLength(3);
+  form.querySelector('[data-remove-custom]').click();
+  expect(add.hidden).toBe(false);
+  expect(form.querySelectorAll('[data-custom-row]')).toHaveLength(2);
 });
 
 test('the Today panel shows only a positive workflow task count and links to My tasks', () => {

@@ -70,6 +70,21 @@ test('variables require values, enforce three custom slots, and reject duplicate
   ]);
 });
 
+test('variable edits stamp only changed values and never trust supplied attribution', () => {
+  const previous = [
+    { name: 'Order', value: '123', required: true },
+    { name: 'Country', value: 'AU', required: false, editedBy: 'Alice', editedByUserId: 1, editedAt: '2026-10-01T00:00:00.000Z' },
+  ];
+  const user = { id: 2, userid: 'Bob' };
+  const now = new Date('2026-10-26T01:00:00.000Z');
+  expect(rules.editVariables(previous, {}, user, now)).toEqual({ variables: previous, changed: false });
+  const edited = rules.editVariables(previous, { values: ['456'] }, user, now);
+  expect(edited.variables[0]).toEqual({ name: 'Order', value: '456', required: true, editedBy: 'Bob', editedByUserId: 2, editedAt: now.toISOString() });
+  expect(edited.variables[1]).toEqual(previous[1]);
+  const forged = rules.editVariables(previous, { custom: [{ name: 'Country code', value: 'NZ', editedBy: 'Admin', editedAt: '2000-01-01' }] }, user, now);
+  expect(forged.variables[1]).toMatchObject({ name: 'Country code', editedBy: 'Bob', editedAt: now.toISOString() });
+});
+
 test('transitions reject first-step returns, missing errors, inactive tasks, and stale pages', () => {
   const run = { status: 'open', activePosition: 0, revision: 2 };
   const task = { state: 'active', position: 0 };

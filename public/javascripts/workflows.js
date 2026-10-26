@@ -56,6 +56,25 @@
   }
 
   rows(document, '[data-variable-form]').forEach(form => {
+    const customRows = form.querySelector('[data-custom-rows]');
+    const addCustom = form.querySelector('[data-add-custom]');
+    function refreshCustom() {
+      addCustom.hidden = customRows.children.length >= 3;
+    }
+    addCustom.addEventListener('click', () => {
+      if (customRows.children.length >= 3) return;
+      const row = form.querySelector('[data-custom-template]').content.cloneNode(true);
+      customRows.append(row);
+      customRows.lastElementChild.querySelector('input').focus();
+      refreshCustom();
+    });
+    customRows.addEventListener('click', event => {
+      const button = event.target.closest('[data-remove-custom]');
+      if (button) {
+        button.closest('[data-custom-row]').remove();
+        refreshCustom();
+      }
+    });
     form.addEventListener('submit', event => {
       const custom = rows(form, '[data-custom-row]').map(row => ({
         name: row.querySelector('[data-custom-name]').value.trim(),
@@ -68,6 +87,7 @@
       form.elements.custom.value = JSON.stringify(custom);
       if (form.elements.values) form.elements.values.value = JSON.stringify(rows(form, '[data-required-value]').map(input => input.value));
     });
+    rows(form, '[data-variable-submit]').forEach(button => { button.disabled = false; });
   });
   rows(document, '.workflow-action').forEach(form => {
     form.addEventListener('submit', event => {

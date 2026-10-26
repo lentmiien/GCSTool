@@ -91,6 +91,7 @@ function createService(db) {
 
   async function createRun(def, variables, user, scheduledFor, startKey, comment, t) {
     const now = new Date();
+    variables = rules.stampVariables([], variables, user, now);
     const manual = !scheduledFor;
     const steps = def.steps.filter(step => !step.archived);
     const finished = manual && steps.length === 1;
@@ -140,13 +141,15 @@ function createService(db) {
       const comment = rules.text(input.comment || '', 'Comment', 10000, false);
       const nextPosition = rules.transition(run, task, input.action, comment);
       const now = new Date();
+      const edits = rules.editVariables(run.variables, input, user, now);
       const taskChanges = { state: input.action === 'complete' ? 'completed' : 'pending',
         completedAt: input.action === 'complete' ? now : null, completedBy: input.action === 'complete' ? user.userid : null };
       if (task.comment !== comment) Object.assign(taskChanges, { comment, commentBy: user.userid, commentAt: now });
       await task.update(taskChanges, { transaction: t });
       const nextTask = tasks[nextPosition];
       if (nextTask) await nextTask.update({ state: 'active', activatedAt: now, completedAt: null, completedBy: null }, { transaction: t });
-      await run.update({ activePosition: nextPosition, status: nextTask ? 'open' : 'completed', finishedAt: nextTask ? null : now, revision: run.revision + 1 }, { transaction: t });
+      await run.update({ variables: edits.variables, activePosition: nextPosition, status: nextTask ? 'open' : 'completed', finishedAt: nextTask ? null : now, revision: run.revision + 1 }, { transaction: t });
+      if (edits.changed) await recordEvent(run.id, user, 'variables_updated', t, { taskId: task.id });
       await recordEvent(run.id, user, input.action, t, { taskId: task.id,
         durationSeconds: task.activatedAt ? Math.max(0, Math.round((now - new Date(task.activatedAt)) / 1000)) : null });
       return run;
@@ -158,9 +161,9 @@ function createService(db) {
       const run = await runForUser(id, user, t);
       rules.assertRevision(run, input.revision);
       if (run.status !== 'open') rules.fail('This workflow is closed.', 409);
-      const required = run.variables.filter(variable => variable.required);
-      const variables = rules.validateVariables(required, required.map(variable => variable.value), rules.parseJson(input.custom));
-      await run.update({ variables, revision: run.revision + 1 }, { transaction: t });
+      const edits = rules.editVariables(run.variables, input, user);
+      if (!edits.changed) return run;
+      await run.update({ variables: edits.variables, revision: run.revision + 1 }, { transaction: t });
       await recordEvent(run.id, user, 'variables_updated', t);
       return run;
     });

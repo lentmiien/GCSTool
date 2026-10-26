@@ -18,6 +18,7 @@ module.exports = [
         item('Added linear workflows with ordered tasks, assigned staff, single-comment handovers, completion and return steps, unique run links, and administrator cancellation'),
         item('Added manual and scheduled starts with daily, weekday, monthly, and quarterly recurrence, plus required and custom run variables'),
         item('Added self-service task membership, locking and archiving, Today reminders, paginated history, and administrator analytics including unassigned tasks'),
+        item('Simplified the task view and allowed required and custom variable corrections alongside handover comments when completing or returning tasks, with each variable showing its last editor and edit time'),
       ]),
     ],
   },

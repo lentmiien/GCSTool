@@ -2,6 +2,7 @@ extends base
 include mixins
 
 block workflowContent
+  - const actionableTask = run.status === 'open' && tasks.find(task => task.state === 'active' && task.assignees.some(item => item.userId === workflowUser.id))
   section.app-panel
     .workflow-card-heading
       div
@@ -16,19 +17,21 @@ block workflowContent
       p= `Finished ${formatWorkflowDate(run.finishedAt)} JST`
     if run.cancellationReason
       p.workflow-text= `Cancellation reason: ${run.cancellationReason}`
-    +variables(run.variables)
-    if run.status === 'open'
-      details
-        summary Edit custom variables
+    if !actionableTask && run.status === 'open'
+      details(open=true)
+        summary Variables
         form(method='post', action=`/workflows/runs/${run.id}/variables`, data-variable-form=true)
           +csrf()
           input(type='hidden', name='revision', value=run.revision)
-          +customFields(run.variables.filter(variable => !variable.required))
-          button.btn.btn-outline-secondary(type='submit') Save custom variables
+          +variableFields(run.variables)
+          button.btn.btn-outline-secondary(type='submit', disabled=true, data-variable-submit=true) Save variables
+          noscript Enable JavaScript to edit variables.
+    else if !actionableTask
+      +variables(run.variables)
     .workflow-progress
       each task in tasks
         a(href=`#task-${task.id}`, class=`workflow-progress-${task.state}`)= `${task.position + 1}. ${task.title} · ${task.state}`
-  +comments(tasks.filter(task => task.comment))
+  +comments(tasks.filter(task => task.comment && (!actionableTask || task.id !== actionableTask.id)), 'Task comments')
   each task in tasks
     article.app-panel.workflow-card(id=`task-${task.id}`, class=task.state === 'active' ? 'workflow-card-active' : '')
       h3= `${task.position + 1}. ${task.title}`

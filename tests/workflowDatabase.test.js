@@ -112,14 +112,61 @@ suite('workflow transactions and HTTP routes on disposable MySQL', () => {
     await expect(service.saveDefinition(def.id, input(), alice)).rejects.toMatchObject({ status: 403 });
   });
 
-  test('custom variables are shared, bounded, revision-checked, and required variables stay intact', async () => {
+  test('required and custom variables can be corrected with trusted edit attribution', async () => {
     const def = await service.saveDefinition(null, input(), admin);
     const run = await service.start(def.id, startInput(), alice);
     await expect(service.updateVariables(run.id, { revision: 0, custom: [] }, outsider)).rejects.toMatchObject({ status: 403 });
-    const updated = await service.updateVariables(run.id, { revision: 0, custom: [{ name: 'Order', value: '123' }], values: ['tampered'] }, bob);
-    expect(updated.variables).toEqual([{ name: 'Period', value: '2026-Q4', required: true }, { name: 'Order', value: '123', required: false }]);
+    expect(run.variables[0]).toMatchObject({ editedBy: alice.userid, editedByUserId: alice.id });
+    const updated = await service.updateVariables(run.id, { revision: 0, custom: [{ name: 'Order', value: '123', editedBy: 'Admin' }], values: ['2026-Q3'] }, bob);
+    expect(updated.variables).toEqual([
+      expect.objectContaining({ name: 'Period', value: '2026-Q3', required: true, editedBy: bob.userid, editedByUserId: bob.id, editedAt: expect.any(String) }),
+      expect.objectContaining({ name: 'Order', value: '123', required: false, editedBy: bob.userid, editedByUserId: bob.id, editedAt: expect.any(String) }),
+    ]);
+    const unchanged = await service.updateVariables(run.id, { revision: 1, values: ['2026-Q3'], custom: [{ name: 'Order', value: '123' }] }, alice);
+    expect(unchanged.variables).toEqual(updated.variables);
+    expect(unchanged.revision).toBe(1);
+    await expect(service.updateVariables(run.id, { revision: 1, values: [''] }, bob)).rejects.toMatchObject({ status: 400 });
     await expect(service.updateVariables(run.id, { revision: 0, custom: [] }, bob)).rejects.toMatchObject({ status: 409 });
     await expect(service.updateVariables(run.id, { revision: 1, custom: Array(4).fill({ name: 'x', value: 'y' }) }, bob)).rejects.toMatchObject({ status: 400 });
+  });
+
+  test('task submission saves corrections and comments atomically through returns and completion', async () => {
+    const def = await service.saveDefinition(null, input(), admin);
+    let run = await service.start(def.id, startInput({ custom: [{ name: 'Country', value: 'AU' }] }), alice);
+    const tasks = await tasksFor(run);
+    const originalVariables = run.variables;
+    const path = `/workflows/runs/${run.id}/tasks/${tasks[1].id}`;
+    for (const invalid of [
+      { action: 'reject', comment: '', values: ['2026-Q3'] },
+      { action: 'complete', comment: 'Invalid', values: [''] },
+      { action: 'complete', comment: 'Invalid', custom: [{ name: 'Period', value: 'Duplicate' }] },
+    ]) {
+      expect((await post(path, { revision: 0, ...invalid }, bob)).status).toBe(400);
+      await run.reload();
+      expect(run.variables).toEqual(originalVariables);
+      expect(run.activePosition).toBe(1);
+      expect(run.revision).toBe(0);
+      expect((await tasksFor(run))[1].comment).toBe('');
+    }
+    expect((await post(path, { revision: 0, action: 'complete', values: ['Unauthorized'] }, admin)).status).toBe(403);
+    expect((await post(path, { revision: 0, action: 'reject', comment: 'Use the corrected period', values: JSON.stringify(['2026-Q3']), custom: JSON.stringify([{ name: 'Country', value: 'AU' }]) }, bob)).status).toBe(303);
+    await run.reload();
+    expect(run.activePosition).toBe(0);
+    expect(run.variables[0]).toMatchObject({ value: '2026-Q3', editedBy: bob.userid, editedByUserId: bob.id });
+    expect(run.variables[1]).toEqual(originalVariables[1]);
+    const correction = run.variables[0];
+    const page = await get('/workflows', alice);
+    expect(page.text).toContain('Edited by bob');
+    expect(page.text).toContain('value="2026-Q3"');
+    expect((await post(`/workflows/runs/${run.id}/tasks/${tasks[0].id}`, { revision: 0, action: 'complete', values: ['Stale'] }, alice)).status).toBe(409);
+    run = await service.act(run.id, tasks[0].id, { revision: 1, action: 'complete', values: ['2026-Q3'], custom: [{ name: 'Country', value: 'NZ' }], comment: 'Confirmed' }, alice);
+    expect(run.variables[0]).toEqual(correction);
+    expect(run.variables[1]).toMatchObject({ value: 'NZ', editedBy: alice.userid });
+    run = await service.act(run.id, tasks[1].id, { revision: 2, action: 'complete' }, bob);
+    run = await service.act(run.id, tasks[2].id, { revision: 3, action: 'complete', values: ['2026-Q2'], comment: 'Final correction' }, admin);
+    expect(run.status).toBe('completed');
+    expect(run.variables[0]).toMatchObject({ value: '2026-Q2', editedBy: admin.userid });
+    await expect(service.updateVariables(run.id, { revision: 4, values: ['Closed'] }, admin)).rejects.toMatchObject({ status: 409 });
   });
 
   test('cancellation is admin-only and removes reminders without losing history', async () => {
@@ -141,6 +188,7 @@ suite('workflow transactions and HTTP routes on disposable MySQL', () => {
     expect(await service.countActive(alice.id)).toBe(4);
     const run = await models.WorkflowRun.findOne({ order: [['scheduledFor', 'ASC']] });
     expect(run.variables[0].value).toBe('2026-10-05 / 2026-10 / 2026');
+    expect(run.variables[0]).toMatchObject({ editedBy: 'Scheduler', editedByUserId: null, editedAt: expect.any(String) });
     expect((await tasksFor(run)).map(task => task.state)).toEqual(['active', 'pending', 'pending']);
     def = await models.WorkflowDefinition.findByPk(def.id);
     const nextStart = def.nextStart;

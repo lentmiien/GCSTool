@@ -2,7 +2,10 @@ extends base
 
 block workflowContent
   section.app-panel
-    h2 Workflow library
+    .workflow-card-heading
+      h2 Workflow library
+      if isWorkflowAdmin
+        a.btn.btn-primary(href='/workflows/definitions/new') New workflow
     p Everyone can read workflow definitions. Join or leave a task unless an administrator has locked membership.
     if !definitions.length
       .app-empty-state

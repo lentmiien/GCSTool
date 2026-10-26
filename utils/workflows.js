@@ -126,6 +126,24 @@ function validateVariables(definitions, values, custom) {
     }));
 }
 
+function stampVariables(previous, variables, user, now = new Date()) {
+  return variables.map(variable => {
+    const old = previous.find(item => item.name === variable.name && item.required === variable.required);
+    if (old && old.value === variable.value) return old;
+    return { ...variable, editedAt: now.toISOString(), editedBy: user ? user.userid : 'Scheduler', editedByUserId: user ? user.id : null };
+  });
+}
+
+function editVariables(previous, input, user, now = new Date()) {
+  const required = previous.filter(variable => variable.required);
+  // Older task forms omit variables entirely. Preserve those values on submission.
+  const values = input.values === undefined ? required.map(variable => variable.value) : parseJson(input.values);
+  const custom = input.custom === undefined ? previous.filter(variable => !variable.required) : parseJson(input.custom);
+  const variables = stampVariables(previous, validateVariables(required, values, custom), user, now);
+  const changed = previous.length !== variables.length || variables.some((variable, i) => variable !== previous[i]);
+  return { variables, changed };
+}
+
 function assertRevision(record, revision) {
   if (record.revision !== integer(revision, 0, 2147483647, 'revision')) fail('This page is out of date. Reload before trying again.', 409);
 }
@@ -138,4 +156,4 @@ function transition(run, task, action, comment) {
   return task.position + (action === 'complete' ? 1 : -1);
 }
 
-module.exports = { fail, text, integer, parseJson, japanDate, validDate, validateSchedule, nextOccurrence, validateDefinition, validateVariables, assertRevision, transition };
+module.exports = { fail, text, integer, parseJson, japanDate, validDate, validateSchedule, nextOccurrence, validateDefinition, validateVariables, stampVariables, editVariables, assertRevision, transition };

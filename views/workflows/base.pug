@@ -7,16 +7,13 @@ block content
   .workflow-page
     header.app-page-header
       div
-        p.app-page-kicker Shared responsibilities
         h1 Workflows
-        p One active step, shared staff, and a clear handover.
       nav.workflow-nav(aria-label='Workflow navigation')
-        a.btn.btn-outline-secondary(href='/workflows', aria-current=currentPath === '/workflows' ? 'page' : undefined) My tasks
-        a.btn.btn-outline-secondary(href='/workflows/definitions') Workflow library
-        a.btn.btn-outline-secondary(href='/workflows/history') History
+        a(href='/workflows', aria-current=currentPath === '/workflows' ? 'page' : undefined) My tasks
+        a(href='/workflows/definitions', aria-current=currentPath.startsWith('/workflows/definitions') ? 'page' : undefined) Library
+        a(href='/workflows/history', aria-current=currentPath === '/workflows/history' ? 'page' : undefined) History
         if isWorkflowAdmin
-          a.btn.btn-outline-secondary(href='/workflows/analytics') Analytics
-          a.btn.btn-primary(href='/workflows/definitions/new') New workflow
+          a(href='/workflows/analytics', aria-current=currentPath === '/workflows/analytics' ? 'page' : undefined) Analytics
     block workflowContent
 
 block scripts

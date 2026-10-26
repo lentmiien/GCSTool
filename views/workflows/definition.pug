@@ -31,7 +31,7 @@ block workflowContent
         - const staffNames = step.assignees.map(id => users.find(user => user.id === id)).filter(Boolean).map(user => user.userid)
         p
           strong Staff:
-          = staffNames.join(', ') || 'No staff assigned'
+          = ' ' + (staffNames.join(', ') || 'No staff assigned')
         if !step.archived && !def.archived && (!def.locked || isWorkflowAdmin)
           form(method='post', action=`/workflows/definitions/${def.id}/tasks/${step.id}/membership`)
             +csrf()
@@ -55,5 +55,5 @@ block workflowContent
         +customFields([])
         label(for='start-comment') First task comment (optional)
         textarea#start-comment.form-control(name='comment', rows=3, maxlength=10000)
-        button.btn.btn-primary(type='submit') Complete first task &amp; start workflow
+        button.btn.btn-primary(type='submit', disabled=true, data-variable-submit=true) Complete first task &amp; start workflow
         noscript Please enable JavaScript to enter workflow variables and start a run.

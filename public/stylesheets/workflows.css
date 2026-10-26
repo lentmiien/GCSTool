@@ -22,7 +22,13 @@
 }
 .workflow-actions { margin: 0.8rem 0; }
 .workflow-card-heading { justify-content: space-between; }
+.workflow-nav { gap: 0.25rem; }
+.workflow-nav a { padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--gcs-muted); }
+.workflow-nav a[aria-current='page'] { background: var(--gcs-accent-soft); color: var(--gcs-heading); font-weight: 600; }
+.workflow-nav a:hover { color: var(--gcs-heading); }
 .workflow-card { margin-top: 1rem; }
+.workflow-card .workflow-run-name { color: var(--gcs-muted); margin: 0; }
+.workflow-card-heading h3 { margin: 0.25rem 0 0.75rem; }
 .workflow-card-active { border-left: 4px solid var(--gcs-accent, #319fb3); }
 .workflow-variables, .workflow-metrics, .workflow-library, .workflow-staff-options {
   display: grid;
@@ -37,10 +43,21 @@
   min-width: 0;
 }
 .workflow-variables dd { margin: 0.2rem 0 0; }
+.workflow-value-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 0.75rem; }
+.workflow-variable-fields { padding: 0.5rem 0 1rem; }
+.workflow-variable-audit { display: block; overflow-wrap: anywhere; font-size: 0.75rem; }
+.workflow-page .workflow-variable-field label { margin: 0 0 0.25rem; }
+.workflow-custom-fields { margin-top: 0.75rem; }
+.workflow-custom-row { margin: 0 0 0.75rem; }
+.workflow-page .workflow-custom-row label { margin: 0 0 0.25rem; }
+.workflow-custom-row .workflow-variable-row { gap: 0.5rem; }
+.workflow-custom-row .workflow-variable-row > button { margin-bottom: 0.25rem; }
 .workflow-metrics strong { font-size: 2rem; }
 .workflow-metrics span, .workflow-metrics strong, .workflow-metrics small, .workflow-library-item > * { display: block; }
 .workflow-library-item span { margin-top: 0.3rem; color: var(--gcs-muted); }
-.workflow-comments { padding: 1rem; background: var(--gcs-surface); border: 1px solid var(--gcs-border); border-radius: 8px; margin: 1rem 0; }
+.workflow-comments { border-top: 1px solid var(--gcs-border); border-bottom: 1px solid var(--gcs-border); padding: 0.4rem 0; margin: 1rem 0; }
+.workflow-comments summary { font-size: 0.9rem; }
+.workflow-comments[open] { padding-bottom: 0.8rem; }
 .workflow-comments article + article { border-top: 1px solid var(--gcs-border); margin-top: 0.8rem; padding-top: 0.8rem; }
 .workflow-comments p { margin: 0.4rem 0; }
 .workflow-step-editor, .workflow-schedule { border: 1px solid var(--gcs-border); border-radius: 8px; padding: 1rem; margin: 1rem 0; min-width: 0; }

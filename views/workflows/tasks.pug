@@ -3,8 +3,8 @@ include mixins
 
 block workflowContent
   section(aria-labelledby='my-tasks-title')
-    h2#my-tasks-title My active tasks (#{tasks.length})
-    p Only active tasks assigned to you are listed. Any one assigned staff member can complete a task.
+    h2#my-tasks-title My tasks (#{tasks.length})
+    p Update the details below, then complete or return the task.
     if !tasks.length
       .app-panel.app-empty-state
         h3 You're up to date
@@ -13,17 +13,15 @@ block workflowContent
       article.app-panel.workflow-card
         header.workflow-card-heading
           div
-            p.app-page-kicker= task.run.name
+            p.workflow-run-name= task.run.name
             h3= `${task.position + 1}. ${task.title}`
-          a(href=`/workflows/runs/${task.run.id}`) Open workflow ↗
+          a(href=`/workflows/runs/${task.run.id}`) Details
         p.workflow-text= task.description
-        +variables(task.run.variables)
-        +comments(comments.filter(item => item.runId === task.runId))
+        +comments(comments.filter(item => item.runId === task.runId && item.id !== task.id))
         +actionForm(task, task.run)
   if starters.length
-    section.app-panel
-      h2 Start a manual workflow
-      p Complete the first task to start a new run.
+    details.app-panel.workflow-start-list
+      summary Start a workflow
       .workflow-library
         each def in starters
           a.workflow-library-item(href=`/workflows/definitions/${def.id}`)
