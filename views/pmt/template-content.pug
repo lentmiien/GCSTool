@@ -7,5 +7,5 @@ if title
 section.pmt-template-chunk(aria-label='Template body')
   .pmt-template-chunk-header
     strong Body
-    button.btn.btn-sm.pmt-copy-button(type='button', data-md=body, onclick="CopyThis(this, 'md')", aria-label='Copy body', aria-live='polite') Copy body
+    button.btn.btn-sm.pmt-copy-button(type='button', data-md=body.trimStart(), onclick="CopyThis(this, 'md')", aria-label='Copy body', aria-live='polite') Copy body
   .pmt-template-body!= bodyHtml

@@ -149,7 +149,8 @@ test.each([
   'Subject line:', 'E-mail subject: ', 'Subj.:',
   '件名：', '件名： ', '件名：　', '件名:', '題名：', 'タイトル：', 'メール件名：',
 ])('template prefix %j renders and copies title and body separately across version changes', async prefix => {
-  const body = '\nDear **customer**,\nThank you!\nRegards,\nSupport\n';
+  const copiedBody = 'Dear **customer**,\nThank you!\nRegards,\nSupport\n';
+  const body = `\n \t\u3000\n${copiedBody}`;
   const content = `${prefix}Your order & "update"\n${body}`;
   await mount('Template', {
     entry: { id: 3, type: 'Template', title: 'Order reply', content_md: content },
@@ -161,7 +162,7 @@ test.each([
     await window.CopyThis(document.querySelector('#content [aria-label="Copy title"]'), 'md');
     expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith('Your order & "update"');
     await window.CopyThis(document.querySelector('#content [aria-label="Copy body"]'), 'md');
-    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(body);
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(copiedBody);
     await window.CopySelectedVersion(document.querySelector('#copy-markdown'));
     expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(content);
   };
@@ -171,7 +172,7 @@ test.each([
   window.UpdateVersion(version);
   expect(document.querySelector('#content .pmt-template-title')).toBeNull();
   await window.CopyThis(document.querySelector('#content [aria-label="Copy body"]'), 'md');
-  expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(oldMarkdown);
+  expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(oldMarkdown.trimStart());
   version.selectedIndex = 0;
   window.UpdateVersion(version);
   await checkParts();

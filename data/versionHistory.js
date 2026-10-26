@@ -9,6 +9,7 @@ module.exports = [
       item('Policy, manual & template library', [
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
         item('Templates - Split a leading title or subject line from the body in previews, supporting common English and Japanese labels with either colon style and optional spacing, separate copy buttons, and preserved single line breaks'),
+        item('Templates - Removed leading whitespace when copying the body separately'),
       ]),
       item('Bin packing', [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
