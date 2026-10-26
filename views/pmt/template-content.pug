@@ -1,0 +1,11 @@
+if title
+  section.pmt-template-chunk(aria-label='Template title')
+    .pmt-template-chunk-header
+      strong Title
+      button.btn.btn-sm.pmt-copy-button(type='button', data-md=title, onclick="CopyThis(this, 'md')", aria-label='Copy title', aria-live='polite') Copy title
+    .pmt-template-title= title
+section.pmt-template-chunk(aria-label='Template body')
+  .pmt-template-chunk-header
+    strong Body
+    button.btn.btn-sm.pmt-copy-button(type='button', data-md=body, onclick="CopyThis(this, 'md')", aria-label='Copy body', aria-live='polite') Copy body
+  .pmt-template-body!= bodyHtml

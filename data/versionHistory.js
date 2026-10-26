@@ -8,6 +8,7 @@ module.exports = [
     items: [
       item('Policy, manual & template library', [
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
+        item('Templates - Split a leading Title line from the body in previews, with separate copy buttons and preserved single line breaks'),
       ]),
       item('Bin packing', [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),

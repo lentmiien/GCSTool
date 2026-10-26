@@ -2173,6 +2173,26 @@ html[data-color-mode='light'] .pmt-review-count {
   border-radius: var(--gcs-radius-sm);
 }
 
+.pmt-template-chunk {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--gcs-border);
+  border-radius: var(--gcs-radius-sm);
+  background: var(--gcs-surface-muted);
+}
+
+.pmt-template-chunk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pmt-template-body > :last-child {
+  margin-bottom: 0;
+}
+
 .pmt-entry-actions {
   display: flex;
   flex-wrap: wrap;

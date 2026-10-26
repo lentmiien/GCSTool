@@ -1,7 +1,10 @@
 const marked = require('marked');
+const path = require('path');
+const pug = require('pug');
 const pmt = require('../services/DocMgmtService');
 const legacyContent = require('../services/legacyContentService');
 const sanitizeHtml = require('../utils/sanitizeHtml');
+const renderTemplate = pug.compileFile(path.join(__dirname, '../views/pmt/template-content.pug'));
 
 const PMT_TYPES = new Set(['Policy', 'Manual', 'Template']);
 const PMT_CATEGORIES = new Set([
@@ -74,8 +77,21 @@ async function validateParentIds(parentIds, policies) {
   }
 }
 
-function renderMarkdown(markdown) {
-  return sanitizeHtml(marked.parse(String(markdown || '')));
+function renderContent(markdown, type) {
+  const text = String(markdown || '');
+  if (type !== 'Template') {
+    return sanitizeHtml(marked.parse(text));
+  }
+
+  const titleLine = text.match(/^Title:[ \t]*([^\r\n]+)(?:\r\n|\r|\n|$)/);
+  const title = titleLine ? titleLine[1].trim() : '';
+  // Remove only the title line; preserve the remaining body exactly for copying.
+  const body = title ? text.slice(titleLine[0].length) : text;
+  return renderTemplate({
+    title,
+    body,
+    bodyHtml: sanitizeHtml(marked.parse(body, { breaks: true })),
+  });
 }
 
 exports.top = asyncHandler(async (req, res) => {
@@ -84,7 +100,7 @@ exports.top = asyncHandler(async (req, res) => {
   const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
   const entries = await pmt.fetchEntries({ type, category, search });
   entries.forEach((entry) => {
-    entry.html = renderMarkdown(entry.content_md);
+    entry.html = renderContent(entry.content_md, entry.type);
   });
   const logs = await pmt.fetchAllLogs({ action: 'flagged-for-review' });
   res.render('pmt/pmt', {
@@ -153,9 +169,9 @@ exports.details = asyncHandler(async (req, res) => {
   const entryId = parsePositiveId(req.params.id, 'entry ID');
   const entry = await pmt.fetchEntry(entryId);
   entry.relatedEntries = await pmt.fetchRelatedEntries(entryId, entry.parentEntries.map(parent => parent.id));
-  entry.entry.html = renderMarkdown(entry.entry.content_md);
+  entry.entry.html = renderContent(entry.entry.content_md, entry.entry.type);
   entry.versions.forEach((version) => {
-    version.html = renderMarkdown(version.content_md);
+    version.html = renderContent(version.content_md, entry.entry.type);
   });
   const entryMap = {};
   for (const relatedEntry of entry.parentEntries.concat(entry.childEntries, entry.relatedEntries)) {
@@ -163,7 +179,7 @@ exports.details = asyncHandler(async (req, res) => {
       title: relatedEntry.title,
       type: relatedEntry.type,
       content_md: relatedEntry.content_md,
-      html: renderMarkdown(relatedEntry.content_md),
+      html: renderContent(relatedEntry.content_md, relatedEntry.type),
     };
   }
   entry.parents = entry.parents.filter((parent) => entryMap[parent.parent_id]);
