@@ -8,7 +8,7 @@ block workflowContent
       h2= def.name
       if isWorkflowAdmin
         a.btn.btn-outline-secondary(href=`/workflows/definitions/${def.id}/edit`) Edit workflow
-    p.workflow-text= def.description
+    .workflow-markdown!= renderWorkflowMarkdown(def.description)
     p
       strong= `${def.archived ? 'Archived' : def.enabled ? 'Enabled' : 'Paused'} · ${def.locked ? 'Staff membership locked' : 'Staff membership open'}`
     if def.trigger === 'scheduled'
@@ -27,7 +27,7 @@ block workflowContent
     each step, index in def.steps
       article.workflow-definition-step
         h3= `${index + 1}. ${step.title}${step.archived ? ' (archived)' : ''}`
-        p.workflow-text= step.description
+        .workflow-markdown!= renderWorkflowMarkdown(step.description)
         - const staffNames = step.assignees.map(id => users.find(user => user.id === id)).filter(Boolean).map(user => user.userid)
         p
           strong Staff:
@@ -42,7 +42,7 @@ block workflowContent
     section.app-panel
       h2 Start a new run
       h3= firstTask.title
-      p.workflow-text= firstTask.description
+      .workflow-markdown!= renderWorkflowMarkdown(firstTask.description)
       form(method='post', action=`/workflows/definitions/${def.id}/start`, data-variable-form=true)
         +csrf()
         input(type='hidden', name='revision', value=def.revision)

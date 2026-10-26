@@ -5,6 +5,7 @@ router.use(controller.prepare);
 router.get('/', controller.tasks);
 router.get('/history', controller.history);
 router.get('/analytics', controller.analytics);
+router.post('/preview', controller.preview);
 router.get('/definitions', controller.definitions);
 router.get('/definitions/new', controller.editor);
 router.post('/definitions', controller.saveDefinition);

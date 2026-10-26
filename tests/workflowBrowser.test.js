@@ -1,15 +1,17 @@
 /** @jest-environment jsdom */
 const fs = require('fs');
 const pug = require('pug');
+const renderWorkflowMarkdown = require('../utils/workflowMarkdown');
 const script = fs.readFileSync('public/javascripts/workflows.js', 'utf8');
 const users = [{ id: 1, userid: 'Alice' }, { id: 2, userid: 'Bob' }];
 const def = { id: 1, name: 'GST', description: 'Quarterly', trigger: 'manual', enabled: true, locked: false, archived: false, revision: 0,
   steps: [{ id: 'first', title: 'Gather data', description: 'Read instructions', assignees: [1], archived: false }],
   requiredVariables: [{ name: 'Order', defaultValue: '' }] };
 const locals = { currentPath: '/workflows', role: 'admin', name: 'Alice', workflowUser: users[0], isWorkflowAdmin: true,
-  workflowCsrf: 'test', formatWorkflowDate: () => '26/10/2026', users, def };
+  workflowCsrf: 'test', formatWorkflowDate: () => '26/10/2026', renderWorkflowMarkdown, steps: [], users, def };
 
 function mount(page, extra = {}) {
+  window.Loaded = () => {};
   document.documentElement.innerHTML = pug.renderFile(`views/workflows/${page}.pug`, { ...locals, ...extra });
   window.alert = jest.fn();
   window.confirm = jest.fn(() => true);
@@ -67,8 +69,9 @@ test('task comments are escaped, rejection requires an error and completion can 
     run: { id: 'run', name: 'GST', variables: [{ name: 'Order', value: '<b>1234</b>', required: true }], revision: 4 } };
   mount('tasks', { tasks: [task], starters: [], comments: [task, { ...task, id: 2, position: 0 }] });
   expect(document.querySelector('.workflow-comments script')).toBeNull();
-  expect(document.querySelector('.workflow-comments p').textContent).toBe('<script>unsafe()</script>');
-  expect(document.querySelector('.workflow-comments').open).toBe(false);
+  expect(document.querySelector('.workflow-comment p').textContent).toBe('<script>unsafe()</script>');
+  expect(document.querySelector('.workflow-comments').tagName).toBe('SECTION');
+  expect(document.querySelector('.workflow-comments details')).toBeNull();
   expect(document.querySelectorAll('.workflow-comments article')).toHaveLength(1);
   expect(document.querySelector('.workflow-variable-fields b')).toBeNull();
   expect(document.querySelector('[data-required-value]').value).toBe('<b>1234</b>');
@@ -123,4 +126,68 @@ test('the Today panel shows only a positive workflow task count and links to My 
   expect(reminders[0].textContent).toBe('3 workflow tasks');
   document.documentElement.innerHTML = render(0);
   expect(document.querySelector('.app-schedule-task[href="/workflows"]')).toBeNull();
+});
+
+test('step dots distinguish current, completed, returned, visited and unvisited tasks', () => {
+  const steps = [
+    { state: 'completed', hasRejection: true },
+    { state: 'active', hasRejection: true },
+    { state: 'pending', hasRejection: true },
+    { state: 'pending', activatedAt: '2026-10-25' },
+    { state: 'pending' },
+  ].map((step, position) => ({ ...step, id: position + 1, position, title: `Step ${position + 1}`, runId: 'run' }));
+  const task = { ...steps[1], description: '**Check** the [report](https://example.test/report)', comment: '',
+    run: { id: 'run', name: 'GST', variables: [], revision: 0 } };
+  mount('tasks', { steps, tasks: [task], starters: [], comments: [
+    { ...steps[0], comment: 'Now confirmed', lastAction: 'complete' },
+    { ...steps[2], comment: 'Please correct the data', lastAction: 'reject' },
+  ] });
+  const dots = [...document.querySelectorAll('.workflow-step-stop')];
+  expect(dots).toHaveLength(5);
+  expect(dots.map(dot => dot.className.split('--')[1])).toEqual(['completed', 'current', 'returned', 'visited', 'unvisited']);
+  expect(document.querySelector('[aria-current="step"]').getAttribute('href')).toBe('/workflows/runs/run#task-2');
+  expect(document.querySelectorAll('.workflow-comment--returned')).toHaveLength(1);
+  expect(document.querySelector('.workflow-comment--returned').textContent).toContain('Please correct the data');
+  expect(document.querySelector('.workflow-return-label').textContent).toBe('Returned');
+  expect(document.querySelector('.workflow-markdown strong').textContent).toBe('Check');
+  expect(document.querySelector('.workflow-markdown a').target).toBe('_blank');
+  mount('tasks', { steps: [steps[1]], tasks: [task], starters: [], comments: [] });
+  expect(document.querySelectorAll('.workflow-step-stop')).toHaveLength(1);
+});
+
+test('Markdown previews refresh, ignore late responses, and work on newly added tasks', async () => {
+  jest.useFakeTimers();
+  try {
+    mount('editor');
+    const pending = [];
+    window.fetch = jest.fn(() => new Promise(resolve => pending.push(resolve)));
+    const wrapper = document.querySelector('[data-markdown-editor]');
+    const source = wrapper.querySelector('textarea');
+    const details = wrapper.querySelector('details');
+    const output = wrapper.querySelector('[data-markdown-output]');
+    details.open = true;
+    await jest.advanceTimersByTimeAsync(0);
+    expect(window.fetch).toHaveBeenCalledTimes(1);
+    source.value = '**Latest** [link](/report)';
+    source.dispatchEvent(new Event('input', { bubbles: true }));
+    await jest.advanceTimersByTimeAsync(250);
+    expect(JSON.parse(window.fetch.mock.calls[1][1].body)).toEqual({ _csrf: 'test', text: source.value });
+    pending[1]({ ok: true, json: async () => ({ html: renderWorkflowMarkdown(source.value) }) });
+    await jest.advanceTimersByTimeAsync(0);
+    pending[0]({ ok: true, json: async () => ({ html: '<p>Outdated preview</p>' }) });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(output.querySelector('strong').textContent).toBe('Latest');
+    expect(output.querySelector('a').target).toBe('_blank');
+    expect(output.textContent).not.toContain('Outdated');
+    document.querySelector('[data-add-step]').click();
+    const newPreview = document.querySelector('#workflow-step-rows').lastElementChild.querySelector('[data-markdown-preview]');
+    newPreview.open = true;
+    await jest.advanceTimersByTimeAsync(0);
+    expect(window.fetch).toHaveBeenCalledTimes(3);
+    pending[2]({ ok: false });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(newPreview.textContent).toContain('Preview unavailable');
+  } finally {
+    jest.useRealTimers();
+  }
 });

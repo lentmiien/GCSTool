@@ -39,7 +39,7 @@ block workflowContent
         strong= task.state
         = ' · '
         = task.assignees.map(item => { const user = users.find(user => user.id === item.userId); return user ? user.userid : 'Deleted user'; }).join(', ') || 'No staff assigned'
-      p.workflow-text= task.description
+      .workflow-markdown!= renderWorkflowMarkdown(task.description)
       if task.completedAt
         small= `Completed by ${task.completedBy} · ${formatWorkflowDate(task.completedAt)} JST`
       if run.status === 'open' && task.state === 'active' && task.assignees.some(item => item.userId === workflowUser.id)

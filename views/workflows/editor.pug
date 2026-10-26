@@ -11,9 +11,7 @@ block workflowContent
       label
         span Workflow name
         input.form-control(name='name', required=true, maxlength=160, value=def.name, placeholder='Example: Quarterly GST — Australia')
-      label
-        span Overview
-        textarea.form-control(name='description', rows=2, maxlength=10000)= def.description
+      +markdownEditor('Overview', def.description, { name: 'description', rows: 2 })
       .workflow-actions
         label.workflow-check
           input(type='checkbox', name='enabled', value='true', checked=def.enabled)

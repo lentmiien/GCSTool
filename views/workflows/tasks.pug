@@ -11,12 +11,13 @@ block workflowContent
         p Your next assigned workflow task will appear here.
     each task in tasks
       article.app-panel.workflow-card
+        +stepProgress(steps.filter(step => step.runId === task.runId), task.position)
         header.workflow-card-heading
           div
             p.workflow-run-name= task.run.name
             h3= `${task.position + 1}. ${task.title}`
           a(href=`/workflows/runs/${task.run.id}`) Details
-        p.workflow-text= task.description
+        .workflow-markdown!= renderWorkflowMarkdown(task.description)
         +comments(comments.filter(item => item.runId === task.runId && item.id !== task.id))
         +actionForm(task, task.run)
   if starters.length

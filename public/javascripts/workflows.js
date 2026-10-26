@@ -6,6 +6,60 @@
 
   const editor = document.querySelector('[data-editor]');
   if (editor) {
+    const initializedPreviews = new WeakSet();
+    function initializePreviews(root) {
+      rows(root, '[data-markdown-editor]').forEach(wrapper => {
+        if (initializedPreviews.has(wrapper)) return;
+        initializedPreviews.add(wrapper);
+        const source = wrapper.querySelector('[data-markdown-source]');
+        const details = wrapper.querySelector('[data-markdown-preview]');
+        const output = wrapper.querySelector('[data-markdown-output]');
+        const status = wrapper.querySelector('[data-markdown-status]');
+        let timer;
+        let revision = 0;
+        async function preview(version) {
+          if (!details.open) return;
+          const text = source.value;
+          output.setAttribute('aria-busy', 'true');
+          status.textContent = 'Updating preview…';
+          try {
+            const response = await fetch('/workflows/preview', {
+              method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ _csrf: editor.elements._csrf.value, text }),
+            });
+            if (!response.ok) throw new Error('Preview unavailable');
+            const result = await response.json();
+            if (version !== revision) return;
+            // Only insert the server's sanitized Markdown, never raw editor input.
+            output.innerHTML = result.html;
+            status.textContent = text.trim() ? '' : 'Nothing to preview yet.';
+          } catch (_) {
+            if (version === revision) {
+              output.textContent = '';
+              status.textContent = 'Preview unavailable. Edit the text or reopen the preview to retry.';
+            }
+          } finally {
+            if (version === revision) output.removeAttribute('aria-busy');
+          }
+        }
+        source.addEventListener('input', () => {
+          revision += 1;
+          clearTimeout(timer);
+          if (details.open) {
+            status.textContent = 'Updating preview…';
+            const version = revision;
+            timer = setTimeout(() => preview(version), 250);
+          }
+        });
+        details.addEventListener('toggle', () => {
+          revision += 1;
+          clearTimeout(timer);
+          if (details.open) preview(revision);
+          else output.removeAttribute('aria-busy');
+        });
+      });
+    }
+    initializePreviews(editor);
     const steps = document.getElementById('workflow-step-rows');
     const required = document.getElementById('workflow-required-rows');
     const trigger = editor.querySelector('[data-trigger]');
@@ -24,6 +78,7 @@
       if (button.hasAttribute('data-add-step')) {
         if (steps.children.length >= 50) return alert('Use at most 50 tasks.');
         steps.append(document.getElementById('workflow-step-template').content.cloneNode(true));
+        initializePreviews(steps.lastElementChild);
       }
       if (button.hasAttribute('data-add-required')) {
         if (required.children.length >= 20) return alert('Use at most 20 required variables.');

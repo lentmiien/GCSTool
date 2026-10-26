@@ -1,6 +1,26 @@
 mixin csrf()
   input(type='hidden', name='_csrf', value=workflowCsrf)
 
+mixin stepProgress(steps, currentPosition)
+  ol.workflow-step-track(aria-label='Workflow progress')
+    each step in steps
+      - const state = step.position === currentPosition ? 'current' : step.state === 'completed' ? 'completed' : step.position > currentPosition && step.hasRejection ? 'returned' : step.activatedAt ? 'visited' : 'unvisited'
+      - const stateLabel = { current: 'Current task', completed: 'Completed', returned: 'Previously returned', visited: 'Visited', unvisited: 'Not yet visited' }[state]
+      - const description = `${step.position + 1}. ${step.title} — ${stateLabel}`
+      li.workflow-step-stop(class=`workflow-step-stop--${state}`)
+        a.workflow-step-link(href=`/workflows/runs/${step.runId}#task-${step.id}`, title=description, aria-current=state === 'current' ? 'step' : undefined)
+          span.sr-only= description
+
+mixin markdownEditor(label, value, textareaAttributes)
+  .workflow-markdown-editor(data-markdown-editor=true)
+    label
+      span= `${label} (Markdown)`
+      textarea.form-control(rows=3, maxlength=10000, data-markdown-source=true)&attributes(textareaAttributes)= value
+    details.workflow-preview(data-markdown-preview=true)
+      summary Preview
+      .workflow-markdown(data-markdown-output=true)!= renderWorkflowMarkdown(value)
+      small(data-markdown-status=true, role='status')
+
 mixin variableAudit(variable)
   small.workflow-variable-audit
     if variable.editedAt && variable.editedBy
@@ -69,18 +89,21 @@ mixin actionForm(task, run)
 
 mixin comments(items, label = 'Comments from other steps')
   if items.length
-    details.workflow-comments
-      summary= `${label} (${items.length})`
+    section.workflow-comments(aria-label=label)
+      p.workflow-comments-heading= `${label} (${items.length})`
       each item in items
-        article
-          strong= `${item.position + 1}. ${item.title}`
+        article.workflow-comment(class=item.lastAction === 'reject' ? 'workflow-comment--returned' : '')
+          header.workflow-comment-heading
+            strong= `${item.position + 1}. ${item.title}`
+            if item.lastAction === 'reject'
+              span.workflow-return-label Returned
+            small= `${item.commentBy || 'Staff'} · ${formatWorkflowDate(item.commentAt)} JST`
           p.workflow-text
             each part in item.comment.split(/(https?:\/\/[^\s<>"']+)/g)
               if /^https?:\/\//.test(part)
                 a(href=part, target='_blank', rel='noopener noreferrer')= part
               else
                 = part
-          small= `${item.commentBy || 'Staff'} · ${formatWorkflowDate(item.commentAt)} JST`
 
 mixin stepEditor(step, users)
   fieldset.workflow-step-editor(data-step-row=true)
@@ -89,9 +112,7 @@ mixin stepEditor(step, users)
     label
       span Task title
       input.form-control(data-field='title', value=step.title, required=true, maxlength=160)
-    label
-      span Instructions
-      textarea.form-control(data-field='description', required=true, rows=3, maxlength=10000)= step.description
+    +markdownEditor('Instructions', step.description, { 'data-field': 'description', required: true })
     details.workflow-staff-picker(open=true)
       summary Staff who can complete this task
       .workflow-staff-options

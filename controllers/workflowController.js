@@ -2,6 +2,8 @@ const { randomUUID, randomBytes, timingSafeEqual } = require('crypto');
 const db = require('../sequelize');
 const { createService } = require('../services/workflows');
 const rules = require('../utils/workflows');
+const renderWorkflowMarkdown = require('../utils/workflowMarkdown');
+const { fn, col, literal } = require('sequelize');
 const service = createService(db);
 const { Op, WorkflowDefinition: Definition, WorkflowRun: Run, WorkflowTask: Task,
   WorkflowAssignee: Assignee, WorkflowParticipant: Participant, WorkflowEvent: Event, User } = db;
@@ -11,6 +13,26 @@ const handle = fn => async (req, res, next) => {
 };
 const plain = record => record.get({ plain: true });
 const formatDate = value => value ? new Date(value).toLocaleString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false }) : '—';
+
+async function workflowSteps(runIds, includeAssignees = false) {
+  if (!runIds.length) return [];
+  const [steps, history] = await Promise.all([
+    Task.findAll({ where: { runId: { [Op.in]: runIds } },
+      include: includeAssignees ? [{ model: Assignee, as: 'assignees' }] : [], order: [['position', 'ASC']] }),
+    Event.findAll({ where: { runId: { [Op.in]: runIds }, taskId: { [Op.ne]: null }, action: { [Op.in]: ['complete', 'reject'] } },
+      attributes: ['taskId', [fn('MAX', col('id')), 'lastActionId'],
+        [fn('MAX', literal("CASE WHEN action = 'reject' THEN id ELSE NULL END")), 'lastRejectionId']],
+      group: ['taskId'], raw: true }),
+  ]);
+  const byTask = new Map(history.map(item => [item.taskId, item]));
+  return steps.map(record => {
+    const task = plain(record);
+    const events = byTask.get(task.id);
+    const hasRejection = Boolean(events && events.lastRejectionId !== null);
+    return { ...task, hasRejection,
+      lastAction: events ? (hasRejection && String(events.lastRejectionId) === String(events.lastActionId) ? 'reject' : 'complete') : null };
+  });
+}
 
 exports.prepare = (req, res, next) => {
   if (!req.session.workflowCsrf) req.session.workflowCsrf = randomBytes(32).toString('hex');
@@ -22,16 +44,16 @@ exports.prepare = (req, res, next) => {
     }
   }
   Object.assign(res.locals, { workflowCsrf: req.session.workflowCsrf, workflowUser: req.user,
-    isWorkflowAdmin: service.admin(req.user), formatWorkflowDate: formatDate, pagetitle: 'Workflows · GCS Support Tool' });
+    isWorkflowAdmin: service.admin(req.user), formatWorkflowDate: formatDate, renderWorkflowMarkdown, pagetitle: 'Workflows · GCS Support Tool' });
   next();
 };
 
 exports.tasks = handle(async (req, res) => {
   const tasks = await service.activeTasks(req.user.id);
   const runIds = tasks.map(task => task.runId);
-  const comments = runIds.length ? await Task.findAll({ where: { runId: { [Op.in]: runIds }, comment: { [Op.ne]: '' } }, order: [['position', 'ASC']] }) : [];
+  const steps = await workflowSteps(runIds);
   const definitions = await Definition.findAll({ where: { enabled: true, archived: false, trigger: 'manual' }, order: [['name', 'ASC']] });
-  res.render('workflows/tasks', { tasks, comments,
+  res.render('workflows/tasks', { tasks, steps, comments: steps.filter(step => step.comment),
     starters: definitions.filter(def => def.steps.find(step => !step.archived).assignees.includes(req.user.id)) });
 });
 
@@ -54,6 +76,12 @@ exports.editor = handle(async (req, res) => {
   };
   const users = await User.findAll({ attributes: ['id', 'userid'], order: [['userid', 'ASC']] });
   res.render('workflows/editor', { def, users });
+});
+
+exports.preview = handle(async (req, res) => {
+  service.requireAdmin(req.user);
+  const source = rules.text(req.body.text, 'Markdown', 10000, false);
+  res.json({ html: renderWorkflowMarkdown(source) });
 });
 
 exports.saveDefinition = handle(async (req, res) => {
@@ -83,7 +111,7 @@ exports.cancel = handle(async (req, res) => {
 
 exports.run = handle(async (req, res) => {
   const run = await service.runForUser(req.params.id, req.user);
-  const tasks = await Task.findAll({ where: { runId: run.id }, include: [{ model: Assignee, as: 'assignees' }], order: [['position', 'ASC']] });
+  const tasks = await workflowSteps([run.id], true);
   const users = await User.findAll({ attributes: ['id', 'userid'] });
   const eventPage = rules.integer(req.query.eventPage || 1, 1, 1000000, 'event page');
   const events = await Event.findAndCountAll({ where: { runId: run.id }, order: [['createdAt', 'DESC'], ['id', 'DESC']], limit: 30, offset: (eventPage - 1) * 30 });
@@ -121,7 +149,6 @@ exports.history = handle(async (req, res) => {
 exports.analytics = handle(async (req, res) => {
   service.requireAdmin(req.user);
   // Aggregate in SQL so the analytics placeholder need not load the event history.
-  const { fn, col, literal } = require('sequelize');
   const statuses = await Run.findAll({ attributes: ['status', [fn('COUNT', col('id')), 'total'],
     [fn('AVG', literal('TIMESTAMPDIFF(SECOND, createdAt, finishedAt)')), 'averageSeconds']], group: ['status'], raw: true });
   const activity = await Event.findAll({ attributes: ['userId', 'userName', 'action', [fn('COUNT', col('id')), 'total'],

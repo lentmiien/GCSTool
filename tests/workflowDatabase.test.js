@@ -4,6 +4,7 @@ const { randomUUID } = require('crypto');
 const { createService } = require('../services/workflows');
 const express = require('express');
 const request = require('supertest');
+const cheerio = require('cheerio');
 const suite = process.env.WORKFLOW_TEST_MYSQL_PORT ? describe : describe.skip;
 
 suite('workflow transactions and HTTP routes on disposable MySQL', () => {
@@ -178,6 +179,57 @@ suite('workflow transactions and HTTP routes on disposable MySQL', () => {
     expect((await service.runForUser(run.id, bob)).cancellationReason).toBe('Duplicate');
     expect((await tasksFor(run))[0].comment).toBe('https://example.test/data');
     expect((await get(`/workflows/runs/${run.id}`, bob)).status).toBe(200);
+  });
+
+  test('progress and comment badges use step action history, including after repeated returns', async () => {
+    const def = await service.saveDefinition(null, input(), admin);
+    let run = await service.start(def.id, startInput(), alice);
+    const tasks = await tasksFor(run);
+    run = await service.act(run.id, tasks[1].id, { revision: 0, action: 'complete', comment: 'Checked' }, bob);
+    run = await service.act(run.id, tasks[2].id, { revision: 1, action: 'reject', comment: 'Incorrect amount' }, admin);
+    run = await service.act(run.id, tasks[1].id, { revision: 2, action: 'reject', comment: 'Correct the data' }, bob);
+    await models.WorkflowEvent.create({ runId: run.id, taskId: tasks[1].id, userId: bob.id, userName: bob.userid, action: 'variables_updated' });
+    let $ = cheerio.load((await get('/workflows', alice)).text);
+    expect($('.workflow-step-stop').length).toBe(3);
+    expect($('.workflow-step-stop--current').length).toBe(1);
+    expect($('.workflow-step-stop--returned').length).toBe(2);
+    expect($('.workflow-comment--returned').length).toBe(2);
+    expect($('details.workflow-comments').length).toBe(0);
+    run = await service.act(run.id, tasks[0].id, { revision: 3, action: 'complete' }, alice);
+    run = await service.act(run.id, tasks[1].id, { revision: 4, action: 'complete', comment: 'Corrected' }, bob);
+    $ = cheerio.load((await get('/workflows', admin)).text);
+    expect($('.workflow-step-stop--completed').length).toBe(2);
+    expect($('.workflow-step-stop--returned').length).toBe(0);
+    expect($('.workflow-comment--returned').length).toBe(0);
+    // The run page derives badges from the full history, independently of activity pagination.
+    $ = cheerio.load((await get(`/workflows/runs/${run.id}?eventPage=2`, alice)).text);
+    expect($('.workflow-comment--returned').length).toBe(1);
+    expect($('.workflow-comment--returned').text()).toContain('Incorrect amount');
+  });
+
+  test('Markdown pages and protected previews share sanitized rendering and new-tab links', async () => {
+    const markdown = '**Read** [report](https://example.test/report)\n\n<script>alert(1)</script>';
+    const data = input({ description: markdown });
+    data.steps.forEach(step => { step.description = markdown; });
+    const def = await service.saveDefinition(null, data, admin);
+    const run = await service.start(def.id, startInput(), alice);
+    for (const path of ['/workflows', '/workflows/definitions', `/workflows/definitions/${def.id}`, `/workflows/definitions/${def.id}/edit`, `/workflows/runs/${run.id}`]) {
+      const response = await get(path, path.endsWith('/edit') ? admin : alice);
+      expect(response.status).toBe(200);
+      const $ = cheerio.load(response.text);
+      expect($('.workflow-markdown strong').first().text()).toBe('Read');
+      expect($('.workflow-markdown script').length).toBe(0);
+      $('.workflow-markdown a[href]').each((_, element) => {
+        expect($(element).attr('target')).toBe('_blank');
+        expect($(element).attr('rel')).toBe('noopener noreferrer');
+      });
+    }
+    const preview = await post('/workflows/preview', { text: markdown }, admin);
+    expect(preview.status).toBe(200);
+    expect(preview.body.html).toBe(require('../utils/workflowMarkdown')(markdown));
+    expect((await post('/workflows/preview', { text: markdown }, alice)).status).toBe(403);
+    expect((await post('/workflows/preview', { text: markdown, _csrf: '' }, admin)).status).toBe(403);
+    expect((await post('/workflows/preview', { text: 'x'.repeat(10001) }, admin)).status).toBe(400);
   });
 
   test('two scheduler workers catch up exactly once and schedule edits retain the durable cursor', async () => {
