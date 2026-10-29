@@ -5,7 +5,6 @@
  **********************************************/
 
 const my_settings = {
-  userid: 'NewUser',
   colormode: 'Style_dark.css',
   language: 'japanese',
   reminders: [],
@@ -111,16 +110,6 @@ function Loaded() {
     my_settings.colormode = 'Style_dark.css';
   }
 
-  // Set user ID
-  let dom_uid = document.getElementById('user_id');
-  if (dom_uid) {
-    dom_uid.value = document.getElementById('u_name').innerHTML;
-    if (!(dom_uid.value === 'NewUser')) {
-      dom_uid.readOnly = true;
-      document.getElementById('update_user_id_button').style.display = 'none';
-    }
-  }
-
   // Set interface language
   const languageSelect = document.getElementById('lg_language');
   if (languageSelect) {
@@ -129,10 +118,6 @@ function Loaded() {
   }
 
   // Set color mode
-  let dom_cmode = document.getElementById('cmode');
-  if (dom_cmode) {
-    dom_cmode.value = my_settings.colormode;
-  }
   ApplyColorModeDataAttribute();
   // Update the color-mode stylesheet initialized in the page head
   let link = document.getElementById('myCss');
@@ -215,26 +200,6 @@ function DisplayOthersPrivateEntries(property) {
     if (entries[i].dataset.private === 'true' && entries[i].dataset.creator !== currentUser) {
       entries[i].style.display = property;
     }
-  }
-}
-
-function UpdateUserID() {
-  my_settings.userid = document.getElementById('user_id').value;
-  PersistSettings();
-}
-
-function UpdateColorMode() {
-  const colorModeSelect = document.getElementById('cmode');
-  if (!colorModeSelect || !['Style_dark.css', 'Style_normal.css'].includes(colorModeSelect.value)) {
-    return;
-  }
-  my_settings.colormode = colorModeSelect.value;
-  PersistSettings();
-  if (window.GCSTheme) {
-    window.GCSTheme.apply(GetColorModeName());
-  } else {
-    ApplyColorModeDataAttribute();
-    document.getElementById('myCss').href = '/stylesheets/' + my_settings.colormode;
   }
 }
 

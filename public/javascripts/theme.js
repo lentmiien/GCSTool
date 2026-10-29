@@ -63,11 +63,6 @@
       toggle.removeAttribute('aria-pressed');
     }
 
-    const legacySelect = document.getElementById('cmode');
-    if (legacySelect) {
-      legacySelect.value = mode === 'dark' ? DARK_STYLESHEET : LIGHT_STYLESHEET;
-    }
-
     const themeColor = document.querySelector('meta[name="theme-color"]');
     if (themeColor) {
       themeColor.setAttribute('content', mode === 'dark' ? '#101a21' : '#f3f7f8');
