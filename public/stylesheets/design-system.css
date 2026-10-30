@@ -673,6 +673,11 @@ html[data-color-mode='light'] .app-theme-icon--sun {
   gap: 0.35rem 1rem;
 }
 
+.app-holiday-office-staff {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .app-holiday-item,
 .app-notice-actions {
   display: inline-flex;

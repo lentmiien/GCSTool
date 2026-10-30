@@ -3,12 +3,20 @@ jest.mock('../sequelize', () => ({
   Entry: { findAll: jest.fn() },
   Content: {},
   pmt: { PMTEntry: { findAll: jest.fn() } },
+  Staff: { findAll: jest.fn() },
+  Holiday: { findAll: jest.fn() },
+  Username: { findAll: jest.fn() },
+  DailyTaskAssignment: { findAll: jest.fn() },
   Op: { gt: Symbol.for('gt'), or: Symbol.for('or') },
+}));
+jest.mock('axios', () => ({ get: jest.fn().mockResolvedValue({ data: '<rss><channel><title>Japan Post</title></channel></rss>' }) }));
+jest.mock('../services/workflows', () => ({
+  createService: () => ({ countActive: jest.fn().mockResolvedValue(0) }),
 }));
 
 const fs = require('fs');
 const pug = require('pug');
-const { Entry, pmt, Op } = require('../sequelize');
+const { Entry, pmt, Op, Staff, Holiday, Username, DailyTaskAssignment } = require('../sequelize');
 const controller = require('../controllers/indexController');
 const render = pug.compileFile('views/index.pug');
 const record = data => ({ get: () => data });
@@ -113,6 +121,55 @@ test('holiday work is pinned before updates, with admin copy controls preserved'
   expect(notice.nextElementSibling.className).toBe('home-entry-list');
   expect(notice.querySelectorAll('button')).toHaveLength(3);
   expect(document.querySelectorAll('#holiday-news-title')).toHaveLength(1);
+});
+
+test.each([
+  {
+    label: 'mixed attendance', statuses: ['telwork', 'work', 'halfoff_e', 'halfoff_m', '2hoff_e', '2hoff_m', 'off', 'vacation', 'holiday', 'unknown'],
+    expectedStaff: ['staff0', 'staff1', 'staff2', 'staff3', 'staff4', 'staff5'], officeStaff: ['staff1'],
+    expectedBody: 'ＶＰＮ接続を維持してください。\n\n１１月３日（火）：\n名前0\n[staff2]\n[staff3]\n[staff4]\n[staff5]\n\n出社予定：\n名前1',
+  },
+  {
+    label: 'home only', statuses: ['telwork', 'halfoff_e'],
+    expectedStaff: ['staff0', 'staff1'], officeStaff: [],
+    expectedBody: 'ＶＰＮ接続を維持してください。\n\n１１月３日（火）：\n名前0\n名前1',
+  },
+  {
+    label: 'office only', statuses: ['work', 'work', 'work'],
+    expectedStaff: ['staff0', 'staff1', 'staff2'], officeStaff: ['staff0', 'staff1', 'staff2'],
+    expectedBody: '１１月３日（火）：\n全員出社予定\n名前0\n名前1\n[staff2]',
+  },
+])('$label holiday notice renders office names and copies the grouped message', async ({ statuses, expectedStaff, officeStaff, expectedBody }) => {
+  jest.setSystemTime(new Date('2026-10-30T12:00:00Z'));
+  Staff.findAll.mockResolvedValueOnce([]).mockResolvedValueOnce(statuses.map((work, index) => ({
+    name: `staff${index}`, schedule2s: [{ date: '2026-11-03', work }],
+  })));
+  Holiday.findAll.mockResolvedValue([{ date: '2026-11-03' }]);
+  Username.findAll.mockResolvedValue([{ userid: 'staff0', name: '名前0' }, { userid: 'staff1', name: '名前1' }]);
+  DailyTaskAssignment.findAll.mockResolvedValue([]);
+  const res = { locals: {} };
+  const next = jest.fn();
+  await controller.all({ user: { id: 1, userid: 'alice', role: 'admin' } }, res, next);
+  expect(next).toHaveBeenCalledWith();
+  expect(res.locals.holidays_next_week[0].work_staff).toEqual(expectedStaff);
+  await mount({ role: 'admin', holidays: res.locals.holidays_next_week });
+  const notice = document.querySelector('.home-pinned-notice');
+  expect(notice.textContent).toContain(`2026-11-03: ${expectedStaff.join(', ')}`);
+  expect(Array.from(notice.querySelectorAll('.app-holiday-office-staff'), element => element.textContent)).toEqual(officeStaff);
+
+  const setData = jest.fn();
+  document.execCommand = jest.fn(() => {
+    const event = new Event('copy', { cancelable: true });
+    event.clipboardData = { setData };
+    document.dispatchEvent(event);
+    return true;
+  });
+  const title = '依頼／１１月３日の在宅勤務　リモート制限解除（ＶＰＮ接続）';
+  const expectedCopies = [title, expectedBody, `[info][title]${title}[/title]${expectedBody}[/info]`];
+  notice.querySelectorAll('button').forEach((button, index) => {
+    button.click();
+    expect(setData).toHaveBeenLastCalledWith('text/plain', expectedCopies[index]);
+  });
 });
 
 test('empty staffing is hidden and an empty news feed renders cleanly', async () => {

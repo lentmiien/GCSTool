@@ -43,7 +43,10 @@ block content
                 .app-holiday-item
                   span
                     strong= `${holiday.date}: `
-                    = holiday.work_staff.join(', ')
+                    each staff, staffIndex in holiday.work_staff
+                      if staffIndex > 0
+                        = ', '
+                      span(class=holiday.office_staff && holiday.office_staff.includes(staff) ? 'app-holiday-office-staff' : undefined)= staff
                   if displayRole === 'admin'
                     span.app-notice-actions
                       button(type='button', data-copy-text=holiday.message_title, onclick='Copy(this.dataset.copyText)') Title

@@ -4,7 +4,7 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-10-26',
+    updateDate: '2026-10-30',
     items: [
       item('Policy, manual & template library', [
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
@@ -21,6 +21,9 @@ module.exports = [
         item('Simplified the task view and allowed required and custom variable corrections alongside handover comments when completing or returning tasks, with each variable showing its last editor and edit time'),
         item('Added a compact progress line with return-history indicators, always-visible handover comments, and Markdown overviews and instructions with editor previews and links that open in new tabs'),
         item('Added an optional TEST_WORKFLOW_ID setting to exclude a test workflow from history and administrator analytics while retaining normal task functionality'),
+      ]),
+      item('Home page', [
+        item('Holiday notices - Underlined staff scheduled to work at the office and split copied Body and Chatwork messages into work-from-home and office lists, with a simplified all-office message'),
       ]),
     ],
   },

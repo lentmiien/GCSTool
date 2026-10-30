@@ -225,7 +225,9 @@ exports.all = async function (req, res, next) {
       res.locals.holidays_next_week.push({
         date: h.date,
         work_staff: [],
-        staff_names: [],
+        office_staff: [],
+        home_staff_names: [],
+        office_staff_names: [],
         message_title: "",
         message_body: "",
       });
@@ -239,8 +241,15 @@ exports.all = async function (req, res, next) {
         // off, vacation, holiday
         // work, halfoff_e, halfoff_m, 2hoff_e, 2hoff_m, telwork
         if (work_statuses.indexOf(c.work) >= 0) {
-          res.locals.holidays_next_week[index].work_staff.push(s.name);
-          res.locals.holidays_next_week[index].staff_names.push(namesLookup[s.name] ? namesLookup[s.name] : `[${s.name}]`);
+          const holiday = res.locals.holidays_next_week[index];
+          const staffName = namesLookup[s.name] ? namesLookup[s.name] : `[${s.name}]`;
+          holiday.work_staff.push(s.name);
+          if (c.work === 'work') {
+            holiday.office_staff.push(s.name);
+            holiday.office_staff_names.push(staffName);
+          } else {
+            holiday.home_staff_names.push(staffName);
+          }
         }
       }
     });
@@ -251,7 +260,16 @@ exports.all = async function (req, res, next) {
   for (let i = 0; i < res.locals.holidays_next_week.length; i++) {
     const hd = new Date(res.locals.holidays_next_week[i].date);
     res.locals.holidays_next_week[i].message_title = `依頼／${months[hd.getMonth()]}月${dates[hd.getDate()]}日の在宅勤務　リモート制限解除（ＶＰＮ接続）`;
-    res.locals.holidays_next_week[i].message_body = `ＶＰＮ接続を維持してください。||${months[hd.getMonth()]}月${dates[hd.getDate()]}日（${days[hd.getDay()]}）：|${res.locals.holidays_next_week[i].staff_names.join('|')}`;
+    const holiday = res.locals.holidays_next_week[i];
+    const dateLabel = `${months[hd.getMonth()]}月${dates[hd.getDate()]}日（${days[hd.getDay()]}）：`;
+    if (!holiday.home_staff_names.length && holiday.office_staff_names.length) {
+      holiday.message_body = `${dateLabel}|全員出社予定|${holiday.office_staff_names.join('|')}`;
+    } else {
+      holiday.message_body = `ＶＰＮ接続を維持してください。||${dateLabel}|${holiday.home_staff_names.join('|')}`;
+      if (holiday.office_staff_names.length) {
+        holiday.message_body += `||出社予定：|${holiday.office_staff_names.join('|')}`;
+      }
+    }
   }
 
   next();
