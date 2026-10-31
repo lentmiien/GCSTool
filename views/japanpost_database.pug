@@ -1,0 +1,82 @@
+extends layout
+
+mixin cachedValue(row, field, wasUnavailable)
+  - const current = fieldValue(row.data, field[0])
+  - const previous = row.previous && (wasUnavailable ? 'Unavailable' : fieldValue(row.previous, field[0]))
+  td(class=field[0] === 'countryName' ? 'jp-country-cell' : '')
+    if row.previous && current !== previous
+      strong.jp-changed(title=`Previously: ${previous}`)= current
+    else
+      span= current
+    if field[0] === 'countryName' && row.data.warnings.length
+      small.jp-muted.d-block Check source: some limits are missing or retained as text.
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/japanpost.css')
+
+block content
+  .jp-tool
+    header.app-page-header
+      div
+        p.app-page-kicker Shipping reference
+        h1 Japan Post database
+        p Latest cached limits for each country. Bold values changed from the immediately preceding version.
+      a.btn.btn-outline-primary(href='/japan-post') Fetch & schedule
+    section.jp-panel
+      form.jp-filters(method='get', action='/japan-post/database')
+        div
+          label(for='jp-search') Country or CID
+          input#jp-search.form-control(type='search', name='q', value=filters.q || '', placeholder='Search countries')
+        div
+          label(for='jp-from') Updated from (JST)
+          input#jp-from.form-control(type='date', name='from', value=filters.from || '')
+        div
+          label(for='jp-to') Updated through (JST)
+          input#jp-to.form-control(type='date', name='to', value=filters.to || '')
+        label.jp-check
+          input(type='checkbox', name='changed', value='1', checked=filters.changed === '1')
+          |  Has update history
+        label.jp-check
+          input(type='checkbox', name='stale', value='1', checked=filters.stale === '1')
+          |  Not checked today
+        button.btn.btn-primary(type='submit') Filter
+        a.btn.btn-outline-secondary(href='/japan-post/database') Reset
+      p.jp-muted.mt-3= `${rows.length} countries · All dates in Japan time · Length + girth is length plus the circumference around the parcel.`
+      if rows.length
+        .table-responsive
+          table.table.jp-table.jp-database
+            thead
+              tr
+                th(scope='col', rowspan='2') CID
+                th(scope='col', rowspan='2') Country
+                th(scope='colgroup', colspan='3') Parcel · air
+                th(scope='colgroup', colspan='3') Parcel · surface
+                th(scope='colgroup', colspan='3') EMS
+                th(scope='col', rowspan='2') Last updated
+                th(scope='col', rowspan='2') Last checked
+              tr
+                each field in fields.slice(1)
+                  th(scope='col')= field[1]
+            tbody
+              each row in rows
+                tr
+                  td
+                    a(href=`/japan-post?cid=${row.cid}`)= row.cid
+                  +cachedValue(row, fields[0], false)
+                  each group in [fields.slice(1, 4), fields.slice(4, 7), fields.slice(7, 10)]
+                    - const path = group[0][0].replace(/\.size\.length$/, '').split('.')
+                    - const service = path.reduce((value, key) => value[key], row.data)
+                    - const oldService = row.previous && path.reduce((value, key) => value[key], row.previous)
+                    if service.unavailable
+                      td.jp-unavailable(colspan='3')
+                        if oldService && !oldService.unavailable
+                          strong.jp-changed(title='Previously: size and weight limits were listed') Unavailable
+                        else
+                          span Unavailable
+                    else
+                      each field in group
+                        +cachedValue(row, field, oldService && oldService.unavailable)
+                  td= formatDate(row.detectedAt)
+                  td= formatDate(row.lastCheckedAt)
+      else
+        p No cached countries match these filters. Fetch a country to start collecting limits.

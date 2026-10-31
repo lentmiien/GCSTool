@@ -1,0 +1,29 @@
+.jp-tool { max-width: 108rem; margin: 0 auto; }
+.jp-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.jp-panel { background: var(--gcs-surface); border: 1px solid var(--gcs-border); border-radius: var(--gcs-radius); padding: 1.5rem; margin-bottom: 1.25rem; min-width: 0; }
+.jp-panel h2 { font-size: 1.3rem; }
+.jp-muted { color: var(--gcs-muted); font-size: .9rem; overflow-wrap: anywhere; }
+.jp-inline, .jp-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; }
+.jp-inline > div { flex: 1; min-width: 10rem; }
+.jp-check { padding-bottom: .5rem; }
+.jp-section-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.jp-limit-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.jp-limit-card { background: var(--gcs-bg-subtle); border: 1px solid var(--gcs-border); border-radius: var(--gcs-radius-sm); padding: 1rem; }
+.jp-limit-card h3 { font-size: 1.05rem; margin-bottom: 1rem; }
+.jp-limit-card dl { margin: 0; }
+.jp-limit-card dt { color: var(--gcs-muted); font-size: .85rem; font-weight: 400; }
+.jp-limit-card dd { color: var(--gcs-text); margin-bottom: .65rem; overflow-wrap: anywhere; }
+.jp-tool pre { padding: 1rem; color: var(--gcs-text); background: var(--gcs-bg-subtle); border-radius: var(--gcs-radius-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
+.jp-tool summary { cursor: pointer; color: var(--gcs-heading); padding: .5rem 0; }
+.jp-table td, .jp-table th { vertical-align: middle; }
+.jp-database { min-width: 85rem; font-size: .9rem; }
+.jp-database th { white-space: nowrap; }
+.jp-country-cell { min-width: 13rem; max-width: 23rem; }
+.jp-changed { font-weight: 750; color: var(--gcs-heading); }
+.jp-error { color: var(--gcs-danger); }
+.jp-warning { color: var(--gcs-warning); }
+.jp-unavailable { color: var(--gcs-muted); }
+@media (max-width: 800px) {
+  .jp-columns, .jp-limit-cards { grid-template-columns: 1fr; }
+  .jp-panel { padding: 1rem; }
+}

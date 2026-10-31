@@ -1,0 +1,71 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/japanpost.css')
+
+block content
+  .jp-tool(data-csrf=japanPostCsrf)
+    header.app-page-header
+      div
+        p.app-page-kicker Shipping reference
+        h1 Japan Post limits
+        p Fetch country size and weight limits, compare changes, and plan future checks.
+      a.btn.btn-outline-primary(href='/japan-post/database') Browse database
+    .jp-columns
+      section.jp-panel(aria-labelledby='jp-fetch-heading')
+        h2#jp-fetch-heading Fetch a country
+        p.jp-muted https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=…
+        form#jp-fetch-form.jp-inline
+          div
+            label(for='jp-cid') Country ID (CID)
+            input#jp-cid.form-control(type='number', min='1', max='999999999', step='1', placeholder='14', required)
+          button.btn.btn-primary(type='submit') Fetch
+        p.jp-muted.mt-3 A country checked today (Japan time) uses its cached result.
+        p#jp-fetch-status(role='status', aria-live='polite') Enter a CID to begin.
+      section.jp-panel(aria-labelledby='jp-schedule-heading')
+        h2#jp-schedule-heading Schedule checks
+        form#jp-schedule-form
+          label(for='jp-cids') Country IDs, separated by commas or spaces
+          textarea#jp-cids.form-control(rows='2', placeholder='14, 105', maxlength='4000', required)
+          .jp-inline.mt-3
+            div
+              label(for='jp-date') Check date (Japan time)
+              input#jp-date.form-control(type='date', min=today, value=today, required)
+            button.btn.btn-primary(type='submit') Schedule
+        p.jp-muted.mt-3 Checks start at 07:00 JST, with 15 seconds between requests. Today’s checks scheduled after 07:00 join the queue immediately. Pending work resumes when the server restarts.
+        p#jp-schedule-status(role='status', aria-live='polite')
+    section#jp-result.jp-panel(hidden, aria-labelledby='jp-country-name')
+      .jp-section-heading
+        h2#jp-country-name
+        a#jp-source(target='_blank', rel='noopener noreferrer') View Japan Post page ↗
+      p#jp-result-dates.jp-muted
+      #jp-warnings
+      #jp-limits.jp-limit-cards
+      details.mt-3
+        summary Parsed JSON
+        pre#jp-json
+    section#jp-history-panel.jp-panel(hidden, aria-labelledby='jp-history-heading')
+      h2#jp-history-heading Update history
+      p.jp-muted Each version records a change in values. Unchanged checks update the latest version’s last checked time.
+      #jp-history
+    section.jp-panel(aria-labelledby='jp-queue-heading')
+      .jp-section-heading
+        div
+          h2#jp-queue-heading Scheduled checks
+          p.jp-muted Latest 500 scheduled entries. Failed checks can be scheduled again for today or a later date.
+        button#jp-refresh.btn.btn-outline-primary(type='button') Refresh
+      p#jp-queue-status(role='status', aria-live='polite')
+      .table-responsive
+        table.table.jp-table
+          thead
+            tr
+              th(scope='col') CID
+              th(scope='col') Scheduled (JST)
+              th(scope='col') Status
+              th(scope='col') Last finished (JST)
+              th(scope='col') Details
+              th(scope='col') Action
+          tbody#jp-queue
+
+block scripts
+  script(src='/javascripts/japanpost.js')

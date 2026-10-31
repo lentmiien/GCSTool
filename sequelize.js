@@ -30,6 +30,8 @@ const CountryCodeEntryIdLinkModel = require('./models/CountryCodeEntryIdLink');
 const DHLCompensationEntryModel = require('./models/dhl_compensation_entry');
 const DailyTaskTypeModel = require('./models/dailyTaskType');
 const DailyTaskAssignmentModel = require('./models/dailyTaskAssignment');
+const JapanPostCacheModel = require('./models/japanPostCache');
+const JapanPostScheduleModel = require('./models/japanPostSchedule');
 // Load models: Tracker
 const CountryModel = require('./models/country');
 const CountrylistModel = require('./models/countrylist');
@@ -109,6 +111,8 @@ const JapanPostCountryList = JapanPostCountryListModel(sequelize, Sequelize);
 const CountryCodeEntryIdLink = CountryCodeEntryIdLinkModel(sequelize, Sequelize);
 const DailyTaskType = DailyTaskTypeModel(sequelize, Sequelize);
 const DailyTaskAssignment = DailyTaskAssignmentModel(sequelize, Sequelize);
+const JapanPostCache = JapanPostCacheModel(sequelize, Sequelize);
+const JapanPostSchedule = JapanPostScheduleModel(sequelize, Sequelize);
 const DHLCompensationEntry = DHLCompensationEntryModel(sequelize_dhl_compensation, Sequelize);
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -378,6 +382,8 @@ sequelize_dhl_compensation.sync()
 
 // Export models
 module.exports = {
+  JapanPostCache,
+  JapanPostSchedule,
   ...workflowModels,
   sequelize,
   gcsDatabaseReady,

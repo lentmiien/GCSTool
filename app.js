@@ -139,6 +139,9 @@ app.use('/bulk-tracker', requireAuthenticated, bulkTrackerRouter);
 app.use('/shipping-monitor-compare', requireAuthenticated, shippingMonitorCompareRouter);
 app.use('/shipping-monitor-shortcuts', requireAuthenticated, shippingMonitorCompareRouter);
 app.use('/shipcost', requireAuthenticated, shipcostRouter);
+app.use('/japan-post', requireAuthenticated, require('./routes/japanpost')(
+  require('./services/japanPost').createService(require('./sequelize'))
+));
 app.use('/lennart', requireAuthenticated, lennartRouter);
 app.use('/form', requireAuthenticated, formRouter);
 app.use('/chatgpt', requireAuthenticated, chatgptRouter);

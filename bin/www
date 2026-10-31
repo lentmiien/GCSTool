@@ -25,6 +25,12 @@ var server = http.createServer(app);
 
 startTmpCleanup();
 
+const japanPostDatabase = require('../sequelize');
+japanPostDatabase.gcsDatabaseReady.then(() => {
+  const { createService, startScheduler } = require('../services/japanPost');
+  startScheduler(createService(japanPostDatabase));
+}).catch(() => console.warn('Japan Post scheduler could not start; check database readiness.'));
+
 const workflowDatabase = require('../sequelize');
 workflowDatabase.gcsDatabaseReady.then(() => {
   const { createService, startScheduler } = require('../services/workflows');

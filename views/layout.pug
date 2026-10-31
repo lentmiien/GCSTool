@@ -64,7 +64,7 @@ html(lang='en', data-color-mode='dark')
                 li.nav-item(class=pathIs('/ct') ? 'active' : '')
                   a.nav-link(href='/ct', aria-current=pathIs('/ct') ? 'page' : undefined) Cases
 
-                li.nav-item.dropdown(class=(pathIs('/country') || pathIs('/tracker') || pathIs('/bulk-tracker') || pathIs('/shipping-monitor-compare') || pathIs('/shipcost')) ? 'active' : '')
+                li.nav-item.dropdown(class=(pathIs('/country') || pathIs('/tracker') || pathIs('/bulk-tracker') || pathIs('/shipping-monitor-compare') || pathIs('/shipcost') || pathIs('/japan-post')) ? 'active' : '')
                   a#shippingDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Shipping
                   .dropdown-menu.app-dropdown-menu(aria-labelledby='shippingDropdown')
                     span.dropdown-header Daily operations
@@ -75,6 +75,7 @@ html(lang='en', data-color-mode='dark')
                     .dropdown-divider
                     span.dropdown-header Reference & analytics
                     a.dropdown-item(href='/shipcost/view') Shipping cost tables
+                    a.dropdown-item(href='/japan-post') Japan Post limits
                     a.dropdown-item(href='/tracker/return-shipping-cost-analytics') Return cost analytics
 
                 li.nav-item.dropdown(class=(pathIs('/hs') || pathIs('/binpack') || pathIs('/smallest-box') || pathIs('/pmt') || pathIs('/form') || pathIs('/image-pdf') || pathIs('/chatgpt') || pathIs('/api')) ? 'active' : '')
