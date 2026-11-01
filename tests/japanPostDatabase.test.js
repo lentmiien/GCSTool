@@ -139,6 +139,80 @@ suite('Japan Post cache, queue and HTTP on disposable MySQL', () => {
     expect(download).toHaveBeenCalledTimes(2);
   });
 
+  test('five future bookings with two uncached CIDs add two immediate checks, spaced 15 seconds apart', async () => {
+    await models.JapanPostCache.bulkCreate([14, 105, 106].map(cid => ({
+      cid, data: parseCountry(ireland), detectedAt: new Date(clock.getTime() - 86400000), lastCheckedAt: new Date(clock.getTime() - 86400000),
+    })));
+    const response = await post('schedules', { cids: '14,105,106,107,108,107', date: '2026-11-01' });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ count: 5, immediateCount: 2 });
+    let jobs = await service.schedules();
+    expect(jobs).toHaveLength(7);
+    const immediate = jobs.filter(job => job.scheduledDate === '2026-10-31');
+    expect(immediate.map(job => job.cid).sort()).toEqual([107, 108]);
+    expect(immediate.every(job => job.dueAt.getTime() === clock.getTime())).toBe(true);
+    expect(jobs.filter(job => job.scheduledDate === '2026-11-01').every(job =>
+      job.dueAt.toISOString() === '2026-10-31T22:00:00.000Z')).toBe(true);
+    await service.schedule('14 105 106 107 108', '2026-11-01');
+    expect(await models.JapanPostSchedule.count()).toBe(7);
+    // The first initial check runs now, even though it is before 07:00 JST.
+    await service.tick();
+    expect(download.mock.calls.map(call => call[0])).toEqual([107]);
+    advance(14999);
+    await service.tick();
+    expect(download).toHaveBeenCalledTimes(1);
+    advance(1);
+    await service.tick();
+    expect(download.mock.calls.map(call => call[0])).toEqual([107, 108]);
+    jobs = await service.schedules();
+    expect(jobs.filter(job => job.status === 'pending')).toHaveLength(5);
+    expect((await service.schedule('14 105 106 107 108', '2026-11-01')).immediateCount).toBe(0);
+    expect(await models.JapanPostSchedule.count()).toBe(7);
+    // Both initial checks retain their separate future checks, which fetch again tomorrow.
+    clock = new Date('2026-10-31T22:00:00Z');
+    for (let index = 0; index < 5; index++) {
+      await service.tick();
+      advance(15000);
+    }
+    expect(download).toHaveBeenCalledTimes(7);
+    expect((await service.schedules()).every(job => job.status === 'completed')).toBe(true);
+  });
+
+  test('future bookings reuse and bring forward today’s pending check without duplicating it', async () => {
+    expect(await service.schedule('203', '2026-10-31')).toEqual({ count: 1, immediateCount: 0 });
+    const original = (await service.schedules())[0];
+    expect(original.dueAt.getTime()).toBeGreaterThan(clock.getTime());
+    await service.schedule('203', '2026-11-01');
+    await service.schedule('203', '2026-11-02');
+    const jobs = await service.schedules();
+    expect(jobs).toHaveLength(3);
+    expect(jobs.find(job => job.id === original.id).dueAt).toEqual(clock);
+    expect(jobs.filter(job => job.scheduledDate === '2026-10-31')).toHaveLength(1);
+    await service.cancel(original.id);
+    await service.schedule('203', '2026-11-01');
+    expect((await models.JapanPostSchedule.findByPk(original.id)).status).toBe('pending');
+    expect(await models.JapanPostSchedule.count()).toBe(3);
+  });
+
+  test('failed initial checks leave future bookings intact and retries preserve the cooldown', async () => {
+    await service.schedule('203', '2026-11-01');
+    download.mockRejectedValueOnce(new Error('Network error'));
+    await service.tick();
+    let jobs = await service.schedules();
+    expect(jobs.find(job => job.scheduledDate === '2026-11-01').status).toBe('pending');
+    expect(jobs.find(job => job.scheduledDate === '2026-10-31').status).toBe('failed');
+    await service.schedule('203', '2026-11-01');
+    await service.tick();
+    expect(download).toHaveBeenCalledTimes(1);
+    advance(15000);
+    await service.tick();
+    expect(download).toHaveBeenCalledTimes(2);
+    jobs = await service.schedules();
+    expect(jobs).toHaveLength(2);
+    expect(jobs.find(job => job.scheduledDate === '2026-11-01').status).toBe('pending');
+    expect(jobs.find(job => job.scheduledDate === '2026-10-31').status).toBe('completed');
+  });
+
   test('recovers interrupted work, skips today’s cached fetch, and continues after failures', async () => {
     await service.fetch(14);
     await service.schedule('14 105 106', '2026-10-31');

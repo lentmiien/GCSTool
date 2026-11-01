@@ -51,3 +51,23 @@ test('opening a cached country displays unavailable EMS without submitting a fet
   expect(document.querySelector('#jp-limits .jp-limit-card:last-child .jp-unavailable').textContent).toBe('Unavailable');
   expect(window.fetch.mock.calls.map(call => call[0])).toEqual(['/japan-post/api/schedules', '/japan-post/api/countries/235']);
 });
+
+test('scheduling reports immediate checks and the queue displays their actual due times', async () => {
+  window.eval(script);
+  await tick();
+  window.fetch.mockResolvedValueOnce(response({ count: 5, immediateCount: 2 }));
+  window.fetch.mockResolvedValueOnce(response({ schedules: [
+    { id: 1, cid: 203, scheduledDate: '2026-10-31', dueAt: '2026-10-30T21:59:59Z', status: 'pending' },
+    { id: 2, cid: 203, scheduledDate: '2026-11-01', dueAt: '2026-10-31T22:00:00Z', status: 'pending' },
+  ] }));
+  document.getElementById('jp-cids').value = '14,105,203,204,205';
+  document.getElementById('jp-date').value = '2026-11-01';
+  document.getElementById('jp-schedule-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await tick();
+  expect(document.getElementById('jp-schedule-status').textContent).toContain('2 immediate checks queued for new countries.');
+  const dates = [...document.querySelectorAll('#jp-queue tr')].map(row => row.cells[1].textContent);
+  expect(dates[0]).toContain('31/10/2026');
+  expect(dates[0]).toContain('06:59:59');
+  expect(dates[1]).toContain('01/11/2026');
+  expect(dates[1]).toContain('07:00:00');
+});

@@ -106,18 +106,38 @@ function createService({ sequelize, JapanPostCache: Cache, JapanPostSchedule: Sc
 
   async function schedule(cids, date) {
     parseDate(date);
-    if (date < japanDate(now())) fail('Choose today or a future date in Japan time.');
     if (typeof cids !== 'string' || cids.length > 4000) fail('Enter up to 250 CIDs separated by spaces or commas.');
     const ids = [...new Set(cids.trim().split(/[\s,]+/).map(parseCid))];
     if (ids.length > 250) fail('Schedule at most 250 CIDs at a time.');
     return locked(() => sequelize.transaction(async transaction => {
+      const scheduledAt = now();
+      const today = japanDate(scheduledAt);
+      if (date < today) fail('Choose today or a future date in Japan time.');
+      const future = date > today;
+      const cached = future ? await Cache.findAll({
+        attributes: ['cid'], where: { cid: { [Op.in]: ids } }, group: ['cid'], raw: true, transaction,
+      }) : [];
+      const cachedIds = new Set(cached.map(row => row.cid));
+      let immediateCount = 0;
       for (const cid of ids) {
         const [job] = await Schedule.findOrCreate({ where: { cid, scheduledDate: date },
           defaults: { dueAt: new Date(`${date}T07:00:00+09:00`) }, transaction });
         // Keep the last attempt time so an immediate retry cannot bypass spacing.
         if (['failed', 'cancelled'].includes(job.status)) await job.update({ status: 'pending', error: null }, { transaction });
+        if (future && !cachedIds.has(cid)) {
+          // Reuse today's slot so repeated future bookings do not duplicate checks.
+          const [immediate] = await Schedule.findOrCreate({ where: { cid, scheduledDate: today },
+            defaults: { dueAt: scheduledAt }, transaction });
+          if (['failed', 'cancelled', 'completed'].includes(immediate.status)) {
+            // A completed job with no remaining cache also needs a fresh initial check.
+            await immediate.update({ status: 'pending', error: null, dueAt: scheduledAt }, { transaction });
+          } else if (immediate.status === 'pending' && immediate.dueAt > scheduledAt) {
+            await immediate.update({ dueAt: scheduledAt }, { transaction });
+          }
+          immediateCount++;
+        }
       }
-      return { count: ids.length };
+      return { count: ids.length, immediateCount };
     }));
   }
 

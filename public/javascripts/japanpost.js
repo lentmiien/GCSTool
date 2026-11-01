@@ -134,7 +134,7 @@
         link.href = `/japan-post?cid=${job.cid}`;
         const cid = element('td');
         cid.append(link);
-        row.append(cid, element('td', `${job.scheduledDate} 07:00`), element('td', job.status),
+        row.append(cid, element('td', date(job.dueAt)), element('td', job.status),
           element('td', date(job.finishedAt)), element('td', job.error || '—'));
         const action = element('td');
         if (job.status === 'pending') {
@@ -159,7 +159,8 @@
     button.disabled = true;
     try {
       const result = await request('schedules', { cids: byId('jp-cids').value, date: byId('jp-date').value });
-      status('jp-schedule-status', `${result.count} country IDs scheduled or already recorded for this date.`);
+      const immediate = result.immediateCount ? ` ${result.immediateCount} immediate check${result.immediateCount === 1 ? '' : 's'} queued for new countries.` : '';
+      status('jp-schedule-status', `${result.count} country IDs scheduled or already recorded for this date.${immediate}`);
       await refreshSchedules();
     } catch (error) { status('jp-schedule-status', error.message, true); }
     finally { button.disabled = false; }

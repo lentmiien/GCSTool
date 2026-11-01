@@ -33,6 +33,7 @@ block content
               input#jp-date.form-control(type='date', min=today, value=today, required)
             button.btn.btn-primary(type='submit') Schedule
         p.jp-muted.mt-3 Checks start at 07:00 JST, with 15 seconds between requests. Today’s checks scheduled after 07:00 join the queue immediately. Pending work resumes when the server restarts.
+        p.jp-muted Countries without cached data scheduled for a future date also get a check now, using the same queue and 15-second spacing.
         p#jp-schedule-status(role='status', aria-live='polite')
     section#jp-result.jp-panel(hidden, aria-labelledby='jp-country-name')
       .jp-section-heading

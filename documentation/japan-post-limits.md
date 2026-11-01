@@ -34,9 +34,11 @@ Shading uses the latest version's `detectedAt` within the preceding seven days (
 
 Enter up to 250 comma/whitespace-separated CIDs and a date. Each CID/date pair is unique. Jobs become due at **07:00 JST**, independent of the server’s local timezone. Today’s jobs scheduled after 07:00 start on the next available worker tick.
 
+When scheduling tomorrow or later (Japan time), each CID with no cached version also gets a check due immediately today, including before 07:00. The requested future check is retained. These initial checks share the existing queue and its 15-second spacing. An existing pending check for today is reused and brought forward if needed; repeated submissions do not create duplicate checks. The confirmation reports how many new countries have immediate checks, and the queue shows each job's actual due time.
+
 `bin/www` starts the worker after GCS database readiness. It checks once per second and handles one due job at a time, waiting at least 15 seconds after the previous scheduled job finishes. Cache rules apply to scheduled jobs too. Pending jobs persist across restarts; overdue jobs catch up, and interrupted jobs recover after a short grace period. The server must be running for on-time execution.
 
-The queue displays pending, running, completed, failed, and cancelled states. Pending jobs can be cancelled. Rescheduling a failed/cancelled CID/date requeues it; a past date must instead be scheduled for today or later. Completed CID/date pairs are not requeued.
+The queue displays pending, running, completed, failed, and cancelled states. Pending jobs can be cancelled. Rescheduling a failed/cancelled CID/date requeues it; a past date must instead be scheduled for today or later. Completed CID/date pairs are not requeued unless a future booking needs an immediate check for a CID whose cache no longer exists. Failed or cancelled initial checks can also be requeued by submitting the future booking again, preserving the cooldown from the last attempt.
 
 A MySQL connection-scoped advisory lock serializes fetches and schedule changes across app processes. Concurrent interactive requests receive a retryable busy response. A disconnected worker releases its lock automatically. The default Sequelize pool is sufficient (the worker uses one lock connection plus a database operation connection).
 
