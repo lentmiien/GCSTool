@@ -28,6 +28,8 @@ Each cache version has `cid`, parsed `data`, `detectedAt`, and `lastCheckedAt`. 
 
 The database viewer (`/japan-post/database`) loads the latest version per CID and compares it with the immediately preceding version. Changed values are bold, with the old value in a tooltip. Filters cover country/CID, observed update date range, presence of history, and whether the entry was checked today. Clicking a CID opens its cached result and history without an external fetch.
 
+Shading uses the latest version's `detectedAt` within the preceding seven days (168 hours). A country with no previous version shades the full row. When a previous version exists, only values changed in the latest version are shaded, even if the country was also first added during those seven days. Unchanged checks do not renew the shading; older changes remain bold without shading.
+
 ## Scheduling
 
 Enter up to 250 comma/whitespace-separated CIDs and a date. Each CID/date pair is unique. Jobs become due at **07:00 JST**, independent of the server’s local timezone. Today’s jobs scheduled after 07:00 start on the next available worker tick.

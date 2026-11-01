@@ -18,6 +18,8 @@
 .jp-table td, .jp-table th { vertical-align: middle; }
 .jp-database { min-width: 85rem; font-size: .9rem; }
 .jp-database th { white-space: nowrap; }
+.jp-database tbody tr.jp-recent-row > td,
+.jp-database tbody td.jp-recent-cell { background-color: var(--gcs-accent-soft); }
 .jp-country-cell { min-width: 13rem; max-width: 23rem; }
 .jp-changed { font-weight: 750; color: var(--gcs-heading); }
 .jp-error { color: var(--gcs-danger); }

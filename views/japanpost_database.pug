@@ -1,10 +1,11 @@
 extends layout
 
-mixin cachedValue(row, field, wasUnavailable)
+mixin cachedValue(row, field, wasUnavailable, recent)
   - const current = fieldValue(row.data, field[0])
   - const previous = row.previous && (wasUnavailable ? 'Unavailable' : fieldValue(row.previous, field[0]))
-  td(class=field[0] === 'countryName' ? 'jp-country-cell' : '')
-    if row.previous && current !== previous
+  - const changed = row.previous && current !== previous
+  td(class=[field[0] === 'countryName' ? 'jp-country-cell' : '', recent && changed ? 'jp-recent-cell' : ''])
+    if changed
       strong.jp-changed(title=`Previously: ${previous}`)= current
     else
       span= current
@@ -15,6 +16,7 @@ block styles
   link(rel='stylesheet', href='/stylesheets/japanpost.css')
 
 block content
+  - const renderedAt = Date.now()
   .jp-tool
     header.app-page-header
       div
@@ -42,6 +44,7 @@ block content
         button.btn.btn-primary(type='submit') Filter
         a.btn.btn-outline-secondary(href='/japan-post/database') Reset
       p.jp-muted.mt-3= `${rows.length} countries · All dates in Japan time · Length + girth is length plus the circumference around the parcel.`
+      p.jp-muted Shading marks additions and changes in the last 7 days. New countries shade the full row; later versions shade only changed cells.
       if rows.length
         .table-responsive
           table.table.jp-table.jp-database
@@ -59,23 +62,25 @@ block content
                   th(scope='col')= field[1]
             tbody
               each row in rows
-                tr
+                - const age = renderedAt - new Date(row.detectedAt).getTime()
+                - const recent = age >= 0 && age <= 7 * 24 * 60 * 60 * 1000
+                tr(class=recent && !row.previous ? 'jp-recent-row' : '')
                   td
                     a(href=`/japan-post?cid=${row.cid}`)= row.cid
-                  +cachedValue(row, fields[0], false)
+                  +cachedValue(row, fields[0], false, recent)
                   each group in [fields.slice(1, 4), fields.slice(4, 7), fields.slice(7, 10)]
                     - const path = group[0][0].replace(/\.size\.length$/, '').split('.')
                     - const service = path.reduce((value, key) => value[key], row.data)
                     - const oldService = row.previous && path.reduce((value, key) => value[key], row.previous)
                     if service.unavailable
-                      td.jp-unavailable(colspan='3')
+                      td.jp-unavailable(colspan='3', class=recent && oldService && !oldService.unavailable ? 'jp-recent-cell' : '')
                         if oldService && !oldService.unavailable
                           strong.jp-changed(title='Previously: size and weight limits were listed') Unavailable
                         else
                           span Unavailable
                     else
                       each field in group
-                        +cachedValue(row, field, oldService && oldService.unavailable)
+                        +cachedValue(row, field, oldService && oldService.unavailable, recent)
                   td= formatDate(row.detectedAt)
                   td= formatDate(row.lastCheckedAt)
       else
