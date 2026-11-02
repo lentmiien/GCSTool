@@ -4,7 +4,7 @@ const { japanDate, sourceUrl } = require('../services/japanPost');
 const fields = [
   ['countryName', 'Country'],
   ...['parcel.air', 'parcel.surface', 'ems'].flatMap(service => [
-    [`${service}.size.length`, 'Length'], [`${service}.size.lengthPlusGirth`, 'Length + girth'], [`${service}.weight`, 'Weight'],
+    [`${service}.weight`, 'Weight'], [`${service}.size.length`, 'Length'], [`${service}.size.lengthPlusGirth`, 'Length + girth'],
   ]),
 ];
 function fieldValue(data, path) {

@@ -3,7 +3,7 @@
   const root = document.querySelector('.jp-tool');
   const byId = id => document.getElementById(id);
   const services = [['parcel.air', 'Parcel · air'], ['parcel.surface', 'Parcel · surface'], ['ems', 'EMS']];
-  const fields = [['size.length', 'Maximum length'], ['size.lengthPlusGirth', 'Length + girth'], ['weight', 'Maximum weight']];
+  const fields = [['weight', 'Maximum weight'], ['size.length', 'Maximum length'], ['size.lengthPlusGirth', 'Length + girth']];
   const date = value => value ? new Date(value).toLocaleString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false }) : '—';
   function valueAt(data, path) {
     let value = data;

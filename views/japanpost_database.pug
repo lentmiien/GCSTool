@@ -1,10 +1,10 @@
 extends layout
 
-mixin cachedValue(row, field, wasUnavailable, recent)
+mixin cachedValue(row, field, wasUnavailable, recent, methodClass)
   - const current = fieldValue(row.data, field[0])
   - const previous = row.previous && (wasUnavailable ? 'Unavailable' : fieldValue(row.previous, field[0]))
   - const changed = row.previous && current !== previous
-  td(class=[field[0] === 'countryName' ? 'jp-country-cell' : '', recent && changed ? 'jp-recent-cell' : ''])
+  td(class=[field[0] === 'countryName' ? 'jp-country-cell' : 'jp-measurement', methodClass, recent && changed ? 'jp-recent-cell' : ''])
     if changed
       strong.jp-changed(title=`Previously: ${previous}`)= current
     else
@@ -17,6 +17,7 @@ block styles
 
 block content
   - const renderedAt = Date.now()
+  - const groups = [{ label: 'SAL', className: 'jp-sal', fields: [], placeholder: true }, { label: 'Parcel · air', className: 'jp-air', fields: fields.slice(1, 4) }, { label: 'Parcel · surface', className: 'jp-surface', fields: fields.slice(4, 7) }, { label: 'EMS', className: 'jp-ems', fields: fields.slice(7, 10) }]
   .jp-tool
     header.app-page-header
       div
@@ -44,7 +45,7 @@ block content
         button.btn.btn-primary(type='submit') Filter
         a.btn.btn-outline-secondary(href='/japan-post/database') Reset
       p.jp-muted.mt-3= `${rows.length} countries · All dates in Japan time · Length + girth is length plus the circumference around the parcel.`
-      p.jp-muted Shading marks additions and changes in the last 7 days. New countries shade the full row; later versions shade only changed cells.
+      p.jp-muted Column colors identify shipping methods. Highlighted cells with a gold marker show additions and changes in the last 7 days. New countries highlight the full row; later versions highlight only changed cells. SAL is a blank placeholder; no SAL data is collected.
       if rows.length
         .table-responsive
           table.table.jp-table.jp-database
@@ -52,14 +53,14 @@ block content
               tr
                 th(scope='col', rowspan='2') CID
                 th(scope='col', rowspan='2') Country
-                th(scope='colgroup', colspan='3') Parcel · air
-                th(scope='colgroup', colspan='3') Parcel · surface
-                th(scope='colgroup', colspan='3') EMS
-                th(scope='col', rowspan='2') Last updated
-                th(scope='col', rowspan='2') Last checked
+                each group in groups
+                  th.jp-method-heading(scope='colgroup', colspan='3', class=group.className)= group.label
+                th.jp-date-cell(scope='col', rowspan='2') Last updated
+                th.jp-date-cell(scope='col', rowspan='2') Last checked
               tr
-                each field in fields.slice(1)
-                  th(scope='col')= field[1]
+                each group in groups
+                  each label in ['Weight', 'Length', 'Length + girth']
+                    th.jp-measurement(scope='col', class=group.className)= label
             tbody
               each row in rows
                 - const age = renderedAt - new Date(row.detectedAt).getTime()
@@ -68,20 +69,24 @@ block content
                   td
                     a(href=`/japan-post?cid=${row.cid}`)= row.cid
                   +cachedValue(row, fields[0], false, recent)
-                  each group in [fields.slice(1, 4), fields.slice(4, 7), fields.slice(7, 10)]
-                    - const path = group[0][0].replace(/\.size\.length$/, '').split('.')
-                    - const service = path.reduce((value, key) => value[key], row.data)
-                    - const oldService = row.previous && path.reduce((value, key) => value[key], row.previous)
-                    if service.unavailable
-                      td.jp-unavailable(colspan='3', class=recent && oldService && !oldService.unavailable ? 'jp-recent-cell' : '')
-                        if oldService && !oldService.unavailable
-                          strong.jp-changed(title='Previously: size and weight limits were listed') Unavailable
-                        else
-                          span Unavailable
+                  each group in groups
+                    if group.placeholder
+                      each label in ['Weight', 'Length', 'Length + girth']
+                        td.jp-measurement(class=group.className, aria-label=`SAL ${label}: no data collected`)
                     else
-                      each field in group
-                        +cachedValue(row, field, oldService && oldService.unavailable, recent)
-                  td= formatDate(row.detectedAt)
-                  td= formatDate(row.lastCheckedAt)
+                      - const path = group.fields[0][0].replace(/\.weight$/, '').split('.')
+                      - const service = path.reduce((value, key) => value[key], row.data)
+                      - const oldService = row.previous && path.reduce((value, key) => value[key], row.previous)
+                      if service.unavailable
+                        td.jp-unavailable(colspan='3', class=[group.className, recent && oldService && !oldService.unavailable ? 'jp-recent-cell' : ''])
+                          if oldService && !oldService.unavailable
+                            strong.jp-changed(title='Previously: size and weight limits were listed') Unavailable
+                          else
+                            span Unavailable
+                      else
+                        each field in group.fields
+                          +cachedValue(row, field, oldService && oldService.unavailable, recent, group.className)
+                  td.jp-date-cell= formatDate(row.detectedAt)
+                  td.jp-date-cell= formatDate(row.lastCheckedAt)
       else
         p No cached countries match these filters. Fetch a country to start collecting limits.

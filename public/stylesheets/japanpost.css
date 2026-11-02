@@ -16,11 +16,24 @@
 .jp-tool pre { padding: 1rem; color: var(--gcs-text); background: var(--gcs-bg-subtle); border-radius: var(--gcs-radius-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
 .jp-tool summary { cursor: pointer; color: var(--gcs-heading); padding: .5rem 0; }
 .jp-table td, .jp-table th { vertical-align: middle; }
-.jp-database { min-width: 85rem; font-size: .9rem; }
-.jp-database th { white-space: nowrap; }
+.jp-tool .jp-database { min-width: 72rem; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.jp-tool .jp-database td, .jp-tool .jp-database th { padding: .45rem .4rem; }
+.jp-database .jp-measurement { min-width: 3.5rem; max-width: 5rem; text-align: center; overflow-wrap: anywhere; }
+.jp-database thead .jp-measurement { overflow-wrap: normal; letter-spacing: normal; }
+.jp-database .jp-method-heading, .jp-database .jp-unavailable { text-align: center; }
+.jp-database .jp-date-cell { width: 7rem; min-width: 6rem; font-size: .78rem; }
+.jp-database .jp-sal { --jp-method-color: #68778b; background-color: #eef0f4; }
+.jp-database .jp-air { --jp-method-color: #3181bb; background-color: #e9f3fc; }
+.jp-database .jp-surface { --jp-method-color: #278474; background-color: #e6f4ed; }
+.jp-database .jp-ems { --jp-method-color: #9369b8; background-color: #f3ecfa; }
+.jp-database .jp-method-heading { border-top: 3px solid var(--jp-method-color); }
+html[data-color-mode='dark'] .jp-database .jp-sal { background-color: #262e3b; }
+html[data-color-mode='dark'] .jp-database .jp-air { background-color: #1c3349; }
+html[data-color-mode='dark'] .jp-database .jp-surface { background-color: #1c3933; }
+html[data-color-mode='dark'] .jp-database .jp-ems { background-color: #352b46; }
 .jp-database tbody tr.jp-recent-row > td,
-.jp-database tbody td.jp-recent-cell { background-color: var(--gcs-accent-soft); }
-.jp-country-cell { min-width: 13rem; max-width: 23rem; }
+.jp-database tbody td.jp-recent-cell { background-image: linear-gradient(#e7b94426, #e7b94426); box-shadow: inset 0 -2px #b78a26; }
+.jp-country-cell { min-width: 10rem; max-width: 16rem; overflow-wrap: anywhere; }
 .jp-changed { font-weight: 750; color: var(--gcs-heading); }
 .jp-error { color: var(--gcs-danger); }
 .jp-warning { color: var(--gcs-warning); }
