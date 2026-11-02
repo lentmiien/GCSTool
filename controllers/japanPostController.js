@@ -1,20 +1,5 @@
 const { randomBytes, timingSafeEqual } = require('crypto');
-const { japanDate, sourceUrl } = require('../services/japanPost');
-
-const fields = [
-  ['countryName', 'Country'],
-  ...['parcel.air', 'parcel.surface', 'ems'].flatMap(service => [
-    [`${service}.weight`, 'Weight'], [`${service}.size.length`, 'Length'], [`${service}.size.lengthPlusGirth`, 'Length + girth'],
-  ]),
-];
-function fieldValue(data, path) {
-  let value = data;
-  for (const part of path.split('.')) {
-    if (typeof value === 'string') return value;
-    value = value && value[part];
-  }
-  return value && typeof value === 'object' ? `${value.value} ${value.unit}` : value == null ? '—' : String(value);
-}
+const { MAX_BYTES, detailSections, limits, fail } = require('../utils/japanPostCsv');
 const formatDate = value => value ? new Date(value).toLocaleString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false }) : '—';
 
 function createController(service) {
@@ -37,19 +22,28 @@ function createController(service) {
           return res.status(403).json({ error: 'This page has expired. Reload and try again.' });
         }
       }
-      Object.assign(res.locals, { japanPostCsrf: req.session.japanPostCsrf, today: japanDate(new Date()), formatDate, fields, fieldValue, sourceUrl });
+      Object.assign(res.locals, { japanPostCsrf: req.session.japanPostCsrf, formatDate, detailSections });
       next();
     },
-    index: handle(async (req, res) => res.render('japanpost', { pagetitle: 'Japan Post limits · GCS Support Tool' })),
+    index: handle(async (req, res) => res.render('japanpost', {
+      pagetitle: 'Japan Post CSV import · GCS Support Tool', overview: await service.overview(),
+    })),
     database: handle(async (req, res) => res.render('japanpost_database', {
       pagetitle: 'Japan Post database · GCS Support Tool', rows: await service.viewer(req.query), filters: req.query,
     })),
-    fetch: handle(async (req, res) => res.json(await service.fetch(req.body.cid))),
-    history: handle(async (req, res) => res.json({ history: await service.history(req.params.cid) })),
-    schedules: handle(async (req, res) => res.json({ schedules: await service.schedules() })),
-    schedule: handle(async (req, res) => res.json(await service.schedule(req.body.cids, req.body.date))),
-    cancel: handle(async (req, res) => { await service.cancel(req.params.id); res.json({ success: true }); }),
+    details: handle(async (req, res) => {
+      const history = await service.history(req.params.code);
+      if (!history.length) fail('No imported data exists for this country code.', 404);
+      res.render('japanpost_country', { pagetitle: `${history[0].data['国名（英語）']} · Japan Post`, history, latest: history[0], limits: limits(history[0].data) });
+    }),
+    importCsv: handle(async (req, res) => {
+      const file = req.files && req.files.csvFile;
+      if (!file || Array.isArray(file) || Object.keys(req.files).length !== 1) fail('Choose one Japan Post CSV file.');
+      if (file.truncated || file.size > MAX_BYTES) fail('The CSV file must be 5 MB or smaller.', 413);
+      if (!/\.csv$/i.test(file.name)) fail('Choose a file with the .csv extension.');
+      res.json(await service.importCsv(file.data, file.name));
+    }),
+    history: handle(async (req, res) => res.json({ history: await service.history(req.params.code) })),
   };
 }
-
-module.exports = { createController, fields, fieldValue };
+module.exports = { createController };

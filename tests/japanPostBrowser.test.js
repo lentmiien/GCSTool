@@ -1,73 +1,43 @@
 /** @jest-environment jsdom */
 const fs = require('fs');
 const pug = require('pug');
-const { parseCountry } = require('../utils/japanPostParser');
 const template = pug.compileFile('views/japanpost.pug');
 const script = fs.readFileSync('public/javascripts/japanpost.js', 'utf8');
-const parsed = cid => parseCountry(fs.readFileSync(`tests/fixtures/japan-post-${cid}.html`, 'utf8'));
-const record = data => ({ data, detectedAt: '2026-10-31T00:00:00Z', lastCheckedAt: '2026-10-31T00:00:00Z' });
-const response = data => ({ ok: true, json: async () => data });
 const tick = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 
 beforeEach(() => {
-  jest.useFakeTimers();
-  window.history.replaceState(null, '', '/japan-post');
-  window.Loaded = () => {};
-  document.documentElement.innerHTML = template({ japanPostCsrf: 'token', today: '2026-10-31' });
-  window.fetch = jest.fn().mockResolvedValueOnce(response({ schedules: [] }));
-});
-afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
-
-test('fetched unavailable services replace their limit cards, retain JSON evidence and show history', async () => {
+  document.documentElement.innerHTML = template({ japanPostCsrf: 'token', overview: { countries: 0 }, formatDate: () => '—' });
+  const file = new File(['CSV data'], 'countries.csv', { type: 'text/csv' });
+  Object.defineProperty(document.getElementById('jp-csv'), 'files', { value: [file] });
+  window.fetch = jest.fn();
   window.eval(script);
+});
+const submit = () => document.getElementById('jp-import-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+test('upload sends multipart data with CSRF and displays accurate import counts', async () => {
+  window.fetch.mockResolvedValue({ ok: true, json: async () => ({ total: 255, added: 250, updated: 2, unchanged: 3, checkedAt: '2026-11-02T00:00:00Z' }) });
+  submit();
+  submit();
+  expect(window.fetch).toHaveBeenCalledTimes(1);
   await tick();
-  const current = parsed(234);
-  const previous = parsed(234);
-  previous.parcel.surface = { ...previous.parcel.air };
-  previous.ems = { ...previous.parcel.air };
-  window.fetch.mockResolvedValueOnce(response({ latest: record(current), history: [record(previous)], changed: true }));
-  document.getElementById('jp-cid').value = '234';
-  document.getElementById('jp-fetch-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-  await tick();
-  const cards = document.querySelectorAll('#jp-limits .jp-limit-card');
-  expect(cards[0].textContent).toContain('30 kg');
-  for (const card of [cards[1], cards[2]]) {
-    expect(card.querySelector('strong').textContent).toBe('Unavailable');
-    expect(card.querySelector('dl')).toBe(null);
-    expect(card.textContent).not.toContain('0 kg');
-  }
-  expect(document.getElementById('jp-warnings').textContent).toBe('');
-  const json = JSON.parse(document.getElementById('jp-json').textContent);
-  expect(json.ems).toMatchObject({ unavailable: true, size: '取り扱いなし', weight: { value: 0, unit: 'kg' } });
-  expect(document.querySelectorAll('#jp-history > details')).toHaveLength(1);
-  expect(document.getElementById('jp-history').textContent).toContain('30 kg');
+  const [url, options] = window.fetch.mock.calls[0];
+  expect(url).toBe('/japan-post/api/import');
+  expect(options.headers['X-CSRF-Token']).toBe('token');
+  expect(options.body.get('csvFile').name).toBe('countries.csv');
+  expect(document.getElementById('jp-import-result').hidden).toBe(false);
+  expect(document.getElementById('jp-added').textContent).toBe('250');
+  expect(document.getElementById('jp-updated').textContent).toBe('2');
+  expect(document.getElementById('jp-unchanged').textContent).toBe('3');
+  expect(document.getElementById('jp-import-status').textContent).toContain('255 countries');
+  expect(document.querySelector('#jp-import-form button').disabled).toBe(false);
 });
 
-test('opening a cached country displays unavailable EMS without submitting a fetch', async () => {
-  window.history.replaceState(null, '', '/japan-post?cid=235');
-  window.fetch.mockResolvedValueOnce(response({ history: [record(parsed(235))] }));
-  window.eval(script);
+test('invalid import reports the error without displaying success or altering saved counts', async () => {
+  window.fetch.mockResolvedValue({ ok: false, json: async () => ({ error: 'Duplicate country code AU.' }) });
+  submit();
   await tick();
-  expect(document.querySelector('#jp-limits .jp-limit-card:last-child .jp-unavailable').textContent).toBe('Unavailable');
-  expect(window.fetch.mock.calls.map(call => call[0])).toEqual(['/japan-post/api/schedules', '/japan-post/api/countries/235']);
-});
-
-test('scheduling reports immediate checks and the queue displays their actual due times', async () => {
-  window.eval(script);
-  await tick();
-  window.fetch.mockResolvedValueOnce(response({ count: 5, immediateCount: 2 }));
-  window.fetch.mockResolvedValueOnce(response({ schedules: [
-    { id: 1, cid: 203, scheduledDate: '2026-10-31', dueAt: '2026-10-30T21:59:59Z', status: 'pending' },
-    { id: 2, cid: 203, scheduledDate: '2026-11-01', dueAt: '2026-10-31T22:00:00Z', status: 'pending' },
-  ] }));
-  document.getElementById('jp-cids').value = '14,105,203,204,205';
-  document.getElementById('jp-date').value = '2026-11-01';
-  document.getElementById('jp-schedule-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-  await tick();
-  expect(document.getElementById('jp-schedule-status').textContent).toContain('2 immediate checks queued for new countries.');
-  const dates = [...document.querySelectorAll('#jp-queue tr')].map(row => row.cells[1].textContent);
-  expect(dates[0]).toContain('31/10/2026');
-  expect(dates[0]).toContain('06:59:59');
-  expect(dates[1]).toContain('01/11/2026');
-  expect(dates[1]).toContain('07:00:00');
+  expect(document.getElementById('jp-import-status').textContent).toBe('Duplicate country code AU.');
+  expect(document.getElementById('jp-import-result').hidden).toBe(true);
+  expect(document.getElementById('jp-country-count').textContent).toBe('0');
+  expect(document.querySelector('#jp-import-form button').disabled).toBe(false);
 });

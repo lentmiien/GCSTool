@@ -21,9 +21,10 @@ module.exports = [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
       ]),
       item('Japan Post limits', [
-        item('Added a country limit parser for parcel air, parcel surface, and EMS, with structured measurements and support for country name notices and alternate page formats'),
-        item('Added per-country cache history, same-day fetch reuse, and a searchable database viewer that highlights changed limits and marks unavailable services'),
-        item('Added persistent scheduled country checks starting at 07:00 JST, spaced 15 seconds apart, with queue recovery and cancellation'),
+        item('Replaced per-CID HTML fetching and parsing with Japan Post CSV uploads that save every source column by country code and keep a version history when any value changes'),
+        item('Updated the searchable database to use CSV handling flags for availability, convert parcel and EMS lengths from centimeters to meters, and highlight changed values'),
+        item('Added a country details page with all saved CSV fields, interpreted shipping availability, and a history of field changes'),
+        item('Retired the previous CID fetch and scheduled HTML-check workflow'),
       ]),
       item('Workflows', [
         item('Added linear workflows with ordered tasks, assigned staff, single-comment handovers, completion and return steps, unique run links, and administrator cancellation'),

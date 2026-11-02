@@ -1,0 +1,88 @@
+extends layout
+
+mixin dataSections(data, previous)
+  .jp-detail-sections
+    each section in detailSections(data, previous)
+      section.jp-panel(class=section.title === 'Parcels' ? 'jp-wide-section' : '')
+        h2= section.title
+        dl.jp-field-grid
+          each field in section.fields
+            .jp-field(class=field.changed ? 'jp-field-changed' : '')
+              dt
+                span= field.label
+                small.jp-muted(lang='ja')= field.key
+              dd
+                if field.changed
+                  strong.jp-changed= field.value
+                  small.jp-previous= `Previously: ${field.previous}`
+                else
+                  span= field.value
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/japanpost.css')
+
+block content
+  .jp-tool
+    header.app-page-header
+      div
+        p.app-page-kicker= `Shipping reference · ${latest.countryCode}`
+        h1= latest.data['国名（英語）']
+        p(lang='ja')= latest.data['国名（日本語）']
+      .jp-inline
+        a.btn.btn-outline-primary(href='/japan-post/database') Back to database
+        a.btn.btn-outline-secondary(href='/japan-post') Import CSV
+    .jp-record-meta
+      div
+        span Last updated
+        strong= `${formatDate(latest.detectedAt)} JST`
+      div
+        span Last checked
+        strong= `${formatDate(latest.lastCheckedAt)} JST`
+      div
+        span Saved versions
+        strong= history.length
+    .jp-service-summary
+      each method in limits
+        .jp-service-status(class=method.className)
+          span= method.label
+          strong(class=method.status === 'Available' ? 'jp-available' : 'jp-muted')= method.status
+    nav.jp-detail-nav(aria-label='Country data sections')
+      a(href='#jp-current') Current data
+      a(href='#jp-history') Update history
+      a(href='#jp-raw') Source JSON
+    #jp-current.jp-section-heading
+      div
+        h2 All country data
+        p.jp-muted Values are preserved from the CSV. Lengths below are in centimeters; weights are in kilograms. Bold fields changed from the previous version. Empty fields are shown as “Not provided”.
+    +dataSections(latest.data, history[1] && history[1].data)
+    section#jp-history.jp-panel(aria-labelledby='jp-history-heading')
+      h2#jp-history-heading Update history
+      p.jp-muted Each version records a change to any CSV column. Unchanged imports update only the latest version’s last checked time. Dates reflect receipt by this app.
+      .jp-timeline
+        each version, index in history
+          - const previous = history[index + 1]
+          - const changes = previous ? detailSections(version.data, previous.data).flatMap(section => section.fields).filter(field => field.changed) : []
+          details.jp-version(open=index === 0)
+            summary
+              strong= `Version ${history.length - index}${index === 0 ? ' · Current' : ''}`
+              span= ` ${formatDate(version.detectedAt)} JST · ${previous ? `${changes.length} changed fields` : 'Initial import'}`
+            p.jp-muted= `Last checked ${formatDate(version.lastCheckedAt)} JST · Source: ${version.sourceName}`
+            if previous
+              dl.jp-change-list
+                each field in changes
+                  div
+                    dt= `${field.label} · ${field.key}`
+                    dd
+                      span.jp-previous= field.previous
+                      span.jp-change-arrow(aria-label='changed to') → 
+                      strong= field.value
+            else
+              p.jp-muted First saved record for this country.
+            details.jp-snapshot
+              summary View all fields in this version
+              +dataSections(version.data, previous && previous.data)
+    section#jp-raw.jp-panel
+      details
+        summary Source JSON · all saved columns
+        p.jp-muted= `Source: ${latest.sourceName}`
+        pre= JSON.stringify(latest.data, null, 2)

@@ -6,32 +6,31 @@ const express = require('express');
 const request = require('supertest');
 const cheerio = require('cheerio');
 const { createService } = require('../services/japanPost');
+const { parseCsv, columns } = require('../utils/japanPostCsv');
 const createRouter = require('../routes/japanpost');
-const { parseCountry } = require('../utils/japanPostParser');
+const sample = fs.readFileSync('tests/fixtures/japan-post-countries.csv');
+const encode = rows => Buffer.from([columns, ...rows.map(row => columns.map(key => row[key]))]
+  .map(row => row.map(value => `"${value.replace(/"/g, '""')}"`).join(',')).join('\n'));
 const suite = process.env.JAPAN_POST_TEST_MYSQL_PORT ? describe : describe.skip;
-const australia = fs.readFileSync(path.join(__dirname, 'fixtures/japan-post-14.html'), 'utf8');
-const ireland = fs.readFileSync(path.join(__dirname, 'fixtures/japan-post-105.html'), 'utf8');
 
-suite('Japan Post cache, queue and HTTP on disposable MySQL', () => {
-  let db, models, service, clock, download, app;
+suite('Japan Post CSV versions and HTTP on disposable MySQL', () => {
+  let db, models, service, clock, app, records;
   const token = 'a'.repeat(64);
-  const advance = milliseconds => { clock = new Date(clock.getTime() + milliseconds); };
   beforeAll(async () => {
     db = new Sequelize('gcs_japanpost_test', 'root', '', { host: '127.0.0.1', port: Number(process.env.JAPAN_POST_TEST_MYSQL_PORT), dialect: 'mysql', logging: false });
-    models = { sequelize: db, JapanPostCache: require('../models/japanPostCache')(db, Sequelize), JapanPostSchedule: require('../models/japanPostSchedule')(db, Sequelize) };
+    models = { sequelize: db, JapanPostCsvCache: require('../models/japanPostCsvCache')(db, Sequelize) };
     await db.sync({ force: true });
+    records = await parseCsv(sample);
   });
   afterAll(async () => { if (db) await db.close(); });
   beforeEach(async () => {
-    await models.JapanPostCache.destroy({ where: {} });
-    await models.JapanPostSchedule.destroy({ where: {} });
-    clock = new Date('2026-10-30T21:59:59Z'); // 06:59:59 JST on October 31.
-    download = jest.fn(async cid => cid === 14 ? australia : ireland);
-    service = createService(models, { now: () => clock, download });
+    await models.JapanPostCsvCache.destroy({ where: {} });
+    clock = new Date('2026-11-02T00:00:00Z');
+    service = createService(models, { now: () => clock });
     app = express();
     app.set('view engine', 'pug');
     app.set('views', path.join(__dirname, '../views'));
-    app.use(express.json());
+    app.use(require('express-fileupload')());
     app.use((req, res, next) => {
       req.user = req.get('x-guest') ? null : { userid: 'Tester' };
       req.session = { japanPostCsrf: token };
@@ -41,234 +40,99 @@ suite('Japan Post cache, queue and HTTP on disposable MySQL', () => {
     app.use('/japan-post', createRouter(service));
     app.use((error, req, res, next) => res.status(error.status || 500).send(error.message));
   });
-  const post = (url, body) => request(app).post(`/japan-post/api/${url}`).set('X-CSRF-Token', token).send(body);
+  const upload = (buffer = sample) => request(app).post('/japan-post/api/import').set('X-CSRF-Token', token).attach('csvFile', buffer, 'countries.csv');
 
-  test('same-day reuse, unchanged-day touch, changed version and accurate previous data', async () => {
-    const first = await service.fetch(14);
-    expect(first.changed).toBe(true);
-    expect((await service.fetch(14)).fromCache).toBe(true);
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(86400000);
-    const same = await service.fetch(14);
-    expect(same.changed).toBe(false);
-    expect(same.latest.id).toBe(first.latest.id);
-    expect(same.latest.detectedAt).toEqual(first.latest.detectedAt);
-    expect(same.latest.lastCheckedAt).toEqual(clock);
-    advance(86400000);
-    download.mockResolvedValue(australia.replace(/20kgまで/g, '25kgまで'));
-    const changed = await service.fetch(14);
-    expect(changed.history).toHaveLength(1);
-    expect(changed.history[0].data.parcel.air.weight.value).toBe(20);
-    expect(changed.latest.data.parcel.air.weight.value).toBe(25);
-    const rows = await service.viewer();
-    expect(rows).toHaveLength(1);
-    expect(rows[0].previous.parcel.air.weight.value).toBe(20);
-    expect(await service.viewer({ from: '2026-11-03' })).toHaveLength(0);
-    expect(await service.viewer({ q: 'Australia', changed: '1' })).toHaveLength(1);
-    expect(await service.viewer({ stale: '1' })).toHaveLength(0);
-    advance(86400000);
-    expect(await service.viewer({ stale: '1' })).toHaveLength(1);
+  test('full export, identical upload and changed non-viewer field retain accurate versions', async () => {
+    expect(await service.importCsv(sample, 'countries.csv')).toMatchObject({ total: 255, added: 255, updated: 0, unchanged: 0 });
+    const first = (await service.history('AU'))[0];
+    clock = new Date('2026-11-03T00:00:00Z');
+    expect(await service.importCsv(sample, 'copy.csv')).toMatchObject({ added: 0, updated: 0, unchanged: 255 });
+    expect(await models.JapanPostCsvCache.count()).toBe(255);
+    const same = (await service.history('au'))[0];
+    expect(same.id).toBe(first.id);
+    expect(same.detectedAt).toEqual(first.detectedAt);
+    expect(same.lastCheckedAt).toEqual(clock);
+    const au = { ...records.find(row => row.countryCode === 'AU').data, '発送可能地域(日本語表記）': 'Changed delivery area' };
+    // Same-day uploads must still detect new content.
+    expect(await service.importCsv(encode([au]), 'updated.csv')).toMatchObject({ total: 1, updated: 1 });
+    const history = await service.history('AU');
+    expect(history).toHaveLength(2);
+    expect(history[1].data).toEqual(first.data);
+    expect(history[0].data).toEqual(au);
+    expect((await service.overview()).countries).toBe(255); // Missing countries are retained.
+    expect(await service.viewer({ q: 'オーストラリア', changed: '1' })).toHaveLength(1);
+    expect(await service.viewer({ from: '2026-11-03' })).toHaveLength(1);
+    clock = new Date('2026-11-04T00:00:00Z');
+    expect(await service.viewer({ stale: '1' })).toHaveLength(255);
+    expect(await service.viewer({ to: '2026-11-01' })).toHaveLength(0);
+    await expect(service.viewer({ from: '2026-11-05', to: '2026-11-01' })).rejects.toThrow('start date');
   });
 
-  test('upstream failure preserves cache and locks prevent duplicate concurrent writes', async () => {
-    await service.fetch(105);
-    advance(86400000);
-    download.mockRejectedValueOnce(new Error('Unavailable'));
-    await expect(service.fetch(105)).rejects.toThrow('Unavailable');
-    expect((await service.history(105))[0].lastCheckedAt).not.toEqual(clock);
-    const results = await Promise.allSettled([service.fetch(105), createService(models, { now: () => clock, download }).fetch(105)]);
+  test('invalid uploads and a failed transaction leave all cached values and timestamps intact', async () => {
+    await service.importCsv(sample);
+    const before = await service.history('AU');
+    clock = new Date('2026-11-03T00:00:00Z');
+    await expect(service.importCsv(Buffer.from('invalid'))).rejects.toThrow();
+    const au = { ...records.find(row => row.countryCode === 'AU').data, EMS_最大重量: '25' };
+    const update = jest.spyOn(models.JapanPostCsvCache, 'update').mockRejectedValueOnce(new Error('Simulated write failure'));
+    try { await expect(service.importCsv(encode([au, records[0].data]))).rejects.toThrow('Simulated'); }
+    finally { update.mockRestore(); }
+    expect(await service.history('AU')).toEqual(before);
+    expect(await models.JapanPostCsvCache.count()).toBe(255);
+  });
+
+  test('concurrent imports serialize and retries do not create duplicate versions', async () => {
+    const results = await Promise.allSettled([service.importCsv(sample), createService(models).importCsv(sample)]);
     expect(results.some(result => result.status === 'fulfilled')).toBe(true);
-    expect(await models.JapanPostCache.count()).toBe(1);
-    expect((await service.fetch(105)).fromCache).toBe(true);
+    for (const result of results.filter(result => result.status === 'rejected')) expect(result.reason.status).toBe(429);
+    await service.importCsv(sample);
+    expect(await models.JapanPostCsvCache.count()).toBe(255);
   });
 
-  test('legacy cache gains unavailable status today without a fetch or a synthetic history entry', async () => {
-    const html = fs.readFileSync(path.join(__dirname, 'fixtures/japan-post-234.html'), 'utf8');
-    const data = parseCountry(html);
-    for (const service of [data.parcel.air, data.parcel.surface, data.ems]) delete service.unavailable;
-    data.warnings = ['Parcel surface: some limits were not found. Check the source page.', 'EMS: source text retained where numeric parsing was not possible.'];
-    await models.JapanPostCache.create({ cid: 234, data, detectedAt: clock, lastCheckedAt: clock });
-    const cached = await service.fetch(234);
-    expect(cached.fromCache).toBe(true);
-    expect(download).not.toHaveBeenCalled();
-    expect(cached.latest.data.ems.unavailable).toBe(true);
-    expect(cached.latest.data.parcel.surface.unavailable).toBe(true);
-    expect(cached.latest.data.warnings).toEqual([]);
-    expect((await service.history(234))[0].data.ems.unavailable).toBe(true);
-    expect((await service.viewer())[0].data.ems.unavailable).toBe(true);
-    const viewer = cheerio.load((await request(app).get('/japan-post/database')).text);
-    expect(viewer('td[colspan="3"]').map((_, el) => viewer(el).text()).get()).toEqual(['Unavailable', 'Unavailable']);
-    advance(86400000);
-    download.mockResolvedValueOnce(html);
-    expect((await service.fetch(234)).changed).toBe(false);
-    expect(await models.JapanPostCache.count()).toBe(1);
-    expect((await models.JapanPostCache.findOne()).data).toEqual(data);
+  test('authenticated multipart upload, details and database show new country codes and converted limits', async () => {
+    expect((await upload()).status).toBe(200);
+    const page = await request(app).get('/japan-post/database?q=AU');
+    expect(page.status).toBe(200);
+    const $ = cheerio.load(page.text);
+    const row = $('tbody tr').filter((i, el) => $(el).find('a').text() === 'AU');
+    expect(row.find('a').attr('href')).toBe('/japan-post/countries/AU');
+    expect(row.find('.jp-air').map((i, el) => $(el).text()).get()).toEqual(['20 kg', '1.05 m', '2 m']);
+    expect(row.find('.jp-sal').text()).toBe('Unavailable');
+    const detail = await request(app).get('/japan-post/countries/AU');
+    expect(detail.status).toBe(200);
+    expect(detail.text).toContain('105 cm');
+    expect(cheerio.load(detail.text)('#jp-current + .jp-detail-sections .jp-field')).toHaveLength(61);
+    const api = await request(app).get('/japan-post/api/countries/AU');
+    expect(api.body.history[0].data['ＥＭＳサイズ・長さ']).toBe('105');
+    expect((await request(app).get('/japan-post/countries/ZZ')).status).toBe(404);
+    expect((await request(app).get('/japan-post')).text).toContain('Import Japan Post CSV');
+    expect((await request(app).post('/japan-post/api/fetch').set('X-CSRF-Token', token)).status).toBe(404);
+    expect((await request(app).get('/japan-post/api/schedules')).status).toBe(404);
   });
 
-  test('a change to unavailable is saved and highlighted in the viewer', async () => {
-    const html = fs.readFileSync(path.join(__dirname, 'fixtures/japan-post-235.html'), 'utf8');
-    const data = parseCountry(html);
-    data.ems = { ...data.parcel.air };
-    await models.JapanPostCache.create({ cid: 235, data, detectedAt: clock, lastCheckedAt: clock });
-    advance(86400000);
-    download.mockResolvedValueOnce(html);
-    expect((await service.fetch(235)).changed).toBe(true);
-    expect(await models.JapanPostCache.count()).toBe(2);
-    const viewer = cheerio.load((await request(app).get('/japan-post/database')).text);
-    expect(viewer('td[colspan="3"] strong').text()).toBe('Unavailable');
-    expect(viewer('td strong')).toHaveLength(1);
+  test('changed cells, status transitions and escaped history are rendered from the CSV versions', async () => {
+    const au = records.find(row => row.countryCode === 'AU').data;
+    await service.importCsv(encode([au]));
+    const updated = { ...au, '最大重量(小包み・航空便）': '25', EMS取扱フラグ: '0', '発送可能地域(英語表記）': '<script>alert(1)</script>' };
+    clock = new Date();
+    await service.importCsv(encode([updated]));
+    const page = await request(app).get('/japan-post/database');
+    const $ = cheerio.load(page.text);
+    expect($('tbody .jp-recent-cell')).toHaveLength(2);
+    expect($('tbody .jp-air strong').text()).toBe('25 kg');
+    expect($('tbody .jp-ems strong').text()).toBe('Unavailable');
+    const detail = await request(app).get('/japan-post/countries/AU');
+    expect(detail.text).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(detail.text).toContain('3 changed fields');
+    expect(detail.text).not.toContain('<script>alert(1)</script>');
+    expect(detail.text).toContain('Version 2');
   });
 
-  test('starts at 07:00 JST, persists 15-second spacing and works across scheduler instances', async () => {
-    await service.schedule('14, 105, 14', '2026-10-31');
-    await service.tick();
-    expect(download).not.toHaveBeenCalled();
-    advance(1000);
-    const restarted = createService(models, { now: () => clock, download });
-    await Promise.all([service.tick(), restarted.tick()]);
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(14999);
-    await restarted.tick();
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(1);
-    await restarted.tick();
-    expect(download).toHaveBeenCalledTimes(2);
-    expect((await service.schedules()).map(job => job.status)).toEqual(['completed', 'completed']);
-    await service.schedule('14 105', '2026-10-31');
-    await restarted.tick();
-    expect(download).toHaveBeenCalledTimes(2);
-  });
-
-  test('five future bookings with two uncached CIDs add two immediate checks, spaced 15 seconds apart', async () => {
-    await models.JapanPostCache.bulkCreate([14, 105, 106].map(cid => ({
-      cid, data: parseCountry(ireland), detectedAt: new Date(clock.getTime() - 86400000), lastCheckedAt: new Date(clock.getTime() - 86400000),
-    })));
-    const response = await post('schedules', { cids: '14,105,106,107,108,107', date: '2026-11-01' });
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ count: 5, immediateCount: 2 });
-    let jobs = await service.schedules();
-    expect(jobs).toHaveLength(7);
-    const immediate = jobs.filter(job => job.scheduledDate === '2026-10-31');
-    expect(immediate.map(job => job.cid).sort()).toEqual([107, 108]);
-    expect(immediate.every(job => job.dueAt.getTime() === clock.getTime())).toBe(true);
-    expect(jobs.filter(job => job.scheduledDate === '2026-11-01').every(job =>
-      job.dueAt.toISOString() === '2026-10-31T22:00:00.000Z')).toBe(true);
-    await service.schedule('14 105 106 107 108', '2026-11-01');
-    expect(await models.JapanPostSchedule.count()).toBe(7);
-    // The first initial check runs now, even though it is before 07:00 JST.
-    await service.tick();
-    expect(download.mock.calls.map(call => call[0])).toEqual([107]);
-    advance(14999);
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(1);
-    await service.tick();
-    expect(download.mock.calls.map(call => call[0])).toEqual([107, 108]);
-    jobs = await service.schedules();
-    expect(jobs.filter(job => job.status === 'pending')).toHaveLength(5);
-    expect((await service.schedule('14 105 106 107 108', '2026-11-01')).immediateCount).toBe(0);
-    expect(await models.JapanPostSchedule.count()).toBe(7);
-    // Both initial checks retain their separate future checks, which fetch again tomorrow.
-    clock = new Date('2026-10-31T22:00:00Z');
-    for (let index = 0; index < 5; index++) {
-      await service.tick();
-      advance(15000);
-    }
-    expect(download).toHaveBeenCalledTimes(7);
-    expect((await service.schedules()).every(job => job.status === 'completed')).toBe(true);
-  });
-
-  test('future bookings reuse and bring forward today’s pending check without duplicating it', async () => {
-    expect(await service.schedule('203', '2026-10-31')).toEqual({ count: 1, immediateCount: 0 });
-    const original = (await service.schedules())[0];
-    expect(original.dueAt.getTime()).toBeGreaterThan(clock.getTime());
-    await service.schedule('203', '2026-11-01');
-    await service.schedule('203', '2026-11-02');
-    const jobs = await service.schedules();
-    expect(jobs).toHaveLength(3);
-    expect(jobs.find(job => job.id === original.id).dueAt).toEqual(clock);
-    expect(jobs.filter(job => job.scheduledDate === '2026-10-31')).toHaveLength(1);
-    await service.cancel(original.id);
-    await service.schedule('203', '2026-11-01');
-    expect((await models.JapanPostSchedule.findByPk(original.id)).status).toBe('pending');
-    expect(await models.JapanPostSchedule.count()).toBe(3);
-  });
-
-  test('failed initial checks leave future bookings intact and retries preserve the cooldown', async () => {
-    await service.schedule('203', '2026-11-01');
-    download.mockRejectedValueOnce(new Error('Network error'));
-    await service.tick();
-    let jobs = await service.schedules();
-    expect(jobs.find(job => job.scheduledDate === '2026-11-01').status).toBe('pending');
-    expect(jobs.find(job => job.scheduledDate === '2026-10-31').status).toBe('failed');
-    await service.schedule('203', '2026-11-01');
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(15000);
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(2);
-    jobs = await service.schedules();
-    expect(jobs).toHaveLength(2);
-    expect(jobs.find(job => job.scheduledDate === '2026-11-01').status).toBe('pending');
-    expect(jobs.find(job => job.scheduledDate === '2026-10-31').status).toBe('completed');
-  });
-
-  test('recovers interrupted work, skips today’s cached fetch, and continues after failures', async () => {
-    await service.fetch(14);
-    await service.schedule('14 105 106', '2026-10-31');
-    await models.JapanPostSchedule.update({ status: 'running', updatedAt: new Date(clock.getTime() - 60000) }, { where: { cid: 14 }, silent: true });
-    advance(1000);
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(15000);
-    download.mockRejectedValueOnce(new Error('Network error'));
-    await service.tick();
-    expect((await models.JapanPostSchedule.findOne({ where: { cid: 105 } })).status).toBe('failed');
-    advance(15000);
-    await service.tick();
-    expect((await models.JapanPostSchedule.findOne({ where: { cid: 106 } })).status).toBe('completed');
-    await service.schedule('105', '2026-10-31');
-    expect((await models.JapanPostSchedule.findOne({ where: { cid: 105 } })).status).toBe('pending');
-  });
-
-  test('requeuing a failed fetch cannot erase the 15-second cooldown', async () => {
-    advance(1000);
-    await service.schedule('105', '2026-10-31');
-    download.mockRejectedValueOnce(new Error('Network error'));
-    await service.tick();
-    await service.schedule('105', '2026-10-31');
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(1);
-    advance(15000);
-    await service.tick();
-    expect(download).toHaveBeenCalledTimes(2);
-    expect((await service.schedules())[0].status).toBe('completed');
-  });
-
-  test('routes validate input and CSRF, return JSON, and bold only changed viewer values', async () => {
-    expect((await post('fetch', { cid: '14&other=x' })).status).toBe(400);
-    expect(download).not.toHaveBeenCalled();
-    expect((await request(app).post('/japan-post/api/fetch').send({ cid: 14 })).status).toBe(403);
-    expect((await request(app).post('/japan-post/api/fetch').set('X-CSRF-Token', 'ä'.repeat(64)).send({ cid: 14 })).status).toBe(403);
+  test('upload rejects missing CSRF, guests, wrong file types and duplicate codes', async () => {
+    expect((await request(app).post('/japan-post/api/import').attach('csvFile', sample, 'data.csv')).status).toBe(403);
     expect((await request(app).get('/japan-post').set('x-guest', '1')).status).toBe(401);
-    expect((await post('schedules', { cids: '14', date: '2026-02-30' })).status).toBe(400);
-    expect((await post('schedules', { cids: '14', date: '2026-10-30' })).status).toBe(400);
-    const first = await post('fetch', { cid: 14 });
-    expect(first.status).toBe(200);
-    expect(first.body.latest.data.countryName).toContain('Australia');
-    advance(86400000);
-    download.mockResolvedValue(australia.replace('20kgまで', '21kgまで'));
-    expect((await post('fetch', { cid: 14 })).status).toBe(200);
-    const viewer = await request(app).get('/japan-post/database');
-    expect(viewer.status).toBe(200);
-    const $ = cheerio.load(viewer.text);
-    expect($('td strong').map((_, el) => $(el).text()).get()).toEqual(['21 kg']);
-    expect($('td strong').attr('title')).toBe('Previously: 20 kg');
-    expect((await request(app).get('/japan-post')).status).toBe(200);
-    expect((await request(app).get('/japan-post/api/countries/14')).body.history).toHaveLength(2);
-    await post('schedules', { cids: '14', date: '2026-11-02' });
-    const job = (await service.schedules())[0];
-    expect((await post(`schedules/${job.id}/cancel`, {})).status).toBe(200);
-    expect((await post(`schedules/${job.id}/cancel`, {})).status).toBe(409);
+    expect((await request(app).post('/japan-post/api/import').set('X-CSRF-Token', token).attach('csvFile', sample, 'data.html')).status).toBe(400);
+    expect((await upload(encode([records[0].data, records[0].data]))).status).toBe(400);
+    expect(await models.JapanPostCsvCache.count()).toBe(0);
   });
 });

@@ -42,3 +42,58 @@ html[data-color-mode='dark'] .jp-database .jp-ems { background-color: #352b46; }
   .jp-columns, .jp-limit-cards { grid-template-columns: 1fr; }
   .jp-panel { padding: 1rem; }
 }
+
+/* CSV import and complete country records. */
+.jp-subheading { font-size: 1.05rem; }
+.jp-library-count { font-size: 1.15rem; }
+.jp-library-count strong { font-size: 2.5rem; color: var(--gcs-heading); margin-right: .3rem; }
+.jp-help-list { padding-left: 1.2rem; line-height: 1.8; }
+.jp-import-counts, .jp-record-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.jp-import-counts > div, .jp-record-meta > div { padding: 1rem; border: 1px solid var(--gcs-border); border-radius: var(--gcs-radius-sm); background: var(--gcs-bg-subtle); }
+.jp-import-counts strong, .jp-import-counts span, .jp-record-meta span, .jp-record-meta strong { display: block; }
+.jp-import-counts strong { font-size: 1.6rem; color: var(--gcs-heading); }
+.jp-import-counts span, .jp-record-meta span { color: var(--gcs-muted); font-size: .85rem; }
+.jp-record-meta { margin-bottom: 1.25rem; }
+.jp-record-meta strong { font-size: .95rem; margin-top: .4rem; }
+.jp-service-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+.jp-service-status { padding: .75rem 1rem; background: var(--gcs-surface); border: 1px solid var(--gcs-border); border-top: 3px solid #68778b; border-radius: var(--gcs-radius-sm); }
+.jp-service-status.jp-air { border-top-color: #3181bb; }
+.jp-service-status.jp-surface { border-top-color: #278474; }
+.jp-service-status.jp-ems { border-top-color: #9369b8; }
+.jp-service-status span, .jp-service-status strong { display: block; }
+.jp-service-status strong { margin-top: .3rem; font-size: .9rem; }
+.jp-available { color: var(--gcs-heading); }
+.jp-detail-nav { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1.5rem 0; padding-bottom: 1rem; border-bottom: 1px solid var(--gcs-border); }
+.jp-detail-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
+.jp-detail-sections > .jp-panel { margin-bottom: 0; }
+.jp-detail-sections > .jp-wide-section { grid-column: 1 / -1; }
+.jp-wide-section .jp-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; }
+.jp-detail-sections { margin-bottom: 1.25rem; }
+.jp-field-grid { margin: 0; }
+.jp-field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding: .85rem 0; border-bottom: 1px solid var(--gcs-border); }
+.jp-field:last-child { border-bottom: 0; }
+.jp-field dt { font-size: .9rem; font-weight: 600; }
+.jp-field dt small { display: block; font-size: .75rem; font-weight: 400; margin-top: .3rem; }
+.jp-field dd { margin: 0; font-size: .9rem; white-space: pre-wrap; }
+.jp-field dt, .jp-field dd, .jp-version { overflow-wrap: anywhere; }
+.jp-field-changed { border-left: 3px solid #b78a26; padding-left: .7rem; }
+.jp-previous { display: block; color: var(--gcs-muted); font-size: .8rem; font-weight: 400; margin-top: .4rem; white-space: pre-wrap; }
+.jp-version { border-left: 2px solid var(--gcs-border); padding: .4rem 0 .4rem 1rem; margin-bottom: .75rem; }
+.jp-version > summary span { color: var(--gcs-muted); font-size: .9rem; margin-left: .4rem; }
+.jp-change-list > div { padding: .75rem 0; border-bottom: 1px solid var(--gcs-border); }
+.jp-change-list dt { font-size: .9rem; }
+.jp-change-list dd { margin: .25rem 0 0; white-space: pre-wrap; }
+.jp-change-list .jp-previous { display: inline; }
+.jp-change-arrow { color: var(--gcs-muted); margin: 0 .5rem; }
+.jp-snapshot .jp-detail-sections { grid-template-columns: 1fr; }
+.jp-tool [id] { scroll-margin-top: 6rem; }
+@media (max-width: 800px) {
+  .jp-detail-sections { grid-template-columns: 1fr; }
+  .jp-wide-section .jp-field-grid { grid-template-columns: 1fr; }
+  .jp-service-summary, .jp-record-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .jp-record-meta, .jp-field { grid-template-columns: 1fr; }
+  .jp-import-counts { gap: .4rem; }
+  .jp-import-counts > div { padding: .6rem; }
+}

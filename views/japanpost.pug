@@ -9,64 +9,49 @@ block content
       div
         p.app-page-kicker Shipping reference
         h1 Japan Post limits
-        p Fetch country size and weight limits, compare changes, and plan future checks.
+        p Import a country CSV to refresh shipping limits and keep a complete update history.
       a.btn.btn-outline-primary(href='/japan-post/database') Browse database
     .jp-columns
-      section.jp-panel(aria-labelledby='jp-fetch-heading')
-        h2#jp-fetch-heading Fetch a country
-        p.jp-muted https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=…
-        form#jp-fetch-form.jp-inline
-          div
-            label(for='jp-cid') Country ID (CID)
-            input#jp-cid.form-control(type='number', min='1', max='999999999', step='1', placeholder='14', required)
-          button.btn.btn-primary(type='submit') Fetch
-        p.jp-muted.mt-3 A country checked today (Japan time) uses its cached result.
-        p#jp-fetch-status(role='status', aria-live='polite') Enter a CID to begin.
-      section.jp-panel(aria-labelledby='jp-schedule-heading')
-        h2#jp-schedule-heading Schedule checks
-        form#jp-schedule-form
-          label(for='jp-cids') Country IDs, separated by commas or spaces
-          textarea#jp-cids.form-control(rows='2', placeholder='14, 105', maxlength='4000', required)
-          .jp-inline.mt-3
+      section.jp-panel(aria-labelledby='jp-import-heading')
+        p.app-page-kicker Country data
+        h2#jp-import-heading Import Japan Post CSV
+        p.jp-muted Upload the original UTF-8 CSV export. Every column is saved, including service flags, limits, customs forms, and delivery areas.
+        form#jp-import-form(enctype='multipart/form-data')
+          label(for='jp-csv') CSV file
+          input#jp-csv.form-control(type='file', name='csvFile', accept='.csv,text/csv', required, aria-describedby='jp-file-help')
+          p#jp-file-help.jp-muted.mt-2 Maximum 5 MB. One row per country code (国コード).
+          button.btn.btn-primary(type='submit') Import CSV
+        p#jp-import-status.mt-3(role='status', aria-live='polite') Choose a CSV file to begin.
+        #jp-import-result(hidden)
+          .jp-import-counts
             div
-              label(for='jp-date') Check date (Japan time)
-              input#jp-date.form-control(type='date', min=today, value=today, required)
-            button.btn.btn-primary(type='submit') Schedule
-        p.jp-muted.mt-3 Checks start at 07:00 JST, with 15 seconds between requests. Today’s checks scheduled after 07:00 join the queue immediately. Pending work resumes when the server restarts.
-        p.jp-muted Countries without cached data scheduled for a future date also get a check now, using the same queue and 15-second spacing.
-        p#jp-schedule-status(role='status', aria-live='polite')
-    section#jp-result.jp-panel(hidden, aria-labelledby='jp-country-name')
-      .jp-section-heading
-        h2#jp-country-name
-        a#jp-source(target='_blank', rel='noopener noreferrer') View Japan Post page ↗
-      p#jp-result-dates.jp-muted
-      #jp-warnings
-      #jp-limits.jp-limit-cards
-      details.mt-3
-        summary Parsed JSON
-        pre#jp-json
-    section#jp-history-panel.jp-panel(hidden, aria-labelledby='jp-history-heading')
-      h2#jp-history-heading Update history
-      p.jp-muted Each version records a change in values. Unchanged checks update the latest version’s last checked time.
-      #jp-history
-    section.jp-panel(aria-labelledby='jp-queue-heading')
-      .jp-section-heading
-        div
-          h2#jp-queue-heading Scheduled checks
-          p.jp-muted Latest 500 scheduled entries. Failed checks can be scheduled again for today or a later date.
-        button#jp-refresh.btn.btn-outline-primary(type='button') Refresh
-      p#jp-queue-status(role='status', aria-live='polite')
-      .table-responsive
-        table.table.jp-table
-          thead
-            tr
-              th(scope='col') CID
-              th(scope='col') Scheduled (JST)
-              th(scope='col') Status
-              th(scope='col') Last finished (JST)
-              th(scope='col') Details
-              th(scope='col') Action
-          tbody#jp-queue
+              strong#jp-added 0
+              span New countries
+            div
+              strong#jp-updated 0
+              span Updated
+            div
+              strong#jp-unchanged 0
+              span Unchanged
+          a.btn.btn-outline-primary.mt-3(href='/japan-post/database') View updated database
+      section.jp-panel(aria-labelledby='jp-library-heading')
+        p.app-page-kicker Saved reference
+        h2#jp-library-heading Your country database
+        p.jp-library-count
+          strong#jp-country-count= overview.countries
+          |  countries
+        p.jp-muted
+          | Last checked:#{' '}
+          span#jp-last-checked= formatDate(overview.lastCheckedAt)
+          |  JST
+        hr
+        h3.jp-subheading How imports update your records
+        ul.jp-help-list
+          li New country codes create their first saved version.
+          li Changes to any column create a new version, preserving the previous data.
+          li Identical values only update the last checked time.
+          li Countries missing from the file remain in the database.
+        p.jp-muted Each upload is checked in full before it is saved. All dates refer to when this app received the data, not its publication date.
 
 block scripts
   script(src='/javascripts/japanpost.js')

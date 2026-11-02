@@ -1,61 +1,53 @@
-# Japan Post country limits
+# Japan Post country data
 
-Open **Shipping → Japan Post limits** (`/japan-post`). Enter the numeric `cid` from a Japan Post country URL and press **Fetch**. The server downloads only `https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=…`; arbitrary URLs and redirects are not accepted.
+Open **Shipping → Japan Post limits** (`/japan-post`) and upload the original UTF-8 country CSV exported from Japan Post. The supplied November 2, 2026 sample contains 255 unique country codes and 61 columns. Uploads support UTF-8 with or without a BOM, quoted commas/newlines, and CRLF or LF records, up to 5 MB and 1,000 countries.
 
-The page shows the English country name, parcel air/surface limits, EMS limits, JSON, and previous versions. Measurements contain a numeric `value` and a `unit` (`m`, `cm`, `mm`, `kg`, or `g`). Unrecognized or conditional values remain text. Missing values appear as `null` in JSON and `—` on the page, with warnings. The name parser skips introductory suspension notices and reads the emphasized country name, preserving territorial lists.
+## Import and history
 
-Each service includes `unavailable: true` when its maximum weight is zero or its own limits contain `取り扱いなし` (including equivalent spellings). The cards and viewer display **Unavailable** instead of empty/zero limits, and suppress missing-limit warnings for that service. Raw size/weight evidence remains in JSON. `unavailable: false` only means these markers were absent; it does not confirm current acceptance or override suspension notices elsewhere on the page.
+The new `japanPostCsvCaches` table is registered in `sequelize.js` and created by the existing startup sync. Each version contains `countryCode` (from `国コード`), `data` (every CSV column with its original name and string value), `sourceName`, `detectedAt`, and `lastCheckedAt`, plus Sequelize timestamps. Blank strings and source units are preserved. Extra columns are saved too; the 61 known source columns are required to prevent partial exports from replacing complete records.
 
-This status is also derived for existing cached versions on read, including same-day cache hits. No extra fetch, database migration, historical rewrite, or artificial change entry is needed merely to add the status field.
+- A new country code creates its initial version.
+- A change to **any** column creates a new version, even when the changed column is not displayed in the database table. Column and country row ordering do not create changes.
+- Unchanged data only updates the latest version's `lastCheckedAt`. `sourceName` identifies the file that created that version.
+- Countries absent from an upload remain unchanged. Imports do not infer deletions or unavailability from missing rows.
+- Dates record when the app received the data, not Japan Post's publication time. A newly uploaded file is always compared, including repeated uploads on the same day. Upload the most recent export; the CSV has no source timestamp to detect an older file.
 
-For example, CID 105 (Ireland), fetched on 2026-10-31, returns the following limits for each of parcel air, parcel surface, and EMS:
+The full upload is validated before saving. Empty/duplicate/missing headers, duplicate country codes, invalid codes, invalid encoding, and malformed records reject the entire upload. A MySQL advisory lock serializes concurrent imports across app processes. One transaction saves all new versions and last-checked changes; a failed import leaves existing data untouched. A busy import returns a retryable HTTP 429 response.
 
-```json
-{
-  "size": {
-    "length": { "value": 1.5, "unit": "m" },
-    "lengthPlusGirth": { "value": 3, "unit": "m" }
-  },
-  "weight": { "value": 30, "unit": "kg" }
-}
-```
+The old `japanPostCaches` and `japanPostSchedules` tables are left untouched and are not read by this tool. The HTML parser, CID endpoints, and scheduled HTML worker have been retired. There is no automatic API fetch in this release. A future downloader can supply CSV bytes to `createService(...).importCsv(buffer, sourceName)` using the same validation, transaction, and history logic.
 
-## Cache and database viewer
+## Database viewer
 
-The two new Sequelize models are registered in `sequelize.js`; normal startup creates `japanPostCaches` and `japanPostSchedules` in the GCS database. No existing table needs alteration. Follow the repository backup procedure before starting a schema update.
+`/japan-post/database` uses the latest CSV version per country code. The layout remains **SAL → Parcel · air → Parcel · surface → EMS**, with **Weight → Length → Length + girth** within each group. Weights display in kg; numeric centimeter lengths are divided by 100 and displayed in meters. Source JSON is never changed by display conversion.
 
-Each cache version has `cid`, parsed `data`, `detectedAt`, and `lastCheckedAt`. `detectedAt` records when this app observed the values, not Japan Post’s publication date. Unchanged checks only update `lastCheckedAt`; changed parsed data creates a new immutable historical version. Invalid pages and failed downloads preserve existing cached data. If `lastCheckedAt` falls on today’s **Asia/Tokyo** calendar date, no external request is sent.
+Availability comes from `SAL小包取扱フラグ`, `国際小包（航空便）取扱フラグ`, `国際小包（船便）取扱フラグ`, and `EMS取扱フラグ`: `1` displays limits, `0` displays **Unavailable**, and empty/unknown flags display **Not specified**. Positive limits do not override an unavailable flag. Raw limits remain available on the country details page even for unavailable methods.
 
-The database viewer (`/japan-post/database`) loads the latest version per CID and compares it with the immediately preceding version. Changed values are bold, with the old value in a tooltip. Filters cover country/CID, observed update date range, presence of history, and whether the entry was checked today. Clicking a CID opens its cached result and history without an external fetch.
+Country/code search also matches Japanese names and English short names. Filters include observed update dates (Japan time), presence of history, and whether a country was checked today. The immediately preceding version supplies bold changed values and previous-value tooltips. Gold highlights use the latest version's `detectedAt` within seven days (168 hours): a first version highlights the row; subsequent versions highlight only changed displayed cells. Changes outside the displayed fields still create history but do not highlight unrelated cells. Method colors work in dark and light themes.
 
-Shading uses the latest version's `detectedAt` within the preceding seven days (168 hours). A country with no previous version shades the full row. When a previous version exists, only values changed in the latest version are shaded, even if the country was also first added during those seven days. Unchanged checks do not renew the shading; older changes remain bold without shading.
+## Country details
 
-## Scheduling
+Click a country code to open `/japan-post/countries/:code`. The page shows service availability, observed dates, and all source fields grouped into destination, EMS, parcels, small packets/ePacket, printed matter, and letters/other services. Labels include the original CSV column names. Lengths here remain in centimeters and weights in kilograms. Handling flags show their interpretation and raw code; other category/status codes are preserved without guessing their meaning.
 
-Enter up to 250 comma/whitespace-separated CIDs and a date. Each CID/date pair is unique. Jobs become due at **07:00 JST**, independent of the server’s local timezone. Today’s jobs scheduled after 07:00 start on the next available worker tick.
+The update timeline lists changed fields with previous and current values. Every version has an expandable complete snapshot. Additional source columns are included automatically. Source JSON is available for the current version; the history API returns every saved version.
 
-When scheduling tomorrow or later (Japan time), each CID with no cached version also gets a check due immediately today, including before 07:00. The requested future check is retained. These initial checks share the existing queue and its 15-second spacing. An existing pending check for today is reused and brought forward if needed; repeated submissions do not create duplicate checks. The confirmation reports how many new countries have immediate checks, and the queue shows each job's actual due time.
+## Endpoints and verification
 
-`bin/www` starts the worker after GCS database readiness. It checks once per second and handles one due job at a time, waiting at least 15 seconds after the previous scheduled job finishes. Cache rules apply to scheduled jobs too. Pending jobs persist across restarts; overdue jobs catch up, and interrupted jobs recover after a short grace period. The server must be running for on-time execution.
+All routes require the app login. Uploads additionally require the session token from the page's `data-csrf` attribute in `X-CSRF-Token`.
 
-The queue displays pending, running, completed, failed, and cancelled states. Pending jobs can be cancelled. Rescheduling a failed/cancelled CID/date requeues it; a past date must instead be scheduled for today or later. Completed CID/date pairs are not requeued unless a future booking needs an immediate check for a CID whose cache no longer exists. Failed or cancelled initial checks can also be requeued by submitting the future booking again, preserving the cooldown from the last attempt.
+- `POST /japan-post/api/import` — multipart file field `csvFile`; returns `total`, `added`, `updated`, `unchanged`, and `checkedAt`.
+- `GET /japan-post/api/countries/:code` — raw saved `history`, newest first.
+- `GET /japan-post/countries/:code` — full country details and history.
 
-A MySQL connection-scoped advisory lock serializes fetches and schedule changes across app processes. Concurrent interactive requests receive a retryable busy response. A disconnected worker releases its lock automatically. The default Sequelize pool is sufficient (the worker uses one lock connection plus a database operation connection).
-
-## API and verification
-
-All endpoints require the existing app login. POST requests additionally need the session token from the page’s `data-csrf` attribute in `X-CSRF-Token`.
-
-- `POST /japan-post/api/fetch` — `{ "cid": 105 }`; returns `latest.data`, timestamps, `history`, `fromCache`, and `changed`.
-- `GET /japan-post/api/countries/:cid` — cache history, newest first; no fetch.
-- `GET /japan-post/api/schedules` — latest 500 jobs.
-- `POST /japan-post/api/schedules` — `{ "cids": "14,105", "date": "2026-11-02" }`.
-- `POST /japan-post/api/schedules/:id/cancel` — cancel a pending job.
-
-Run parser tests with `npm test -- --runTestsByPath tests/japanPost.test.js`. Database/HTTP/scheduler tests opt in with `JAPAN_POST_TEST_MYSQL_PORT`, pointing to a **disposable** MySQL server containing `gcs_japanpost_test`, with user `root` and an empty password. That suite recreates only its test tables and never loads `.env` or the application's database module:
+Targeted tests:
 
 ```sh
-JAPAN_POST_TEST_MYSQL_PORT=33309 npm test -- --runTestsByPath tests/japanPost.test.js tests/japanPostDatabase.test.js
+npm test -- --runTestsByPath tests/japanPost.test.js tests/japanPostBrowser.test.js
 ```
 
-Fixtures contain the relevant sections of the supplied Australia sample and the live Ireland download. For UI review, check Fetch and cached reuse, JSON, previous versions, changed-value highlighting, viewer filters, scheduling/cancellation, dark/light themes, and narrow screens.
+The database/HTTP suite opts in with `JAPAN_POST_TEST_MYSQL_PORT`. Use only a disposable MySQL server containing `gcs_japanpost_test` with user `root` and an empty password. The suite recreates its CSV cache table and never loads `.env` or the app database module:
+
+```sh
+JAPAN_POST_TEST_MYSQL_PORT=33309 npm test -- --runTestsByPath tests/japanPostDatabase.test.js
+```
+
+The fixture is the supplied 61-column export. Coverage includes all 255 countries, raw-value preservation, units/flags, repeated and changed imports, atomic rollback, concurrent imports, filters, rendered history, upload auth/CSRF, and retired endpoints. Review the upload, database and details pages in dark/light themes and on narrow screens.
