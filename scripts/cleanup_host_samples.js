@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const Sequelize = require('sequelize');
 
 const HostSampleModel = require('../models/host_sample');
+const { startJobDeadline } = require('../utils/jobDeadline');
 
 const DEFAULT_RETENTION_DAYS = 30;
 
@@ -27,6 +28,8 @@ function createSequelize() {
     host: process.env.DB_HOST,
     dialect: 'mysql',
     logging: false,
+    pool: { max: 1, min: 0, acquire: 10000 },
+    dialectOptions: { connectTimeout: 10000 },
   });
 }
 
@@ -57,7 +60,8 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+const clearDeadline = startJobDeadline('cleanup_host_samples', 300000);
+main().finally(clearDeadline).catch((err) => {
   console.error(new Date().toISOString(), 'cleanup failed', err);
   process.exit(1);
 });

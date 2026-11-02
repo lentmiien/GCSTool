@@ -19,6 +19,11 @@ LENTMIIEN_API_KEY=/*For Lentmiien API integrations*/
 HOSTNAME_OVERRIDE=
 PM2_BIN=
 HOST_SAMPLE_RETENTION_DAYS=30
+# Required only when using ecosystem.config.js. Size from measured process RSS,
+# other host services, and available RAM; see documentation/runtime-safety.md.
+PM2_APP_NAME=gcstool
+PM2_MAX_MEMORY_MB=
+PM2_HEAP_MB=
 # Optional workflow definition ID to exclude from history and all workflow analytics.
 # Leave blank for normal reporting; set to 2 in the live environment for the test workflow.
 TEST_WORKFLOW_ID=

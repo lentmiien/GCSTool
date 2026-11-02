@@ -8,9 +8,11 @@ const { execFile } = require('child_process');
 const Sequelize = require('sequelize');
 
 const HostSampleModel = require('../models/host_sample');
+const { startJobDeadline } = require('../utils/jobDeadline');
 
 const execFileP = util.promisify(execFile);
 const PM2_BIN = process.env.PM2_BIN || (process.platform === 'win32' ? 'pm2.cmd' : 'pm2');
+const COMMAND_OPTIONS = { timeout: 5000, killSignal: 'SIGKILL', maxBuffer: 1024 * 1024 };
 
 function kbToMb(kb) {
   return Math.round(kb / 1024);
@@ -38,6 +40,8 @@ function createSequelize() {
     host: process.env.DB_HOST,
     dialect: 'mysql',
     logging: false,
+    pool: { max: 1, min: 0, acquire: 10000 },
+    dialectOptions: { connectTimeout: 10000 },
   });
 }
 
@@ -86,7 +90,7 @@ async function readRootDisk() {
     };
   }
 
-  const { stdout } = await execFileP('df', ['-Pk', '/']);
+  const { stdout } = await execFileP('df', ['-Pk', '/'], COMMAND_OPTIONS);
   const lines = stdout.trim().split('\n');
   if (lines.length < 2) {
     throw new Error('Unexpected df output');
@@ -110,7 +114,7 @@ async function readNodeProcesses() {
       'node',
       '-o',
       'pid=,rss=,pcpu=,etime=,args=',
-    ]);
+    ], COMMAND_OPTIONS);
 
     return stdout
       .trim()
@@ -137,7 +141,7 @@ async function readNodeProcesses() {
 
 async function readPm2Processes() {
   try {
-    const { stdout } = await execFileP(PM2_BIN, ['jlist']);
+    const { stdout } = await execFileP(PM2_BIN, ['jlist'], COMMAND_OPTIONS);
     const list = JSON.parse(stdout);
 
     return list.map((processInfo) => ({
@@ -198,7 +202,8 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+const clearDeadline = startJobDeadline('collect_host_sample', 45000);
+main().finally(clearDeadline).catch((err) => {
   console.error(new Date().toISOString(), 'sample failed', err);
   process.exit(1);
 });

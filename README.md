@@ -216,16 +216,14 @@ On EC2 or similar hosts, cron usually has a minimal `PATH`. Use absolute paths f
 /home/ec2-user/.nvm/versions/node/v16.20.2/bin/pm2
 ```
 
-Example cron entries:
-
-```cron
-* * * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/collect_host_sample.js >> /home/ec2-user/GCSTool/temp/collect_host_sample.log 2>&1
-15 0 * * * /home/ec2-user/.nvm/versions/node/v16.20.2/bin/node /home/ec2-user/GCSTool/scripts/cleanup_host_samples.js >> /home/ec2-user/GCSTool/temp/cleanup_host_samples.log 2>&1
-```
-
-Test both commands manually on the host before enabling cron.
+Use the [cron examples with locks and deadlines](documentation/runtime-safety.md#prevent-overlapping-cron-jobs)
+to prevent stalled monitoring jobs from piling up. Test both commands manually
+on the host before enabling cron, and rotate their logs.
 
 ## Troubleshooting
+
+For PM2 memory limits, runtime diagnostics, non-overlapping monitoring jobs, and
+EC2 freeze investigation, see [runtime safety](documentation/runtime-safety.md).
 
 - **Cannot connect to DB:** Verify `.env`, schema existence, network access, and MySQL privileges. The app needs permission to create expected tables because `sequelize.sync()` runs on startup; the DHL compensation schema helper can also add expected PDF columns.
 - **Cannot log in:** Ensure `SESSION_SECRET` is set, the `sessions` table exists, and at least one user exists. Run `npm run seed` for a first admin.

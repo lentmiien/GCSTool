@@ -3,7 +3,11 @@
 /**
  * Module dependencies.
  */
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+if (!process.env.SESSION_SECRET || !process.env.SESSION_SECRET.trim()) {
+  throw new Error('SESSION_SECRET is required. Set it in the project .env file or process environment before starting GCSTool.');
+}
+require('../utils/runtimeDiagnostics').startRuntimeDiagnostics();
 
 var {app, sessionMiddleware} = require('../app');
 var debug = require('debug')('gcstool:server');

@@ -4,8 +4,14 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-11-01',
+    updateDate: '2026-11-02',
     items: [
+      item('Runtime stability and monitoring', [
+        item('Added periodic process-memory and event-loop diagnostics to help investigate resource pressure and freezes'),
+        item('Added configurable PM2 memory restart and heap limits, restart delays, and deployment guidance for host memory protection'),
+        item('Bounded host-monitoring job runtimes, subprocess execution, and database connection pools, with documented cron overlap protection'),
+        item('Loaded environment settings from the project directory regardless of the startup working directory and added an early check for a missing session secret'),
+      ]),
       item('Policy, manual & template library', [
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),
         item('Templates - Split a leading title or subject line from the body in previews, supporting common English and Japanese labels with either colon style and optional spacing, separate copy buttons, and preserved single line breaks'),
