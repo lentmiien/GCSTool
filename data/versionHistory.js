@@ -26,6 +26,10 @@ module.exports = [
         item('Added a country details page with all saved CSV fields, interpreted shipping availability, and a history of field changes'),
         item('Retired the previous CID fetch and scheduled HTML-check workflow'),
       ]),
+      item('Japan Post shipping rates', [
+        item('Added full-chart CSV imports to /shipcost, selecting current zone columns and validating variable weight brackets and zone counts'),
+        item('Added complete rate-chart history with comparisons for changed rates, weight rows, and zones; identical uploads leave the saved chart unchanged'),
+      ]),
       item('Workflows', [
         item('Added linear workflows with ordered tasks, assigned staff, single-comment handovers, completion and return steps, unique run links, and administrator cancellation'),
         item('Added manual and scheduled starts with daily, weekday, monthly, and quarterly recurrence, plus required and custom run variables'),

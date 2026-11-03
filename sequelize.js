@@ -14,6 +14,7 @@ const IrelandTaricJobModel = require('./models/irelandtaricjob');
 const IrelandTaricExplanationModel = require('./models/irelandtaricexplanation');
 const IrelandWorkSummaryModel = require('./models/irelandworksummary');
 const ShipcostModel = require('./models/shipcost');
+const ShipcostChartModel = require('./models/shipcostChart');
 const ChatmsgModel = require('./models/chatmsg');
 const MeetingModel = require('./models/meeting');
 const MeetingCommentModel = require('./models/meeting_comment');
@@ -97,6 +98,7 @@ const IrelandTaricJob = IrelandTaricJobModel(sequelize, Sequelize);
 const IrelandTaricExplanation = IrelandTaricExplanationModel(sequelize, Sequelize);
 const IrelandWorkSummary = IrelandWorkSummaryModel(sequelize, Sequelize);
 const Shipcost = ShipcostModel(sequelize, Sequelize);
+const ShipcostChart = ShipcostChartModel(sequelize, Sequelize);
 const Chatmsg = ChatmsgModel(sequelize, Sequelize);
 const Meeting = MeetingModel(sequelize, Sequelize);
 const MeetingComment = MeetingCommentModel(sequelize, Sequelize);
@@ -406,6 +408,7 @@ module.exports = {
   IrelandTaricExplanation,
   IrelandWorkSummary,
   Shipcost,
+  ShipcostChart,
   Chatmsg,
   Meeting,
   MeetingComment,

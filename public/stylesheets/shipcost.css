@@ -1,0 +1,11 @@
+.rate-import { margin: 1.5rem 0; padding: 1.25rem; border: 1px solid #687b89; border-radius: .5rem; }
+.rate-scroll { overflow-x: auto; }
+.rate-history summary { cursor: pointer; padding: .8rem 0; }
+.rate-history { border-bottom: 1px solid #687b89; margin-bottom: 1rem; }
+.rate-history .rate-changed { background: #fff0ba; color: #4c3500; }
+.rate-history .rate-added { background: #d9f3df; color: #164d25; }
+html[data-color-mode='dark'] .rate-history .rate-changed { background: #5a471b; color: #fff0b6; }
+html[data-color-mode='dark'] .rate-history .rate-added { background: #1d493b; color: #d1f8e2; }
+.rate-paste summary { cursor: pointer; padding: .75rem 0; }
+.rate-import .btn { margin-bottom: .35rem; }
+.rate-history summary { overflow-wrap: anywhere; }

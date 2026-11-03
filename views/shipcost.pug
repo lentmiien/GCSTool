@@ -1,9 +1,19 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/stylesheets/shipcost.css')
+
 block content
   .row
     .col
       h1 Shipping cost manager
+  include shipcost_import
+  if online
+    p.alert.alert-info These are website rates for manual review. Saved rates change only when you select Update database.
+  else if !Object.keys(output).length
+    p No saved rate charts yet. Upload a Japan Post CSV above.
+  else
+    p Showing saved database rates. Editing a chart and selecting Update database saves a complete version.
   .row 
     .col  
       hr
@@ -68,7 +78,7 @@ block content
         option(value="Chinese") Chinese 
   .row 
     .col 
-      h3 5 zones (Small packet)
+      h3 Small packet
       div 
         input#asp_u.smallpacket(type="checkbox", value="Air small packet unregistered", disabled=output["Air small packet unregistered"] ? false : true)
         | Air small packet unregistered
@@ -83,7 +93,7 @@ block content
         | SAL small packet registered
       button.btn.btn-primary(onclick="Charts('smallpacket','_5zones')") Zendesk small packet chart
     .col 
-      h2 5 zones (Parcel)
+      h2 Parcel & EMS
       div 
         input#ap.parcel(type="checkbox", value="Air parcel", disabled=output["Air parcel"] ? false : true)
         | Air parcel
@@ -119,8 +129,9 @@ block content
       each method, x in methods 
         h2= method
         label(for=`updatedate${x}`) Update date
-        input(id=`updatedate${x}`, type="date")
-        button.btn.btn-outline-secondary(type='button', onclick=`UpdateDatabase(${x},"${method}")`) Update database
+        input(id=`updatedate${x}`, type='date', value=rateToday.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'))
+        button.btn.btn-outline-secondary(type='button', data-rate-save, onclick=`UpdateDatabase(${x},"${method}")`) Update database
+        a.ml-3(href='/shipcost/history?method=' + encodeURIComponent(method)) History and changes
         - const zones = Object.keys(output[method])
         table.table.table-striped.table-dark.table-bordered
           thead 
@@ -139,25 +150,29 @@ block content
                       .col
                         span= output[method][zone][i].before_cost
                       .col
-                        input.form-control(class=`group${x}${output[method][zone][i].current_cost != output[method][zone][i].before_cost ? " cost-change" : ""}`, value=output[method][zone][i].current_cost, data-previous=output[method][zone][i].before_cost, onchange="ManualUpdate(this)", data-weight=output[method][zones[0]][i].uptoweight_g, data-zone=zone)
+                        input.form-control(class=`group${x}${output[method][zone][i].current_cost != output[method][zone][i].before_cost ? " cost-change" : ""}`, value=output[method][zone][i].current_cost, data-previous=output[method][zone][i].before_cost, onchange="ManualUpdate(this)", data-weight=output[method][zones[0]][i].uptoweight_g, data-zone=zone, data-method=method)
               - i++
-  .dataloader
+  details.rate-paste.mt-4.mb-4
+    summary Paste values into the rate editor
+    p Fill matching weight/zone cells, then use Update database on that method to save the complete chart.
+    label(for='dataloader_select') Shipping method
     select#dataloader_select.form-control
-      option(value="0") Air small packet unregistered
-      option(value="1") SAL small packet unregistered
-      option(value="2") SAL small packet registered
-      option(value="3") Air parcel
-      option(value="4") Surface parcel
-      option(value="5") SAL parcel
-      option(value="6") EMS
-      option(value="7") Air small packet registered
-      option(value="8") DHL
-      option(value="9") Surface mail premium
+      option(value="Air small packet unregistered") Air small packet unregistered
+      option(value="SAL small packet unregistered") SAL small packet unregistered
+      option(value="SAL small packet registered") SAL small packet registered
+      option(value="Air parcel") Air parcel
+      option(value="Surface parcel") Surface parcel
+      option(value="SAL parcel") SAL parcel
+      option(value="EMS") EMS
+      option(value="Air small packet registered") Air small packet registered
+      option(value="DHL") DHL
+      option(value="Surface mail premium") Surface mail premium
+    label.mt-2(for='dataloader_input') CSV or tab-separated values
     textarea#dataloader_input.form-control(placeholder="Weight,zone1,zone2\n500,123,456\n1000,789,1012")
     button.btn.btn-primary(style="width:100%;", onclick="Dataloader()") Update
 
-  pre#zones= JSON.stringify(zone_labels)
-  pre#data= JSON.stringify(output)
+  pre#zones(hidden)= JSON.stringify(zone_labels)
+  pre#data(hidden)= JSON.stringify(output)
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/shipcost.js', defer)

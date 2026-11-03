@@ -1,5 +1,5 @@
-const zones = JSON.parse(document.getElementById("zones").innerHTML);
-const data = JSON.parse(document.getElementById("data").innerHTML);
+const zones = JSON.parse(document.getElementById("zones").textContent);
+const data = JSON.parse(document.getElementById("data").textContent);
 
 const labels = {
   Weight: {
@@ -52,16 +52,20 @@ function Charts(group, type) {
   }
   let top_links = "";
   let output = "";
-  zones[type].forEach((z, i) => {
+  if (!method_arr.length) { alert('Select at least one shipping method.'); return; }
+  const chartZones = [...new Set(method_arr.flatMap(method => Object.keys(data[method])))].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  const standardZones = chartZones.length === zones[type].length && chartZones.every((zone, i) => zone === `zone${i + 1}`)
+    && method_arr.every(method => Object.keys(data[method]).length === chartZones.length);
+  chartZones.forEach((zone, i) => {
+    const z = standardZones ? zones[type][i] : zone;
     top_links += `<a href="#zone${i+1}">${z}</a><br>`;
-    const zone = `zone${i+1}`;
     output += `<hr id="zone${i+1}"><h2>${z}</h2>`;
     output += `<table class="wysiwyg-text-align-center" style="width:100%;"><tr style="background-color:#CCC;"><th>${labels["Weight"][language]}</th><th>${method_arr.join('</th><th>')}</th></tr>`;
     
     const output_data_array = [];
     const output_data_array_lookup = [];
     method_arr.forEach(ma => {
-      for (let x = 0; x < data[ma][zone].length; x++) {
+      for (let x = 0; x < (data[ma][zone] || []).length; x++) {
         const index = output_data_array_lookup.indexOf(data[ma][zone][x].uptoweight_g);
         if (index == -1) {
           if (data[ma][zone][x].uptoweight_g >= lowlimit && data[ma][zone][x].uptoweight_g <= highlimit) {
@@ -151,7 +155,7 @@ function ManualUpdate(element) {
 
 function UpdateDatabase(index, method) {
   const date = document.getElementById(`updatedate${index}`).value;
-  const d = new Date(date);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('Choose an update date.'); return; }
   const inputs = document .getElementsByClassName(`group${index}`);
 
   const value_arr = [];
@@ -159,8 +163,8 @@ function UpdateDatabase(index, method) {
     value_arr.push({
       uptoweight_g: parseInt(inputs[i].dataset.weight),
       method: method,
-      cost: parseInt(inputs[i].value),
-      costdate: d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(),
+      cost: inputs[i].value,
+      costdate: Number(date.replace(/-/g, '')),
       zone: inputs[i].dataset.zone
     });
   }
@@ -169,7 +173,8 @@ function UpdateDatabase(index, method) {
   fetch('/shipcost/savetodb', {
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.getElementById('rate-import-form').dataset.csrf
     },
     method: "POST",
     body: JSON.stringify({method, data_array: value_arr})
@@ -178,8 +183,9 @@ function UpdateDatabase(index, method) {
     return response.json();
   })
   .then((myJson) => {
-    alert(myJson.status);
-  });
+    alert(myJson.error || myJson.status);
+    if (!myJson.error) window.location.assign('/shipcost');
+  }).catch(() => { alert('Unable to save the chart. Please try again.'); });
 }
 
 function Dataloader() {
@@ -187,8 +193,7 @@ function Dataloader() {
   const dataloader_input = document.getElementById("dataloader_input");
 
   // Get inputs
-  const class_selector = `group${dataloader_select.value}`;
-  const inputs = document.getElementsByClassName(class_selector);
+  const inputs = [...document.querySelectorAll('input[data-method]')].filter(input => input.dataset.method === dataloader_select.value);
 
   // Get new values
   const raw_data = dataloader_input.value;

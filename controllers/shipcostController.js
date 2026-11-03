@@ -1,48 +1,97 @@
 // Packages
 const fs = require("fs");
-const parseString = require('xml2js').parseString;
 const cheerio = require('cheerio');
 const axios = require('axios').default;
 
 // Database
-const { Shipcost } = require('../sequelize');
+const service = require('../services/shipcost').createService(require('../sequelize'));
+const { select, toRows } = require('../public/javascripts/shipcost-chart');
+const { methods, MAX_BYTES, fail } = require('../utils/japanPostRatesCsv');
+const { today } = require('../services/shipcost');
+const { randomBytes, timingSafeEqual } = require('crypto');
 
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
 //---------------------------------------------//
 
-exports.index = async (req, res) => {
-  // Zone labels
-  const zone_labels = {
-    _4zones: [
-      "First Zone; Asia",
-      "Second Zone; Oceania, Canada, Central America, Middle East, Europe",
-      "Third Zone; South America and Africa",
-      "Fourth Zone; The United States (including overseas territories like Guam)"
-    ],
-    _5zones: [
-      "First Zone; China, South Korea, Taiwan",
-      "Second Zone; Asia (excluding China, South Korea, Taiwan)",
-      "Third Zone; Oceania, North America (excluding the U.S.), Middle East, Europe",
-      "Fourth Zone; U.S. (including Guam and other U.S. territories)",
-      "Fifth Zone; Central and South America (excluding Mexico), Africa"
-    ],
-    _dhlzones: [
-      "First-Third Zone; Asia",
-      "Fourth Zone; India, Australia",
-      "Fifth Zone; North America, Mexico",
-      "Sixth Zone; Europe",
-      "Seventh Zone; Russia, Ukraine",
-      "Eight Zone; South America",
-      "Nineth Zone; Africa, Middle East"
-    ],
-    _usaonly: [
-      "The United States"
-    ]
-  };
+const zoneLabels = {
+  _4zones: [
+    'First Zone; Asia',
+    'Second Zone; Oceania, Canada, Central America, Middle East, Europe',
+    'Third Zone; South America and Africa',
+    'Fourth Zone; The United States (including overseas territories like Guam)'
+  ],
+  _5zones: [
+    'First Zone; China, South Korea, Taiwan',
+    'Second Zone; Asia (excluding China, South Korea, Taiwan)',
+    'Third Zone; Oceania, North America (excluding the U.S.), Middle East, Europe',
+    'Fourth Zone; U.S. (including Guam and other U.S. territories)',
+    'Fifth Zone; Central and South America (excluding Mexico), Africa'
+  ],
+  _dhlzones: [
+    'First-Third Zone; Asia',
+    'Fourth Zone; India, Australia',
+    'Fifth Zone; North America, Mexico',
+    'Sixth Zone; Europe',
+    'Seventh Zone; Russia, Ukraine',
+    'Eight Zone; South America',
+    'Nineth Zone; Africa, Middle East'
+  ],
+  _usaonly: [
+    'The United States'
+  ]
+};
 
+const handle = action => async (req, res, next) => {
+  try { await action(req, res); }
+  catch (error) {
+    if (req.method === 'POST') return res.status(error.status || 503).json({ error: error.status ? error.message : 'Unable to save rates. Please try again later.' });
+    next(error);
+  }
+};
+exports.prepare = (req, res, next) => {
+  res.set('Cache-Control', 'private, no-store');
+  if (!req.user) return res.status(401).json({ error: 'Sign in to manage shipping rates.' });
+  if (!req.session.shipcostCsrf) req.session.shipcostCsrf = randomBytes(32).toString('hex');
+  if (req.method === 'POST') {
+    const token = req.get('X-CSRF-Token') || '';
+    const expected = req.session.shipcostCsrf;
+    if (Buffer.byteLength(token) !== Buffer.byteLength(expected) || !timingSafeEqual(Buffer.from(token), Buffer.from(expected))) {
+      return res.status(403).json({ error: 'This page has expired. Reload and try again.' });
+    }
+  }
+  Object.assign(res.locals, { shipcostCsrf: req.session.shipcostCsrf, importMethods: methods, rateToday: String(today()), online: false });
+  next();
+};
+exports.index = handle(async (req, res) => {
+  const { rows, versions } = await service.data();
+  const current = select(rows, versions);
+  const output = {};
+  for (const [method, { chart }] of Object.entries(current)) {
+    output[method] = {};
+    for (const row of toRows(chart, method)) {
+      if (!output[method][row.zone]) output[method][row.zone] = [];
+      output[method][row.zone].push({ uptoweight_g: row.uptoweight_g, before_cost: row.cost, current_cost: row.cost });
+    }
+  }
+  res.render('shipcost', { zone_labels: zoneLabels, output });
+});
+exports.importCsv = handle(async (req, res) => {
+  const file = req.files && req.files.csvFile;
+  if (!file || Array.isArray(file) || Object.keys(req.files).length !== 1) fail('Choose one CSV file.');
+  if (file.truncated || file.size > MAX_BYTES) fail('The CSV file must be 1 MB or smaller.', 413);
+  if (!/\.csv$/i.test(file.name)) fail('Choose a file with the .csv extension.');
+  res.json(await service.importCsv(file.data, req.body.method, file.name));
+});
+exports.history = handle(async (req, res) => {
+  const method = req.query.method || 'EMS';
+  res.render('shipcost_history', { method, history: await service.history(method) });
+});
+exports.online = handle(async (req, res) => {
+  const zone_labels = zoneLabels;
   // Load database data
-  const current_data = await Shipcost.findAll();
+  const stored = await service.data();
+  const current_data = Object.entries(select(stored.rows, stored.versions)).flatMap(([method, value]) => toRows(value.chart, method, value.costdate));
 
   // Load online data
   const charts = {};
@@ -288,8 +337,8 @@ exports.index = async (req, res) => {
     })
   });
 
-  res.render('shipcost', {zone_labels, current_data, charts, output});
-};
+  res.render('shipcost', {zone_labels, current_data, charts, output, online: true});
+});
 
 async function GetJPChart(link, table_id_array) {
   const output = [];
@@ -381,71 +430,12 @@ Fifth Zone (Central and South America (excluding Mexico), Africa)
 https://www.post.japanpost.jp/int/charge/list/ems5_en.html
 */
 
-exports.upload = async (req, res) => {
-  // POST request
-  // body: {method, data_array} *data_array is array of entries of same format as DB
-  // load DB data
-  const current_data = await Shipcost.findAll({where:{method:req.body.method}});
-  // loop through input array and put updated data entries in a save_array
-  const save_array = [];
-  req.body.data_array.forEach(e => {
-    const current_values = {
-      // uptoweight_g: type.INTEGER,
-      // method: type.STRING,
-      cost: 0,
-      costdate: 0,
-      // zone: type.STRING
-    };
-    for (let i = 0; i < current_data.length; i++) {
-      if (e.uptoweight_g == current_data[i].uptoweight_g && e.zone == current_data[i].zone) {
-        if (current_values.costdate < current_data[i].costdate) {
-          current_values.cost = current_data[i].cost;
-          current_values.costdate = current_data[i].costdate;
-        }
-      }
-    }
-    if (current_values.cost != e.cost) {
-      save_array.push(e);
-    }
-  });
-  // save save_array to DB
-  await Shipcost.bulkCreate(save_array);
+exports.upload = handle(async (req, res) => {
+  const result = await service.saveManual(req.body.method, req.body.data_array);
+  res.json({ ...result, status: result.unchanged ? 'Chart unchanged; no new version saved.' : `Saved a full chart (${result.rows} weights × ${result.columns} zones).` });
+});
 
-  res.json({status: `Saved ${save_array.length} entries`});
-};
-
-exports.view = async (req, res) => {
-  // Zone labels
-  const zone_labels = {
-    _4zones: [
-      "Asia",
-      "Oceania, Canada, Central America, Middle East, Europe",
-      "South America and Africa",
-      "The United States (including overseas territories like Guam)"
-    ],
-    _5zones: [
-      "China, South Korea, Taiwan",
-      "Asia (excluding China, South Korea, Taiwan)",
-      "Oceania, North America (excluding the U.S.), Middle East, Europe",
-      "U.S. (including Guam and other U.S. territories)",
-      "Central and South America (excluding Mexico), Africa"
-    ],
-    _dhlzones: [
-      "Asia",
-      "India, Australia",
-      "North America, Mexico",
-      "Europe",
-      "Russia, Ukraine",
-      "South America",
-      "Africa, Middle East"
-    ],
-    _usaonly: [
-      "The United States"
-    ]
-  };
-
-  // Load database data
-  const current_data = await Shipcost.findAll();
-
-  res.render('shipcostview', {labels: zone_labels, data: current_data});
-};
+exports.view = handle(async (req, res) => {
+  const { rows, versions } = await service.data();
+  res.render('shipcostview', { labels: zoneLabels, data: rows, versions });
+});

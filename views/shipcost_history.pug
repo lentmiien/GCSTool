@@ -1,0 +1,56 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/shipcost.css')
+
+block content
+  h1 Shipping chart history
+  a.btn.btn-outline-primary.mb-3(href='/shipcost') Shipping cost manager
+  form.mb-3(method='get', action='/shipcost/history')
+    label(for='history-method') Shipping method
+    select#history-method.form-control(name='method')
+      each item in [...importMethods, 'DHL', 'Surface mail premium']
+        option(value=item, selected=item === method)= item
+    button.btn.btn-primary.mt-2(type='submit') Show history
+  h2= method
+  p Each version holds a complete chart. Highlighted cells show changed rates or added rows/columns compared with the previous version. Dates use Japan time; the most recently saved version wins for same-day updates.
+  if !history.length
+    p No saved rates for this method yet.
+  each version, index in history
+    details.rate-history(open=index === 0)
+      summary
+        strong= `${index === 0 ? 'Current · ' : ''}${String(version.costdate).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')} · ${version.sourceName}`
+        | #{' '}— #{version.chart.weights.length} weights × #{version.chart.zones.length} zones
+        if version.id
+          | #{' '}· Version ##{version.id}
+      if version.createdAt
+        p= `Saved: ${new Date(version.createdAt).toLocaleString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false })} JST`
+      if version.changes
+        - const changes = version.changes
+        p= `Rows added: ${changes.addedRows.join(', ') || 'none'}; removed: ${changes.removedRows.join(', ') || 'none'} (g).`
+        p= `Columns added: ${changes.addedColumns.join(', ') || 'none'}; removed: ${changes.removedColumns.join(', ') || 'none'}; renamed: ${changes.renamedColumns.join(', ') || 'none'}.`
+        p= `${changes.cells.length} existing rate cells changed.`
+      if version.sourceHeaders.length
+        details
+          summary Source columns
+          p= version.sourceHeaders.join(' / ')
+      .rate-scroll
+        table.table.table-bordered.table-striped
+          thead
+            tr
+              th(scope='col') Up to (g)
+              each zone in version.chart.zones
+                th(scope='col')= zone.label
+          tbody
+            each weight, i in version.chart.weights
+              tr
+                th(scope='row')= weight
+                each zone, j in version.chart.zones
+                  - const change = version.changes && version.changes.cells.find(cell => cell.weight === weight && cell.zone === zone.key)
+                  - const added = version.changes && (version.changes.addedRows.includes(weight) || version.changes.addedColumns.includes(zone.key))
+                  td(class=change ? 'rate-changed' : added ? 'rate-added' : '')
+                    if change
+                      del.mr-2= change.before == null ? '—' : change.before
+                      strong= version.chart.rates[i][j]
+                    else
+                      = version.chart.rates[i][j] == null ? '—' : version.chart.rates[i][j]

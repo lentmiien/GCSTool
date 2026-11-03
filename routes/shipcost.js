@@ -9,7 +9,11 @@ var controller = require('../controllers/shipcostController');
 // router.method(path, controller.endpoint); //
 //-------------------------------------------//
 
+router.use(controller.prepare);
 router.get('/', controller.index);
+router.get('/online', controller.online);
+router.get('/history', controller.history);
+router.post('/api/import', controller.importCsv);
 
 router.post('/savetodb', controller.upload);
 

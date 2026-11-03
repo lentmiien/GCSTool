@@ -1,0 +1,27 @@
+section.rate-import(aria-labelledby='rate-import-heading')
+  h2#rate-import-heading Import Japan Post rates
+  p Upload one complete chart per shipping method. Rates are in JPY and weight limits are in grams. New charts take effect today (Japan time).
+  p The importer uses the 新_ columns when present and ignores the legacy zone columns. Identical charts are kept; changes save a complete new version, including added or removed weights and zones.
+  form#rate-import-form(data-csrf=shipcostCsrf)
+    .form-row
+      .form-group.col-md-4
+        label(for='rate-method') Shipping method
+        select#rate-method.form-control(name='method')
+          each method in importMethods
+            option(value=method)= method
+      .form-group.col-md-6
+        label(for='rate-file') Japan Post CSV (UTF-8, up to 1 MB)
+        input#rate-file.form-control-file(type='file', name='csvFile', accept='.csv,text/csv', required)
+      .form-group.col-md-2.align-self-end
+        button.btn.btn-primary(type='submit') Import full chart
+  p.small Choose the method that matches the file. For registered small packets, upload rates that already include registration; the importer adds no fees. Upload a full chart, not a partial update.
+  p#rate-import-status(role='status', aria-live='polite')
+  a#rate-refresh.btn.btn-outline-primary(href='/shipcost', hidden) Show saved charts
+  .mt-3
+    a.btn.btn-outline-primary.mr-2(href='/shipcost/view') View saved rates / download CSV
+    a.btn.btn-outline-primary.mr-2(href='/shipcost/history?method=EMS') Chart history
+    if online
+      a.btn.btn-outline-primary(href='/shipcost') Back to saved charts
+    else
+      a.btn.btn-outline-secondary(href='/shipcost/online') Load website rates for manual review
+script(src='/javascripts/shipcost-import.js', defer)

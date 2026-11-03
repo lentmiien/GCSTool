@@ -4,10 +4,11 @@ block content
   .row
     .col
       h1 Shipping cost tables
+      a.btn.btn-outline-primary.mb-3(href='/shipcost') Import / manage rates
   .row 
     .col 
-      - const d = new Date();
-      input#table_date.form-control(type="date", value=`${d.getFullYear()}-${d.getMonth() > 8 ? d.getMonth()+1 : '0' + (d.getMonth()+1)}-${d.getDate() > 9 ? d.getDate(): '0' + d.getDate()}`)
+      label(for='table_date') Rates as of (Japan date)
+      input#table_date.form-control(type='date', value=rateToday.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'))
       button.btn.btn-primary.m-3(onclick="GenerateTables()") Update
       button.btn.btn-primary.m-3(onclick="DownloadCSV()") Download CSV
   .row 
@@ -17,6 +18,8 @@ block content
 
   pre#labels.hidden= JSON.stringify(labels)
   pre#data.hidden= JSON.stringify(data)
+  pre#versions.hidden= JSON.stringify(versions)
 
   script(src='/javascripts/FileSaver.js', defer)
+  script(src='/javascripts/shipcost-chart.js', defer)
   script(src='/javascripts/shipcostview.js', defer)
