@@ -117,6 +117,7 @@ const DailyTaskAssignment = DailyTaskAssignmentModel(sequelize, Sequelize);
 const JapanPostCache = JapanPostCacheModel(sequelize, Sequelize);
 const JapanPostSchedule = JapanPostScheduleModel(sequelize, Sequelize);
 const JapanPostCsvCache = JapanPostCsvCacheModel(sequelize, Sequelize);
+const countryManagerModels = require('./models/countryManager')(sequelize, Sequelize);
 const DHLCompensationEntry = DHLCompensationEntryModel(sequelize_dhl_compensation, Sequelize);
 // Attach DB to model: Tracker
 const Country = CountryModel(sequelize_tracker, Sequelize);
@@ -386,6 +387,7 @@ sequelize_dhl_compensation.sync()
 
 // Export models
 module.exports = {
+  ...countryManagerModels,
   JapanPostCache,
   JapanPostSchedule,
   JapanPostCsvCache,

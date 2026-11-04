@@ -1,0 +1,98 @@
+mixin availabilitySelect(name, value)
+  select.form-control(name=name, required)
+    option(value='unknown', selected=value == null) Unknown
+    option(value='1', selected=value === true) Available
+    option(value='0', selected=value === false) Unavailable
+
+mixin hiddenEdit(source, action, countryCode, method)
+  input(type='hidden', name='revision', value=revision)
+  input(type='hidden', name='action', value=action)
+  if countryCode !== undefined
+    input(type='hidden', name='countryCode', value=countryCode)
+  if method
+    input(type='hidden', name='method', value=method)
+
+mixin removeEntry(source, row)
+  form.cm-edit(action=`/country/api/${source}/save`, method='post', data-confirm=source === 'exceptions' ? 'Remove this exception and return to source availability?' : 'Remove this entry? Its previous versions will remain in history.')
+    +hiddenEdit(source, 'delete', row.countryCode, row.method)
+    button.btn.btn-sm.btn-outline-danger(type='submit') Remove
+
+mixin sourceEditor(source, row)
+  - const entry = row || {}
+  form.cm-edit.cm-editor(action=`/country/api/${source}/save`, method='post')
+    +hiddenEdit(source, 'save')
+    label
+      span Internal country code
+      input.form-control(name='countryCode', value=entry.countryCode, required, maxlength='100', pattern='(?:[A-Za-z0-9_.]|-)+', readonly=!!row, list=(source === 'mappings' || source === 'exceptions') ? 'cm-countries' : undefined)
+    if source === 'website' || source === 'internal'
+      label
+        span Country name
+        input.form-control(name='countryName', value=entry.countryName, required, maxlength='255')
+    if source === 'internal'
+      label
+        span Japanese name (optional)
+        input.form-control(name='countryNameJ', value=entry.countryNameJ, maxlength='255')
+      each method in ['DHL', 'AIT', 'ECMS']
+        label
+          span= method
+          +availabilitySelect(method, entry[method])
+    if source === 'mappings'
+      label.cm-wide
+        span Japan Post country
+        input.form-control(name='jpCode', value=entry.jpCode, list='cm-jp-countries', required, minlength='2', maxlength='2', placeholder='Two-letter code')
+    if source === 'exceptions'
+      label
+        span Shipping method
+        if row
+          input(type='hidden', name='method', value=entry.method)
+        select.form-control(name=row ? undefined : 'method', required, disabled=!!row)
+          each method in methods
+            option(value=method.key, selected=entry.method === method.key)= method.label
+      label
+        span Exception
+        select.form-control(name='enabled', required)
+          option(value='0', selected=entry.enabled !== true) Disable
+          option(value='1', selected=entry.enabled === true) Enable
+      label.cm-wide
+        span Reason (required)
+        input.form-control(name='reason', value=entry.reason, required, maxlength='255')
+    button.btn.btn-primary(type='submit')= row ? 'Save changes' : 'Add / update'
+
+mixin historyEvents(events)
+  if !events.length
+    p.app-empty-state No recorded updates.
+  each event in events
+    details.cm-history-event
+      summary
+        strong= `${formatDate(event.recordedAt)} · ${event.source}`
+        span= ` · ${event.changes.length} changed entries · ${event.note}`
+      p.text-muted= `Recorded by ${event.actor}`
+      a.btn.btn-sm.btn-outline-primary(href=`/country?at=${encodeURIComponent(new Date(event.recordedAt).toISOString())}`) View availability at this time
+      .table-responsive
+        table.table.table-sm
+          thead
+            tr
+              th Code
+              th Method
+              th Change
+              th Field
+              th Before
+              th After
+          tbody
+            each change in event.changes
+              each field in change.fields
+                tr
+                  td= change.countryCode
+                  td= change.method ? (methods.find(method => method.key === change.method) || {}).label || change.method : '—'
+                  td= change.action
+                  th(scope='row')= field.field
+                  td.cm-wrap= displayValue(field.before)
+                  td.cm-wrap= displayValue(field.after)
+
+mixin historyPages(base)
+  nav.cm-filters(aria-label='History pages')
+    span= `${total} updates · Page ${page} of ${pages}`
+    if page > 1
+      a.btn.btn-outline-secondary(href=`${base}&page=${page - 1}`) Newer
+    if page < pages
+      a.btn.btn-outline-secondary(href=`${base}&page=${page + 1}`) Older

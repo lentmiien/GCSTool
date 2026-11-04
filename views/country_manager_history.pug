@@ -1,0 +1,22 @@
+extends layout
+include country_manager_mixins
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/country-manager.css')
+
+block content
+  header.app-page-header
+    div
+      p.app-page-kicker Country manager
+      h1 Recorded updates
+      p Website, internal, mapping and exception versions, together with Japan Post limits history. Dates are observation times in Japan time, not carrier publication dates.
+    a.btn.btn-outline-secondary(href='/country') Current availability
+  form.cm-filters(method='get')
+    label
+      span Internal country code (exact)
+      input.form-control(name='countryCode', value=countryCode)
+    button.btn.btn-outline-primary(type='submit') Filter
+    a.btn.btn-outline-secondary(href='/country/history') All updates
+  p.text-muted Earlier website state cannot be recovered from the old overwritten list. The initial baseline records the latest legacy website/internal values; legacy tables remain intact.
+  +historyEvents(events)
+  +historyPages(`/country/history?countryCode=${encodeURIComponent(countryCode)}`)

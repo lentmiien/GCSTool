@@ -1,0 +1,34 @@
+#country-manager { --cm-border: #c4ced8; --cm-exception: #926400; }
+html[data-color-mode='dark'] #country-manager { --cm-border: #405464; --cm-exception: #e0b451; }
+.cm-exceptions { border-left: 4px solid var(--cm-exception) !important; }
+.cm-exceptions table { min-width: 760px; }
+.cm-exceptions .cm-wrap { min-width: 240px; }
+.cm-status:empty { display: none; }
+.cm-status { position: sticky; top: 1rem; z-index: 5; }
+.cm-filters, .cm-editor, .cm-import { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; margin: 1rem 0; }
+.cm-editor { min-width: 270px; }
+.cm-editor label, .cm-filters label, .cm-import label { margin: 0; flex: 1 1 160px; }
+.cm-editor label span, .cm-filters label span, .cm-import label span { display: block; margin-bottom: .35rem; }
+.cm-editor .cm-wide { flex-basis: 100%; }
+.cm-health { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 1rem 0; }
+.cm-matrix { max-height: 70vh; }
+.cm-matrix th { min-width: 110px; }
+.cm-matrix th:first-child { min-width: 180px; }
+.cm-matrix thead th { position: sticky; top: 0; background: #edf2f6; z-index: 1; }
+.cm-matrix tr > th:first-child { position: sticky; left: 0; background: #edf2f6; z-index: 1; }
+.cm-matrix thead tr > th:first-child { z-index: 2; }
+html[data-color-mode='dark'] .cm-matrix thead th { background: #172630; color: #ebf2f8; }
+html[data-color-mode='dark'] .cm-matrix tr > th:first-child { background: #172630; }
+.cm-badge { display: inline-block; border-radius: .25rem; padding: .2rem .4rem; font-size: .85rem; white-space: nowrap; }
+.cm-available { color: #145b38; background: #e0f5e9; }
+.cm-unavailable { color: #942e30; background: #fce7e7; }
+.cm-unknown { color: #48535d; background: #e9eef2; }
+html[data-color-mode='dark'] .cm-available { color: #a3edc4; background: #163c2b; }
+html[data-color-mode='dark'] .cm-unavailable { color: #ffb7ba; background: #48262e; }
+html[data-color-mode='dark'] .cm-unknown { color: #d1dce6; background: #2d3b47; }
+.cm-source, .cm-history-event { padding: 1rem 0; border-bottom: 1px solid #7d8d9a66; }
+.cm-source > summary, .cm-history-event > summary { margin-bottom: .75rem; }
+.cm-add { margin: 1rem 0; }
+.cm-wrap { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 600px; }
+.cm-edit + .cm-edit { margin-top: .5rem; }
+#country-manager summary, .cm-history-event summary { cursor: pointer; }

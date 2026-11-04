@@ -1,0 +1,52 @@
+extends layout
+include country_manager_mixins
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/country-manager.css')
+
+block content
+  header.app-page-header
+    div
+      p.app-page-kicker Country availability
+      h1= `${country.countryName} (${country.countryCode})`
+      p= isWebsite ? 'Listed on the website at this time.' : 'Internal country only; not listed on the website at this time.'
+    a.btn.btn-outline-secondary(href=at ? `/country?at=${encodeURIComponent(at.toISOString())}` : '/country') Back to manager
+  if at
+    .alert.alert-warning= `Historical view · ${formatDate(at)}`
+  .card.mb-3
+    .card-body
+      h2.h4 Sources
+      p= country.internal ? `Internal country: ${country.internal.countryName} / ${country.internal.countryNameJ}` : 'No internal country entry.'
+      if country.mapping
+        p Japan Post mapping: #{country.mapping.jpCode}
+        if country.japanPost
+          p= `Japan Post version recorded ${formatDate(country.japanPost.detectedAt)} · ${country.japanPost.sourceName}`
+          p= `Delivery areas: ${country.japanPost.data['発送可能地域(英語表記）'] || country.japanPost.data['発送可能地域(日本語表記）'] || 'Not specified'}`
+        else
+          p No Japan Post data at this time.
+        a(href=`/japan-post/countries/${country.mapping.jpCode}`) Japan Post raw data and all versions
+      else
+        p No Japan Post mapping.
+      .table-responsive
+        table.table
+          thead
+            tr
+              th Method
+              th Source result
+              th Effective result
+              th Evidence / exception
+          tbody
+            each method in country.methods
+              tr
+                th(scope='row')= method.label
+                td= label(method.base)
+                td
+                  strong.cm-badge(class=method.value === true ? 'cm-available' : method.value === false ? 'cm-unavailable' : 'cm-unknown')= label(method.value)
+                td.cm-wrap
+                  if method.exception
+                    strong= `Exception: ${method.exception.reason}`
+                  p.mb-0= method.evidence
+  h2.h4 Recorded history
+  p.text-muted Includes all manager changes for this code and Japan Post updates while its mapping was active. For Japan Post versions before a mapping was created, open the Japan Post country history above.
+  +historyEvents(events)
+  +historyPages(`/country/country/${encodeURIComponent(country.countryCode)}?at=${at ? encodeURIComponent(at.toISOString()) : ''}`)

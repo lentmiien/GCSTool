@@ -1,61 +1,183 @@
 extends layout
+include country_manager_mixins
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/country-manager.css')
 
 block content
-  header.app-page-header
-    div
-      p.app-page-kicker Shipping operations
-      h1 Country & shipping-method manager
-      p Import source lists, review Japan Post changes, and maintain country-code links.
-    a.btn.btn-outline-secondary(href='/country/countries') View country list
-
-  .row
-    .col-lg-6.mb-3
-      section.card.h-100
+  #country-manager(data-csrf=countryManagerCsrf)
+    header.app-page-header
+      div
+        p.app-page-kicker Shipping operations
+        h1 Country & shipping-method manager
+        p Website countries define the availability table. Internal codes link the other sources; Japan Post codes are mapped explicitly.
+      .app-page-actions
+        a.btn.btn-outline-secondary(href='/country/history') Update history
+        a.btn.btn-outline-secondary(href='/japan-post') Japan Post limits
+    #cm-status.cm-status(role='status', aria-live='polite')
+    if at
+      .alert.alert-warning
+        strong= `Historical availability · ${formatDate(at)}`
+        p.mb-1 Source lists, mappings and exceptions reflect what was recorded by this time. Editing is disabled.
+        a(href='/country') Return to current data
+    if !baseline
+      .alert.alert-info No manager baseline exists at this time. Earlier website/internal availability cannot be reconstructed.
+    section.card.mb-3.cm-exceptions
+      .card-body
+        h2.h4= `Exceptions (${state.exceptions.length})`
+        p Exceptions take priority over every source, including Unknown. Removing an exception restores the source result.
+        if !state.exceptions.length
+          p.text-muted No exceptions are active at this time.
+        else
+          .table-responsive
+            table.table.table-sm
+              thead
+                tr
+                  th Internal code / country
+                  th Method
+                  th Override
+                  th Reason
+                  if !at
+                    th Actions
+              tbody
+                each entry in state.exceptions
+                  - const destination = allCountries.find(row => row.countryCode === entry.countryCode)
+                  - const method = methods.find(row => row.key === entry.method)
+                  tr
+                    td
+                      strong= entry.countryCode
+                      |  · #{destination ? destination.countryName : 'Not in either country list'}
+                      if !state.website.some(row => row.countryCode === entry.countryCode)
+                        small.d-block.text-muted Not currently on website
+                    td= method ? method.label : entry.method
+                    td
+                      span.cm-badge(class=entry.enabled ? 'cm-available' : 'cm-unavailable')= entry.enabled ? 'Force enable' : 'Force disable'
+                    td.cm-wrap= entry.reason
+                    if !at
+                      td
+                        details
+                          summary Edit
+                          +sourceEditor('exceptions', entry)
+                        +removeEntry('exceptions', entry)
+        if !at
+          details
+            summary Add an exception
+            +sourceEditor('exceptions')
+    section.card.mb-3
+      .card-body
+        h2.h4 Availability by website country
+        p.text-muted Available / Unavailable come from explicit source flags. Unknown means data or a mapping is missing. ★ marks an exception; hover over a value or open a country for its source.
+        form.cm-filters(method='get', action='/country')
+          label
+            span Search country / code
+            input.form-control(type='search', name='q', value=filters.q)
+          label
+            span Historical date (end of day, Japan time)
+            input.form-control(type='date', name='at', value=at ? new Date(at.getTime() + 9 * 3600000).toISOString().slice(0, 10) : '')
+          button.btn.btn-outline-primary(type='submit') View
+          a.btn.btn-outline-secondary(href='/country') Current / reset
+        .cm-health
+          span= `${state.website.length} website countries`
+          span= `${missingInternal} missing internal entries`
+          span= `${missingMapping} missing Japan Post mappings`
+          span= `${missingJapanPost} mapped without Japan Post data`
+        if rows.length
+          .table-responsive.cm-matrix
+            table.table.table-sm
+              thead
+                tr
+                  th(scope='col') Website country
+                  th(scope='col') Internal code
+                  th(scope='col') JP code
+                  each method in methods
+                    th(scope='col')= method.label
+              tbody
+                each row in rows
+                  tr
+                    th(scope='row')
+                      a(href=`/country/country/${encodeURIComponent(row.countryCode)}${at ? '?at=' + encodeURIComponent(at.toISOString()) : ''}`)= row.countryName
+                    td= row.countryCode
+                    td= row.mapping ? row.mapping.jpCode : 'Unmapped'
+                    each method in row.methods
+                      td
+                        span.cm-badge(class=method.value === true ? 'cm-available' : method.value === false ? 'cm-unavailable' : 'cm-unknown', title=method.exception ? `${method.exception.reason} (source: ${label(method.base)})` : method.evidence)= `${label(method.value)}${method.exception ? ' ★' : ''}`
+        else
+          p.app-empty-state No website countries match this view. Import or add website countries below to get started.
+    if !at
+      datalist#cm-jp-countries
+        each row in jp
+          option(value=row.countryCode)= row.data['国名（英語）']
+      datalist#cm-countries
+        each row in allCountries
+          option(value=row.countryCode)= row.countryName
+      section.card.mb-3
         .card-body
-          h2.card-title.h4 Website country list
-          p.text-muted Replace the public website list using a CSV headed #[code country,country_code].
-          form(action='/country/officialCountryList/upload', method='post', enctype='multipart/form-data')
-            .form-group
-              label(for='officialCountryList') Official country CSV
-              input#officialCountryList.form-control-file(type='file', name='officialCountryList', accept='.csv,text/csv', required)
-            button.btn.btn-primary(type='submit') Upload website list
+          h2.h4 Data sources & country mappings
+          p.text-muted CSV imports replace the entire selected list, including removals. Blank internal availability means Unknown. Unchanged imports do not add history. Country codes are exact, case-sensitive strings, including leading zeros.
+          p.text-muted Website and internal edits do not delete mappings or exceptions. Entries for countries outside the website list remain available for review.
+          each source in ['website', 'internal', 'mappings']
+            details.cm-source(id=`source-${source}`)
+              summary
+                strong= `${source === 'website' ? 'Website country list' : source === 'internal' ? 'Internal country list · DHL, AIT, ECMS' : 'Japan Post country mappings'} (${state[source].length})`
+              if source === 'mappings'
+                p Multiple internal codes may map to the same Japan Post country. Old CID/name links are not reused. Import Japan Post limits first to populate the selection.
+              form.cm-edit.cm-import(action=`/country/api/${source}/import`, method='post', enctype='multipart/form-data', data-confirm='Replace this entire source list with the CSV contents? Entries absent from the file will be removed; history will be retained.')
+                input(type='hidden', name='revision', value=revision)
+                label
+                  span= `UTF-8 CSV: ${headers[source].join(',')}`
+                  input.form-control-file(type='file', name='csvFile', accept='.csv,text/csv', required)
+                button.btn.btn-outline-primary(type='submit') Replace from CSV
+              details.cm-add
+                summary Add an entry
+                +sourceEditor(source)
+              .table-responsive
+                table.table.table-sm
+                  thead
+                    tr
+                      th Internal code
+                      th= source === 'mappings' ? 'Japan Post code' : 'Country'
+                      if source === 'internal'
+                        th DHL
+                        th AIT
+                        th ECMS
+                      th Actions
+                  tbody
+                    each entry in state[source]
+                      tr
+                        td= entry.countryCode
+                        td
+                          if source === 'mappings'
+                            = entry.jpCode
+                          else
+                            a(href=`/country/country/${encodeURIComponent(entry.countryCode)}`)= entry.countryName
+                          if !allCountries.some(row => row.countryCode === entry.countryCode)
+                            small.d-block.text-muted Not in either country list
+                          else if !state.website.some(row => row.countryCode === entry.countryCode)
+                            small.d-block.text-muted Not on website
+                        if source === 'internal'
+                          each method in ['DHL', 'AIT', 'ECMS']
+                            td= label(entry[method])
+                        td
+                          details
+                            summary Edit
+                            +sourceEditor(source, entry)
+                          +removeEntry(source, entry)
+          details.cm-source
+            summary
+              strong= `Japan Post limits (${jp.length} imported countries)`
+            p Availability reads the latest saved Japan Post CSV version at the selected time. Registered small packets require both the transport and registration flags. Only 0 and 1 are interpreted; other values stay Unknown.
+            p ePacket Light is not inferred from its category code. Delivery-area restrictions and full raw data are available on the Japan Post country page.
+            a.btn.btn-outline-secondary(href='/japan-post/database') Open Japan Post database
+            details.mt-3
+              summary Shipping method field mapping
+              dl
+                each method in methods.filter(item => item.flags)
+                  dt= method.label
+                  dd= method.flags.join(' + ')
+    section.card
+      .card-body
+        h2.h4 Data tools
+        p.mb-0.text-muted Export and downstream workflows will be added once their use cases are defined.
 
-    .col-lg-6.mb-3
-      section.card.h-100
-        .card-body
-          h2.card-title.h4 Internal country list
-          p.text-muted Add DHL and AIT availability rows using #[code country,country_code,country_j,DHL,AIT].
-          form(action='/country/internalCountryList/upload', method='post', enctype='multipart/form-data')
-            .form-group
-              label(for='internalCountryList') Internal country CSV
-              input#internalCountryList.form-control-file(type='file', name='internalCountryList', accept='.csv,text/csv', required)
-            button.btn.btn-primary(type='submit') Upload internal list
-
-    .col-lg-6.mb-3
-      section.card.h-100
-        .card-body
-          h2.card-title.h4 Japan Post updates
-          p.text-muted Select a published notice and effective date before processing availability changes.
-          if JP_announcements.length > 0
-            form(action='/country/japanPostCountryList/update', method='post')
-              .form-group
-                label(for='update_msg') Published notice
-                select#update_msg.form-control(name='update_msg', required)
-                  each entry in JP_announcements
-                    option(value=entry.link[0])= `${entry.title[0]} (${entry.pubDate[0]})`
-              .form-group
-                label(for='update_date') Effective date
-                input#update_date.form-control(type='date', name='update_date', value=d_str, required)
-              button.btn.btn-primary(type='submit') Process update
-          else
-            .app-empty-state
-              p.mb-0 Japan Post announcements are temporarily unavailable. Try again later.
-
-    .col-lg-6.mb-3
-      section.card.h-100
-        .card-body
-          h2.card-title.h4 Data tools
-          p.text-muted Maintain country-code links or inspect the current list and update history.
-          .app-page-actions
-            a.btn.btn-outline-primary(href='/country/countryCodeEntryIdLink/manage') Manage links
-            a.btn.btn-outline-secondary(href='/country/updateHistory/last') Latest update
+block scripts
+  script(src='/javascripts/country-manager.js')

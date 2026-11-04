@@ -1,43 +1,17 @@
-// Require used packages
-var express = require('express');
-var router = express.Router();
-// const multer  = require('multer')
-// const upload = multer({ dest: './temp/' })
+const { createController } = require('../controllers/countryController');
 
-// Require controller modules
-var controller = require('../controllers/countryController');
-
-//-------------------------------------------//
-// router.method(path, controller.endpoint); //
-//-------------------------------------------//
-
-router.get('/', controller.index);
-
-// OfficialCountryList
-router.post('/officialCountryList/upload', controller.officialCountryList_upload);
-
-// InternalCountryList
-router.post('/internalCountryList/upload', controller.internalCountryList_upload);
-
-// JapanPostCountryList
-router.post('/japanPostCountryList/update', controller.japanPostCountryList_update);
-
-// CountryCodeEntryIdLink
-router.get('/countryCodeEntryIdLink/manage', controller.countryCodeEntryIdLink_manage);
-router.post('/countryCodeEntryIdLink/add', controller.countryCodeEntryIdLink_add);
-router.post('/countryCodeEntryIdLink/update/:countryCode', controller.countryCodeEntryIdLink_update);// TODO at some later time
-router.post('/countryCodeEntryIdLink/delete/:countryCode', controller.countryCodeEntryIdLink_delete);// TODO at some later time
-
-// Combined Functionality
-router.get('/countries', controller.countries);
-router.get('/country/:countryCode', controller.country);
-router.get('/updateHistory/:date', controller.updateHistory);
-
-// Search Functionality
-// router.get('/search/:keyword', controller);
-
-// Check shipping method CSV file
-router.get('/country_csv_check', controller.country_csv_check);
-
-// Export router
-module.exports = router;
+module.exports = service => {
+  const router = require('express').Router();
+  const controller = createController(service);
+  router.use(controller.prepare);
+  router.get('/', controller.index);
+  router.get('/countries', controller.index);
+  router.get('/country/:countryCode', controller.details);
+  router.get('/history', controller.history);
+  router.get('/countryCodeEntryIdLink/manage', (req, res) => res.redirect('/country#source-mappings'));
+  router.get('/updateHistory/:date', (req, res) => res.redirect('/country/history'));
+  router.get('/country_csv_check', (req, res) => res.render('country_csv_check'));
+  router.post('/api/:source/save', controller.save);
+  router.post('/api/:source/import', controller.importCsv);
+  return router;
+};

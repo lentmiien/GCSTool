@@ -12,7 +12,7 @@
 // Require used packages
 
 // Require necessary database models
-const { InternalCountryList, Tracking, Trackhist, ReturnShippingCostAnalytics, Op } = require('../sequelize');
+const { InternalCountryList, CountryManagerVersion, Tracking, Trackhist, ReturnShippingCostAnalytics, Op } = require('../sequelize');
 
 //---------------------------------------------//
 // exports.endpoints = (req, res, next) => {}; //
@@ -204,7 +204,7 @@ exports.getdata = (req, res) => {
   res.json(database_cache[user_id]);
 };
 
-exports.generate = (req, res) => {
+exports.generate = async (req, res, next) => {
   // Display an input form for generating data,
   // and display an upload form for uploading the data to add to database
   // also display an upload history (stored locally in users browser)
@@ -228,12 +228,14 @@ exports.generate = (req, res) => {
   }
 
   // FM countries
-  InternalCountryList.findAll({attributes: ['countryName']}).then(entries => {
-    entries.forEach(entry => auto_complete.push(entry.countryName));
-    
-    // Done, so render the page
+  try {
+    const version = await CountryManagerVersion.findOne({ where: { source: 'internal' }, order: [['id', 'DESC']] });
+    const entries = version ? version.data : await InternalCountryList.findAll({ attributes: ['countryName'] });
+    [...new Set(entries.map(entry => entry.countryName))].forEach(name => auto_complete.push(name));
     res.render('generate', {auto_complete});
-  });
+  } catch (error) {
+    next(error);
+  }
 };
 
 let taskStatus = {};

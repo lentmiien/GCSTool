@@ -26,6 +26,12 @@ module.exports = [
         item('Added a country details page with all saved CSV fields, interpreted shipping availability, and a history of field changes'),
         item('Retired the previous CID fetch and scheduled HTML-check workflow'),
       ]),
+      item('Country & shipping-method manager', [
+        item('Rebuilt /country around editable website and internal country lists, explicit internal-to-Japan Post country mappings, and current Japan Post limits data'),
+        item('Added DHL, AIT, and ECMS availability, prominent per-country shipping-method exceptions, and clear Available, Unavailable, and Unknown status'),
+        item('Added dated history for source-list edits, imports, country mappings, exceptions, and Japan Post availability, with historical per-country views'),
+        item('Removed the Japan Post web scraper and kept tracker country autocomplete in sync with the current internal list'),
+      ]),
       item('Japan Post shipping rates', [
         item('Added full-chart CSV imports to /shipcost, selecting current zone columns and validating variable weight brackets and zone counts'),
         item('Added complete rate-chart history with comparisons for changed rates, weight rows, and zones; identical uploads leave the saved chart unchanged'),
