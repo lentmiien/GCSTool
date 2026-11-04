@@ -42,8 +42,16 @@ normal MySQL permissions to create/read/update/delete its new table. No producti
 startup, migration, deployment or restart was performed during implementation.
 
 Routes inherit `/hs` authentication, including its temporary-password restriction.
-Predictor routes additionally enforce authenticated ownership on every read and
-write. All POSTs require a session-bound HMAC CSRF token, JSON and a 4 KiB bound.
+Predictor job routes additionally enforce authenticated ownership on every read and
+write. Queue recovery is shared across all instances: authenticated page users can
+read aggregate queue counts and ages at `GET /hs/ireland/predictor/queue`, and
+use `POST /hs/ireland/predictor/queue/clear` to remove outstanding predictions
+(queued, pending and paused) and pending feedback. Completed history is retained.
+The server requires over 15 minutes without any job creation or update before
+clearing, and refuses while a worker holds a live delivery lease. Control lease
+heartbeats do not count as activity. The page refreshes queue status every 30 seconds.
+Clearing does not cancel remote API work; removed jobs and feedback cannot resume.
+All POSTs require a session-bound HMAC CSRF token, JSON and a 4 KiB bound.
 Responses are private/no-store. The browser cannot choose an upstream destination,
 model, system prompt, item_code or test mode. Server submission always sends
 literal `test:true`. Fixed ID-derived paths, no redirects, a 15-second absolute

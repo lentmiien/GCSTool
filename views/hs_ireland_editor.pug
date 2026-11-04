@@ -3,6 +3,12 @@ extends layout
 block content
   .ie-editor
     h1 Ireland/Greece CSV editor
+    #taric-queue-warning.mb-3.p-3(hidden, role='status', aria-live='polite', style='background: var(--gcs-bg-subtle); color: var(--gcs-text); border: 1px solid #b8860b; border-radius: .25rem;')
+      strong AI TARIC queue
+      p#taric-queue-message.mb-2
+      button#taric-queue-clear.btn.btn-warning(type='button', disabled) Force clear queue
+      p.mb-0.mt-2 This clears queued predictions and undelivered feedback across all GCSTool instances. Remote API work is not cancelled. Available only after over 15 minutes without queue activity.
+    p#taric-queue-notice(role='status', aria-live='polite')
     p Upload a CSV to edit Ireland (IE) and Greece (GR) rows only.
     p CSV editing runs in the browser. TARIC mappings are loaded from and saved to the server.
     p Columns edited depend on CSV type.
@@ -248,4 +254,5 @@ block content
 
   script(src='/javascripts/FileSaver.js', defer)
   script(src='/javascripts/ireland_taric_predictor.js', defer)
+  script(src='/javascripts/ireland_taric_queue.js', defer)
   script(src='/javascripts/hs_ie_csv_editor.js', defer)

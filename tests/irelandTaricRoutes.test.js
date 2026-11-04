@@ -6,13 +6,24 @@ function setup(auth = true, configured = () => {}) {
   process.env.SESSION_SECRET = 'synthetic-session-secret';
   const row = { id: input.id, input, owner: '9', state: 'queued', feedback: 'none' };
   const store = { create: jest.fn(async () => row), get: jest.fn(async () => row), list: jest.fn(async () => [row]),
-    selection: jest.fn(async () => row), resume: jest.fn(async () => row) };
+    selection: jest.fn(async () => row), resume: jest.fn(async () => row),
+    queueStatus: jest.fn(async () => ({ count: 22, canClear: true })), clearQueue: jest.fn(async () => ({ cleared: 22 })) };
   const app = express();
   app.use(express.json({ limit: '4kb' }));
   app.use((req, res, next) => { req.user = { id: 9 }; req.isAuthenticated = () => auth; req.sessionID = 'synthetic-session'; next(); });
   app.use(createRouter(store, configured));
   return { app, store, csrf: csrfToken({ sessionID: 'synthetic-session' }) };
 }
+
+test('shared queue recovery requires authentication and CSRF and returns aggregate data', async () => {
+  const unauthenticated = setup(false);
+  expect((await request(unauthenticated.app).get('/queue')).status).toBe(401);
+  const x = setup();
+  expect((await request(x.app).get('/queue')).body).toEqual({ count: 22, canClear: true });
+  expect((await request(x.app).post('/queue/clear').send({})).status).toBe(403);
+  expect(x.store.clearQueue).not.toHaveBeenCalled();
+  expect((await request(x.app).post('/queue/clear').set('X-CSRF-Token', x.csrf).send({})).body).toEqual({ cleared: 22 });
+});
 test('auth and CSRF protect mutations before any job calls', async () => {
   let x = setup(false);
   expect((await request(x.app).post('/requests').send(input)).status).toBe(401);

@@ -11,7 +11,7 @@
     RECOVERY_REQUIRED: 'The upstream predictor needs operator recovery. Continue manually.',
     INFERENCE_UNCERTAIN: 'The upstream predictor needs operator recovery. Continue manually.',
     FETCH_FAILED: 'JAN evidence could not be retrieved. Continue manually.',
-    UNAUTHORIZED: 'Predictor authentication failed. Ask the GCS operator to check the server key.',
+    UNAUTHORIZED: 'Predictor authentication failed. Check the API key in all running GCSTool instances, including production and local debugging instances, and restart each instance after updating it.',
     FORBIDDEN: 'Predictor access was denied. Ask the GCS operator to check access.',
     CSRF_FAILED: 'The session has changed. Save/export your CSV, then reload before another prediction.',
     CONFIG_NOT_READY: 'The server predictor configuration is unavailable. Continue manually.',

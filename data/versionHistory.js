@@ -4,8 +4,13 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-11-02',
+    updateDate: '2026-11-04',
     items: [
+      item('HS', [
+        item('Ireland TARIC queue - Added a page-top warning showing outstanding item counts, oldest waiting time, and time since queue activity'),
+        item('Ireland TARIC queue - Added a force-clear action across all running instances after over 15 minutes without activity, with server-side checks and protection while a worker is processing a request'),
+        item('Ireland TARIC authentication - Added a reminder to check API keys in all running instances and restart each instance after updating its key'),
+      ]),
       item('Runtime stability and monitoring', [
         item('Added periodic process-memory and event-loop diagnostics to help investigate resource pressure and freezes'),
         item('Added configurable PM2 memory restart and heap limits, restart delays, and deployment guidance for host memory protection'),

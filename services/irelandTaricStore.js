@@ -1,6 +1,7 @@
 const { normalize, digest, fail, CODE, ID, object } = require('./irelandTaricProtocol');
 const CONTROL = '00000000000000000000000000000000';
 const DAY = 86400000;
+const STALL_MS = 15 * 60000;
 function createStore({ IrelandTaricJob: Job, sequelize, Op }, now = Date.now) {
   const plain = row => row && row.get({ plain: true });
   async function owned(owner, id, options = {}) {
@@ -44,8 +45,35 @@ function createStore({ IrelandTaricJob: Job, sequelize, Op }, now = Date.now) {
       return plain(row);
     });
   }
+  const queueWhere = { [Op.or]: [
+    { state: { [Op.in]: ['queued', 'pending', 'paused'] } },
+    { feedback: 'pending', state: { [Op.in]: ['terminal', 'rejected'] } },
+  ] };
+  async function queueStatus(options = {}) {
+    const count = await Job.count({ where: queueWhere, ...options });
+    const oldest = count ? await Job.min('createdAt', { where: queueWhere, ...options }) : null;
+    // Ignore the control lease heartbeat. New arrivals and any delivery activity reset the timer.
+    const latest = count ? await Job.max('updatedAt', { where: { state: { [Op.ne]: 'control' } }, ...options }) : null;
+    const waitingMs = oldest ? Math.max(0, now() - new Date(oldest).getTime()) : 0;
+    const stalledMs = latest ? Math.max(0, now() - new Date(latest).getTime()) : 0;
+    return { count, waitingMs, stalledMs, canClear: count > 0 && stalledMs > STALL_MS };
+  }
   return {
     create, selection,
+    queueStatus,
+    async clearQueue() {
+      await ensureControl();
+      return sequelize.transaction(async transaction => {
+        const control = await Job.findByPk(CONTROL, { transaction, lock: transaction.LOCK.UPDATE });
+        const status = await queueStatus({ transaction });
+        if (!status.canClear) fail('QUEUE_NOT_STALLED', 409);
+        // A worker may be performing an HTTP request outside this transaction.
+        if (control.leaseUntil && new Date(control.leaseUntil).getTime() > now()) fail('QUEUE_WORKER_BUSY', 409);
+        const cleared = await Job.destroy({ where: queueWhere, transaction });
+        await control.update({ leaseUntil: new Date(0), leaseOwner: null }, { transaction });
+        return { cleared };
+      });
+    },
     get: async (owner, id) => plain(await owned(owner, id)),
     async list(owner) {
       const active = await Job.findAll({ where: { owner, state: { [Op.in]: ['pending', 'paused'] } },

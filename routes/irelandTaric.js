@@ -33,6 +33,14 @@ function createRouter(store, configured = configuration) {
       res.status(error.safeCode ? error.status : 503).json({ error: error.safeCode || 'STORAGE_FAILED' });
     }
   };
+  // Queue recovery is global across instances; expose counts only, never other owners' inputs.
+  router.get('/queue', handle(async (_req, res) => {
+    res.json(await store.queueStatus());
+  }));
+  router.post('/queue/clear', handle(async (req, res) => {
+    object(req.body, []);
+    res.json(await store.clearQueue());
+  }));
   router.post('/requests', handle(async (req, res) => {
     configured();
     res.status(202).json(publicJob(await store.create(req.taricOwner, req.body)));
