@@ -24,6 +24,7 @@ module.exports = [
       ]),
       item('Bin packing', [
         item('Smallest box finder - Added a configurable safety margin, API-estimated cushion and shipment weights, and selection among up to three complete packing solutions'),
+        item('Multi-box packer - Added /multi-box with paste and CSV item input, millimeter-to-centimeter conversion, background packing across multiple boxes, and per-box 3D previews and weight details'),
       ]),
       item('Japan Post limits', [
         item('Replaced per-CID HTML fetching and parsing with Japan Post CSV uploads that save every source column by country code and keep a version history when any value changes'),

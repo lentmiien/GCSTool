@@ -9,7 +9,9 @@ block content
       div
         h1 Smallest box finder
         p.text-muted Find one box for all your items, then explore the packing layer by layer.
-      a.btn.btn-outline-secondary(href='/binpack') Open original Binpacker
+      .d-flex.flex-wrap
+        a.btn.btn-outline-secondary.mr-2.mb-2(href='/multi-box') Multi-box packer
+        a.btn.btn-outline-secondary.mb-2(href='/binpack') Open original Binpacker
     .sb-workspace
       form#sb-form
         fieldset#sb-inputs

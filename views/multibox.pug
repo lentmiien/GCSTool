@@ -1,0 +1,87 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/smallest-box.css')
+  link(rel='stylesheet', href='/stylesheets/multi-box.css')
+
+block content
+  #multi-box
+    .d-flex.flex-wrap.justify-content-between.align-items-start.mb-4
+      div
+        h1 Multi-box packer
+        p.text-muted Pack your items across one or more boxes, with a preview and shipment details for every box.
+      a.btn.btn-outline-secondary(href='/smallest-box') Smallest box finder
+    .sb-workspace
+      form#mb-form
+        fieldset#mb-inputs
+          .card.mb-3
+            .card-header
+              h2.h5.mb-0 Items
+            .card-body
+              label(for='mb-format') Input format
+              select#mb-format.form-control.mb-3
+                option(value='paste') Item list (same as Smallest box finder)
+                option(value='csv') CSV (all item parameters)
+              label(for='mb-items') Paste your items
+              textarea#mb-items.form-control(rows='13', required, maxlength='262144', spellcheck='false', aria-describedby='mb-paste-help mb-csv-help', placeholder='GOODS-04825603 .07kg 235×154×9\n1\nGOODS-04825608 .06kg 105×95×14\n1')
+              small#mb-paste-help.form-text.text-muted Two lines per item: ID, weight in kg, width × depth × height in mm; then quantity.
+              #mb-csv-help.small.text-muted.mt-2(hidden)
+                p Include a header. Required columns: id,width,height,depth. Dimensions are in mm, weight in kg, shrink in percent. Blank optional cells use defaults. IDs must be unique; quote cells containing commas.
+                p Rotation: none, orthogonal, or free. Soft and fragile: true or false. Use the same currency for all values and the maximum value.
+                pre.mb-csv-example.
+                  id,width,height,depth,quantity,weight,value,rotation,shrink,soft,fragile
+                  Poster tube,440,30,30,1,0.18,1500,free,0,false,true
+                  Sweater,280,60,220,2,0.3,3000,orthogonal,20,true,false
+              p.small.text-muted.mt-2.mb-0 Defaults: orthogonal rotation, value 0, shrink 0%, soft false, fragile false. CSV also defaults to quantity 1 and weight 0 kg.
+              p.small.text-muted.mt-2.mb-0 Up to 500 items including quantities. Lengths are converted to cm for packing. Results use width × height × depth in cm.
+          .card.mb-3
+            .card-header
+              h2.h5.mb-0 Packing options
+            .card-body
+              label(for='mb-approach') Approach
+              select#mb-approach.form-control
+                option(value='boxes') Boxes (default)
+                option(value='space') Space
+              label.mt-3(for='mb-margin') Margin (mm)
+              input#mb-margin.form-control(type='number', value='10', min='0', max='100000', step='any', required)
+              details.mt-3
+                summary Optional limits per box
+                small.form-text.text-muted Leave blank for no additional limit. Catalog limits still apply.
+                - const limitFields = [{id: 'maxSide', label: 'Maximum side (mm)', min: '0.1', max: '10000000000000'}, {id: 'maxSum', label: 'Maximum sum of sides (mm)', min: '0.1', max: '10000000000000'}, {id: 'maxWeight', label: 'Maximum item weight (kg)', min: '0', max: '1000000000000'}, {id: 'maxValue', label: 'Maximum item value', min: '0', max: '1000000000000'}]
+                each field in limitFields
+                  label.mt-2(for='mb-' + field.id)= field.label
+                  input.form-control(id='mb-' + field.id, type='number', min=field.min, max=field.max, step='any')
+          .card.mb-3
+            .card-header.d-flex.justify-content-between.align-items-center
+              h2.h5.mb-0 Shared boxes
+              button#mb-refresh.btn.btn-sm.btn-outline-secondary(type='button') Refresh boxes
+            .card-body
+              p#mb-catalog-status.text-muted(role='status') Loading box catalog…
+              label.d-block
+                input#mb-all-boxes.mr-2(type='checkbox', checked)
+                | Use all eligible boxes
+              small.form-text.text-muted Uncheck to select up to 50 box types. A plan may use multiple copies of a box type. Boxes with a catalog weight limit of zero are excluded by the service.
+              details.mt-3
+                summary Available boxes (cm)
+                #mb-catalog.sb-catalog
+          button#mb-generate.btn.btn-primary.btn-block(type='submit', disabled) Generate
+          p.small.text-muted.mt-2 Jobs run in the background. Status updates every five seconds. Submissions are limited to five per minute and are never automatically retried. Reload this tab to resume your latest job in the same login session; results expire after seven days.
+      section.sb-output(aria-label='Packing output')
+        #mb-status.alert.alert-info(role='status', aria-live='polite') Load the box catalog and enter your items to begin.
+        button#mb-resume.btn.btn-outline-primary.mb-3(type='button', hidden) Check existing job
+        #mb-empty.card
+          .card-body.sb-empty
+            h2.h4 Your packing plan
+            p.text-muted.mb-0 Every packed box will appear here with its own 3D preview, item list, and estimated shipping weight.
+        #mb-result(hidden)
+          #mb-summary.card.mb-3
+          #mb-unplaced.alert.alert-warning(hidden)
+          #mb-boxes
+
+block scripts
+  script(src='/javascripts/three.js', defer)
+  script(src='/javascripts/OrbitControls.js', defer)
+  script(src='/javascripts/smallest-box-data.js', defer)
+  script(src='/javascripts/multi-box-data.js', defer)
+  script(src='/javascripts/multi-box-preview.js', defer)
+  script(src='/javascripts/multi-box.js', defer)

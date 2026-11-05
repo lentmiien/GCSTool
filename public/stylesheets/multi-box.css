@@ -1,0 +1,9 @@
+#multi-box #mb-items { font-family: monospace; font-size: 0.9rem; }
+#multi-box .mb-csv-example { color: var(--gcs-text); background: var(--gcs-bg-deep); padding: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+#multi-box .mb-box-choice { display: block; padding: 0.75rem 0; border-bottom: 1px solid var(--gcs-border); overflow-wrap: anywhere; }
+#multi-box .mb-box-choice small { display: block; color: var(--gcs-muted); margin-left: 1.4rem; }
+#multi-box .mb-box-title { overflow-wrap: anywhere; }
+#multi-box .mb-item-details { white-space: pre-wrap; }
+#multi-box .mb-box-card .sb-preview { height: clamp(260px, 32vw, 380px); }
+#multi-box .mb-box-card .sb-metrics { margin-bottom: 1rem; }
+#multi-box #mb-unplaced { overflow-wrap: anywhere; }

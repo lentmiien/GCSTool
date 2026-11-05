@@ -20,6 +20,7 @@ var countryRouter = require('./routes/country')(require('./services/countryManag
 var apiRouter = require('./routes/api');
 var binpackRouter = require('./routes/binpack');
 const smallestBoxRouter = require('./routes/smallestbox');
+const multiBoxRouter = require('./routes/multibox');
 var hsRouter = require('./routes/hs');
 var trackerRouter = require('./routes/tracker');
 var bulkTrackerRouter = require('./routes/bulkTracker');
@@ -133,6 +134,7 @@ app.use('/country', requireAuthenticated, countryRouter);
 app.use('/api', requireAuthenticated, apiRouter);
 app.use('/binpack', requireAuthenticated, binpackRouter);
 app.use('/smallest-box', requireAuthenticated, smallestBoxRouter);
+app.use('/multi-box', requireAuthenticated, multiBoxRouter);
 app.use('/hs', requireAuthenticated, hsRouter);
 app.use('/tracker', requireAuthenticated, trackerRouter);
 app.use('/bulk-tracker', requireAuthenticated, bulkTrackerRouter);

@@ -4,9 +4,11 @@
 }(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
-  function parseItems(text) {
+  function parseItems(text, limits = {}) {
+    const { maxTypes = 100, maxItems = 200, maxIdLength = 100, maxWeight = 1000000, maxTextLength = 65536 } = limits;
+    const limitMessage = `Use at most ${maxTypes} item types and ${maxItems} total items.`;
     if (typeof text !== 'string' || !text.trim()) throw new Error('Paste at least one item and its quantity.');
-    if (text.length > 65536) throw new Error('The item list is too large. Use at most 100 item types and 200 total items.');
+    if (text.length > maxTextLength) throw new Error(`The item list is too large. ${limitMessage}`);
     const lines = text.trim().split(/\r\n|\n|\r/).map((line) => line.trim());
     if (lines.length % 2) throw new Error('Each item needs two lines: item details, then quantity.');
     const items = new Map();
@@ -19,9 +21,9 @@
       if (!match) throw new Error(`Line ${index + 1}: use ITEM-ID .07kg 235×154×9.`);
       const [, id, weight, w, d, h] = match;
       const item = { id, weight: Number(weight), w: Number(w), d: Number(d), h: Number(h), qty: Number(lines[index + 1]) };
-      if (id.length > 100) throw new Error(`Line ${index + 1}: item IDs must be at most 100 characters.`);
-      if (item.weight > 1000000 || [item.w, item.d, item.h].some((size) => size <= 0 || size > 1000000)) {
-        throw new Error(`Line ${index + 1}: dimensions must be greater than 0 and at most 1,000,000 mm; weight must be 0–1,000,000 kg.`);
+      if (id.length > maxIdLength) throw new Error(`Line ${index + 1}: item IDs must be at most ${maxIdLength} characters.`);
+      if (!Number.isFinite(item.weight) || item.weight > maxWeight || [item.w, item.d, item.h].some((size) => size <= 0 || size > 1000000)) {
+        throw new Error(`Line ${index + 1}: dimensions must be greater than 0 and at most 1,000,000 mm; weight must be 0–${maxWeight.toLocaleString('en-US')} kg.`);
       }
       if (!/^\d+$/.test(lines[index + 1]) || !Number.isSafeInteger(item.qty) || item.qty < 1) {
         throw new Error(`Line ${index + 2}: quantity must be a positive whole number.`);
@@ -34,7 +36,7 @@
         existing.qty += item.qty;
       } else items.set(id, item);
       total += item.qty;
-      if (items.size > 100 || total > 200) throw new Error('Use at most 100 item types and 200 total items.');
+      if (items.size > maxTypes || total > maxItems) throw new Error(limitMessage);
     }
     return [...items.values()];
   }
