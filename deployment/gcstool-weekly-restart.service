@@ -1,0 +1,12 @@
+[Unit]
+Description=Restart the existing GCSTool PM2 process
+
+[Service]
+Type=oneshot
+# Edit user, paths, PM2_HOME and PATH to match the existing PM2 owner/installation.
+User=deploy
+WorkingDirectory=/home/deploy/gcstool/GCSTool
+Environment=PM2_HOME=/home/deploy/.pm2
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node /home/deploy/gcstool/GCSTool/scripts/restart_gcstool.js
+TimeoutStartSec=100

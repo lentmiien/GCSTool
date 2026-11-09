@@ -13,7 +13,7 @@ test('runs the Node entrypoint directly in one fork with independent heap and RS
   expect(apps[0]).toMatchObject({
     name: 'gcstool', script: './bin/www', instances: 1, exec_mode: 'fork',
     max_memory_restart: '500M', node_args: ['--max-old-space-size=256'],
-    restart_delay: 5000, max_restarts: 10, env: { NODE_ENV: 'production' },
+    restart_delay: 5000, kill_timeout: 40000, max_restarts: 10, env: { NODE_ENV: 'production' },
   });
 });
 

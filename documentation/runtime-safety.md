@@ -39,8 +39,20 @@ The current host cannot comfortably accommodate known peaks plus OS headroom.
   job uses at most one database pool connection. These deadlines also cover a
   stuck DB query or connection close while the event loop remains responsive.
 - `ecosystem.config.js` provides an explicit RSS restart threshold, V8 old-space
-  limit, one fork, and restart delay. It requires deployment-specific budgets.
+  limit, one fork, restart delay, and a 40-second kill timeout. It requires deployment-specific budgets.
   Nothing changes on AWS until the code/configuration is deployed.
+- On SIGINT/SIGTERM, the app stops admitting HTTP requests and scheduled work,
+  disconnects sockets, drains tracked requests, meeting operations and worker
+  ticks, then closes database pools. It exits after at most 30 seconds if work
+  cannot finish. Disconnected HTTP clients, detached work, a blocked event loop,
+  or operations longer than the deadline can still be interrupted. This does
+  not make multi-step imports transactional. PM2 must allow 40 seconds so it
+  does not kill the app before the drain deadline.
+- `scripts/restart_gcstool.js` checks for one online, direct Node fork in this
+  checkout with the required kill timeout, then restarts that PM2 ID without
+  changing its saved environment. It never deletes or creates app entries.
+  `--check` validates without restarting. The optional systemd timer runs it on
+  Sunday at 23:00 Asia/Tokyo; pulling code does not install or enable the timer.
 
 RSS is the resident size of the whole process. The V8 old-space limit is only a
 part of that: uploaded Buffers, images, native allocations, and other heap spaces
@@ -107,6 +119,145 @@ the supervisor, at the cap. Verify service recovery and app resurrection under
 that condition in a test environment. Apply service changes in a maintenance
 window. There is no budget that guarantees both unrestricted heavy operations
 and a responsive 979 MB host.
+
+## Diagnose gradual growth
+
+A drop of about 70 MB after a week does not establish a leak: live objects,
+bounded caches, buffers, and allocator-retained memory are all released when
+the process exits. Deploy diagnostics first and compare the same process PID
+over several days, including quiet overnight periods. Group by PID/uptime so
+restarts do not look like garbage collection. Compare daily low values, not
+only peaks; normal garbage collection produces a sawtooth pattern.
+
+| Observed trend | Next investigation |
+| --- | --- |
+| Daily low `heapUsedBytes` keeps increasing | Retained JS objects, cache bounds, listeners; compare heap profiles on staging |
+| `externalBytes`/`arrayBufferBytes` keep increasing | Uploads, image/PDF buffers, network responses; ArrayBuffers are included in external memory |
+| RSS grows while heap and external memory stay stable | Native allocations, allocator fragmentation, resident memory retention |
+| Host available memory falls but app RSS is stable | Tracker, other services, monitoring jobs and host memory |
+
+Use `pm2 describe gcstool` to find the output log, then extract only records
+containing `"event":"runtime_sample"`. This avoids sharing unrelated app logs.
+Collect a fresh-start baseline after warm-up, quiet-period samples, and samples
+before the next restart. Record which features were used near substantial jumps.
+These counters narrow the search; they cannot name the retaining object or line
+of code. Do not force GC or take automatic heap snapshots on the 979 MB host.
+Reproduce the implicated workload on a larger isolated host for snapshot/profile
+comparison. RSS growth with stable heap can be allocator fragmentation; see
+[Node memoryUsage](https://nodejs.org/api/process.html#processmemoryusage).
+
+Weekly restarting limits process age; it does not fix a leak or prevent a
+same-day spike. Keep the memory threshold, host monitoring and low-memory alerts.
+
+## Upgrade the existing PM2 deployment
+
+Run app/PM2 commands as the existing PM2 owner (the recovery path suggests
+`deploy`), using the same PM2_HOME and Node executable. Do not run a separate
+root-owned PM2 daemon. Keep a backup of `.env`, persistent files and the database
+before upgrading: the complete branch also contains feature/schema work beyond
+runtime safety. Do not replace `.env` with `env_sample` or change SESSION_SECRET.
+
+1. Check `git status --short`, `git branch --show-current`, and `pm2 describe gcstool`.
+   Record the current commit, PM2 entrypoint, working directory and log paths.
+   Fetch and inspect the incoming commits before pulling the intended deployment
+   branch. For a checkout already tracking `dev`:
+
+   ```sh
+   cd /home/deploy/gcstool/GCSTool
+   git fetch origin
+   git log --oneline HEAD..origin/dev
+   git pull --ff-only
+   ```
+
+2. If package.json/package-lock.json changed since the deployed commit, install
+   dependencies during the maintenance window with `npm ci --omit=dev`. Stop the
+   app before replacing node_modules. On the small host, building/installing on
+   a compatible separate machine avoids competing with the app for RAM. The
+   runtime-safety changes themselves add no npm dependencies or database schema.
+3. If PM2 already runs `bin/www` directly from this directory, apply the longer
+   shutdown deadline even if you are not switching to the ecosystem file yet:
+
+   ```sh
+   pm2 restart gcstool --kill-timeout 40000 --restart-delay 5000 --update-env
+   ```
+
+   The first restart of an older running process cannot use the new shutdown
+   handler; that handler applies after the new code starts. If PM2 runs an npm
+   wrapper, migrate that single entry to `bin/www` during maintenance, preserving
+   its environment and options. Validate all settings before removing the old
+   entry, and never start a duplicate alongside it.
+4. The ecosystem file additionally requires `PM2_MAX_MEMORY_MB` and `PM2_HEAP_MB`.
+   Set them using measured RSS/heap headroom, then use the command in "Deploy PM2
+   protection". Simply pulling the file does not apply it. As a provisional
+   containment tradeoff, if normal RSS is still about 313 MB, a 450M RSS threshold
+   would recycle the app before its previously observed 480 MB peak; it can
+   therefore interrupt legitimate heavy work. This is not a guarantee of host
+   safety. A heap budget cannot be inferred from RSS alone. Alternatively apply
+   only an RSS threshold to the existing entry using
+   `pm2 restart gcstool --max-memory-restart 450M` after evaluating that tradeoff.
+5. Verify login, a normal read/write operation, and `runtime_sample` output.
+   Confirm the 40000 ms kill timeout in PM2 metadata. Test another restart during
+   maintenance and look for `shutdown_started` and `shutdown_complete` from the
+   old PID. Watch for deadline/failure messages. Preserve SESSION_SECRET and the
+   session database so users normally retain their login. In-flight requests,
+   socket connections and generated temporary downloads may be interrupted.
+6. Once healthy, run `pm2 save`. Keep the host's existing PM2 startup service
+   enabled. The sample collector's revised flock/timeout cron entries are a
+   separate host configuration change; replace existing entries, not duplicate
+   them. Rotate PM2 logs and monitor restart counts.
+
+## Enable the Sunday-night timer
+
+The example uses **Sunday 23:00 JST** (Sunday 14:00 UTC) and will not catch up a
+missed run during business hours after boot. It restarts only gcstool, not tracker.
+The service must use the same user and PM2_HOME as the existing daemon. Locate
+the actual binaries with `command -v node` and `command -v pm2` as that user.
+
+1. Set PM2_BIN in the app's `.env` to the full PM2 executable path. Check the
+   restart preconditions as the PM2 owner without touching the running app:
+
+   ```sh
+   node scripts/restart_gcstool.js --check
+   ```
+
+2. Copy the examples and edit the installed service to match your installation:
+
+   ```sh
+   sudo cp deployment/gcstool-weekly-restart.service /etc/systemd/system/
+   sudo cp deployment/gcstool-weekly-restart.timer /etc/systemd/system/
+   sudoedit /etc/systemd/system/gcstool-weekly-restart.service
+   ```
+
+   Update `User`, `WorkingDirectory`, `PM2_HOME`, `PATH` and `ExecStart`. The
+   example `/usr/bin/node` might not be your Node executable. For nvm, use the
+   full versioned Node path and include its directory in PATH, since PM2's
+   executable normally uses `/usr/bin/env node`. After upgrading Node, update
+   these paths. Do not install the example unedited if your paths differ.
+3. Validate the units/calendar on the target OS, reload them, and test one
+   restart during maintenance before enabling the schedule:
+
+   ```sh
+   systemd-analyze calendar 'Sun *-*-* 23:00:00 Asia/Tokyo'
+   sudo systemd-analyze verify /etc/systemd/system/gcstool-weekly-restart.service /etc/systemd/system/gcstool-weekly-restart.timer
+   sudo systemctl daemon-reload
+   sudo systemctl start gcstool-weekly-restart.service
+   sudo journalctl -u gcstool-weekly-restart.service -n 20 --no-pager
+   ```
+
+   Confirm the app works and logs a graceful shutdown. The script verifies a
+   new online PID; PM2's "online" status is not an HTTP/database readiness check.
+4. Enable the timer and verify the next run:
+
+   ```sh
+   sudo systemctl enable --now gcstool-weekly-restart.timer
+   systemctl list-timers gcstool-weekly-restart.timer
+   ```
+
+   Monitor failed service runs as well as app uptime. To suspend the schedule:
+   `sudo systemctl disable --now gcstool-weekly-restart.timer`. Do not also set a
+   PM2 cron restart or duplicate cron job for the same restart. The script keeps
+   the saved process environment and limits; intentional configuration changes
+   should still use the normal deployment commands with `--update-env`.
 
 ## Prevent overlapping cron jobs
 

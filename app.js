@@ -9,6 +9,7 @@ const Sequelize = require('sequelize');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const fileUpload = require('express-fileupload');
 const { isTemporaryPassword } = require('./utils/password');
+const { createLifecycle } = require('./utils/gracefulShutdown');
 
 const pp = require('./passport_init');
 
@@ -36,6 +37,8 @@ const dhlCompensationRouter = require('./routes/dhl_compensation');
 const dailyTasksRouter = require('./routes/dailyTasks');
 
 var app = express();
+const lifecycle = createLifecycle();
+app.use(lifecycle.middleware);
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 if (process.env.SESSION_COOKIE_SECURE === 'true') {
@@ -248,4 +251,12 @@ function requireNotAuthenticated(req, res, next) {
   next();
 }
 
-module.exports = { app, sessionMiddleware };
+module.exports = {
+  app,
+  sessionMiddleware,
+  lifecycle,
+  closeSessionStore: async () => {
+    sessionStore.stopExpiringSessions();
+    await sequelize.close();
+  },
+};

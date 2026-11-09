@@ -1,0 +1,12 @@
+[Unit]
+Description=Restart GCSTool on Sunday at 23:00 Japan time
+
+[Timer]
+OnCalendar=Sun *-*-* 23:00:00 Asia/Tokyo
+AccuracySec=1min
+# Do not perform a missed restart during working hours after the host boots.
+Persistent=false
+Unit=gcstool-weekly-restart.service
+
+[Install]
+WantedBy=timers.target

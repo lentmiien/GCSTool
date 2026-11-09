@@ -113,14 +113,13 @@ async function resolveActor(socket, reload = false) {
   };
 }
 
-function registerSocketHandler(socket, eventName, handler) {
+function registerSocketHandler(socket, eventName, handler, run) {
   socket.on(eventName, (data) => {
-    Promise.resolve()
-      .then(async () => {
-        const actor = await resolveActor(socket, true);
-        socket.data.actor = actor;
-        await handler(data, actor);
-      })
+    run(async () => {
+      const actor = await resolveActor(socket, true);
+      socket.data.actor = actor;
+      await handler(data, actor);
+    })
       .catch((error) => {
         const actorId = socket.data.actor ? socket.data.actor.id : 'unknown';
         console.error(`Socket operation failed [${eventName}] for user ${actorId}:`, error);
@@ -214,8 +213,10 @@ async function updateMeetingComment(id, content, actor) {
   return job;
 }
 
-exports.io = (server, sessionMiddleware) => {
+exports.io = (server, sessionMiddleware, lifecycle = { run: task => Promise.resolve().then(task) }) => {
   const io = socketIO(server);
+  const registerHandler = (socket, eventName, handler) =>
+    registerSocketHandler(socket, eventName, handler, task => lifecycle.run(task));
 
   // Socket.IO middleware to protect connections
   io.use((socket, next) => {
@@ -238,7 +239,7 @@ exports.io = (server, sessionMiddleware) => {
     /***********
      * Meeting *
      ***********/
-    registerSocketHandler(socket, 'meeting_new', async (data, actor) => {
+    registerHandler(socket, 'meeting_new', async (data, actor) => {
       const payload = requirePayload(data);
       const title = requireString(payload.title, 'meeting title', MAX_TITLE_LENGTH, { trim: true });
       const content = requireString(
@@ -261,7 +262,7 @@ exports.io = (server, sessionMiddleware) => {
       // Emit: new database entries
       io.emit('server_response', { newMeeting: [meeting], updateMeeting: [], newComment: [], updateComment: [] });
     });
-    registerSocketHandler(socket, 'meeting_update', async (data) => {
+    registerHandler(socket, 'meeting_update', async (data) => {
       const payload = requirePayload(data);
       const meetingId = requirePositiveId(payload.id, 'meeting id');
       const content = requireString(
@@ -278,7 +279,7 @@ exports.io = (server, sessionMiddleware) => {
       // Emit: database entry
       io.emit('server_response', { newMeeting: [], updateMeeting: [meeting], newComment: [], updateComment: [] });
     });
-    registerSocketHandler(socket, 'comment_add', async (data, actor) => {
+    registerHandler(socket, 'comment_add', async (data, actor) => {
       const payload = requirePayload(data);
       const meetingId = requirePositiveId(payload.id, 'meeting id');
       const commentContent = requireString(payload.comment, 'meeting comment', MAX_COMMENT_LENGTH);
@@ -289,7 +290,7 @@ exports.io = (server, sessionMiddleware) => {
       // Emit: new database entry
       io.emit('server_response', { newMeeting: [], updateMeeting: [], newComment: [comment], updateComment: [] });
     });
-    registerSocketHandler(socket, 'comment_update', async (data, actor) => {
+    registerHandler(socket, 'comment_update', async (data, actor) => {
       const payload = requirePayload(data);
       const commentId = requirePositiveId(payload.id, 'comment id');
       const commentContent = requireString(
@@ -310,4 +311,5 @@ exports.io = (server, sessionMiddleware) => {
       console.log('User disconnected:', socket.data.actor ? socket.data.actor.id : 'unknown');
     });
   });
+  return io;
 };

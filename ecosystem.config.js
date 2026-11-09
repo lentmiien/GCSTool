@@ -27,6 +27,8 @@ module.exports = {
     node_args: [`--max-old-space-size=${heapLimitMb}`],
     autorestart: true,
     restart_delay: 5000,
+    // App drains admitted work for up to 30s before exiting itself.
+    kill_timeout: 40000,
     min_uptime: '60s',
     max_restarts: 10,
     watch: false,

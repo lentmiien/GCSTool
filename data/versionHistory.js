@@ -4,7 +4,7 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-11-04',
+    updateDate: '2026-11-09',
     items: [
       item('HS', [
         item('Ireland TARIC queue - Added a page-top warning showing outstanding item counts, oldest waiting time, and time since queue activity'),
@@ -12,6 +12,8 @@ module.exports = [
         item('Ireland TARIC authentication - Added a reminder to check API keys in all running instances and restart each instance after updating its key'),
       ]),
       item('Runtime stability and monitoring', [
+        item('Added a bounded graceful restart that drains active requests, meeting operations, and scheduled work before closing database connections'),
+        item('Added a checked PM2 restart script and optional Sunday-night timer, with deployment and gradual-memory-growth investigation instructions'),
         item('Added periodic process-memory and event-loop diagnostics to help investigate resource pressure and freezes'),
         item('Added configurable PM2 memory restart and heap limits, restart delays, and deployment guidance for host memory protection'),
         item('Bounded host-monitoring job runtimes, subprocess execution, and database connection pools, with documented cron overlap protection'),

@@ -218,12 +218,12 @@ function createService(db) {
     activeTasks: userId => Task.findAll({ ...activeTaskQuery(userId), order: [['activatedAt', 'ASC'], ['id', 'ASC']] }) };
 }
 
-function startScheduler(service, logger = console) {
+function startScheduler(service, logger = console, run = task => task()) {
   let running = false;
   const poll = async () => {
     if (running) return;
     running = true;
-    try { await service.tick(); } catch (_) { logger.error('Workflow scheduler failed; pending starts will retry on the next tick.'); }
+    try { await run(() => service.tick()); } catch (_) { logger.error('Workflow scheduler failed; pending starts will retry on the next tick.'); }
     finally { running = false; }
   };
   poll();

@@ -97,6 +97,10 @@ function createWorker(store, transport = createTransport(), now = Date.now) {
       busy = false;
     }
   }
-  return { step, tick, start() { const timer = setInterval(tick, 2000); timer.unref(); return () => clearInterval(timer); } };
+  return { step, tick, start(run = task => task()) {
+    const timer = setInterval(() => run(tick), 2000);
+    timer.unref();
+    return () => clearInterval(timer);
+  } };
 }
 module.exports = { createWorker, publicJob };

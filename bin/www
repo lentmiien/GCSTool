@@ -9,10 +9,11 @@ if (!process.env.SESSION_SECRET || !process.env.SESSION_SECRET.trim()) {
 }
 require('../utils/runtimeDiagnostics').startRuntimeDiagnostics();
 
-var {app, sessionMiddleware} = require('../app');
+var {app, sessionMiddleware, lifecycle, closeSessionStore} = require('../app');
 var debug = require('debug')('gcstool:server');
 var http = require('http');
 const { startTmpCleanup } = require('../utils/tmpCleaner');
+const { installGracefulShutdown } = require('../utils/gracefulShutdown');
 
 /**
  * Get port from environment and store in Express.
@@ -31,23 +32,36 @@ startTmpCleanup();
 
 const workflowDatabase = require('../sequelize');
 workflowDatabase.gcsDatabaseReady.then(() => {
+  if (lifecycle.isStopping()) return;
   const { createService, startScheduler } = require('../services/workflows');
-  startScheduler(createService(workflowDatabase));
+  startScheduler(createService(workflowDatabase), console, task => lifecycle.run(task));
 }).catch(() => console.warn('Workflow scheduler could not start; check database readiness.'));
 
 // Recover durable TARIC work after schema readiness; page GETs do not start jobs.
 const taricDatabase = require('../sequelize');
 taricDatabase.gcsDatabaseReady.then(() => {
+  if (lifecycle.isStopping()) return;
   require('../services/irelandTaricWorker').createWorker(
     require('../services/irelandTaricStore').createStore(taricDatabase)
-  ).start();
+  ).start(task => lifecycle.run(task));
 }).catch(() => console.warn('Ireland TARIC outbox could not start; check database readiness.'));
 
 /**
  * Setup socket.io
  */
 
-require('../socket_io_controller').io(server, sessionMiddleware);
+const io = require('../socket_io_controller').io(server, sessionMiddleware, lifecycle);
+installGracefulShutdown({
+  lifecycle,
+  server,
+  io,
+  closeResources: () => Promise.all([
+    closeSessionStore(),
+    workflowDatabase.sequelize.close(),
+    workflowDatabase.sequelize_tracker.close(),
+    workflowDatabase.sequelize_dhl_compensation.close(),
+  ]),
+});
 
 /**
  * Listen on provided port, on all network interfaces.
