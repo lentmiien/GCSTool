@@ -3,6 +3,15 @@
   const root = document.getElementById('country-manager');
   if (!root) return;
   const status = document.getElementById('cm-status');
+  const flashKey = 'gcs-country-manager-flash';
+  try {
+    const message = window.sessionStorage.getItem(flashKey);
+    window.sessionStorage.removeItem(flashKey);
+    if (message) {
+      status.textContent = message;
+      status.className = 'cm-status alert alert-success';
+    }
+  } catch (_) { /* Saving works when browser storage is unavailable. */ }
   let saving = false;
   root.addEventListener('submit', async function (event) {
     const form = event.target;
@@ -11,8 +20,8 @@
     if (saving) return;
     if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) return;
     saving = true;
-    const buttons = Array.from(root.querySelectorAll('.cm-edit button'));
-    buttons.forEach(button => { button.disabled = true; });
+    const buttons = Array.from(root.querySelectorAll('.cm-edit button')).map(button => ({ button, disabled: button.disabled }));
+    buttons.forEach(({ button }) => { button.disabled = true; });
     status.textContent = 'Saving…';
     status.className = 'cm-status alert alert-info';
     try {
@@ -24,11 +33,13 @@
       // Update all form revisions so unchanged saves also remain safe.
       root.querySelectorAll('input[name="revision"]').forEach(input => { input.value = result.revision; });
       if (result.changed) {
-        const section = form.closest('.cm-source');
+        try { window.sessionStorage.setItem(flashKey, result.message || 'Changes saved.'); }
+        catch (_) { /* The saved data will still appear after reloading. */ }
+        const section = form.closest('.cm-source, .cm-method-visibility, .cm-exceptions');
         if (section && section.id) window.history.replaceState(null, '', `#${section.id}`);
         window.location.reload();
       } else {
-        status.textContent = 'No changes to save.';
+        status.textContent = result.message || 'No changes to save.';
         status.className = 'cm-status alert alert-info';
       }
     } catch (error) {
@@ -37,7 +48,7 @@
       status.scrollIntoView({ block: 'center', behavior: 'smooth' });
     } finally {
       saving = false;
-      buttons.forEach(button => { button.disabled = false; });
+      buttons.forEach(({ button, disabled }) => { button.disabled = disabled; });
     }
   });
   function openSection() {

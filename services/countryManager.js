@@ -1,11 +1,12 @@
 const { isDeepStrictEqual } = require('util');
 const { Op } = require('sequelize');
 const { fail } = require('../utils/japanPostCsv');
-const { sources, flag, code, normalize, key, sorted, parseImport, changes, resolveCountry, cutoff } = require('../utils/countryManager');
+const { sources, methods, flag, code, normalize, key, sorted, parseImport, changes, exactNameMappings, mappingCountries, resolveCountry, cutoff } = require('../utils/countryManager');
 const plain = row => row.get ? row.get({ plain: true }) : row;
+const hiddenMethodsKey = 'COUNTRY_MANAGER_HIDDEN_METHODS';
 
 function createService(models, options = {}) {
-  const { sequelize, CountryManagerState: State, CountryManagerVersion: Version, JapanPostCsvCache: JapanPost } = models;
+  const { sequelize, CountryManagerState: State, CountryManagerVersion: Version, JapanPostCsvCache: JapanPost, AppSetting } = models;
   const now = options.now || (() => new Date());
   let initializing;
   async function initialize() {
@@ -37,6 +38,27 @@ function createService(models, options = {}) {
   async function jpVersions(transaction, at) {
     return (await JapanPost.findAll({ where: at ? { detectedAt: { [Op.lte]: at } } : {}, order: [['id', 'ASC']], transaction })).map(plain);
   }
+  async function hiddenMethods(transaction) {
+    const setting = await AppSetting.findOne({ where: { key: hiddenMethodsKey }, transaction });
+    const hidden = new Set(setting ? setting.value.split(',') : []);
+    return methods.filter(method => hidden.has(method.key)).map(method => method.key);
+  }
+
+  async function saveMethodVisibility(input) {
+    const selected = input.visibleMethods === undefined ? [] : Array.isArray(input.visibleMethods) ? input.visibleMethods : [input.visibleMethods];
+    if (selected.some(value => !methods.some(method => method.key === value))) fail('Choose supported shipping methods.');
+    if (!/^\d+$/.test(String(input.revision))) fail('Reload the page before saving.', 409);
+    const hidden = methods.filter(method => !selected.includes(method.key)).map(method => method.key);
+    await initialize();
+    return sequelize.transaction(async transaction => {
+      const lock = await State.findByPk(1, { transaction, lock: transaction.LOCK.UPDATE });
+      if (Number(input.revision) !== lock.revision) fail('The data changed while this page was open. Reload and review it before saving.', 409);
+      if (isDeepStrictEqual(await hiddenMethods(transaction), hidden)) return { changed: 0, revision: lock.revision };
+      await AppSetting.upsert({ key: hiddenMethodsKey, value: hidden.join(',') }, { transaction });
+      await lock.update({ revision: lock.revision + 1 }, { transaction });
+      return { changed: 1, revision: lock.revision };
+    });
+  }
   async function read(query = {}) {
     const at = cutoff(query.at);
     await initialize();
@@ -50,6 +72,8 @@ function createService(models, options = {}) {
       const q = typeof query.q === 'string' ? query.q.trim().toLowerCase() : '';
       const rows = state.website.map(row => resolveCountry(row, state, jp)).filter(row => !q || [row.countryCode, row.countryName, row.internal && row.internal.countryNameJ, row.mapping && row.mapping.jpCode].some(value => value && value.toLowerCase().includes(q))).sort((a, b) => a.countryName.localeCompare(b.countryName));
       return { state, rows, allCountries, jp, revision: lock.revision, at, baseline: records[0] && records[0].recordedAt,
+        hiddenMethods: await hiddenMethods(transaction),
+        mappingCountries: mappingCountries(state), autoMapCandidates: exactNameMappings(state.website, state.mappings, jp),
         missingInternal: state.website.filter(row => !state.internal.some(item => item.countryCode === row.countryCode)).length,
         missingMapping: state.website.filter(row => !state.mappings.some(item => item.countryCode === row.countryCode)).length,
         missingJapanPost: state.website.filter(row => { const mapping = state.mappings.find(item => item.countryCode === row.countryCode); return mapping && !jp.some(item => item.countryCode === mapping.jpCode); }).length,
@@ -58,7 +82,8 @@ function createService(models, options = {}) {
   }
   async function save(source, input, actor, imported) {
     if (!sources.includes(source)) fail('Unknown data source.');
-    if (!['save', 'delete', 'import'].includes(input.action)) fail('Unknown edit action.');
+    if (!['save', 'delete', 'import', 'auto-map'].includes(input.action)) fail('Unknown edit action.');
+    if (input.action === 'auto-map' && source !== 'mappings') fail('Auto-mapping is only available for country mappings.');
     const row = input.action === 'save' ? normalize(source, input) : null;
     const deleteKey = input.action === 'delete' ? key({ countryCode: code(input.countryCode), method: source === 'exceptions' ? input.method : '' }) : null;
     if (input.action === 'import' && !imported) fail('Choose a CSV file.');
@@ -71,6 +96,7 @@ function createService(models, options = {}) {
       const state = stateOf(records);
       let next;
       if (input.action === 'import') next = imported;
+      else if (input.action === 'auto-map') next = [...state.mappings, ...exactNameMappings(state.website, state.mappings, await jpVersions(transaction))];
       else if (input.action === 'delete') next = state[source].filter(item => key(item) !== deleteKey);
       else next = [...state[source].filter(item => key(item) !== key(row)), row];
       next = sorted(next);
@@ -89,7 +115,7 @@ function createService(models, options = {}) {
       const lastTime = Math.max(...records.map(item => new Date(item.recordedAt).getTime()));
       const recordedAt = new Date(Math.max(now().getTime(), lastTime + 1));
       await Version.create({ source, data: next, recordedAt, actor: String(actor || 'User').slice(0, 255),
-        note: input.action === 'import' ? 'CSV replacement import' : input.action === 'delete' ? 'Removed entry' : 'Saved entry' }, { transaction });
+        note: input.action === 'import' ? 'CSV replacement import' : input.action === 'auto-map' ? 'Auto-mapped exact English names' : input.action === 'delete' ? 'Removed entry' : 'Saved entry' }, { transaction });
       await lock.update({ revision: lock.revision + 1 }, { transaction });
       return { changed: diff.length, revision: lock.revision };
     });
@@ -123,6 +149,6 @@ function createService(models, options = {}) {
       return events.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt) || String(b.id).localeCompare(String(a.id)));
     });
   }
-  return { read, save, importCsv, history };
+  return { read, save, importCsv, history, saveMethodVisibility };
 }
 module.exports = { createService };

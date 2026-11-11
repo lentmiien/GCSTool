@@ -1,4 +1,4 @@
-const { parseImport, normalize, resolveCountry, cutoff, changes } = require('../utils/countryManager');
+const { parseImport, normalize, resolveCountry, cutoff, changes, exactNameMappings, mappingCountries } = require('../utils/countryManager');
 const state = () => ({ website: [], internal: [], mappings: [], exceptions: [] });
 const country = { countryCode: '001', countryName: 'Test' };
 
@@ -68,4 +68,31 @@ test('history captures additions, renames and removals', () => {
   const diff = changes([country, { countryCode: '002', countryName: 'Removed' }], [{ ...country, countryName: 'Renamed' }, { countryCode: '003', countryName: 'Added' }]);
   expect(diff.map(row => row.action)).toEqual(['Changed', 'Removed', 'Added']);
   expect(diff[0].fields).toContainEqual({ field: 'countryName', before: 'Test', after: 'Renamed' });
+});
+
+test('auto-mapping uses unique current English names, ignores case and surrounding spaces, and preserves existing links', () => {
+  const jp = [
+    { countryCode: 'US', data: { '国名（英語）': 'Old name' } },
+    { countryCode: 'US', data: { '国名（英語）': 'UNITED STATES' } },
+    { countryCode: 'AU', data: { '国名（英語）': 'Australia' } },
+    { countryCode: 'GB', data: { '国名（英語）': 'Duplicate name' } },
+    { countryCode: 'GG', data: { '国名（英語）': 'duplicate name ' } },
+    { countryCode: 'FR', data: { '国名（英語）': '' } },
+  ];
+  const website = [' united states ', 'Old name', 'Australia', 'Duplicate name', 'United-States', '', 'UNITED STATES']
+    .map((countryName, index) => ({ countryCode: `00${index}`, countryName }));
+  expect(exactNameMappings(website, [{ countryCode: '002', jpCode: 'US' }], jp)).toEqual([
+    { countryCode: '000', jpCode: 'US' }, { countryCode: '006', jpCode: 'US' },
+  ]);
+});
+
+test('manual mapping choices put unmapped website codes first and retain internal-only and orphan mappings', () => {
+  const data = { ...state(), website: [
+    { countryCode: '009', countryName: 'Website nine' }, { countryCode: '010', countryName: 'Website ten' }, { countryCode: '002', countryName: 'Website two' },
+  ], internal: [{ countryCode: '002', countryName: 'Internal two' }, { countryCode: '001', countryName: 'Internal only' }],
+  mappings: [{ countryCode: '009', jpCode: 'US' }, { countryCode: 'removed', jpCode: 'AU' }] };
+  const rows = mappingCountries(data);
+  expect(rows.map(row => row.countryCode)).toEqual(['002', '010', '001', '009', 'removed']);
+  expect(rows[0]).toMatchObject({ countryName: 'Website two', isWebsite: true, jpCode: '' });
+  expect(rows[4]).toMatchObject({ orphan: true, jpCode: 'AU' });
 });

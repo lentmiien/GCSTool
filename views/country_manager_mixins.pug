@@ -23,7 +23,13 @@ mixin sourceEditor(source, row)
     +hiddenEdit(source, 'save')
     label
       span Internal country code
-      input.form-control(name='countryCode', value=entry.countryCode, required, maxlength='100', pattern='(?:[A-Za-z0-9_.]|-)+', readonly=!!row, list=(source === 'mappings' || source === 'exceptions') ? 'cm-countries' : undefined)
+      if source === 'mappings' && !row
+        select.form-control(name='countryCode', required)
+          option(value='') Choose a country · unmapped first
+          each country in mappingCountries.filter(item => !item.orphan)
+            option(value=country.countryCode)= `${country.countryCode} · ${country.countryName} · ${country.jpCode ? 'mapped to ' + country.jpCode : 'unmapped'}${country.isWebsite ? '' : ' · internal only'}`
+      else
+        input.form-control(name='countryCode', value=entry.countryCode, required, maxlength='100', pattern='(?:[A-Za-z0-9_.]|-)+', readonly=!!row, list=source === 'exceptions' ? 'cm-countries' : undefined)
     if source === 'website' || source === 'internal'
       label
         span Country name
@@ -56,7 +62,7 @@ mixin sourceEditor(source, row)
       label.cm-wide
         span Reason (required)
         input.form-control(name='reason', value=entry.reason, required, maxlength='255')
-    button.btn.btn-primary(type='submit')= row ? 'Save changes' : 'Add / update'
+    button.btn.btn-primary(type='submit')= source === 'mappings' && !entry.jpCode ? 'Add mapping' : row ? 'Save changes' : 'Add / update'
 
 mixin historyEvents(events)
   if !events.length

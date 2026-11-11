@@ -13,5 +13,7 @@ module.exports = service => {
   router.get('/country_csv_check', (req, res) => res.render('country_csv_check'));
   router.post('/api/:source/save', controller.save);
   router.post('/api/:source/import', controller.importCsv);
+  router.post('/api/mappings/auto-map', controller.autoMap);
+  router.post('/api/method-visibility', controller.saveMethodVisibility);
   return router;
 };

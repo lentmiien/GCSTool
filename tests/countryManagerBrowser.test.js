@@ -4,6 +4,7 @@ const script = fs.readFileSync('public/javascripts/country-manager.js', 'utf8');
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 let form;
 beforeEach(() => {
+  window.sessionStorage.clear();
   document.body.innerHTML = `<div id="country-manager" data-csrf="test-token"><div id="cm-status"></div>
     <form class="cm-edit" action="/country/api/internal/save"><input name="action" value="save"><input name="revision" value="1"><input name="countryCode" value="001"><button>Save</button></form>
     <details id="source-mappings"><summary>Mappings</summary></details></div>`;
@@ -52,4 +53,15 @@ test('prevents duplicate in-flight saves', async () => {
   expect(window.fetch).toHaveBeenCalledTimes(1);
   complete({ ok: true, json: async () => ({ changed: 0, revision: 1 }) });
   await flush();
+});
+
+test('shows auto-mapper feedback and keeps intentionally disabled buttons disabled', async () => {
+  const button = document.createElement('button');
+  button.disabled = true;
+  form.appendChild(button);
+  window.fetch.mockResolvedValue({ ok: true, json: async () => ({ changed: 0, revision: 1, message: 'No new exact English-name matches.' }) });
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await flush();
+  expect(document.getElementById('cm-status').textContent).toBe('No new exact English-name matches.');
+  expect(button.disabled).toBe(true);
 });

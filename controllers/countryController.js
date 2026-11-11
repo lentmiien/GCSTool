@@ -51,6 +51,14 @@ function createController(service) {
       if (req.body.action === 'import') fail('Use the CSV import endpoint.');
       res.json(await service.save(req.params.source, req.body, req.user.userid));
     }),
+    autoMap: handle(async (req, res) => {
+      const result = await service.save('mappings', { revision: req.body.revision, action: 'auto-map' }, req.user.userid);
+      res.json({ ...result, message: result.changed ? `Added ${result.changed} country mapping${result.changed === 1 ? '' : 's'}.` : 'No new exact English-name matches. Remaining countries can be mapped manually.' });
+    }),
+    saveMethodVisibility: handle(async (req, res) => {
+      const result = await service.saveMethodVisibility(req.body);
+      res.json({ ...result, message: result.changed ? 'Shipping method columns saved for everyone.' : 'No changes to the shared shipping method columns.' });
+    }),
     importCsv: handle(async (req, res) => {
       const file = req.files && req.files.csvFile;
       if (!file || Array.isArray(file) || Object.keys(req.files).length !== 1 || file.truncated) fail('Choose one complete CSV file up to 5 MB.');

@@ -22,9 +22,17 @@ block content
         a(href='/country') Return to current data
     if !baseline
       .alert.alert-info No manager baseline exists at this time. Earlier website/internal availability cannot be reconstructed.
-    section.card.mb-3.cm-exceptions
+    details#cm-exceptions.card.mb-3.cm-exceptions
+      summary.cm-exceptions-summary
+        span.cm-collapse-icon(aria-hidden='true') ▸
+        strong= `Exceptions (${state.exceptions.length})`
+        span.cm-exception-countries
+          - const exceptionNames = [...new Set(state.exceptions.map(entry => (allCountries.find(row => row.countryCode === entry.countryCode) || {}).countryName || entry.countryCode))].sort((a, b) => a.localeCompare(b))
+          each countryName in exceptionNames
+            span.cm-exception-country= countryName
+          if !exceptionNames.length
+            span.text-muted None
       .card-body
-        h2.h4= `Exceptions (${state.exceptions.length})`
         p Exceptions take priority over every source, including Unknown. Removing an exception restores the source result.
         if !state.exceptions.length
           p.text-muted No exceptions are active at this time.
@@ -76,6 +84,22 @@ block content
             input.form-control(type='date', name='at', value=at ? new Date(at.getTime() + 9 * 3600000).toISOString().slice(0, 10) : '')
           button.btn.btn-outline-primary(type='submit') View
           a.btn.btn-outline-secondary(href='/country') Current / reset
+        details#cm-method-visibility.cm-method-visibility
+          summary= `Shipping methods shown (${methods.length - hiddenMethods.length} of ${methods.length})`
+          p.text-muted Choose the columns shown to everyone. These settings apply to current and historical availability tables.
+          if at
+            p.text-muted Return to current data to change the shared column settings.
+          else
+            form.cm-edit(action='/country/api/method-visibility', method='post')
+              input(type='hidden', name='revision', value=revision)
+              .cm-method-options
+                each method in methods
+                  label.cm-method-option
+                    input(type='checkbox', name='visibleMethods', value=method.key, checked=!hiddenMethods.includes(method.key))
+                    span= method.label
+              button.btn.btn-outline-primary(type='submit') Save for everyone
+        if hiddenMethods.length === methods.length
+          p.text-muted All shipping methods are hidden. Open Shipping methods shown to select columns.
         .cm-health
           span= `${state.website.length} website countries`
           span= `${missingInternal} missing internal entries`
@@ -90,7 +114,7 @@ block content
                   th(scope='col') Internal code
                   th(scope='col') JP code
                   each method in methods
-                    th(scope='col')= method.label
+                    th(scope='col', hidden=hiddenMethods.includes(method.key), data-method=method.key)= method.label
               tbody
                 each row in rows
                   tr
@@ -99,7 +123,7 @@ block content
                     td= row.countryCode
                     td= row.mapping ? row.mapping.jpCode : 'Unmapped'
                     each method in row.methods
-                      td
+                      td(hidden=hiddenMethods.includes(method.key), data-method=method.key)
                         span.cm-badge(class=method.value === true ? 'cm-available' : method.value === false ? 'cm-unavailable' : 'cm-unknown', title=method.exception ? `${method.exception.reason} (source: ${label(method.base)})` : method.evidence)= `${label(method.value)}${method.exception ? ' ★' : ''}`
         else
           p.app-empty-state No website countries match this view. Import or add website countries below to get started.
@@ -120,7 +144,22 @@ block content
               summary
                 strong= `${source === 'website' ? 'Website country list' : source === 'internal' ? 'Internal country list · DHL, AIT, ECMS' : 'Japan Post country mappings'} (${state[source].length})`
               if source === 'mappings'
-                p Multiple internal codes may map to the same Japan Post country. Old CID/name links are not reused. Import Japan Post limits first to populate the selection.
+                p Unmapped website countries are listed first, followed by other unmapped countries. Multiple internal codes may map to the same Japan Post country.
+                .cm-auto-map
+                  h3.h5 Auto-mapper
+                  p English names must match exactly apart from capitalization and surrounding spaces. Existing mappings and ambiguous names are skipped.
+                  form.cm-edit(action='/country/api/mappings/auto-map', method='post')
+                    input(type='hidden', name='revision', value=revision)
+                    button.btn.btn-primary(type='submit', disabled=!autoMapCandidates.length)= `Auto-map exact names (${autoMapCandidates.length})`
+                  if autoMapCandidates.length
+                    details.mt-2
+                      summary Review matching countries
+                      ul
+                        each candidate in autoMapCandidates
+                          - const country = allCountries.find(row => row.countryCode === candidate.countryCode)
+                          li= `${candidate.countryCode} · ${country.countryName} → ${candidate.jpCode}`
+                  else
+                    p.mb-0.mt-2.text-muted No new unambiguous English-name matches. Add remaining mappings below.
               form.cm-edit.cm-import(action=`/country/api/${source}/import`, method='post', enctype='multipart/form-data', data-confirm='Replace this entire source list with the CSV contents? Entries absent from the file will be removed; history will be retained.')
                 input(type='hidden', name='revision', value=revision)
                 label
@@ -128,40 +167,50 @@ block content
                   input.form-control-file(type='file', name='csvFile', accept='.csv,text/csv', required)
                 button.btn.btn-outline-primary(type='submit') Replace from CSV
               details.cm-add
-                summary Add an entry
+                summary= source === 'mappings' ? 'Add a mapping' : 'Add an entry'
                 +sourceEditor(source)
               .table-responsive
                 table.table.table-sm
                   thead
                     tr
                       th Internal code
-                      th= source === 'mappings' ? 'Japan Post code' : 'Country'
+                      th Country
+                      if source === 'mappings'
+                        th Japan Post country
                       if source === 'internal'
                         th DHL
                         th AIT
                         th ECMS
                       th Actions
                   tbody
-                    each entry in state[source]
+                    each entry in source === 'mappings' ? mappingCountries : state[source]
                       tr
                         td= entry.countryCode
                         td
                           if source === 'mappings'
-                            = entry.jpCode
+                            = entry.countryName
                           else
                             a(href=`/country/country/${encodeURIComponent(entry.countryCode)}`)= entry.countryName
                           if !allCountries.some(row => row.countryCode === entry.countryCode)
                             small.d-block.text-muted Not in either country list
                           else if !state.website.some(row => row.countryCode === entry.countryCode)
                             small.d-block.text-muted Not on website
+                        if source === 'mappings'
+                          td
+                            if entry.jpCode
+                              - const destination = jp.find(row => row.countryCode === entry.jpCode)
+                              = `${entry.jpCode} · ${destination ? destination.data['国名（英語）'] : 'No imported Japan Post data'}`
+                            else
+                              strong.cm-badge.cm-unknown Unmapped
                         if source === 'internal'
                           each method in ['DHL', 'AIT', 'ECMS']
                             td= label(entry[method])
                         td
                           details
-                            summary Edit
+                            summary= source === 'mappings' && !entry.jpCode ? 'Add mapping' : 'Edit'
                             +sourceEditor(source, entry)
-                          +removeEntry(source, entry)
+                          if source !== 'mappings' || entry.jpCode
+                            +removeEntry(source, entry)
           details.cm-source
             summary
               strong= `Japan Post limits (${jp.length} imported countries)`

@@ -90,6 +90,40 @@ function changes(before, after) {
     }];
   });
 }
+
+function exactNameMappings(website, mappings, jp) {
+  const nameKey = value => typeof value === 'string' ? value.trim().toLowerCase() : '';
+  const byName = new Map();
+  // Only current Japan Post names are eligible, even if earlier versions used another name.
+  const latest = new Map(jp.map(row => [row.countryCode, row]));
+  for (const row of latest.values()) {
+    const name = nameKey(row.data['国名（英語）']);
+    if (!name) continue;
+    if (!byName.has(name)) byName.set(name, []);
+    byName.get(name).push(row.countryCode);
+  }
+  const mapped = new Set(mappings.map(row => row.countryCode));
+  return website.flatMap(row => {
+    if (mapped.has(row.countryCode)) return [];
+    const matches = byName.get(nameKey(row.countryName)) || [];
+    return matches.length === 1 ? [{ countryCode: row.countryCode, jpCode: matches[0] }] : [];
+  });
+}
+
+function mappingCountries(state) {
+  const website = new Set(state.website.map(row => row.countryCode));
+  const mappings = new Map(state.mappings.map(row => [row.countryCode, row.jpCode]));
+  const countries = new Map([
+    ...state.mappings.map(row => ({ countryCode: row.countryCode, countryName: 'Not in either country list', orphan: true })),
+    ...state.internal, ...state.website,
+  ].map(row => [row.countryCode, row]));
+  return [...countries.values()].map(row => ({ ...row, jpCode: mappings.get(row.countryCode) || '', isWebsite: website.has(row.countryCode) }))
+    .sort((a, b) => Number(Boolean(a.jpCode)) - Number(Boolean(b.jpCode))
+      || Number(b.isWebsite) - Number(a.isWebsite)
+      || a.countryCode.localeCompare(b.countryCode, 'en', { numeric: true })
+      || a.countryCode.localeCompare(b.countryCode, 'en'));
+}
+
 function resolveCountry(website, state, jp) {
   const internal = state.internal.find(row => row.countryCode === website.countryCode);
   const mapping = state.mappings.find(row => row.countryCode === website.countryCode);
@@ -120,4 +154,4 @@ function cutoff(value) {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) || !Number.isFinite(Date.parse(value))) fail('Choose a valid historical date.');
   return new Date(value);
 }
-module.exports = { sources, methods, headers, label, flag, code, normalize, key, sorted, parseImport, changes, resolveCountry, cutoff };
+module.exports = { sources, methods, headers, label, flag, code, normalize, key, sorted, parseImport, changes, exactNameMappings, mappingCountries, resolveCountry, cutoff };
