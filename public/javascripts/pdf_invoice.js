@@ -93,9 +93,54 @@ function AddItemRow() {
   i_group_4.append(i_group_text_4, input_4);
   i_group_5.append(i_group_text_5, input_5);
 
+  const pidRow = document.createElement('div');
+  pidRow.classList.add('row', 'invoice-pid-fields', 'mb-3');
+  [
+    ['m_pid', 'Merchant Product ID (M-PID)'],
+    ['ns_pid', 'Non-standardised Manufacturer ID (NS-PID)'],
+    ['s_pid', 'Standardised Manufacturer ID (S-PID, optional)'],
+  ].forEach(([field, title]) => {
+    const column = document.createElement('div');
+    column.classList.add('col-md-4');
+    const label = document.createElement('label');
+    label.htmlFor = `${item_str}_${field}`;
+    label.textContent = title;
+    const input = document.createElement('input');
+    input.id = label.htmlFor;
+    input.name = input.id;
+    input.type = 'text';
+    input.maxLength = 200;
+    input.dataset.pidRequired = String(field !== 's_pid');
+    input.classList.add('form-control');
+    column.append(label, input);
+    pidRow.append(column);
+  });
+  item.append(pidRow);
+
   // Append to item list
   document.getElementById("items").append(item);
+  updatePidFields();
 }
+
+function updatePidFields() {
+  const enabled = document.getElementById('include_pid').checked;
+  document.querySelectorAll('.invoice-pid-fields').forEach(row => {
+    row.hidden = !enabled;
+    // Bootstrap's .row display rule can override the native hidden attribute.
+    row.classList.toggle('d-none', !enabled);
+    row.querySelectorAll('input').forEach(input => {
+      input.disabled = !enabled;
+      input.required = enabled && input.dataset.pidRequired === 'true';
+    });
+  });
+}
+
+document.getElementById('include_pid').addEventListener('change', updatePidFields);
+document.getElementById('invoice_type').addEventListener('change', event => {
+  const customs = event.target.value === 'customs';
+  document.getElementById('include_hs').checked = customs;
+  document.getElementById('customs_hint').hidden = !customs;
+});
 
 AddItemRow();
 

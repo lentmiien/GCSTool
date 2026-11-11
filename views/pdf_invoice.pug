@@ -3,6 +3,22 @@ extends layout
 block content
   h1 PDF generator 
   form(action="/api/generate_invoice", method="post") 
+    .row.mb-3
+      .col-md-6
+        label(for="invoice_type") Document type
+        select#invoice_type.form-control(name="invoice_type", aria-describedby="customs_hint")
+          option(value="commercial") Commercial Invoice
+          option(value="customs") Customs Invoice
+        p#customs_hint.form-text(hidden) HS codes are included by default for Customs Invoices. For EU destinations, we recommend including PID details; these are only needed for EU countries.
+      .col-md-6
+        .form-check
+          input(type="hidden", name="include_hs", value="off")
+          input#include_hs.form-check-input(type="checkbox", name="include_hs")
+          label.form-check-label(for="include_hs") Include HS codes
+        .form-check
+          input#include_pid.form-check-input(type="checkbox", name="include_pid", aria-describedby="pid_hint")
+          label.form-check-label(for="include_pid") Include PID details
+        small#pid_hint.form-text M-PID and NS-PID are required for each item when enabled. S-PID is optional.
     .row 
       .col
         label(for="order") Order number
@@ -19,8 +35,6 @@ block content
           option(value="Unionpay") Unionpay
         label(for="shipdate") Shipped date
         input#shipdate.form-control(type="date", name="shipdate")
-        input#include_hs(type="checkbox", name="include_hs")
-        |  Include HS codes
     .row 
       #items.col 
     .row 

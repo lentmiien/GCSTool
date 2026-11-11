@@ -298,6 +298,28 @@ exports.generate_invoice = async (req, res) => {
     }
   });
 
+  const isCustomsInvoice = req.body.invoice_type === 'customs';
+  const include_hs = req.body.include_hs === undefined
+    ? isCustomsInvoice
+    : [req.body.include_hs].flat().includes('on');
+  const includePid = req.body.include_pid === 'on';
+  const pidFields = [
+    ['m_pid', 'M-PID (Merchant Product ID)'],
+    ['ns_pid', 'NS-PID (Non-standardised Manufacturer ID)'],
+    ['s_pid', 'S-PID (Standardised Manufacturer ID)'],
+  ];
+  if (includePid) {
+    for (let i = 0; `item${i}_invoice` in req.body; i++) {
+      for (const [field, label] of pidFields) {
+        const value = req.body[`item${i}_${field}`];
+        if ((field !== 's_pid' && (typeof value !== 'string' || !value.trim())) ||
+            (value !== undefined && (typeof value !== 'string' || value.length > 200))) {
+          return res.status(400).send(`Item ${i + 1}: ${label} ${field === 's_pid' ? 'must be text up to 200 characters.' : 'is required and must be text up to 200 characters.'}`);
+        }
+      }
+    }
+  }
+
   const pdfDoc = await PDFDocument.create();
   const fontHelvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontHelveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -308,7 +330,6 @@ exports.generate_invoice = async (req, res) => {
   const logoDims = logo.scale(0.15);
 
   // Settings
-  const include_hs = "include_hs" in req.body && req.body.include_hs === 'on';
   let gst_vat_type = 'GST';
   if (false/*req.body.gst_type === VAT type country*/) {
     gst_vat_type = 'VAT'
@@ -333,8 +354,8 @@ exports.generate_invoice = async (req, res) => {
     height: logoDims.height,
   })
 
-  // Commercial Invoice and invoice number
-  page.drawText('Commercial Invoice', {
+  // Document title and invoice number
+  page.drawText(isCustomsInvoice ? 'Customs Invoice' : 'Commercial Invoice', {
     x: width / 2 + 35,
     y: height - 50,
     size: fsize_title,
@@ -490,10 +511,8 @@ exports.generate_invoice = async (req, res) => {
   });
   let current_page = page;
   let item_row_offset = height - 300 - 20;
-  const item_row_height = 46;
   const itemNameLineHeight = 14;
   const itemRemarksOffset = 28;
-  const itemDividerOffset = 32;
   const item_column = 50;
   const hs_column = width / 2 - 15;
   const quantity_column = width / 2 + 75;
@@ -542,10 +561,24 @@ exports.generate_invoice = async (req, res) => {
     color: fcolor_white,
   });
   // Add items
-  cnt = 0;
   let subtotal = 0;
   for (let i = 0; `item${i}_invoice` in req.body; i++) {
-    let itemRowY = item_row_offset - item_row_height * cnt;
+    const detailLines = wrapTextToLines(
+      req.body[`item${i}_remarks`], fontHelvetica, fsize_text_small, width - 110, 2,
+    );
+    if (includePid) {
+      pidFields.forEach(([field, label]) => {
+        const value = (req.body[`item${i}_${field}`] || '').trim();
+        if (value) {
+          detailLines.push(...wrapTextToLines(
+            `${label}: ${value}`, fontHelvetica, fsize_text_small, width - 110, Infinity,
+          ));
+        }
+      });
+    }
+    const itemDividerOffset = itemRemarksOffset + Math.max(0, detailLines.length - 1) * 12 + 4;
+    const itemRowHeight = itemDividerOffset + 14;
+    let itemRowY = item_row_offset;
 
     // Check if entry don't fit on current page
     if (itemRowY - itemDividerOffset < 50)
@@ -599,7 +632,6 @@ exports.generate_invoice = async (req, res) => {
         color: fcolor_white,
       });
       item_row_offset = height - 70;
-      cnt = 0;
       itemRowY = item_row_offset;
     }
     const itemNameLines = wrapTextToLines(
@@ -619,7 +651,7 @@ exports.generate_invoice = async (req, res) => {
       });
     });
     if (include_hs) {
-      current_page.drawText(req.body[`item${i}_hs`], {
+      current_page.drawText(req.body[`item${i}_hs`] || '', {
         x: hs_column,
         y: itemRowY,
         size: fsize_text,
@@ -663,13 +695,15 @@ exports.generate_invoice = async (req, res) => {
         color: fcolor_gray,
       });
     }
-    // Remarks
-    current_page.drawText(`${req.body[`item${i}_remarks`]}`, {
-      x: item_column + 5,
-      y: itemRowY - itemRemarksOffset,
-      size: fsize_text_small,
-      font: fontHelvetica,
-      color: fcolor_gray,
+    // Remarks and optional product identifiers stay with their item.
+    detailLines.forEach((line, lineIndex) => {
+      current_page.drawText(line, {
+        x: item_column + 5,
+        y: itemRowY - itemRemarksOffset - lineIndex * 12,
+        size: fsize_text_small,
+        font: fontHelvetica,
+        color: fcolor_gray,
+      });
     });
     // Divider line
     current_page.drawLine({
@@ -680,7 +714,7 @@ exports.generate_invoice = async (req, res) => {
       opacity: 0.1,
     })
 
-    cnt++;
+    item_row_offset = itemRowY - itemRowHeight;
   }
 
   // Total section (Subtotal, Shipping, GST/VAT, Total, AmiAmi Points Used, Amount Paid)
@@ -689,7 +723,7 @@ exports.generate_invoice = async (req, res) => {
   const total_y_offset = 250 - (req.body.gst_type === '' ? 25 : 0) - (req.body.amiami_point === '0' ? 50 : 0);
   const row_height = 25;
   // Check if section don't fit on current page
-  if (item_row_offset - item_row_height * cnt < total_y_offset) {
+  if (item_row_offset < total_y_offset + 15) {
     // Go to next page
       current_page = pdfDoc.addPage();
   }

@@ -4,8 +4,11 @@ module.exports = [
   {
     version: '2.10.3',
     releaseDate: '2026-11-23',
-    updateDate: '2026-11-09',
+    updateDate: '2026-11-11',
     items: [
+      item('Documents', [
+        item('Invoice generator - Added optional M-PID, NS-PID, and S-PID item details, a Customs Invoice option with HS codes enabled by default, and an EU-specific PID recommendation'),
+      ]),
       item('HS', [
         item('Ireland TARIC queue - Added a page-top warning showing outstanding item counts, oldest waiting time, and time since queue activity'),
         item('Ireland TARIC queue - Added a force-clear action across all running instances after over 15 minutes without activity, with server-side checks and protection while a worker is processing a request'),
