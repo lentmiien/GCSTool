@@ -3,6 +3,8 @@ const { TextDecoder, isDeepStrictEqual } = require('util');
 const { fail } = require('./japanPostCsv');
 
 const sources = ['website', 'internal', 'mappings', 'exceptions'];
+const airSmallPacketFlag = '小形包装物(航空便)取扱フラグ';
+const airPacketCategory = 'eパケットライト取扱区分';
 const methods = [
   { key: 'DHL', label: 'DHL', source: 'internal' },
   { key: 'AIT', label: 'AIT / Surface Mail Premium', source: 'internal' },
@@ -11,12 +13,12 @@ const methods = [
   { key: 'airParcel', label: 'Air parcel', flags: ['国際小包（航空便）取扱フラグ'] },
   { key: 'surfaceParcel', label: 'Surface parcel', flags: ['国際小包（船便）取扱フラグ'] },
   { key: 'salParcel', label: 'SAL parcel', flags: ['SAL小包取扱フラグ'] },
-  { key: 'airSmallPacket', label: 'Air small packet · registered', flags: ['小形包装物(航空便)取扱フラグ', '小形包装物（書留）（航空便）取扱フラグ'] },
-  { key: 'airSmallPacketUnregistered', label: 'Air small packet · unregistered', flags: ['小形包装物(航空便)取扱フラグ'] },
+  { key: 'airSmallPacket', label: 'Air small packet · registered', flags: [airSmallPacketFlag, '小形包装物（書留）（航空便）取扱フラグ'] },
+  { key: 'airSmallPacketUnregistered', label: 'Air small packet · unregistered', flags: [airSmallPacketFlag] },
   { key: 'salSmallPacket', label: 'SAL small packet · registered', flags: ['小形包装物(SAL)取扱フラグ', 'SAL書留フラグ'] },
   { key: 'salSmallPacketUnregistered', label: 'SAL small packet · unregistered', flags: ['小形包装物(SAL)取扱フラグ'] },
   { key: 'surfaceSmallPacket', label: 'Surface small packet', flags: ['小形包装物(船便)取扱フラグ'] },
-  { key: 'ePacket', label: 'International ePacket', flags: ['国際eパケット取扱フラグ'] },
+  { key: 'ePacket', label: 'International Air Packet' },
 ];
 const label = value => value === true ? 'Available' : value === false ? 'Unavailable' : 'Unknown';
 const flag = value => value === '1' || value === 1 || value === true ? true : value === '0' || value === 0 || value === false ? false : null;
@@ -135,10 +137,19 @@ function resolveCountry(website, state, jp) {
     if (method.source === 'internal') {
       base = internal ? internal[method.key] : null;
       evidence = internal ? 'Internal country list' : 'No internal country entry';
+    } else if (!record) {
+      evidence = mapping ? 'No Japan Post data at this time' : 'No Japan Post mapping';
+    } else if (method.key === 'ePacket') {
+      const category = record.data[airPacketCategory];
+      const airFlag = record.data[airSmallPacketFlag];
+      const airAvailable = flag(airFlag);
+      if ((category === 'A' || category === 'B') && airAvailable === true) base = true;
+      if (category === '' && airAvailable === false) base = false;
+      evidence = `Inferred from Japan Post data. ePacket Light category: ${category === '' ? 'blank' : category ?? 'not specified'}. Unregistered air small packet flag: ${airFlag ?? 'not specified'}.`;
     } else {
-      const flags = method.flags.map(field => flag(record && record.data[field]));
+      const flags = method.flags.map(field => flag(record.data[field]));
       base = flags.includes(false) ? false : flags.every(value => value === true) ? true : null;
-      evidence = !mapping ? 'No Japan Post mapping' : !record ? 'No Japan Post data at this time' : method.flags.map(field => `${field}: ${record.data[field] || 'not specified'}`).join('; ');
+      evidence = method.flags.map(field => `${field}: ${record.data[field] || 'not specified'}`).join('; ');
     }
     const exception = exceptions.find(row => row.method === method.key);
     return { ...method, base, value: exception ? exception.enabled : base, exception, evidence };

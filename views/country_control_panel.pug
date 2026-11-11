@@ -215,7 +215,7 @@ block content
             summary
               strong= `Japan Post limits (${jp.length} imported countries)`
             p Availability reads the latest saved Japan Post CSV version at the selected time. Registered small packets require both the transport and registration flags. Only 0 and 1 are interpreted; other values stay Unknown.
-            p ePacket Light is not inferred from its category code. Delivery-area restrictions and full raw data are available on the Japan Post country page.
+            p International Air Packet availability is inferred from the ePacket Light category and unregistered air small packet flag. Delivery-area restrictions and full raw data are available on the Japan Post country page.
             a.btn.btn-outline-secondary(href='/japan-post/database') Open Japan Post database
             details.mt-3
               summary Shipping method field mapping
