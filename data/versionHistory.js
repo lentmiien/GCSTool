@@ -13,7 +13,7 @@ module.exports = [
   },
   {
     version: '2.10.3',
-    releaseDate: '2026-11-23',
+    releaseDate: '2026-11-16',
     updateDate: '2026-11-11',
     items: [
       item('Documents', [
