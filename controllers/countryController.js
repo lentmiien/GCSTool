@@ -21,6 +21,10 @@ function createController(service) {
     prepare(req, res, next) {
       res.set('Cache-Control', 'private, no-store');
       if (!req.user) return res.status(401).json({ error: 'Sign in to use the country manager.' });
+      const canManageCountries = req.user.role === 'admin';
+      if (req.method === 'POST' && !canManageCountries) {
+        return res.status(403).json({ error: 'Administrator access is required to update country data.' });
+      }
       if (!req.session.countryManagerCsrf) req.session.countryManagerCsrf = randomBytes(32).toString('hex');
       if (req.method === 'POST') {
         const token = req.get('X-CSRF-Token') || '';
@@ -29,11 +33,11 @@ function createController(service) {
           return res.status(403).json({ error: 'This page has expired. Reload and try again.' });
         }
       }
-      Object.assign(res.locals, { countryManagerCsrf: req.session.countryManagerCsrf, methods, sources, headers, label, formatDate, displayValue });
+      Object.assign(res.locals, { canManageCountries, countryManagerCsrf: canManageCountries ? req.session.countryManagerCsrf : undefined, methods, sources, headers, label, formatDate, displayValue });
       next();
     },
     index: handle(async (req, res) => res.render('country_control_panel', {
-      pagetitle: 'Country & shipping-method manager', ...await service.read(req.query), filters: req.query,
+      pagetitle: res.locals.canManageCountries ? 'Country & shipping-method manager' : 'Shipping availability', ...await service.read(req.query), filters: req.query,
     })),
     details: handle(async (req, res) => {
       const view = await service.read(req.query);

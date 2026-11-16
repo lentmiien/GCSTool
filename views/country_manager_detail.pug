@@ -10,7 +10,7 @@ block content
       p.app-page-kicker Country availability
       h1= `${country.countryName} (${country.countryCode})`
       p= isWebsite ? 'Listed on the website at this time.' : 'Internal country only; not listed on the website at this time.'
-    a.btn.btn-outline-secondary(href=at ? `/country?at=${encodeURIComponent(at.toISOString())}` : '/country') Back to manager
+    a.btn.btn-outline-secondary(href=at ? `/country?at=${encodeURIComponent(at.toISOString())}` : '/country') Back to availability
   if at
     .alert.alert-warning= `Historical view · ${formatDate(at)}`
   .card.mb-3

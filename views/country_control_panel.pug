@@ -9,8 +9,11 @@ block content
     header.app-page-header
       div
         p.app-page-kicker Shipping operations
-        h1 Country & shipping-method manager
-        p Website countries define the availability table. Internal codes link the other sources; Japan Post codes are mapped explicitly.
+        h1= pagetitle
+        if canManageCountries
+          p Website countries define the availability table. Internal codes link the other sources; Japan Post codes are mapped explicitly.
+        else
+          p View shipping availability by destination. Open a country for source details and recorded history.
       .app-page-actions
         a.btn.btn-outline-secondary(href='/country/history') Update history
         a.btn.btn-outline-secondary(href='/japan-post') Japan Post limits
@@ -22,55 +25,56 @@ block content
         a(href='/country') Return to current data
     if !baseline
       .alert.alert-info No manager baseline exists at this time. Earlier website/internal availability cannot be reconstructed.
-    details#cm-exceptions.card.mb-3.cm-exceptions
-      summary.cm-exceptions-summary
-        span.cm-collapse-icon(aria-hidden='true') ▸
-        strong= `Exceptions (${state.exceptions.length})`
-        span.cm-exception-countries
-          - const exceptionNames = [...new Set(state.exceptions.map(entry => (allCountries.find(row => row.countryCode === entry.countryCode) || {}).countryName || entry.countryCode))].sort((a, b) => a.localeCompare(b))
-          each countryName in exceptionNames
-            span.cm-exception-country= countryName
-          if !exceptionNames.length
-            span.text-muted None
-      .card-body
-        p Exceptions take priority over every source, including Unknown. Removing an exception restores the source result.
-        if !state.exceptions.length
-          p.text-muted No exceptions are active at this time.
-        else
-          .table-responsive
-            table.table.table-sm
-              thead
-                tr
-                  th Internal code / country
-                  th Method
-                  th Override
-                  th Reason
-                  if !at
-                    th Actions
-              tbody
-                each entry in state.exceptions
-                  - const destination = allCountries.find(row => row.countryCode === entry.countryCode)
-                  - const method = methods.find(row => row.key === entry.method)
+    if canManageCountries
+      details#cm-exceptions.card.mb-3.cm-exceptions
+        summary.cm-exceptions-summary
+          span.cm-collapse-icon(aria-hidden='true') ▸
+          strong= `Exceptions (${state.exceptions.length})`
+          span.cm-exception-countries
+            - const exceptionNames = [...new Set(state.exceptions.map(entry => (allCountries.find(row => row.countryCode === entry.countryCode) || {}).countryName || entry.countryCode))].sort((a, b) => a.localeCompare(b))
+            each countryName in exceptionNames
+              span.cm-exception-country= countryName
+            if !exceptionNames.length
+              span.text-muted None
+        .card-body
+          p Exceptions take priority over every source, including Unknown. Removing an exception restores the source result.
+          if !state.exceptions.length
+            p.text-muted No exceptions are active at this time.
+          else
+            .table-responsive
+              table.table.table-sm
+                thead
                   tr
-                    td
-                      strong= entry.countryCode
-                      |  · #{destination ? destination.countryName : 'Not in either country list'}
-                      if !state.website.some(row => row.countryCode === entry.countryCode)
-                        small.d-block.text-muted Not currently on website
-                    td= method ? method.label : entry.method
-                    td
-                      span.cm-badge(class=entry.enabled ? 'cm-available' : 'cm-unavailable')= entry.enabled ? 'Force enable' : 'Force disable'
-                    td.cm-wrap= entry.reason
+                    th Internal code / country
+                    th Method
+                    th Override
+                    th Reason
                     if !at
+                      th Actions
+                tbody
+                  each entry in state.exceptions
+                    - const destination = allCountries.find(row => row.countryCode === entry.countryCode)
+                    - const method = methods.find(row => row.key === entry.method)
+                    tr
                       td
-                        details
-                          summary Edit
-                          +sourceEditor('exceptions', entry)
-                        +removeEntry('exceptions', entry)
-        if !at
-          details
-            summary Add an exception
-            +sourceEditor('exceptions')
+                        strong= entry.countryCode
+                        |  · #{destination ? destination.countryName : 'Not in either country list'}
+                        if !state.website.some(row => row.countryCode === entry.countryCode)
+                          small.d-block.text-muted Not currently on website
+                      td= method ? method.label : entry.method
+                      td
+                        span.cm-badge(class=entry.enabled ? 'cm-available' : 'cm-unavailable')= entry.enabled ? 'Force enable' : 'Force disable'
+                      td.cm-wrap= entry.reason
+                      if !at
+                        td
+                          details
+                            summary Edit
+                            +sourceEditor('exceptions', entry)
+                          +removeEntry('exceptions', entry)
+          if !at
+            details
+              summary Add an exception
+              +sourceEditor('exceptions')
     section.card.mb-3
       .card-body
         h2.h4 Availability by website country
@@ -84,22 +88,23 @@ block content
             input.form-control(type='date', name='at', value=at ? new Date(at.getTime() + 9 * 3600000).toISOString().slice(0, 10) : '')
           button.btn.btn-outline-primary(type='submit') View
           a.btn.btn-outline-secondary(href='/country') Current / reset
-        details#cm-method-visibility.cm-method-visibility
-          summary= `Shipping methods shown (${methods.length - hiddenMethods.length} of ${methods.length})`
-          p.text-muted Choose the columns shown to everyone. These settings apply to current and historical availability tables.
-          if at
-            p.text-muted Return to current data to change the shared column settings.
-          else
-            form.cm-edit(action='/country/api/method-visibility', method='post')
-              input(type='hidden', name='revision', value=revision)
-              .cm-method-options
-                each method in methods
-                  label.cm-method-option
-                    input(type='checkbox', name='visibleMethods', value=method.key, checked=!hiddenMethods.includes(method.key))
-                    span= method.label
-              button.btn.btn-outline-primary(type='submit') Save for everyone
+        if canManageCountries
+          details#cm-method-visibility.cm-method-visibility
+            summary= `Shipping methods shown (${methods.length - hiddenMethods.length} of ${methods.length})`
+            p.text-muted Choose the columns shown to everyone. These settings apply to current and historical availability tables.
+            if at
+              p.text-muted Return to current data to change the shared column settings.
+            else
+              form.cm-edit(action='/country/api/method-visibility', method='post')
+                input(type='hidden', name='revision', value=revision)
+                .cm-method-options
+                  each method in methods
+                    label.cm-method-option
+                      input(type='checkbox', name='visibleMethods', value=method.key, checked=!hiddenMethods.includes(method.key))
+                      span= method.label
+                button.btn.btn-outline-primary(type='submit') Save for everyone
         if hiddenMethods.length === methods.length
-          p.text-muted All shipping methods are hidden. Open Shipping methods shown to select columns.
+          p.text-muted= canManageCountries && !at ? 'All shipping methods are hidden. Open Shipping methods shown to select columns.' : 'All shipping methods are currently hidden by an administrator. Open a country to view all methods.'
         .cm-health
           span= `${state.website.length} website countries`
           span= `${missingInternal} missing internal entries`
@@ -126,8 +131,8 @@ block content
                       td(hidden=hiddenMethods.includes(method.key), data-method=method.key)
                         span.cm-badge(class=method.value === true ? 'cm-available' : method.value === false ? 'cm-unavailable' : 'cm-unknown', title=method.exception ? `${method.exception.reason} (source: ${label(method.base)})` : method.evidence)= `${label(method.value)}${method.exception ? ' ★' : ''}`
         else
-          p.app-empty-state No website countries match this view. Import or add website countries below to get started.
-    if !at
+          p.app-empty-state= canManageCountries && !at ? 'No website countries match this view. Import or add website countries below to get started.' : 'No website countries match this view.'
+    if canManageCountries && !at
       datalist#cm-jp-countries
         each row in jp
           option(value=row.countryCode)= row.data['国名（英語）']
@@ -223,10 +228,12 @@ block content
                 each method in methods.filter(item => item.flags)
                   dt= method.label
                   dd= method.flags.join(' + ')
-    section.card
-      .card-body
-        h2.h4 Data tools
-        p.mb-0.text-muted Export and downstream workflows will be added once their use cases are defined.
+    if canManageCountries
+      section.card
+        .card-body
+          h2.h4 Data tools
+          p.mb-0.text-muted Export and downstream workflows will be added once their use cases are defined.
 
 block scripts
-  script(src='/javascripts/country-manager.js')
+  if canManageCountries
+    script(src='/javascripts/country-manager.js')

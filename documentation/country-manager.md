@@ -2,6 +2,8 @@
 
 `/country` combines the website list, internal carrier availability, explicit country mappings, and Japan Post limits CSV versions. It requires the normal app login. Data tools/exports remain deferred.
 
+All signed-in users can view the availability table, search and historical filters, update history, and `/country/country/:countryCode` details. Only admins see the manager sections and shared column settings, with a manager link in the Admin menu. Every country-manager POST requires the authenticated user's `admin` role and a valid CSRF token, including saves, deletions, CSV imports, auto-mapping, and method visibility changes.
+
 ## Setup and editing
 
 1. Import or edit **Website country list**. It is the exact set of destinations shown in the availability matrix. CSV header: `country,country_code`.

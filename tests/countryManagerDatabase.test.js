@@ -40,9 +40,9 @@ suite('country manager database, history and HTTP', () => {
     app.use(express.json());
     app.use(require('express-fileupload')());
     app.use((req, res, next) => {
-      req.user = req.get('x-guest') ? null : { userid: 'Tester' };
+      req.user = req.get('x-guest') ? null : { userid: 'Tester', role: 'admin' };
       req.session = { countryManagerCsrf: token };
-      Object.assign(res.locals, { signedIn: true, name: 'Tester', role: 'user', currentPath: '/country' });
+      Object.assign(res.locals, { signedIn: true, name: 'Tester', role: 'admin', currentPath: '/country' });
       next();
     });
     app.use('/country', createRouter(service));

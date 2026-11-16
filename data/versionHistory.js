@@ -6,6 +6,9 @@ module.exports = [
     releaseDate: '2026-12-16',
     updateDate: '2026-11-16',
     items: [
+      item('Country & shipping-method manager', [
+        item('Made the availability table, update history, and country details available to all signed-in users while restricting country and shipping-method updates to administrators'),
+      ]),
       item('Bin packing', [
         item('Multi-box packer - Added optional wall-scroll detection in Item list mode, assigning free rotation when item width is at least 10 times both height and depth'),
       ]),
