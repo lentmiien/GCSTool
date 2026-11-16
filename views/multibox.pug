@@ -32,12 +32,16 @@ block content
                   id,width,height,depth,quantity,weight,value,rotation,shrink,soft,fragile
                   Poster tube,440,30,30,1,0.18,1500,free,0,false,true
                   Sweater,280,60,220,2,0.3,3000,orthogonal,20,true,false
-              p.small.text-muted.mt-2.mb-0 Defaults: orthogonal rotation, value 0, shrink 0%, soft false, fragile false. CSV also defaults to quantity 1 and weight 0 kg.
+              p.small.text-muted.mt-2.mb-0 Defaults: orthogonal rotation (unless a wall scroll is detected), value 0, shrink 0%, soft false, fragile false. CSV also defaults to quantity 1 and weight 0 kg.
               p.small.text-muted.mt-2.mb-0 Up to 500 items including quantities. Lengths are converted to cm for packing. Results use width × height × depth in cm.
           .card.mb-3
             .card-header
               h2.h5.mb-0 Packing options
             .card-body
+              label.d-block
+                input#mb-auto-detect-wall-scrolls.mr-2(type='checkbox', checked, aria-describedby='mb-wall-scroll-help')
+                | Auto-detect wall scrolls
+              small#mb-wall-scroll-help.form-text.text-muted.mb-3 In Item list mode, give free rotation to items whose width is at least 10 times both their height and depth. Disabled in CSV mode, which uses the rotation column.
               label(for='mb-approach') Approach
               select#mb-approach.form-control
                 option(value='boxes') Boxes (default)

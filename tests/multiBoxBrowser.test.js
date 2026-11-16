@@ -61,10 +61,35 @@ test('polls every five seconds, blocks duplicates, then renders a preview and de
   expect(window.fetch).toHaveBeenCalledTimes(4);
 });
 
+test('defaults wall-scroll detection on, sends the choice, and preserves an opt-out when switching modes', async () => {
+  const checkbox = el('auto-detect-wall-scrolls');
+  expect(checkbox.checked).toBe(true);
+  expect(checkbox.disabled).toBe(false);
+  el('items').value = 'scroll .1kg 600×30×20\n1';
+  window.fetch.mockResolvedValueOnce(response(completed, 202));
+  submit();
+  await tick();
+  expect(JSON.parse(window.fetch.mock.calls[1][1].body).autoDetectWallScrolls).toBe(true);
+
+  checkbox.checked = false;
+  el('format').value = 'csv';
+  el('format').dispatchEvent(new Event('change'));
+  expect(checkbox.disabled).toBe(true);
+  el('format').value = 'paste';
+  el('format').dispatchEvent(new Event('change'));
+  expect(checkbox.disabled).toBe(false);
+  expect(checkbox.checked).toBe(false);
+  window.fetch.mockResolvedValueOnce(response(completed, 202));
+  submit();
+  await tick();
+  expect(JSON.parse(window.fetch.mock.calls[2][1].body).autoDetectWallScrolls).toBe(false);
+});
+
 test('sends CSV, mm options and selected catalog IDs for server-side conversion', async () => {
   el('format').value = 'csv';
   el('format').dispatchEvent(new Event('change'));
   expect(el('csv-help').hidden).toBe(false);
+  expect(el('auto-detect-wall-scrolls').disabled).toBe(true);
   el('items').value = 'id,width,height,depth,soft,shrink\nSweater,280,60,220,true,20';
   el('margin').value = '15';
   el('maxSide').value = '600';
@@ -75,7 +100,7 @@ test('sends CSV, mm options and selected catalog IDs for server-side conversion'
   submit();
   await tick();
   expect(JSON.parse(window.fetch.mock.calls[1][1].body)).toEqual({
-    provideitems: el('items').value, format: 'csv', options: { approach: 'boxes', margin: 15, maxSide: 600, maxSum: null, maxWeight: null, maxValue: null }, boxIds: ['Box S'],
+    provideitems: el('items').value, format: 'csv', autoDetectWallScrolls: false, options: { approach: 'boxes', margin: 15, maxSide: 600, maxSum: null, maxWeight: null, maxValue: null }, boxIds: ['Box S'],
   });
 });
 

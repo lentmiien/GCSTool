@@ -6,7 +6,7 @@ const jobIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 function buildRequest(body = {}) {
   let items;
-  try { items = parseItems(body.provideitems, body.format); }
+  try { items = parseItems(body.provideitems, body.format, body.autoDetectWallScrolls); }
   catch (error) { throw new PackingError(error.message); }
   const source = body.options === undefined ? {} : body.options;
   if (!source || typeof source !== 'object' || Array.isArray(source)) throw new PackingError('Invalid packing options.');

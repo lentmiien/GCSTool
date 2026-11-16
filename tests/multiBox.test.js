@@ -36,6 +36,36 @@ test('converts pasted W×D×H mm to named API cm fields, merging quantities with
   expect(() => parseItems('item 0kg 0.09×2×3\n1')).toThrow('width');
 });
 
+test.each([
+  ['600×30×20', 'free'],
+  ['300×30×30', 'free'],
+  ['299×30×30', 'orthogonal'],
+  ['600×100×20', 'orthogonal'],
+  ['600×20×100', 'orthogonal'],
+  ['30×600×20', 'orthogonal'],
+])('detects wall scrolls only when width dominates both other dimensions: %s', (dimensions, rotation) => {
+  expect(parseItems(`item .1kg ${dimensions}\n2`)[0].rotation).toBe(rotation);
+});
+
+test('applies the wall scroll option on the server without forwarding it to the packing API', () => {
+  const provideitems = 'scroll .1kg 600×30×20\n2';
+  const detected = buildRequest({ provideitems });
+  expect(detected.items[0]).toMatchObject({ width: 60, depth: 3, height: 2, rotation: 'free', quantity: 2 });
+  expect(detected).not.toHaveProperty('autoDetectWallScrolls');
+  expect(detected.options).not.toHaveProperty('autoDetectWallScrolls');
+  expect(buildRequest({ provideitems, autoDetectWallScrolls: false }).items[0].rotation).toBe('orthogonal');
+  for (const autoDetectWallScrolls of ['false', null, 1]) {
+    expect(() => buildRequest({ provideitems, autoDetectWallScrolls })).toThrow('must be true or false');
+  }
+});
+
+test.each(['none', 'orthogonal', 'free', ''])('preserves CSV rotation %j for wall-scroll shapes regardless of auto-detection', (rotation) => {
+  const provideitems = `id,width,height,depth,rotation\nscroll,600,20,30,${rotation}`;
+  for (const autoDetectWallScrolls of [true, false]) {
+    expect(buildRequest({ provideitems, format: 'csv', autoDetectWallScrolls }).items[0].rotation).toBe(rotation || 'orthogonal');
+  }
+});
+
 test('CSV exposes all item fields and handles quotes, BOM, CRLF and blank defaults', () => {
   const items = parseItems(`\uFEFF${csvHeader}\r\n"Poster, ""A""",440,30,30,2,.18,1500,free,0,false,true\r\nSweater,280,60,220,,,0,orthogonal,20,true,false\r\n`, 'csv');
   expect(items[0]).toEqual({ id: 'Poster, "A"', width: 44, height: 3, depth: 3, quantity: 2, weight: 0.18, value: 1500, rotation: 'free', shrink: 0, soft: false, fragile: true });

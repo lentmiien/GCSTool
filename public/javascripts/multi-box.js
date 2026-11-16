@@ -242,14 +242,15 @@
     try {
       const provideitems = $('items').value;
       const inputFormat = $('format').value;
-      window.MultiBoxData.parseItems(provideitems, inputFormat);
+      const autoDetectWallScrolls = inputFormat === 'paste' && $('auto-detect-wall-scrolls').checked;
+      window.MultiBoxData.parseItems(provideitems, inputFormat, autoDetectWallScrolls);
       const options = { approach: $('approach').value, margin: $('margin').valueAsNumber };
       if (!Number.isFinite(options.margin) || options.margin < 0 || options.margin > 100000) throw new Error('Margin must be a number from 0 to 100,000 mm.');
       for (const key of ['maxSide', 'maxSum', 'maxWeight', 'maxValue']) {
         options[key] = $(key).value === '' ? null : $(key).valueAsNumber;
         if (options[key] !== null && (!Number.isFinite(options[key]) || !$(key).checkValidity())) throw new Error(`Check ${key}.`);
       }
-      const payload = { provideitems, format: inputFormat, options };
+      const payload = { provideitems, format: inputFormat, autoDetectWallScrolls, options };
       if (!$('all-boxes').checked) {
         payload.boxIds = [...choices].filter(([, input]) => input.checked).map(([id]) => id);
         if (!payload.boxIds.length || payload.boxIds.length > 50) throw new Error('Select 1–50 box types, or use all eligible boxes.');
@@ -270,12 +271,14 @@
       updateButtons();
     }
   });
-  $('format').addEventListener('change', () => {
+  function updateInputFormat() {
     const csv = $('format').value === 'csv';
     $('csv-help').hidden = !csv;
     $('paste-help').hidden = csv;
+    $('auto-detect-wall-scrolls').disabled = csv;
     $('items').placeholder = csv ? 'id,width,height,depth,quantity,weight,value,rotation,shrink,soft,fragile\nPoster tube,440,30,30,1,0.18,1500,free,0,false,true' : 'GOODS-04825603 .07kg 235×154×9\n1';
-  });
+  }
+  $('format').addEventListener('change', updateInputFormat);
   $('all-boxes').addEventListener('change', () => choices.forEach((input) => { input.disabled = $('all-boxes').checked; }));
   $('refresh').addEventListener('click', loadCatalog);
   $('resume').addEventListener('click', checkJob);
@@ -286,6 +289,7 @@
     if (previews) previews.dispose();
   });
   try { jobId = sessionStorage.getItem(storageKey); } catch (_error) { /* Optional restoration. */ }
+  updateInputFormat();
   if (jobId) checkJob();
   loadCatalog();
 }());

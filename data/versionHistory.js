@@ -2,6 +2,16 @@ const item = (text, children = []) => ({ text, children });
 
 module.exports = [
   {
+    version: '2.10.4',
+    releaseDate: '2026-12-16',
+    updateDate: '2026-11-16',
+    items: [
+      item('Bin packing', [
+        item('Multi-box packer - Added optional wall-scroll detection in Item list mode, assigning free rotation when item width is at least 10 times both height and depth'),
+      ]),
+    ],
+  },
+  {
     version: '2.10.3',
     releaseDate: '2026-11-23',
     updateDate: '2026-11-11',

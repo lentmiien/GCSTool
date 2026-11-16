@@ -5,6 +5,7 @@
   'use strict';
   const columns = ['id', 'width', 'height', 'depth', 'quantity', 'weight', 'value', 'rotation', 'shrink', 'soft', 'fragile'];
   const defaults = { quantity: 1, weight: 0, value: 0, rotation: 'orthogonal', shrink: 0, soft: false, fragile: false };
+  const wallScrollAspectRatio = 10;
 
   // Quoted cells may contain commas, escaped quotes and line breaks.
   function csvRows(text) {
@@ -66,13 +67,17 @@
     return items;
   }
 
-  function parseItems(text, format = 'paste') {
+  function parseItems(text, format = 'paste', autoDetectWallScrolls = true) {
+    if (typeof autoDetectWallScrolls !== 'boolean') throw new Error('Auto-detect wall scrolls must be true or false.');
     if (typeof text !== 'string' || !text.trim()) throw new Error('Paste at least one item.');
     if (text.length > 262144) throw new Error('The item list exceeds 256 KiB.');
     let items;
     if (format === 'paste') {
       items = smallestBox.parseItems(text, { maxTypes: 500, maxItems: 500, maxIdLength: 120, maxWeight: 1e12, maxTextLength: 262144 })
-        .map((item) => ({ ...defaults, id: item.id, width: item.w, height: item.h, depth: item.d, weight: item.weight, quantity: item.qty }));
+        .map((item) => ({
+          ...defaults, id: item.id, width: item.w, height: item.h, depth: item.d, weight: item.weight, quantity: item.qty,
+          rotation: autoDetectWallScrolls && item.w >= wallScrollAspectRatio * Math.max(item.h, item.d) ? 'free' : defaults.rotation,
+        }));
     } else if (format === 'csv') {
       const rows = csvRows(text.replace(/^\uFEFF/, ''));
       const header = (rows.shift() || []).map((value) => value.toLowerCase());
