@@ -95,6 +95,8 @@ block content
                       b.update-status Updated
                   .home-entry-meta
                     if entry.source === 'pmt'
+                      if entry.archived
+                        span.badge.badge-warning Archived
                       span.home-entry-source= `Library · ${entry.type}`
                     else
                       span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'

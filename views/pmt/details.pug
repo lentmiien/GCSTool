@@ -5,11 +5,22 @@ block content
     div
       p.app-page-kicker= entry.entry.type
       h1= entry.entry.title
+      if entry.entry.archived
+        span.badge.badge-warning Archived
       p Browse the current document, its history, and connected guidance.
     .app-page-actions
       if entry.entry.type === 'Template'
         button#copy-markdown.btn.pmt-copy-button(type='button', onclick='CopySelectedVersion(this)', aria-live='polite') Copy
-      a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit entry
+      if entry.entry.archived
+        form(method='post', action=`/pmt/restore/${entry.entry.id}`)
+          button.btn.btn-primary(type='submit') Restore entry
+      else
+        a.btn.btn-warning(href=`/pmt/edit/${entry.entry.id}`) Edit entry
+        form(method='post', action=`/pmt/archive/${entry.entry.id}`)
+          button.btn.btn-outline-secondary(type='submit') Archive entry
+      if role === 'admin'
+        form(method='post', action=`/pmt/delete/${entry.entry.id}`, onsubmit="return confirm('Permanently delete this entry and all its versions?')")
+          button.btn.btn-outline-danger(type='submit') Delete entry
       a.btn.btn-outline-secondary(href='/pmt') Back to library
 
   .row
@@ -27,7 +38,10 @@ block content
           h2 Parent policies
           .pmt-related-links
             each p in entry.parents
-              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${p.parent_id}`)= entryMap[p.parent_id].title
+              button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${p.parent_id}`)
+                = entryMap[p.parent_id].title
+                if entryMap[p.parent_id].archived
+                  span.badge.badge-warning.ml-1 Archived
         if entry.children.length > 0
           h2 Child documents
           .pmt-related-links
@@ -36,6 +50,8 @@ block content
               button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${c.child_id}`)
                 span.pmt-document-type(class=`pmt-document-type--${child.type.toLowerCase()}`)= child.type
                 = child.title
+                if child.archived
+                  span.badge.badge-warning.ml-1 Archived
         if entry.parents.length > 0
           h2 Related documents
           if entry.relatedEntries.length > 0
@@ -44,9 +60,11 @@ block content
                 button.btn.btn-outline-info.btn-sm(type='button', data-toggle='modal', data-target=`#m${related.id}`)
                   span.pmt-document-type(class=`pmt-document-type--${related.type.toLowerCase()}`)= related.type
                   = related.title
+                  if related.archived
+                    span.badge.badge-warning.ml-1 Archived
           else
             p.text-muted No other documents under these parent policies.
-        if entry.entry.type === 'Policy'
+        if entry.entry.type === 'Policy' && !entry.entry.archived
           h2 Create a child
           .pmt-related-links
             a.btn.btn-sm.btn-primary(href=`/pmt/create?type=Manual&parent=${entry.entry.id}`) + Manual
@@ -79,6 +97,8 @@ block content
           .modal-header
             div
               h2.modal-title.h5= ent.title || `Entry ${ref}`
+              if ent.archived
+                span.badge.badge-warning Archived
               if ent.type === 'Template'
                 button.btn.btn-sm.pmt-copy-button.mt-2(type='button', data-md=ent.content_md, onclick="CopyThis(this, 'md')", aria-live='polite') Copy
             button.close(type='button', data-dismiss='modal', aria-label='Close')

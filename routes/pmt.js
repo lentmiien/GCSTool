@@ -14,6 +14,9 @@ router.get('/details/:id', controller.details);
 router.get('/legacy/:id', controller.legacyDetails);
 router.get('/edit/:id', controller.edit);
 router.post('/editentry/:id', controller.editentry);
+router.post('/archive/:id', controller.archive);
+router.post('/restore/:id', controller.restore);
+router.post('/delete/:id', controller.deleteEntry);
 router.get('/logs', controller.logs);                  // all logs
 router.get('/reviews', controller.reviews);            // only flagged‑for‑review
 router.post('/log/:id/complete', controller.complete); // mark review as done

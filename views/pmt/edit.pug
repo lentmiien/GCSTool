@@ -22,6 +22,11 @@ block content
     select#policies.form-control(name='policyIds' multiple size=5 onchange='showPreview()')
       each p in policies
         option(value=p.id selected=(selected.includes(p.id)))= `${p.id} – ${p.title}`
+    each parent in entry.parentEntries
+      if parent.archived
+        p.mb-1
+          a(href=`/pmt/details/${parent.id}`)= parent.title
+          span.badge.badge-warning.ml-1 Archived parent
     label(for="editor") Content
     .row 
       .col-12.col-xl-8

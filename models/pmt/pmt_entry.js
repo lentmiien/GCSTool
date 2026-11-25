@@ -12,6 +12,11 @@ module.exports = (sequelize, type) => {
       type: type.STRING,
       allowNull: false,
     },
+    archived: {
+      type: type.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     current_version: {
       type: type.INTEGER,
       allowNull: false,

@@ -364,6 +364,14 @@ async function ensureCaseTrackerSchema() {
 
 // Create all necessary tables: GCS Tool
 const gcsDatabaseReady = sequelize.sync().then(async () => {
+  const queryInterface = sequelize.getQueryInterface();
+  const entryTable = PMTEntry.getTableName();
+  const entryColumns = await queryInterface.describeTable(entryTable);
+  if (!entryColumns.archived) {
+    await queryInterface.addColumn(entryTable, 'archived', {
+      type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false,
+    });
+  }
   await seedAppSettings(AppSetting);
   await seedDailyTaskTypes();
   await ensureCaseTrackerSchema();

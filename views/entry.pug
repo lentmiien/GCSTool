@@ -76,6 +76,8 @@ block content
             each titlePart in titleParts
               span(class=titlePart.label ? 'highlight' : '')= titlePart.text
           if entry.source === 'pmt'
+            if entry.archived
+              span.badge.badge-warning Archived
             span.badge.badge-secondary= `Library · ${entry.type}`
           else
             span(class=`label ${entry.ismaster ? 'master' : 'private'}`, title=entry.ismaster ? 'Master' : 'Private', aria-label=entry.ismaster ? 'Master' : 'Private')= entry.ismaster ? 'M' : 'P'

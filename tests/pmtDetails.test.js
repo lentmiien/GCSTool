@@ -247,3 +247,24 @@ test('library renders template chunks while legacy templates remain in textareas
     expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(expected);
   }
 });
+
+test('archived documents retain previews and copying and show status on relationship buttons', async () => {
+  const archived = (id, type) => ({ id, type, title: type, content_md: 'Archived content', archived: true });
+  await mount('Template', {
+    entry: archived(3, 'Template'),
+    parentEntries: [archived(1, 'Policy')],
+    childEntries: [archived(5, 'Manual')],
+    children: [{ child_id: 5 }],
+  }, [archived(4, 'Template')]);
+
+  expect(document.querySelector('header.app-page-header').textContent).toContain('Archived');
+  expect(document.querySelector('a[href="/pmt/edit/3"]')).toBeNull();
+  expect(document.querySelector('form[action="/pmt/restore/3"]')).not.toBeNull();
+  expect(document.querySelector('form[action="/pmt/delete/3"]')).toBeNull();
+  for (const id of [1, 4, 5]) {
+    expect(document.querySelector(`[data-target="#m${id}"]`).textContent).toContain('Archived');
+    expect(document.querySelector(`#m${id} .modal-header`).textContent).toContain('Archived');
+  }
+  await window.CopySelectedVersion(document.querySelector('#copy-markdown'));
+  expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Archived content');
+});

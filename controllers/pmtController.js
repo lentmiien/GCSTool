@@ -71,19 +71,6 @@ function parseParentIds(value) {
   return Array.from(new Set(values.map((id) => parsePositiveId(id, 'parent policy ID'))));
 }
 
-async function validateParentIds(parentIds, policies) {
-  if (parentIds.length === 0) {
-    return;
-  }
-  const availablePolicies = policies || await pmt.fetchPolicies();
-  const validIds = new Set(availablePolicies.map((policy) => Number(policy.id)));
-  if (parentIds.some((parentId) => !validIds.has(parentId))) {
-    const error = new Error('One or more parent policies do not exist.');
-    error.status = 400;
-    throw error;
-  }
-}
-
 function renderContent(markdown, type) {
   const text = String(markdown || '');
   if (type !== 'Template') {
@@ -124,7 +111,9 @@ exports.create = asyncHandler(async (req, res) => {
   const selected = [];
   if (req.query.parent) {
     const parentId = parsePositiveId(req.query.parent, 'parent policy ID');
-    await validateParentIds([parentId], policies);
+    if (!policies.some(policy => policy.id === parentId)) {
+      throw Object.assign(new Error('Choose an active parent policy.'), { status: 400 });
+    }
     selected.push(parentId);
   }
   let draft = {};
@@ -149,21 +138,14 @@ exports.savenew = asyncHandler(async (req, res) => {
   const contentMarkdown = requireText(req.body.content_md, 'content', 1000000, true);
   const category = requireChoice(req.body.category, PMT_CATEGORIES, 'category');
   const parentIds = parseParentIds(req.body.policyIds);
-  await validateParentIds(parentIds);
   const id = await pmt.createEntry({
     type,
     title,
     content_md: contentMarkdown,
     category,
+    parentIds,
     user: req.user.userid,
   });
-  if (parentIds.length > 0) {
-    await pmt.replaceParents({
-      entryId: id,
-      parentIds,
-      user: req.user.userid,
-    });
-  }
   res.redirect(`/pmt/details/${id}`);
 });
 
@@ -184,6 +166,7 @@ exports.details = asyncHandler(async (req, res) => {
   const entryMap = {};
   for (const relatedEntry of entry.parentEntries.concat(entry.childEntries, entry.relatedEntries)) {
     entryMap[relatedEntry.id] = {
+      archived: relatedEntry.archived,
       title: relatedEntry.title,
       type: relatedEntry.type,
       content_md: relatedEntry.content_md,
@@ -198,8 +181,9 @@ exports.details = asyncHandler(async (req, res) => {
 exports.edit = asyncHandler(async (req, res) => {
   const entryId = parsePositiveId(req.params.id, 'entry ID');
   const entry = await pmt.fetchEntry(entryId);
-  const policies = await pmt.fetchPolicies();
-  const selected = (await pmt.fetchParentDependencies(entryId)).map((parent) => parent.parent_id);
+  if (entry.entry.archived) return res.redirect(`/pmt/details/${entryId}`);
+  const policies = (await pmt.fetchPolicies()).filter(policy => policy.id !== entryId);
+  const selected = entry.parents.map(parent => parent.parent_id);
   res.render('pmt/edit', { entry, policies, selected });
 });
 
@@ -208,19 +192,33 @@ exports.editentry = asyncHandler(async (req, res) => {
   const title = requireText(req.body.title, 'title', 255);
   const contentMarkdown = requireText(req.body.content_md, 'content', 1000000, true);
   const parentIds = parseParentIds(req.body.policyIds).filter((parentId) => parentId !== entryId);
-  await validateParentIds(parentIds);
   await pmt.updateEntry({
     entryId,
     title,
     newContentMarkdown: contentMarkdown,
-    user: req.user.userid,
-  });
-  await pmt.replaceParents({
-    entryId,
     parentIds,
     user: req.user.userid,
   });
   res.redirect(`/pmt/details/${entryId}`);
+});
+
+function archiveHandler(archived) {
+  return asyncHandler(async (req, res) => {
+    const id = parsePositiveId(req.params.id, 'entry ID');
+    await pmt.setArchived(id, archived, req.user.userid);
+    res.redirect(`/pmt/details/${id}`);
+  });
+}
+
+exports.archive = archiveHandler(true);
+exports.restore = archiveHandler(false);
+
+exports.deleteEntry = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'admin') {
+    throw Object.assign(new Error('Administrator access required.'), { status: 403 });
+  }
+  await pmt.deleteEntry(parsePositiveId(req.params.id, 'entry ID'));
+  res.redirect('/pmt');
 });
 
 exports.logs = asyncHandler(async (_req, res) => {

@@ -1,40 +1,102 @@
-const { pmt, Op } = require('../sequelize');
+const { pmt, Op, sequelize } = require('../sequelize');
 const { fn, col, where: sqlWhere } = require('sequelize');
 const parseSearchTerms = require('../utils/parseSearchTerms');
 
+async function lockEntry(entryId, transaction) {
+  const entry = await pmt.PMTEntry.findByPk(entryId, { transaction, lock: true });
+  if (!entry) throw new Error('Entry not found');
+  return entry;
+}
+
+function requireEditable(entry) {
+  if (entry.archived) {
+    throw Object.assign(new Error('Restore this entry before editing it.'), { status: 409 });
+  }
+}
+
+async function flagChildren(entryId, user, reason, transaction) {
+  const children = await pmt.PMTDependencies.findAll({
+    where: { parent_id: entryId }, transaction, lock: true,
+  });
+  const childIds = [...new Set(children.map(child => child.child_id))];
+  if (childIds.length) {
+    await pmt.PMTLog.bulkCreate(childIds.map(childId => ({
+      action: 'flagged-for-review',
+      entry_id: childId,
+      action_by: user,
+      details: `Dependency parent (ID ${entryId}) ${reason}. Please review this entry.`,
+    })), { transaction });
+  }
+}
+
+async function setParents(entryId, parentIds, user, transaction) {
+  const links = await pmt.PMTDependencies.findAll({ where: { child_id: entryId }, transaction, lock: true });
+  const existing = new Set(links.map(link => link.parent_id));
+  const ids = [...new Set([...parentIds, ...existing])];
+  if (!ids.length) return;
+
+  const policies = await pmt.PMTEntry.findAll({
+    where: { id: ids, type: 'Policy' }, transaction, lock: true,
+  });
+  const active = new Set(policies.filter(policy => !policy.archived).map(policy => policy.id));
+  if (parentIds.some(id => !active.has(id))) {
+    throw Object.assign(new Error('Choose an active parent policy.'), { status: 400 });
+  }
+
+  // Archived parents are omitted from the picker. Keep their existing links.
+  const removed = [...existing].filter(id => active.has(id) && !parentIds.includes(id));
+  if (removed.length) {
+    await pmt.PMTDependencies.destroy({ where: { child_id: entryId, parent_id: removed }, transaction });
+  }
+  for (const parentId of parentIds.filter(id => !existing.has(id))) {
+    const link = await pmt.PMTDependencies.create({ parent_id: parentId, child_id: entryId }, { transaction });
+    await pmt.PMTLog.create({
+      action: 'dependencies-updated', entry_id: entryId, action_by: user,
+      details: `Now depends on entry ID ${parentId} (dependency ID ${link.id})`,
+    }, { transaction });
+  }
+}
+
+async function saveVersion(entry, content, user, action, details, transaction) {
+  entry.current_version += 1;
+  entry.content_md = content;
+  await entry.save({ transaction });
+  await pmt.PMTVersion.create({
+    entry_id: entry.id, version_number: entry.current_version, content_md: content, created_by: user,
+  }, { transaction });
+  await pmt.PMTLog.create({ action, entry_id: entry.id, action_by: user, details }, { transaction });
+  await flagChildren(entry.id, user, 'updated', transaction);
+  return entry.id;
+}
+
 class DocMgmtService {
-  async createEntry({type, title, content_md, category, user}) {
-    try {
-      // 1. Create Entry (no current_version yet)
+  async createEntry({ type, title, content_md, category, user, parentIds = [] }) {
+    return sequelize.transaction(async transaction => {
       const newEntry = await pmt.PMTEntry.create({
         type,
         title,
         content_md,
         current_version: 1,
         category,
-      });
+      }, { transaction });
 
-      // 2. Create first Version
-      const newVersion = await pmt.PMTVersion.create({
+      await pmt.PMTVersion.create({
         entry_id: newEntry.id,
         content_md,
         version_number: 1,
         created_by: user,
-      });
+      }, { transaction });
 
-      // 3. Add log
-      const newLog = await pmt.PMTLog.create({
-        action: "created",
+      await pmt.PMTLog.create({
+        action: 'created',
         entry_id: newEntry.id,
         action_by: user,
         details: `Created new ${type} entry with version 1`,
-      });
+      }, { transaction });
 
+      await setParents(newEntry.id, parentIds, user, transaction);
       return newEntry.id;
-    } catch (error) {
-      console.error("Error creating entry:", error);
-      throw error;
-    }
+    });
   }
 
   async fetchEntry(entryId) {
@@ -69,115 +131,54 @@ class DocMgmtService {
     }
   }
 
-  async updateEntry({entryId, title, newContentMarkdown, user}) {
-    try {
-      const entry = await pmt.PMTEntry.findByPk(entryId);
-      if (!entry) throw new Error('Entry not found');
-
-      // Determine new version number
-      const nextVersionNum = entry.current_version + 1;
-
-      // Create new Version
-      const newVersion = await pmt.PMTVersion.create({
-        entry_id: entry.id,
-        content_md: newContentMarkdown,
-        version_number: nextVersionNum,
-        created_by: user,
-      });
-
-      // Update entry
+  async updateEntry({ entryId, title, newContentMarkdown, user, parentIds }) {
+    return sequelize.transaction(async transaction => {
+      const entry = await lockEntry(entryId, transaction);
+      requireEditable(entry);
+      if (parentIds) await setParents(entryId, parentIds, user, transaction);
       entry.title = title;
-      entry.current_version = nextVersionNum;
-      entry.content_md = newContentMarkdown;
-      await entry.save();
-
-      // Add log
-      const newLog = await pmt.PMTLog.create({
-        action: "modified",
-        entry_id: entry.id,
-        action_by: user,
-        details: `Content updated to version ${nextVersionNum}`,
-      });
-
-      // Flag descendants for review
-      const descendants = await this.fetchChildDependencies(entryId);
-      for (const child of descendants) {
-        const newLogForReview = await pmt.PMTLog.create({
-          action: "flagged-for-review",
-          entry_id: child.child_id,
-          action_by: user,
-          details: `Dependency parent (ID ${entryId}) updated. Please review this entry.`,
-        });
-      }
-
-      return entryId;
-    } catch (error) {
-      console.error("Error updating entry:", error);
-      throw error;
-    }
+      return saveVersion(entry, newContentMarkdown, user, 'modified',
+        `Content updated to version ${entry.current_version + 1}`, transaction);
+    });
   }
 
   async revertToVersion({ entryId, revertToVersionId, user }) {
-    try {
-      const entry = await pmt.PMTEntry.findByPk(entryId);
-      if (!entry) throw new Error('Entry not found');
-      const oldVersion = await pmt.PMTVersion.findByPk(revertToVersionId);
-      if (!oldVersion || oldVersion.entry_id !== entryId) throw new Error('Version not found for this entry');
-
-      // Determine new version number
-      const nextVersionNum = entry.current_version + 1;
-
-      // Create new Version
-      const newVersion = await pmt.PMTVersion.create({
-        entry_id: entry.id,
-        content_md: oldVersion.content_md,
-        version_number: nextVersionNum,
-        created_by: user,
-      });
-
-      // Update entry
-      entry.current_version = nextVersionNum;
-      entry.content_md = oldVersion.content_md;
-      await entry.save();
-
-      // Add log
-      const newLog = await pmt.PMTLog.create({
-        action: "reverted",
-        entry_id: entry.id,
-        action_by: user,
-        details: `Reverted to version ${oldVersion.version_number} (ID ${revertToVersionId})`,
-      });
-
-      // Flag descendants for review
-      const descendants = await this.fetchChildDependencies(entryId);
-      for (const child of descendants) {
-        const newLogForReview = await pmt.PMTLog.create({
-          action: "flagged-for-review",
-          entry_id: child.child_id,
-          action_by: user,
-          details: `Dependency parent (ID ${entryId}) updated. Please review this entry.`,
-        });
-      }
-
-      return entryId;
-    } catch (error) {
-      console.error("Error reverting entry:", error);
-      throw error;
-    }
+    return sequelize.transaction(async transaction => {
+      const entry = await lockEntry(entryId, transaction);
+      requireEditable(entry);
+      const version = await pmt.PMTVersion.findByPk(revertToVersionId, { transaction });
+      if (!version || version.entry_id !== entryId) throw new Error('Version not found for this entry');
+      return saveVersion(entry, version.content_md, user, 'reverted',
+        `Reverted to version ${version.version_number} (ID ${revertToVersionId})`, transaction);
+    });
   }
 
-  async addDependency({ parentEntryId, childEntryId, user }) {
-    const newDependency = await pmt.PMTDependencies.create({
-      parent_id: parentEntryId,
-      child_id: childEntryId,
+  async setArchived(entryId, archived, user) {
+    return sequelize.transaction(async transaction => {
+      const entry = await lockEntry(entryId, transaction);
+      if (entry.archived === archived) return;
+      await entry.update({ archived }, { transaction });
+      if (archived) {
+        await pmt.PMTLog.create({
+          action: 'archived', entry_id: entryId, action_by: user, details: `Archived by ${user}`,
+        }, { transaction });
+        if (entry.type === 'Policy') await flagChildren(entryId, user, 'archived', transaction);
+      } else {
+        await pmt.PMTLog.destroy({ where: { entry_id: entryId, action: 'archived' }, transaction });
+      }
     });
+  }
 
-    // Add log
-    const newLog = await pmt.PMTLog.create({
-      action: "dependencies-updated",
-      entry_id: childEntryId,
-      action_by: user,
-      details: `Now depends on entry ID ${parentEntryId} (dependency ID ${newDependency.id})`,
+  async deleteEntry(entryId) {
+    return sequelize.transaction(async transaction => {
+      const entry = await lockEntry(entryId, transaction);
+      await pmt.PMTDependencies.destroy({
+        where: { [Op.or]: [{ parent_id: entryId }, { child_id: entryId }] }, transaction,
+      });
+      const options = { where: { entry_id: entryId }, transaction };
+      await pmt.PMTVersion.destroy(options);
+      await pmt.PMTLog.destroy(options);
+      await entry.destroy({ transaction });
     });
   }
 
@@ -223,15 +224,6 @@ class DocMgmtService {
     return true;
   }
 
-  async replaceParents({ entryId, parentIds, user }) {
-    // delete existing
-    await pmt.PMTDependencies.destroy({ where: { child_id: entryId }});
-    // re‑add
-    for (const pid of parentIds) {
-      await this.addDependency({ parentEntryId: pid, childEntryId: entryId, user });
-    }
-  }
-
   async fetchParentDependencies(entryId) {
     return await pmt.PMTDependencies.findAll({where: {child_id: entryId}});
   }
@@ -266,7 +258,7 @@ class DocMgmtService {
   }
 
   async fetchPolicies() {
-    return await pmt.PMTEntry.findAll({ where: { type: 'Policy' }});
+    return await pmt.PMTEntry.findAll({ where: { type: 'Policy', archived: false }});
   }
 
   async ClearDatabase() {
