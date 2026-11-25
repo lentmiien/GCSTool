@@ -36,6 +36,7 @@ module.exports = [
         item('Loaded environment settings from the project directory regardless of the startup working directory and added an early check for a missing session secret'),
       ]),
       item('Policy, manual & template library', [
+        item('Templates - Use Markdown editing and display template content as raw text'),
         item('Added archive and restore controls for all users, with archived status labels, archive attribution, archived policy exclusion from parent selection, and review flags for dependent entries'),
         item('Added administrator deletion of entries with all versions and linked activity and dependency records'),
         item('Legacy entries - Allowed shared entries to be viewed across teams while preserving private-entry visibility and team-scoped editing and deletion'),

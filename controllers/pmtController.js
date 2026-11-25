@@ -82,11 +82,7 @@ function renderContent(markdown, type) {
   const title = TEMPLATE_TITLE_LABELS.has(label) ? titleLine[2].trim() : '';
   // Remove only the title line; preserve the remaining body exactly for copying.
   const body = title ? text.slice(titleLine[0].length) : text;
-  return renderTemplate({
-    title,
-    body,
-    bodyHtml: sanitizeHtml(marked.parse(body, { breaks: true })),
-  });
+  return renderTemplate({ title, body });
 }
 
 exports.top = asyncHandler(async (req, res) => {

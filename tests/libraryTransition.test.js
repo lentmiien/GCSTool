@@ -198,16 +198,31 @@ test.each([pmtController.legacyDetails, pmtController.create])('inaccessible leg
   await expect(invoke(handler, { query: { legacy: '../1' }, params: { id: '../1' } })).rejects.toMatchObject({ status: 400 });
 });
 
-test('manual prefill uses HTML conversion, templates use Markdown, and Save submits the edited draft', async () => {
+test('manual prefill uses WYSIWYG and HTML conversion, and Save submits the edited draft', async () => {
   const editor = { setHTML: jest.fn(), setMarkdown: jest.fn(), getMarkdown: jest.fn(() => 'Edited content') };
   window.toastui = { Editor: jest.fn(() => editor) };
   mount(await invoke(pmtController.create, { query: { legacy: '1' } }));
-  window.eval(fs.readFileSync('public/js/pmt/create.js', 'utf8'));
+  window.eval(fs.readFileSync('public/js/pmt/form.js', 'utf8'));
+  expect(window.toastui.Editor).toHaveBeenCalledWith(expect.objectContaining({ initialEditType: 'wysiwyg' }));
   expect(editor.setHTML).toHaveBeenCalledWith('<h2>First</h2>\n\n<p>Second</p>');
   document.querySelector('#form').dispatchEvent(new Event('submit'));
   expect(document.querySelector('#content_md').value).toBe('Edited content');
   expect(Entry.create).not.toHaveBeenCalled();
   expect(service.createEntry).not.toHaveBeenCalled();
+});
+
+test('new templates start in Markdown and changing the type switches the editor mode', async () => {
+  const editor = { setMarkdown: jest.fn(), changeMode: jest.fn() };
+  window.toastui = { Editor: jest.fn(() => editor) };
+  mount(await invoke(pmtController.create));
+  window.eval(fs.readFileSync('public/js/pmt/form.js', 'utf8'));
+  expect(window.toastui.Editor).toHaveBeenCalledWith(expect.objectContaining({ initialEditType: 'markdown' }));
+  const type = document.querySelector('#type');
+  for (const [value, mode] of [['Policy', 'wysiwyg'], ['Manual', 'wysiwyg'], ['Template', 'markdown']]) {
+    type.value = value;
+    type.dispatchEvent(new Event('change'));
+    expect(editor.changeMode).toHaveBeenLastCalledWith(mode, true);
+  }
 });
 
 test('plain PMT creation still supports type and parent selection', async () => {

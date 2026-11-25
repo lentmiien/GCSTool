@@ -65,7 +65,7 @@ test('template detail copies raw Markdown for latest, historical, and reselected
   version.selectedIndex = 1;
   window.UpdateVersion(version);
   expect(button.textContent).toBe('Copy');
-  expect(document.querySelector('#content h1').textContent).toBe('Old reply');
+  expect(document.querySelector('#content .pmt-template-body').textContent).toBe(oldMarkdown);
   await window.CopySelectedVersion(button);
   expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(oldMarkdown);
   version.selectedIndex = 0;
@@ -157,8 +157,7 @@ test.each([
   });
   const checkParts = async () => {
     expect(document.querySelector('#content .pmt-template-title').textContent).toBe('Your order & "update"');
-    expect(document.querySelectorAll('#content .pmt-template-body br')).toHaveLength(3);
-    expect(document.querySelector('#content .pmt-template-body strong').textContent).toBe('customer');
+    expect(document.querySelector('#content .pmt-template-body').textContent).toBe(body);
     await window.CopyThis(document.querySelector('#content [aria-label="Copy title"]'), 'md');
     expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith('Your order & "update"');
     await window.CopyThis(document.querySelector('#content [aria-label="Copy body"]'), 'md');
@@ -202,7 +201,7 @@ test.each(['Title: Only a title', 'Title: Only a title\r\n'])('title-only templa
   expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith('');
 });
 
-test('related template previews escape titles, sanitize bodies, and preserve line breaks', async () => {
+test('related template previews show literal titles, markup, and line breaks', async () => {
   const title = '<img src=x onerror="alert(1)">';
   await mount('Manual', {}, [{
     id: 4, type: 'Template', title: 'Reply',
@@ -210,7 +209,7 @@ test('related template previews escape titles, sanitize bodies, and preserve lin
   }]);
   expect(document.querySelector('#m4 .pmt-template-title').textContent).toBe(title);
   expect(document.querySelector('#m4 .modal-body img, #m4 .modal-body script')).toBeNull();
-  expect(document.querySelectorAll('#m4 .pmt-template-body br')).toHaveLength(1);
+  expect(document.querySelector('#m4 .pmt-template-body').textContent).toBe('Hello\nWorld\n\n<script>alert(1)</script>');
   await window.CopyThis(document.querySelector('#m4 [aria-label="Copy title"]'), 'md');
   expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(title);
 });
@@ -236,7 +235,7 @@ test('library renders template chunks while legacy templates remain in textareas
   document.documentElement.innerHTML = pug.renderFile('views/pmt/pmt.pug', locals);
   window.eval(fs.readFileSync('public/js/pmt/pmt.js', 'utf8'));
   expect(document.querySelectorAll('.pmt-template-chunk')).toHaveLength(2);
-  expect(document.querySelectorAll('.pmt-template-body br')).toHaveLength(1);
+  expect(document.querySelector('.pmt-template-body').textContent).toBe('Hello\nWorld');
   expect(document.querySelector('textarea').value).toBe(content);
   for (const [selector, expected] of [
     ['[aria-label="Copy title"]', 'Order update'],

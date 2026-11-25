@@ -45,7 +45,7 @@ block content
     label(for="editor") Content
     .row 
       .col-12.col-xl-8
-        #editor 
+        #editor.pmt-content-editor
         input#content_md(type="hidden", name="content_md", value=initial.content, data-format=initial.format)
       .col-12.col-xl-4.mt-3.mt-xl-0
         h4 Preview selected Policies
@@ -55,4 +55,4 @@ block content
   script(src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js", defer)
   script(src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js", defer)
   script(src="/js/pmt/preview.js", defer)
-  script(src="/js/pmt/create.js", defer)
+  script(src="/js/pmt/form.js", defer)

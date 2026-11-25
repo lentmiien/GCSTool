@@ -2194,8 +2194,14 @@ html[data-color-mode='light'] .pmt-review-count {
   margin-bottom: 0.75rem;
 }
 
-.pmt-template-body > :last-child {
-  margin-bottom: 0;
+.pmt-template-title,
+.pmt-template-body {
+  white-space: pre-wrap;
+}
+
+/* The Markdown toolbar has Write and Preview tabs. Keep only Write available. */
+.pmt-content-editor .toastui-editor-md-tab-container .tab-item:last-child {
+  display: none;
 }
 
 .pmt-entry-actions {
